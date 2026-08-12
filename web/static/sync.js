@@ -86,8 +86,6 @@
         const selected = available ? key : "overview";
         $$(".page-section").forEach(section => section.classList.toggle("active", section.dataset.section === selected));
         $$(".nav-item").forEach(item => item.classList.toggle("active", item.dataset.sectionKey === selected));
-        const menu = state.navigation.find(item => item.menu_key === selected);
-        $("#pageTitle").textContent = menu ? menu.label_zh : "同步总览";
         if (location.hash !== `#${selected}`) history.replaceState(null, "", `#${selected}`);
     }
 
@@ -307,7 +305,6 @@
             await loadNavigation();
             await Promise.all([loadConnections(), loadJobs(), loadMappings(), loadRuns(), loadSettings()]);
             await loadOverview();
-            $("#lastUpdated").textContent = `更新于 ${formatDate(new Date().toISOString(), true)}`;
         } catch (error) {
             setAlert(`同步中心加载失败：${error.message}`);
             $("#globalStatusDot").className = "status-dot offline";
@@ -406,8 +403,6 @@
     });
 
     window.addEventListener("hashchange", () => setActiveSection(location.hash.slice(1)));
-    $("#refreshPage").addEventListener("click", loadAll);
-    $("#testAllConnections").addEventListener("click", event => runAllConnectionTests(event.currentTarget));
     $("#testConnectionsPage").addEventListener("click", event => runAllConnectionTests(event.currentTarget));
     $("#compileMappings").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true; button.textContent = "编译中…";

@@ -73,15 +73,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .status-dot.offline { background: var(--red); box-shadow: 0 0 0 4px rgba(255,107,120,.1); }
 
 .workspace { min-width: 0; }
-.topbar {
-    position: sticky; top: 0; z-index: 15; display: flex; align-items: center; justify-content: space-between;
-    min-height: 82px; padding: 14px 32px; border-bottom: 1px solid var(--line);
-    background: rgba(7,20,29,.9); backdrop-filter: blur(18px);
-}
-.topbar h1 { margin: 2px 0 0; font-size: 21px; letter-spacing: -.03em; }
-.eyebrow, .section-kicker, .hero-kicker { margin: 0; color: var(--teal); font-size: 9px; font-weight: 850; letter-spacing: .15em; }
-.topbar-actions { display: flex; align-items: center; gap: 10px; }
-.updated-at { margin-right: 4px; color: var(--dim); font-size: 10px; }
+.section-kicker, .hero-kicker { margin: 0; color: var(--teal); font-size: 9px; font-weight: 850; letter-spacing: .15em; }
 .btn { min-height: 36px; padding: 0 15px; border: 1px solid transparent; border-radius: 9px; font-size: 11px; font-weight: 750; cursor: pointer; transition: .17s ease; }
 .btn:disabled { opacity: .5; cursor: wait; }
 .btn.primary { color: #04221e; background: var(--teal); }
