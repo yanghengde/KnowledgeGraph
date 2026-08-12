@@ -135,6 +135,7 @@ Schema：`graphsync`
 | 映射 | `catalog_snapshot`, `class_mapping`, `property_mapping`, `relationship_mapping`, `mapping_override` |
 | 业务图谱 | `graph_profile`, `profile_class`, `profile_relationship`, `context_validation`, `pending_reference` |
 | 数据治理 | `data_contract`, `relationship_contract`, `curation_run`, `data_quality_result`；业务投影位于 `camstar_curated` schema |
+| Schema 演进 | `data_contract_field`, `asset_dependency`, `schema_change_request`, `schema_change_item`, `schema_migration_run` |
 | 审计 | `artifact`, `validation_result`, `row_state` |
 
 DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapshot`，新编译失败不会破坏当前 `ready` 版本。
@@ -144,6 +145,8 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 控制面 v7 增加业务图谱配置：完整本体仍可发布为模型层，实例层按核心/上下文/参考/按需对象和核心/上下文/弱关系构建受控闭包。初始草案以 `Product`、`MfgOrder` 为核心种子；关系必须来自实际映射目录并经过审核，弱关系不能驱动扩展。页面中的闭包预览不读取 Camstar 业务行，也不修改 Graph Studio。
 
 控制面 v8 增加 `camstar_curated` 治理层和版本化数据契约。首批契约覆盖 Product、MfgOrder，并把 `ProductId → Product.ProductId`（订单目标产品）与 `BeginProductId → Product.ProductId`（订单起始产品）作为两条独立关系审核。`preview-curation` 只执行有上限的主键、业务键、必填字段、物理映射、增量水位和引用完整性检查；它仅在 PostgreSQL 记录聚合质量证据，不保存源行、不写 curated 业务表，也不写 Graph Studio。
+
+控制面 v9 增加字段级 Schema 演进中心。每个治理字段使用稳定 `field_key` 管理来源、目标、类型、键角色、生命周期和本体属性；`asset_dependency` 显式记录它对 curated 列、关系、本体属性、Graph Studio 谓词及下游查询/API 的影响。新增、废弃、退役、重命名、改类型、改必填、改键、改来源和改转换都必须先生成兼容性分析，再经过复核和审批。有条件或破坏性变更必须提供迁移方案，破坏性变更还必须提供回滚方案。v9 只审批变更计划，不执行源库 DDL、不改 curated 业务表，也不发布 Graph Studio。
 
 `preview-incremental` 会将已规划窗口读取成统一 JSONL 变更包，支持 SQL Server CT、CDC、Oracle Flashback SCN 以及 watermark/append-only。事件包含主键、insert/update/upsert/delete 操作和数据库恢复位置；预览只生成审计产物，不提交 checkpoint，也不写 Graph Studio。
 

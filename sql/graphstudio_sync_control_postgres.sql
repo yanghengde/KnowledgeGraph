@@ -586,6 +586,141 @@ CREATE TABLE IF NOT EXISTS graphsync.data_quality_result (
 CREATE INDEX IF NOT EXISTS ix_graphsync_quality_run
     ON graphsync.data_quality_result (curation_run_id, severity, passed);
 
+CREATE TABLE IF NOT EXISTS graphsync.data_contract_field (
+    contract_key          text NOT NULL REFERENCES graphsync.data_contract(contract_key) ON DELETE CASCADE,
+    field_key             text NOT NULL,
+    source_column         text,
+    target_field          text NOT NULL,
+    data_type             text NOT NULL DEFAULT 'String',
+    nullable              boolean NOT NULL DEFAULT true,
+    required              boolean NOT NULL DEFAULT false,
+    field_role            text NOT NULL DEFAULT 'attribute' CHECK (field_role IN (
+                              'primary_key', 'business_key', 'freshness',
+                              'attribute', 'navigation', 'system'
+                          )),
+    lifecycle_status      text NOT NULL DEFAULT 'active' CHECK (lifecycle_status IN (
+                              'experimental', 'active', 'deprecated', 'retired'
+                          )),
+    ordinal_position      integer NOT NULL DEFAULT 100,
+    introduced_version   integer NOT NULL DEFAULT 1 CHECK (introduced_version > 0),
+    deprecated_version   integer CHECK (deprecated_version IS NULL OR deprecated_version > 0),
+    transform_expression text,
+    default_expression   text,
+    ontology_property    text,
+    sensitivity          text NOT NULL DEFAULT 'internal' CHECK (sensitivity IN (
+                              'public', 'internal', 'confidential', 'restricted'
+                          )),
+    searchable           boolean NOT NULL DEFAULT true,
+    sortable             boolean NOT NULL DEFAULT true,
+    config               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    updated_at           timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (contract_key, field_key),
+    UNIQUE (contract_key, target_field)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_contract_field_status
+    ON graphsync.data_contract_field (contract_key, lifecycle_status, ordinal_position);
+
+CREATE TABLE IF NOT EXISTS graphsync.asset_dependency (
+    dependency_id         uuid PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    upstream_type         text NOT NULL CHECK (upstream_type IN (
+                              'data_contract', 'data_contract_field',
+                              'relationship_contract', 'ontology_property'
+                          )),
+    upstream_key          text NOT NULL,
+    downstream_type       text NOT NULL CHECK (downstream_type IN (
+                              'curated_column', 'relationship_contract',
+                              'ontology_property', 'graphstudio_predicate',
+                              'query', 'dashboard', 'api', 'action'
+                          )),
+    downstream_key        text NOT NULL,
+    dependency_kind       text NOT NULL DEFAULT 'hard' CHECK (dependency_kind IN (
+                              'hard', 'soft', 'informational'
+                          )),
+    discovered_by         text NOT NULL DEFAULT 'compiler' CHECK (discovered_by IN (
+                              'compiler', 'graphstudio', 'manual', 'runtime'
+                          )),
+    active                boolean NOT NULL DEFAULT true,
+    metadata              jsonb NOT NULL DEFAULT '{}'::jsonb,
+    first_seen_at         timestamptz NOT NULL DEFAULT now(),
+    last_seen_at          timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (profile_key, upstream_type, upstream_key, downstream_type, downstream_key)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_dependency_upstream
+    ON graphsync.asset_dependency (profile_key, upstream_type, upstream_key, active);
+
+CREATE TABLE IF NOT EXISTS graphsync.schema_change_request (
+    change_id             uuid PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    contract_key          text NOT NULL REFERENCES graphsync.data_contract(contract_key) ON DELETE CASCADE,
+    base_version          integer NOT NULL CHECK (base_version > 0),
+    target_version        integer NOT NULL CHECK (target_version > base_version),
+    title                 text NOT NULL,
+    description           text,
+    status                text NOT NULL DEFAULT 'draft' CHECK (status IN (
+                              'draft', 'analysis_ready', 'reviewed', 'approved',
+                              'applying', 'applied', 'rejected', 'failed',
+                              'rolled_back'
+                          )),
+    compatibility         text NOT NULL DEFAULT 'non_breaking' CHECK (compatibility IN (
+                              'non_breaking', 'conditional', 'breaking'
+                          )),
+    migration_strategy    text,
+    rollback_strategy     text,
+    impact_summary        jsonb NOT NULL DEFAULT '{}'::jsonb,
+    requested_by          text,
+    approved_by           text,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    approved_at           timestamptz,
+    applied_at            timestamptz
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_schema_change_contract
+    ON graphsync.schema_change_request (contract_key, status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS graphsync.schema_change_item (
+    item_id               uuid PRIMARY KEY,
+    change_id             uuid NOT NULL REFERENCES graphsync.schema_change_request(change_id) ON DELETE CASCADE,
+    sequence_no           integer NOT NULL,
+    operation             text NOT NULL CHECK (operation IN (
+                              'add_field', 'deprecate_field', 'retire_field',
+                              'rename_field', 'change_type', 'change_required',
+                              'change_key', 'change_source', 'change_transform'
+                          )),
+    field_key             text NOT NULL,
+    before_state          jsonb,
+    after_state           jsonb,
+    compatibility         text NOT NULL CHECK (compatibility IN (
+                              'non_breaking', 'conditional', 'breaking'
+                          )),
+    migration_required    boolean NOT NULL DEFAULT false,
+    backfill_required     boolean NOT NULL DEFAULT false,
+    dependency_count      integer NOT NULL DEFAULT 0,
+    notes                 text,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (change_id, sequence_no)
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.schema_migration_run (
+    migration_run_id      uuid PRIMARY KEY,
+    change_id             uuid NOT NULL REFERENCES graphsync.schema_change_request(change_id) ON DELETE CASCADE,
+    status                text NOT NULL CHECK (status IN (
+                              'planned', 'started', 'backfilling', 'verifying',
+                              'succeeded', 'failed', 'rolled_back'
+                          )),
+    preview_only          boolean NOT NULL DEFAULT true,
+    started_at            timestamptz NOT NULL DEFAULT now(),
+    finished_at           timestamptz,
+    affected_rows         bigint NOT NULL DEFAULT 0,
+    checkpoint            jsonb,
+    verification          jsonb NOT NULL DEFAULT '{}'::jsonb,
+    error                 jsonb
+);
+
 -- Curated tables contain only governance-approved projections. The initial
 -- implementation creates the contract-shaped targets but preview runs do not
 -- write business rows into them.
@@ -727,6 +862,16 @@ CREATE TRIGGER trg_relationship_contract_updated
 BEFORE UPDATE ON graphsync.relationship_contract
 FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 
+DROP TRIGGER IF EXISTS trg_data_contract_field_updated ON graphsync.data_contract_field;
+CREATE TRIGGER trg_data_contract_field_updated
+BEFORE UPDATE ON graphsync.data_contract_field
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_schema_change_request_updated ON graphsync.schema_change_request;
+CREATE TRIGGER trg_schema_change_request_updated
+BEFORE UPDATE ON graphsync.schema_change_request
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
 CREATE OR REPLACE VIEW graphsync.latest_job_run AS
 SELECT DISTINCT ON (job_name)
        job_name, run_id, status, trigger_type, started_at, finished_at,
@@ -794,6 +939,10 @@ ON CONFLICT (version) DO NOTHING;
 
 INSERT INTO graphsync.schema_version (version, description)
 VALUES (8, 'Governed Camstar curated layer and data quality contracts')
+ON CONFLICT (version) DO NOTHING;
+
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (9, 'Schema evolution requests, field lifecycle and dependency impact')
 ON CONFLICT (version) DO NOTHING;
 
 INSERT INTO graphsync.menu_item
@@ -889,6 +1038,101 @@ VALUES
      '订单起始产品', false, 'draft',
      '{"ontologyCandidate":"HAS_BEGIN_PRODUCT","requiresBusinessApproval":true}'::jsonb)
 ON CONFLICT (relationship_contract_key) DO NOTHING;
+
+INSERT INTO graphsync.data_contract_field
+    (contract_key, field_key, source_column, target_field, data_type,
+     nullable, required, field_role, lifecycle_status, ordinal_position,
+     introduced_version, ontology_property, config)
+SELECT contract.contract_key,
+       contract.contract_key || ':' || lower(source_column.value) AS field_key,
+       source_column.value,
+       coalesce(property.property_name, source_column.value) AS target_field,
+       coalesce(property.data_type, 'String') AS data_type,
+       NOT (contract.required_columns ? source_column.value) AS nullable,
+       contract.required_columns ? source_column.value AS required,
+       CASE
+         WHEN contract.primary_key_columns ? source_column.value THEN 'primary_key'
+         WHEN contract.business_key_columns ? source_column.value THEN 'business_key'
+         WHEN contract.freshness_column = source_column.value THEN 'freshness'
+         WHEN property.data_type = 'Navigation' THEN 'navigation'
+         ELSE 'attribute'
+       END AS field_role,
+       'active', source_column.ordinality * 10, contract.version,
+       property.property_name,
+       jsonb_build_object('seededFromContract', true)
+FROM graphsync.data_contract contract
+CROSS JOIN LATERAL jsonb_array_elements_text(contract.selected_columns)
+    WITH ORDINALITY AS source_column(value, ordinality)
+LEFT JOIN LATERAL (
+    SELECT mapping.property_name, mapping.data_type
+    FROM graphsync.current_property_mapping mapping
+    WHERE mapping.class_name=contract.class_name
+      AND mapping.physical_column=source_column.value
+    ORDER BY mapping.property_name
+    LIMIT 1
+) property ON true
+ON CONFLICT (contract_key, field_key) DO NOTHING;
+
+INSERT INTO graphsync.asset_dependency
+    (dependency_id, profile_key, upstream_type, upstream_key,
+     downstream_type, downstream_key, dependency_kind, discovered_by, metadata)
+SELECT gen_random_uuid(), contract.profile_key, 'data_contract_field', field.field_key,
+       'curated_column', contract.config->>'targetTable' || '.' || field.target_field,
+       'hard', 'compiler', jsonb_build_object('contractKey', contract.contract_key)
+FROM graphsync.data_contract_field field
+JOIN graphsync.data_contract contract USING (contract_key)
+WHERE contract.config ? 'targetTable'
+ON CONFLICT (profile_key, upstream_type, upstream_key, downstream_type, downstream_key)
+DO UPDATE SET active=true, last_seen_at=now(), metadata=EXCLUDED.metadata;
+
+INSERT INTO graphsync.asset_dependency
+    (dependency_id, profile_key, upstream_type, upstream_key,
+     downstream_type, downstream_key, dependency_kind, discovered_by, metadata)
+SELECT gen_random_uuid(), contract.profile_key, 'data_contract_field', field.field_key,
+       'ontology_property', contract.class_name || '.' || field.ontology_property,
+       'hard', 'compiler', jsonb_build_object('contractKey', contract.contract_key)
+FROM graphsync.data_contract_field field
+JOIN graphsync.data_contract contract USING (contract_key)
+WHERE field.ontology_property IS NOT NULL
+ON CONFLICT (profile_key, upstream_type, upstream_key, downstream_type, downstream_key)
+DO UPDATE SET active=true, last_seen_at=now(), metadata=EXCLUDED.metadata;
+
+INSERT INTO graphsync.asset_dependency
+    (dependency_id, profile_key, upstream_type, upstream_key,
+     downstream_type, downstream_key, dependency_kind, discovered_by, metadata)
+SELECT gen_random_uuid(), contract.profile_key, 'data_contract_field', field.field_key,
+       'graphstudio_predicate', contract.class_name || '.' || field.ontology_property,
+       'hard', 'compiler', jsonb_build_object('deployment', 'Opcenter2607')
+FROM graphsync.data_contract_field field
+JOIN graphsync.data_contract contract USING (contract_key)
+WHERE field.ontology_property IS NOT NULL
+ON CONFLICT (profile_key, upstream_type, upstream_key, downstream_type, downstream_key)
+DO UPDATE SET active=true, last_seen_at=now(), metadata=EXCLUDED.metadata;
+
+INSERT INTO graphsync.asset_dependency
+    (dependency_id, profile_key, upstream_type, upstream_key,
+     downstream_type, downstream_key, dependency_kind, discovered_by, metadata)
+SELECT gen_random_uuid(), relationship.profile_key, 'data_contract_field', field.field_key,
+       'relationship_contract', relationship.relationship_contract_key,
+       'hard', 'compiler', jsonb_build_object(
+           'relationshipName', relationship.relationship_name,
+           'side', dependency.side
+       )
+FROM graphsync.relationship_contract relationship
+CROSS JOIN LATERAL (
+    SELECT relationship.source_contract_key AS contract_key,
+           jsonb_array_elements_text(relationship.source_columns) AS source_column,
+           'source'::text AS side
+    UNION ALL
+    SELECT relationship.target_contract_key,
+           jsonb_array_elements_text(relationship.target_columns),
+           'target'::text
+) dependency
+JOIN graphsync.data_contract_field field
+  ON field.contract_key=dependency.contract_key
+ AND field.source_column=dependency.source_column
+ON CONFLICT (profile_key, upstream_type, upstream_key, downstream_type, downstream_key)
+DO UPDATE SET active=true, last_seen_at=now(), metadata=EXCLUDED.metadata;
 
 INSERT INTO graphsync.app_setting (setting_key, value, description, editable)
 VALUES

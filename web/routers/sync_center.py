@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from functools import lru_cache
 from typing import Any, Literal
 
@@ -18,6 +19,7 @@ from src.graphstudio_sync.graph_profile import plan_context_closure, validate_gr
 from src.graphstudio_sync.repository import ControlPlaneRepository
 from src.graphstudio_sync.preview import build_full_preview
 from src.graphstudio_sync.run_manager import execute_dry_run
+from src.graphstudio_sync.schema_evolution import analyze_schema_change
 
 
 router = APIRouter(prefix="/api/sync", tags=["Graph Studio Sync"])
@@ -163,6 +165,32 @@ class RelationshipContractUpdate(BaseModel):
     status: Literal["draft", "reviewed", "approved", "retired"] = "draft"
     semantic_role: str = Field(min_length=1, max_length=200)
     required_context: bool = False
+
+
+class SchemaChangeOperation(BaseModel):
+    operation: Literal[
+        "add_field", "deprecate_field", "retire_field", "rename_field",
+        "change_type", "change_required", "change_key", "change_source",
+        "change_transform",
+    ]
+    field_key: str = Field(min_length=1, max_length=300)
+    after_state: dict[str, Any] | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class SchemaChangeCreate(BaseModel):
+    contract_key: str = Field(min_length=1, max_length=300)
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=4000)
+    migration_strategy: str | None = Field(default=None, max_length=8000)
+    rollback_strategy: str | None = Field(default=None, max_length=8000)
+    requested_by: str | None = Field(default=None, max_length=200)
+    operations: list[SchemaChangeOperation] = Field(min_length=1, max_length=100)
+
+
+class SchemaChangeReview(BaseModel):
+    status: Literal["reviewed", "approved", "rejected"]
+    actor: str | None = Field(default=None, max_length=200)
 
 
 @router.get("/overview")
@@ -449,6 +477,64 @@ def curation_preview(profile_key: str):
         raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Curation preview failed: {exc}") from exc
+
+
+@router.get("/data-contracts/{contract_key}/schema")
+def contract_schema(contract_key: str):
+    try:
+        return _repo().contract_schema(contract_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Data contract not found") from exc
+
+
+@router.get("/profiles/{profile_key}/schema-changes")
+def schema_changes(profile_key: str, limit: int = Query(default=100, ge=1, le=500)):
+    return {"items": _repo().list_schema_changes(profile_key, limit=limit)}
+
+
+@router.post("/profiles/{profile_key}/schema-changes")
+def create_schema_change(profile_key: str, request: SchemaChangeCreate):
+    repository = _repo()
+    try:
+        schema = repository.contract_schema(request.contract_key)
+        if schema["contract"]["profile_key"] != profile_key:
+            raise HTTPException(status_code=422, detail="Data contract does not belong to this graph profile")
+        analysis = analyze_schema_change(
+            schema["contract"],
+            schema["fields"],
+            [item.model_dump() for item in request.operations],
+            schema["dependencies"],
+            migration_strategy=request.migration_strategy,
+            rollback_strategy=request.rollback_strategy,
+        )
+        return repository.record_schema_change(
+            profile_key=profile_key,
+            contract_key=request.contract_key,
+            title=request.title,
+            description=request.description,
+            migration_strategy=request.migration_strategy,
+            rollback_strategy=request.rollback_strategy,
+            requested_by=request.requested_by,
+            analysis=analysis,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Data contract not found") from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/schema-changes/{change_id}/review")
+def review_schema_change(change_id: str, request: SchemaChangeReview):
+    try:
+        return _repo().review_schema_change(
+            uuid.UUID(change_id),
+            status=request.status,
+            actor=request.actor,
+        )
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Schema change request not found") from exc
 
 
 @router.get("/mappings")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -1190,6 +1191,274 @@ class ControlPlaneRepository:
             ).mappings().one_or_none()
         if row is None:
             raise KeyError(relationship_contract_key)
+        return dict(row)
+
+    def contract_schema(self, contract_key: str) -> dict[str, Any]:
+        with self.engine.connect() as connection:
+            contract = connection.execute(
+                text(
+                    """
+                    SELECT contract_key, profile_key, class_name, version, status,
+                           source_schema, source_table, primary_key_columns,
+                           business_key_columns, selected_columns, required_columns,
+                           freshness_column, publication_layer, config, updated_at
+                    FROM graphsync.data_contract
+                    WHERE contract_key=:contract_key
+                    """
+                ),
+                {"contract_key": contract_key},
+            ).mappings().one_or_none()
+            if contract is None:
+                raise KeyError(contract_key)
+            fields = _rows(
+                connection.execute(
+                    text(
+                        """
+                        SELECT contract_key, field_key, source_column, target_field,
+                               data_type, nullable, required, field_role,
+                               lifecycle_status, ordinal_position,
+                               introduced_version, deprecated_version,
+                               transform_expression, default_expression,
+                               ontology_property, sensitivity, searchable,
+                               sortable, config, updated_at
+                        FROM graphsync.data_contract_field
+                        WHERE contract_key=:contract_key
+                        ORDER BY ordinal_position, field_key
+                        """
+                    ),
+                    {"contract_key": contract_key},
+                )
+            )
+            field_keys = [row["field_key"] for row in fields]
+            dependencies = []
+            if field_keys:
+                dependencies = _rows(
+                    connection.execute(
+                        text(
+                            """
+                            SELECT dependency_id, profile_key, upstream_type,
+                                   upstream_key, downstream_type, downstream_key,
+                                   dependency_kind, discovered_by, active, metadata,
+                                   first_seen_at, last_seen_at
+                            FROM graphsync.asset_dependency
+                            WHERE profile_key=:profile_key
+                              AND upstream_type='data_contract_field'
+                              AND upstream_key = ANY(:field_keys)
+                            ORDER BY upstream_key, downstream_type, downstream_key
+                            """
+                        ),
+                        {
+                            "profile_key": contract["profile_key"],
+                            "field_keys": field_keys,
+                        },
+                    )
+                )
+        counts = Counter(row["upstream_key"] for row in dependencies if row["active"])
+        for field in fields:
+            field["dependency_count"] = counts[field["field_key"]]
+        return {
+            "contract": dict(contract),
+            "fields": fields,
+            "dependencies": dependencies,
+        }
+
+    def list_schema_changes(self, profile_key: str, *, limit: int = 100) -> list[dict[str, Any]]:
+        with self.engine.connect() as connection:
+            changes = _rows(
+                connection.execute(
+                    text(
+                        """
+                        SELECT change_id, profile_key, contract_key, base_version,
+                               target_version, title, description, status,
+                               compatibility, migration_strategy,
+                               rollback_strategy, impact_summary, requested_by,
+                               approved_by, created_at, updated_at, approved_at,
+                               applied_at
+                        FROM graphsync.schema_change_request
+                        WHERE profile_key=:profile_key
+                        ORDER BY created_at DESC
+                        LIMIT :limit
+                        """
+                    ),
+                    {"profile_key": profile_key, "limit": min(max(limit, 1), 500)},
+                )
+            )
+            if not changes:
+                return []
+            change_ids = [row["change_id"] for row in changes]
+            items = _rows(
+                connection.execute(
+                    text(
+                        """
+                        SELECT item_id, change_id, sequence_no, operation,
+                               field_key, before_state, after_state,
+                               compatibility, migration_required,
+                               backfill_required, dependency_count, notes,
+                               created_at
+                        FROM graphsync.schema_change_item
+                        WHERE change_id = ANY(:change_ids)
+                        ORDER BY change_id, sequence_no
+                        """
+                    ),
+                    {"change_ids": change_ids},
+                )
+            )
+        for change in changes:
+            change["items"] = [item for item in items if item["change_id"] == change["change_id"]]
+        return changes
+
+    def record_schema_change(
+        self,
+        *,
+        profile_key: str,
+        contract_key: str,
+        title: str,
+        description: str | None,
+        migration_strategy: str | None,
+        rollback_strategy: str | None,
+        requested_by: str | None,
+        analysis: dict[str, Any],
+    ) -> dict[str, Any]:
+        change_id = uuid.uuid4()
+        status = "analysis_ready" if analysis["readyForReview"] else "draft"
+        with self.engine.begin() as connection:
+            current_version = connection.execute(
+                text(
+                    "SELECT version FROM graphsync.data_contract WHERE contract_key=:contract_key FOR UPDATE"
+                ),
+                {"contract_key": contract_key},
+            ).scalar_one_or_none()
+            if current_version is None:
+                raise KeyError(contract_key)
+            if int(current_version) != int(analysis["baseVersion"]):
+                raise RuntimeError("Data contract changed while the schema request was being analyzed")
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO graphsync.schema_change_request
+                        (change_id, profile_key, contract_key, base_version,
+                         target_version, title, description, status,
+                         compatibility, migration_strategy, rollback_strategy,
+                         impact_summary, requested_by)
+                    VALUES
+                        (:change_id, :profile_key, :contract_key, :base_version,
+                         :target_version, :title, :description, :status,
+                         :compatibility, :migration_strategy,
+                         :rollback_strategy, CAST(:impact_summary AS jsonb),
+                         :requested_by)
+                    """
+                ),
+                {
+                    "change_id": change_id,
+                    "profile_key": profile_key,
+                    "contract_key": contract_key,
+                    "base_version": analysis["baseVersion"],
+                    "target_version": analysis["targetVersion"],
+                    "title": title,
+                    "description": description,
+                    "status": status,
+                    "compatibility": analysis["compatibility"],
+                    "migration_strategy": migration_strategy,
+                    "rollback_strategy": rollback_strategy,
+                    "impact_summary": json.dumps(
+                        {
+                            key: value
+                            for key, value in analysis.items()
+                            if key != "items"
+                        },
+                        ensure_ascii=False,
+                    ),
+                    "requested_by": requested_by,
+                },
+            )
+            rows = []
+            for item in analysis["items"]:
+                rows.append(
+                    {
+                        "item_id": uuid.uuid4(),
+                        "change_id": change_id,
+                        "sequence_no": item["sequenceNo"],
+                        "operation": item["operation"],
+                        "field_key": item["fieldKey"],
+                        "before_state": json.dumps(item["beforeState"], ensure_ascii=False, default=str) if item["beforeState"] else None,
+                        "after_state": json.dumps(item["afterState"], ensure_ascii=False, default=str) if item["afterState"] else None,
+                        "compatibility": item["compatibility"],
+                        "migration_required": item["migrationRequired"],
+                        "backfill_required": item["backfillRequired"],
+                        "dependency_count": item["dependencyCount"],
+                        "notes": item.get("notes"),
+                    }
+                )
+            if rows:
+                connection.execute(
+                    text(
+                        """
+                        INSERT INTO graphsync.schema_change_item
+                            (item_id, change_id, sequence_no, operation,
+                             field_key, before_state, after_state,
+                             compatibility, migration_required,
+                             backfill_required, dependency_count, notes)
+                        VALUES
+                            (:item_id, :change_id, :sequence_no, :operation,
+                             :field_key, CAST(:before_state AS jsonb),
+                             CAST(:after_state AS jsonb), :compatibility,
+                             :migration_required, :backfill_required,
+                             :dependency_count, :notes)
+                        """
+                    ),
+                    rows,
+                )
+        return {
+            "changeId": str(change_id),
+            "status": status,
+            **analysis,
+        }
+
+    def review_schema_change(
+        self,
+        change_id: uuid.UUID,
+        *,
+        status: str,
+        actor: str | None,
+    ) -> dict[str, Any]:
+        allowed = {"reviewed", "approved", "rejected"}
+        if status not in allowed:
+            raise ValueError(f"Unsupported schema review status: {status}")
+        with self.engine.begin() as connection:
+            existing = connection.execute(
+                text(
+                    """
+                    SELECT status, impact_summary, migration_strategy,
+                           rollback_strategy, compatibility
+                    FROM graphsync.schema_change_request
+                    WHERE change_id=:change_id FOR UPDATE
+                    """
+                ),
+                {"change_id": change_id},
+            ).mappings().one_or_none()
+            if existing is None:
+                raise KeyError(str(change_id))
+            blockers = list((existing["impact_summary"] or {}).get("blockers") or [])
+            if status in {"reviewed", "approved"} and blockers:
+                raise ValueError(f"Schema change still has blockers: {blockers}")
+            if status == "approved" and existing["status"] != "reviewed":
+                raise ValueError("Schema change must be reviewed before approval")
+            row = connection.execute(
+                text(
+                    """
+                    UPDATE graphsync.schema_change_request
+                    SET status=:status,
+                        approved_by=CASE WHEN :status='approved' THEN :actor ELSE approved_by END,
+                        approved_at=CASE WHEN :status='approved' THEN now() ELSE approved_at END
+                    WHERE change_id=:change_id
+                    RETURNING change_id, profile_key, contract_key,
+                              base_version, target_version, title, status,
+                              compatibility, impact_summary, requested_by,
+                              approved_by, updated_at, approved_at
+                    """
+                ),
+                {"change_id": change_id, "status": status, "actor": actor},
+            ).mappings().one()
         return dict(row)
 
     def update_setting(self, key: str, value: Any) -> dict[str, Any]:

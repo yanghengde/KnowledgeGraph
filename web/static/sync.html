@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-6">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-7">
 </head>
 <body>
     <div class="app-shell">
@@ -134,6 +134,15 @@
                         <div id="qualityResults" class="profile-issues"></div>
                     </article>
                     <article class="panel table-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">SCHEMA EVOLUTION</span><h3>字段版本与依赖</h3></div><div class="profile-toolbar"><select id="schemaContractSelect" class="field-select"></select><button class="mini-btn" id="newSchemaChange">新建变更申请</button></div></div>
+                        <div id="schemaEvolutionSummary" class="capability-summary"></div>
+                        <div class="table-wrap"><table><thead><tr><th>字段</th><th>源列</th><th>类型</th><th>角色</th><th>生命周期</th><th>依赖</th><th>引入版本</th></tr></thead><tbody id="contractFieldRows"></tbody></table></div>
+                    </article>
+                    <article class="panel table-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">CHANGE CONTROL</span><h3>Schema 变更申请</h3></div><span id="schemaChangeCount" class="count-badge">0</span></div>
+                        <div class="table-wrap"><table><thead><tr><th>申请</th><th>对象 / 版本</th><th>兼容性</th><th>字段操作</th><th>阻断项</th><th>状态</th><th>操作</th></tr></thead><tbody id="schemaChangeRows"></tbody></table></div>
+                    </article>
+                    <article class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">OBJECT ROLES</span><h3>对象范围</h3></div><div class="profile-toolbar"><input id="profileClassSearch" class="field-input" placeholder="搜索本体对象"><button class="mini-btn" id="addProfileClass">添加对象</button></div></div>
                         <div class="table-wrap"><table><thead><tr><th>本体对象</th><th>业务角色</th><th>种子</th><th>孤立数据策略</th><th>估算行数</th><th>审核状态</th><th>操作</th></tr></thead><tbody id="profileClassRows"></tbody></table></div>
                     </article>
@@ -194,6 +203,6 @@
     </dialog>
 
     <div id="toast" class="toast" hidden></div>
-    <script src="/static/sync.js?v=20260813-6"></script>
+    <script src="/static/sync.js?v=20260813-7"></script>
 </body>
 </html>

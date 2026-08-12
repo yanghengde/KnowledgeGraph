@@ -13,6 +13,8 @@
         profileCandidates: { classes: [], relationships: [] },
         closurePlan: null,
         governance: { contracts: [], relationships: [], latestRun: null, qualityResults: [] },
+        contractSchema: null,
+        schemaChanges: [],
         mappings: null,
         runs: [],
         settings: [],
@@ -337,6 +339,88 @@
         const results = governance.qualityResults || [];
         $("#qualityResultCount").textContent = latest ? `${results.filter(item => !item.passed).length} 项未通过` : "0";
         $("#qualityResults").innerHTML = results.map(item => `<div class="profile-issue ${!item.passed && item.severity === "error" ? "error" : ""}"><span>${item.passed ? "通过" : item.severity === "error" ? "阻断" : "提醒"}</span><strong>${escapeHtml(item.message)}</strong><small>${Number(item.failed_rows || 0).toLocaleString()}/${Number(item.checked_rows || 0).toLocaleString()} · ${escapeHtml(item.rule_key)}</small></div>`).join("") || '<div class="profile-empty">运行治理预览后显示质量证据</div>';
+        renderSchemaEvolution();
+    }
+
+    function compatibilityLabel(value) {
+        return ({ non_breaking: "兼容", conditional: "有条件兼容", breaking: "破坏性" })[value] || value;
+    }
+
+    function fieldRoleLabel(value) {
+        return ({ primary_key: "主键", business_key: "业务键", freshness: "增量水位", attribute: "属性", navigation: "关联字段", system: "系统字段" })[value] || value;
+    }
+
+    function schemaStatusLabel(value) {
+        return ({ draft: "草案", analysis_ready: "分析完成", reviewed: "已复核", approved: "已批准待迁移", applying: "迁移中", applied: "已应用", rejected: "已拒绝", failed: "失败", rolled_back: "已回滚" })[value] || value;
+    }
+
+    function renderSchemaEvolution() {
+        const contracts = state.governance?.contracts || [];
+        const selector = $("#schemaContractSelect");
+        const selectedKey = state.contractSchema?.contract?.contract_key || selector?.value || contracts[0]?.contract_key;
+        selector.innerHTML = contracts.map(item => `<option value="${escapeHtml(item.contract_key)}" ${item.contract_key === selectedKey ? "selected" : ""}>${escapeHtml(item.class_name)} · v${item.version}</option>`).join("");
+        const schema = state.contractSchema;
+        const fields = schema?.fields || [];
+        const active = fields.filter(item => item.lifecycle_status === "active").length;
+        const deprecated = fields.filter(item => item.lifecycle_status === "deprecated").length;
+        const dependencies = (schema?.dependencies || []).filter(item => item.active).length;
+        $("#schemaEvolutionSummary").innerHTML = schema ? `<div class="capability-chips"><span class="capability-chip">当前版本 <strong>v${schema.contract.version}</strong></span><span class="capability-chip">活动字段 <strong>${active}</strong></span><span class="capability-chip">已废弃 <strong>${deprecated}</strong></span><span class="capability-chip">活动依赖 <strong>${dependencies}</strong></span></div>` : "<span>正在加载字段目录…</span>";
+        $("#contractFieldRows").innerHTML = fields.map(item => `<tr><td><strong>${escapeHtml(item.target_field)}</strong><br><small>${escapeHtml(item.field_key)}</small></td><td>${escapeHtml(item.source_column || "计算字段")}</td><td>${escapeHtml(item.data_type)}</td><td>${escapeHtml(fieldRoleLabel(item.field_role))}</td><td><span class="status-pill ${item.lifecycle_status === "active" ? "online" : "unknown"}">${escapeHtml(item.lifecycle_status)}</span></td><td>${Number(item.dependency_count || 0)}</td><td>v${item.introduced_version}</td></tr>`).join("") || '<tr class="empty-row"><td colspan="7">暂无字段目录</td></tr>';
+        const changes = state.schemaChanges || [];
+        $("#schemaChangeCount").textContent = `${changes.length} 项`;
+        $("#schemaChangeRows").innerHTML = changes.map(item => {
+            const blockers = item.impact_summary?.blockers || [];
+            const actions = item.status === "analysis_ready" ? '<button class="mini-btn" data-action="review-schema-change">复核</button>' : item.status === "reviewed" ? '<button class="mini-btn" data-action="approve-schema-change">批准</button>' : "—";
+            return `<tr data-schema-change="${escapeHtml(item.change_id)}"><td><strong>${escapeHtml(item.title)}</strong><br><small>${formatDate(item.created_at, true)}</small></td><td>${escapeHtml(item.contract_key)}<br><small>v${item.base_version} → v${item.target_version}</small></td><td><span class="status-pill ${item.compatibility === "non_breaking" ? "online" : item.compatibility === "breaking" ? "failed" : "unknown"}">${escapeHtml(compatibilityLabel(item.compatibility))}</span></td><td>${item.items?.length || 0}</td><td>${blockers.length ? `<span class="status-pill failed">${blockers.length} 项</span>` : "—"}</td><td>${escapeHtml(schemaStatusLabel(item.status))}</td><td>${actions}</td></tr>`;
+        }).join("") || '<tr class="empty-row"><td colspan="7">尚无 Schema 变更申请</td></tr>';
+    }
+
+    function openSchemaChangeDialog() {
+        const schema = state.contractSchema;
+        if (!schema) { toast("字段目录尚未加载", true); return; }
+        const fields = schema.fields || [];
+        $("#dialogTitle").textContent = `${schema.contract.class_name} Schema 变更申请`;
+        $("#dialogKicker").textContent = "SCHEMA CHANGE";
+        $("#dialogFields").innerHTML = [
+            field("title", "申请标题", "", { wide: true, placeholder: "例如：增加产品品牌字段" }),
+            field("operation", "操作类型", "add_field", { type: "select", items: [["add_field", "增加字段"], ["deprecate_field", "废弃字段"], ["retire_field", "退役字段"], ["rename_field", "重命名字段"], ["change_type", "修改类型"], ["change_required", "修改必填约束"], ["change_key", "修改键角色"], ["change_source", "修改源字段"], ["change_transform", "修改转换逻辑"]] }),
+            field("existing_field", "现有字段", fields[0]?.field_key || "", { type: "select", items: fields.map(item => [item.field_key, `${item.target_field} · ${item.data_type}`]) }),
+            field("new_field_key", "新字段稳定ID", `${schema.contract.contract_key}:new-field`, { help: "发布后不应随显示名称变化" }),
+            field("target_field", "目标字段名", "", { placeholder: "brandName" }),
+            field("source_column", "Camstar 源列", "", { placeholder: "BrandName" }),
+            field("data_type", "目标类型", "String", { type: "select", items: [["String", "String"], ["Integer", "Integer"], ["Float", "Float"], ["Boolean", "Boolean"], ["DateTime", "DateTime"], ["Navigation", "Navigation"]] }),
+            field("field_role", "字段角色", "attribute", { type: "select", items: [["attribute", "属性"], ["business_key", "业务键"], ["primary_key", "主键"], ["freshness", "增量水位"], ["navigation", "关联字段"]] }),
+            field("required", "设为必填字段", false, { type: "checkbox", help: "新增必填字段必须提供默认值和回填方案" }),
+            field("default_expression", "默认值表达式", "", { placeholder: "仅治理执行器可解析的表达式" }),
+            field("transform_expression", "转换表达式", "", { wide: true }),
+            field("migration_strategy", "迁移方案", "", { wide: true, help: "有条件或破坏性变更必填" }),
+            field("rollback_strategy", "回滚方案", "", { wide: true, help: "破坏性变更必填" }),
+            field("description", "说明", "", { wide: true }),
+        ].join("");
+        const updateChangeFields = () => {
+            const adding = $("#dialog-operation").value === "add_field";
+            $('[data-field-name="existing_field"]', $("#dialogFields")).hidden = adding;
+            $('[data-field-name="new_field_key"]', $("#dialogFields")).hidden = !adding;
+        };
+        $("#dialog-operation").addEventListener("change", updateChangeFields);
+        updateChangeFields();
+        state.dialogSubmit = async form => {
+            const operation = form.get("operation");
+            const adding = operation === "add_field";
+            const afterState = {};
+            if (form.get("target_field")) afterState.target_field = form.get("target_field");
+            if (form.get("source_column")) afterState.source_column = form.get("source_column");
+            if (form.get("data_type")) afterState.data_type = form.get("data_type");
+            if (form.get("field_role")) afterState.field_role = form.get("field_role");
+            afterState.required = form.get("required") === "on";
+            afterState.nullable = !afterState.required;
+            if (form.get("default_expression")) afterState.default_expression = form.get("default_expression");
+            if (form.get("transform_expression")) afterState.transform_expression = form.get("transform_expression");
+            const result = await request(`/api/sync/profiles/${encodeURIComponent(state.activeProfile.profile.profile_key)}/schema-changes`, { method: "POST", body: JSON.stringify({ contract_key: schema.contract.contract_key, title: form.get("title"), description: form.get("description") || null, migration_strategy: form.get("migration_strategy") || null, rollback_strategy: form.get("rollback_strategy") || null, operations: [{ operation, field_key: adding ? form.get("new_field_key") : form.get("existing_field"), after_state: Object.keys(afterState).length ? afterState : null }] }) });
+            toast(result.readyForReview ? `变更分析完成：${compatibilityLabel(result.compatibility)}` : `变更已保存为草案：${result.blockers.join("；")}`, !result.readyForReview);
+            await loadSchemaEvolution(schema.contract.contract_key);
+        };
+        $("#editDialog").showModal();
     }
 
     function openDataContractDialog(item) {
@@ -664,12 +748,27 @@
         state.profiles = (await request("/api/sync/profiles")).items;
         const profileKey = state.profiles[0]?.profile_key;
         if (!profileKey) return;
-        [state.activeProfile, state.profileCandidates, state.governance] = await Promise.all([
+        [state.activeProfile, state.profileCandidates, state.governance, state.schemaChanges] = await Promise.all([
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}`),
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/candidates`),
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/governance`),
+            request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/schema-changes`).then(payload => payload.items),
         ]);
+        const currentContract = state.contractSchema?.contract?.contract_key;
+        const contractKey = state.governance.contracts.some(item => item.contract_key === currentContract)
+            ? currentContract : state.governance.contracts[0]?.contract_key;
+        state.contractSchema = contractKey
+            ? await request(`/api/sync/data-contracts/${encodeURIComponent(contractKey)}/schema`)
+            : null;
         renderGraphProfile();
+    }
+    async function loadSchemaEvolution(contractKey) {
+        const profileKey = state.activeProfile.profile.profile_key;
+        [state.contractSchema, state.schemaChanges] = await Promise.all([
+            request(`/api/sync/data-contracts/${encodeURIComponent(contractKey)}/schema`),
+            request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/schema-changes`).then(payload => payload.items),
+        ]);
+        renderSchemaEvolution();
     }
     async function loadMappings() { state.mappings = await request("/api/sync/mappings"); renderMappings(); renderOverview(); }
     async function loadRuns() { state.runs = (await request("/api/sync/runs?limit=100")).items; renderRuns(); }
@@ -748,6 +847,18 @@
             const row = action.closest("[data-relationship-contract]");
             openRelationshipContractDialog(state.governance.relationships.find(item => item.relationship_contract_key === row.dataset.relationshipContract)); return;
         }
+        if (action.dataset.action === "review-schema-change" || action.dataset.action === "approve-schema-change") {
+            const row = action.closest("[data-schema-change]");
+            const nextStatus = action.dataset.action === "review-schema-change" ? "reviewed" : "approved";
+            action.disabled = true;
+            try {
+                await request(`/api/sync/schema-changes/${encodeURIComponent(row.dataset.schemaChange)}/review`, { method: "PUT", body: JSON.stringify({ status: nextStatus }) });
+                toast(nextStatus === "reviewed" ? "Schema 变更已复核，等待独立批准" : "Schema 变更已批准，仍需迁移执行器应用");
+                await loadSchemaEvolution(state.contractSchema.contract.contract_key);
+            } catch (error) { toast(error.message, true); }
+            finally { action.disabled = false; }
+            return;
+        }
         if (action.dataset.action === "dry-run-job" && jobCard) {
             action.disabled = true; action.textContent = "盘点中…";
             try {
@@ -823,6 +934,8 @@
         } catch (error) { toast(error.message, true); }
         finally { button.disabled = false; button.textContent = "运行治理预览"; }
     });
+    $("#schemaContractSelect").addEventListener("change", event => loadSchemaEvolution(event.currentTarget.value).catch(error => toast(error.message, true)));
+    $("#newSchemaChange").addEventListener("click", () => openSchemaChangeDialog());
     $("#probeIncremental").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true; button.textContent = "检测中…";
         try {

@@ -167,6 +167,20 @@ flowchart LR
 
 治理预览读取量受每个契约的 `preview_row_limit` 约束，并将聚合结果记录到 `curation_run` 和 `data_quality_result`。契约、对象角色、必需关系未批准，数据存在主键/必填错误，预览被截断，或必需目标无法解析时，`publishable=false`。当前阶段不提供 curated materialize/apply 命令，避免审核前写入业务投影。
 
+### 字段演进与依赖治理
+
+字段增加和减少不能直接修改投影表或 Graph Studio。`data_contract_field` 给每个字段分配稳定 `field_key`，显示名称变化不改变身份；字段分别记录物理来源、curated 目标、数据类型、是否可空、键角色、生命周期、转换规则和本体属性。`asset_dependency` 将字段与 curated 列、关系契约、本体属性、Graph Studio 谓词、查询、看板、API 和 Action 绑定，避免删字段时只检查数据库而漏掉语义和应用依赖。
+
+所有变更先写入 `schema_change_request/schema_change_item` 并执行静态影响分析：
+
+- 新增可空字段通常向后兼容；新增必填字段必须有默认值和回填方案。
+- 废弃字段保留读取能力，给下游迁移窗口；存在活动依赖时不能直接退役。
+- 重命名通过稳定 ID 和别名迁移，不能用“删除旧字段再新增”的方式破坏 URI/谓词连续性。
+- 改类型、改键、改来源属于破坏性变更，必须有迁移及回滚方案。
+- 审批只把计划推进到 `approved`，不会自动执行源库 DDL、curated DDL 或 Graph Studio 发布。实际迁移运行在下一阶段由 `schema_migration_run` 编排，并在质量门禁通过后切换版本。
+
+这相当于 Palantir Ontology 中“对象类型/属性/链接类型 + 数据血缘 + 受控发布”的最小闭环。当前仍刻意缺少直接写回 Camstar 的 Action：读取治理稳定后再增加 API Action Service，并将授权、审计、幂等和补偿事务独立设计。
+
 ## 工具边界和路线图
 
 ### 已落地
@@ -179,15 +193,20 @@ flowchart LR
 - PostgreSQL 控制面 DDL，本地 Compose 和暂停状态的 Kubernetes CronJob 模板。
 - 业务图谱角色、关系强度、孤立策略、闭包预算和只读类级闭包规划。
 - Product/MfgOrder 数据契约、独立关系语义、治理预览和质量门禁审计。
+- 字段目录、字段生命周期、跨层依赖图、Schema 兼容性分析以及复核/审批流程。
 - Product/MfgOrder 子图的 RDF 导出和 API 导入已作为端到端概念验证。
 
-### 下一个实现里程碑
+### 分阶段开发路线
 
-1. 在生产源库执行盘点，对所有超过阈值的表显式确认策略、主键/水位列和历史窗口。
-2. 由 DBA 审核并在生产候选库启用 CT/CDC 或 Oracle Flashback；随后实现变更行抽取、删除事件 RDF 应用与断点恢复。
-3. 审核 32 个未确定属性、159 个多候选关系、72 个未解析关系，以及预览报告中的引用和数据类型告警。
-4. 实现幂等的 `sync --job camstar-full --apply`，包含蓝绿 Dataset 切换、SPARQL 验收和回滚。
-5. 通过 UAT 后取消 CronJob 模板的 `suspend: true`；秒级 SLA 再评估 Kafka。
+| 阶段 | 交付物 | 当前状态 | 写入边界 |
+|---|---|---|---|
+| 1. Schema 演进中心 | 字段目录、依赖影响、兼容性判定、复核与审批 | 已完成 | 只写控制面，不改业务投影 |
+| 2. 治理物化 | approved 版本的建表/迁移、分批回填、校验、回滚 | 待开发 | 仅写 `camstar_curated`，不写源库 |
+| 3. 发布工程 | Dev/UAT/Prod 环境、不可变制品、Graph Studio 蓝绿 Dataset、SPARQL 验收 | 待开发 | 验收成功后原子切换 |
+| 4. 可观测与血缘 | 字段级 lineage、SLA、数据新鲜度、质量趋势、告警 | 待开发 | 只写审计与指标 |
+| 5. Action Service | 经授权的 Camstar API 写回、幂等、审计、补偿事务 | 待开发 | 不允许数据库直写 |
+
+阶段 2 开始前必须完成 Product/MfgOrder 业务键、`ORDERED_PRODUCT`/`BEGIN_PRODUCT` 关系语义，以及 SQL Server CT/CDC 或 Oracle SCN 增量策略的业务和 DBA 审批。生产源库中的亿级表必须逐表确认策略、主键/水位列和历史窗口；未确认时保持阻断，不能回退为全表扫描。
 
 ## 命令
 
