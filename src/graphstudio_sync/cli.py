@@ -14,13 +14,14 @@ from .config import SyncSettings
 from .catalog import compile_catalog
 from .database import initialize_control_plane
 from .inventory import build_plan, check_graphstudio, read_ontology, read_source_catalog
+from .incremental import execute_incremental_plan, execute_incremental_probe
 from .repository import ControlPlaneRepository
 from .preview import build_full_preview
 from .run_manager import execute_dry_run
 
 
 def _write(payload: dict[str, Any], output: Path | None = None) -> None:
-    rendered = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    rendered = json.dumps(payload, ensure_ascii=False, indent=2, default=str) + "\n"
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(rendered, encoding="utf-8")
@@ -114,6 +115,19 @@ def main(argv: list[str] | None = None) -> int:
     )
     preview_parser.add_argument("--job", default="camstar-full")
     preview_parser.add_argument("--output", type=Path)
+    probe_parser = subparsers.add_parser(
+        "probe-incremental",
+        help="Probe SQL Server CT/CDC or Oracle SCN capabilities without extracting rows",
+    )
+    probe_parser.add_argument("--job", default="camstar-full")
+    probe_parser.add_argument("--output", type=Path)
+    incremental_plan_parser = subparsers.add_parser(
+        "plan-incremental",
+        help="Freeze safe incremental windows without extracting rows or mutating Graph Studio",
+    )
+    incremental_plan_parser.add_argument("--job", default="camstar-full")
+    incremental_plan_parser.add_argument("--output", type=Path)
+    incremental_plan_parser.add_argument("--no-refresh", action="store_true")
     args = parser.parse_args(argv)
     settings = SyncSettings.from_env()
     if args.command == "doctor":
@@ -135,9 +149,20 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "compile-catalog":
         repository = ControlPlaneRepository(settings)
         payload = {"ok": True, "catalog": compile_catalog(settings, repository)}
-    else:
+    elif args.command == "preview":
         repository = ControlPlaneRepository(settings)
         payload = build_full_preview(settings, repository, job_name=args.job)
+    elif args.command == "probe-incremental":
+        repository = ControlPlaneRepository(settings)
+        payload = execute_incremental_probe(settings, repository, job_name=args.job)
+    else:
+        repository = ControlPlaneRepository(settings)
+        payload = execute_incremental_plan(
+            settings,
+            repository,
+            job_name=args.job,
+            refresh_capabilities=not args.no_refresh,
+        )
     _write(payload, args.output)
     return 0 if payload.get("ok", True) else 1
 

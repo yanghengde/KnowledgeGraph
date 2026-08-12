@@ -130,11 +130,13 @@ Schema：`graphsync`
 | 分类 | 主要表 |
 |---|---|
 | 平台 | `schema_version`, `app_setting`, `menu_item`, `connection_profile` |
-| 编排 | `sync_job`, `sync_scope`, `table_sync_policy`, `sync_run`, `sync_batch`, `checkpoint` |
+| 编排 | `sync_job`, `sync_scope`, `table_sync_policy`, `source_capability_snapshot`, `incremental_window`, `sync_run`, `sync_batch`, `checkpoint` |
 | 映射 | `catalog_snapshot`, `class_mapping`, `property_mapping`, `relationship_mapping`, `mapping_override` |
 | 审计 | `artifact`, `validation_result`, `row_state` |
 
 DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapshot`，新编译失败不会破坏当前 `ready` 版本。
+
+控制面 v6 还包含 `source_capability_snapshot` 和 `incremental_window`：前者记录 SQL Server CT/CDC 或 Oracle SCN/Flashback 的实际探测证据，后者在抽取前冻结可恢复的上下界。没有检查点、检查点已被源库清理或原生能力未启用时，窗口会进入 `baseline_required`/`blocked`，不会继续同步。
 
 “同步任务 → 表级同步策略”可为每个本体类配置全量快照、水位增量、追加增量、CDC 或不导入。超过 `sync.snapshot_row_threshold` 且没有显式策略的表会在抽取前失败，避免误扫亿级表。水位/追加策略必须配置水位列；每个已验证 RDF 分片会写入 `sync_batch`，便于审计和后续断点续跑。
 
@@ -145,6 +147,7 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 - Kubernetes CronJob 模板当前保持 `suspend: true`，完成全量发布 UAT 前不会定时修改 Graphmart。
 - 共享 RDF ZIP 必须放在 Graph Studio 与 Graph Lakehouse 均可访问的 file connection。
 - 当前已完成流式基线和策略保护，但 SQL Server CT/CDC LSN、Oracle SCN、删除事件消费及自动断点恢复仍是下一阶段；连接器上线前，`watermark`、`append_only`、`cdc` 会明确阻止预览，绝不会退化为全表扫描。
+- 当前环境实测 SQL Server Change Tracking、CDC 和 Snapshot Isolation 均未启用。DBA 可先运行只读检查 [sql/sqlserver_incremental_prerequisites.sql](sql/sqlserver_incremental_prerequisites.sql)；Oracle 对应检查见 [sql/oracle_incremental_prerequisites.sql](sql/oracle_incremental_prerequisites.sql)。脚本中的启用语句保持注释，不会自动修改源库。
 
 详细架构和演进阈值见 [docs/graphstudio_sync_architecture.md](docs/graphstudio_sync_architecture.md)。
 

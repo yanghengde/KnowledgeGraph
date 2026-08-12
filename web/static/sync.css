@@ -157,6 +157,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .table-wrap { overflow: auto; }
 .table-policy-wrap { max-height: 520px; }
 .table-policy-wrap thead { position: sticky; top: 0; z-index: 1; }
+.capability-summary { padding: 0 20px 20px; color: var(--muted); font-size: 10px; }
+.capability-chips { display: flex; flex-wrap: wrap; gap: 12px; }
+.capability-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 31px; padding: 0 11px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.018); }
+.capability-chip strong { color: var(--text); }
+.capability-chip.danger { color: var(--red); border-color: rgba(255,107,120,.26); background: rgba(255,107,120,.06); }
+.capability-chip.danger strong { color: var(--red); }
+.capability-warning { margin-top: 13px; padding: 10px 12px; border: 1px solid rgba(242,184,75,.24); border-radius: 8px; color: var(--amber); background: rgba(242,184,75,.055); line-height: 1.55; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 13px 16px; border-bottom: 1px solid rgba(150,190,200,.09); text-align: left; white-space: nowrap; }
 th { color: var(--dim); background: rgba(255,255,255,.014); font-size: 8px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }

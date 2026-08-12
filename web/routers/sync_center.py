@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, model_validator
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
+from src.graphstudio_sync.incremental import execute_incremental_plan, execute_incremental_probe
 from src.graphstudio_sync.repository import ControlPlaneRepository
 from src.graphstudio_sync.preview import build_full_preview
 from src.graphstudio_sync.run_manager import execute_dry_run
@@ -194,6 +195,36 @@ def update_table_policy(job_name: str, class_name: str, request: TablePolicyUpda
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Mapped ontology class not found") from exc
+
+
+@router.get("/jobs/{job_name}/incremental-capabilities")
+def incremental_capabilities(job_name: str):
+    try:
+        _repo().list_table_policies(job_name)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job not found") from exc
+    latest = _repo().latest_source_capabilities()
+    return latest or {"available": False}
+
+
+@router.post("/jobs/{job_name}/incremental-capabilities/probe")
+def probe_incremental(job_name: str):
+    try:
+        return execute_incremental_probe(_settings(), _repo(), job_name=job_name)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job not found") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Incremental capability probe failed: {exc}") from exc
+
+
+@router.post("/jobs/{job_name}/incremental-plan")
+def incremental_plan(job_name: str):
+    try:
+        return execute_incremental_plan(_settings(), _repo(), job_name=job_name)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job not found") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Incremental window planning failed: {exc}") from exc
 
 
 @router.post("/jobs/{job_name}/dry-run")

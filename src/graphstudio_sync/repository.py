@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -376,6 +377,130 @@ class ControlPlaneRepository:
                 },
             ).mappings().one()
         return dict(row)
+
+    def record_source_capabilities(
+        self,
+        payload: dict[str, Any],
+        *,
+        connection_key: str = "camstar-source",
+    ) -> dict[str, Any]:
+        snapshot_id = uuid.uuid4()
+        with self.engine.begin() as connection:
+            row = connection.execute(
+                text(
+                    """
+                    INSERT INTO graphsync.source_capability_snapshot
+                        (snapshot_id, connection_key, source_kind, captured_at,
+                         source_position, capabilities, table_capabilities, success)
+                    VALUES
+                        (:snapshot_id, :connection_key, :source_kind,
+                         CAST(:captured_at AS timestamptz), CAST(:source_position AS jsonb),
+                         CAST(:capabilities AS jsonb), CAST(:tables AS jsonb), true)
+                    RETURNING snapshot_id, connection_key, source_kind, captured_at,
+                              source_position, capabilities, table_capabilities, success
+                    """
+                ),
+                {
+                    "snapshot_id": snapshot_id,
+                    "connection_key": connection_key,
+                    "source_kind": payload["sourceKind"],
+                    "captured_at": payload["capturedAt"],
+                    "source_position": json.dumps(payload["sourcePosition"], ensure_ascii=False),
+                    "capabilities": json.dumps(payload["capabilities"], ensure_ascii=False),
+                    "tables": json.dumps(payload["tables"], ensure_ascii=False),
+                },
+            ).mappings().one()
+        return dict(row)
+
+    def latest_source_capabilities(
+        self,
+        *,
+        connection_key: str = "camstar-source",
+    ) -> dict[str, Any] | None:
+        with self.engine.connect() as connection:
+            row = connection.execute(
+                text(
+                    """
+                    SELECT snapshot_id, connection_key, source_kind, captured_at,
+                           source_position, capabilities, table_capabilities, success, error
+                    FROM graphsync.source_capability_snapshot
+                    WHERE connection_key=:connection_key
+                    ORDER BY captured_at DESC LIMIT 1
+                    """
+                ),
+                {"connection_key": connection_key},
+            ).mappings().one_or_none()
+        if row is None:
+            return None
+        result = dict(row)
+        result["tables"] = result.pop("table_capabilities")
+        result["sourceKind"] = result.pop("source_kind")
+        result["sourcePosition"] = result.pop("source_position")
+        result["capturedAt"] = result.pop("captured_at")
+        return result
+
+    def checkpoints_by_partition(self, job_name: str) -> dict[str, dict[str, Any]]:
+        with self.engine.connect() as connection:
+            rows = _rows(
+                connection.execute(
+                    text(
+                        """
+                        SELECT partition_key, committed_watermark, source_schema_hash,
+                               committed_run_id, committed_at
+                        FROM graphsync.checkpoint
+                        WHERE job_name=:job_name
+                        """
+                    ),
+                    {"job_name": job_name},
+                )
+            )
+        return {row["partition_key"]: row for row in rows}
+
+    def record_incremental_windows(
+        self,
+        job_name: str,
+        capability_snapshot_id: uuid.UUID | str,
+        windows: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        recorded: list[dict[str, Any]] = []
+        with self.engine.begin() as connection:
+            for window in windows:
+                row = connection.execute(
+                    text(
+                        """
+                        INSERT INTO graphsync.incremental_window
+                            (window_id, job_name, class_name, strategy, adapter, status,
+                             lower_bound, upper_bound, capability_snapshot_id, metadata)
+                        VALUES
+                            (:window_id, :job_name, :class_name, :strategy, :adapter, :status,
+                             CAST(:lower_bound AS jsonb), CAST(:upper_bound AS jsonb),
+                             :capability_snapshot_id, CAST(:metadata AS jsonb))
+                        ON CONFLICT (job_name, class_name, upper_bound) DO UPDATE SET
+                            strategy=EXCLUDED.strategy,
+                            adapter=EXCLUDED.adapter,
+                            status=EXCLUDED.status,
+                            lower_bound=EXCLUDED.lower_bound,
+                            capability_snapshot_id=EXCLUDED.capability_snapshot_id,
+                            metadata=EXCLUDED.metadata
+                        RETURNING window_id, job_name, class_name, strategy, adapter,
+                                  status, lower_bound, upper_bound, metadata, created_at
+                        """
+                    ),
+                    {
+                        "window_id": uuid.uuid4(),
+                        "job_name": job_name,
+                        "class_name": window["class_name"],
+                        "strategy": window["strategy"],
+                        "adapter": window["adapter"],
+                        "status": window["status"],
+                        "lower_bound": json.dumps(window.get("lower_bound"), ensure_ascii=False, default=str),
+                        "upper_bound": json.dumps(window["upper_bound"], ensure_ascii=False, default=str),
+                        "capability_snapshot_id": capability_snapshot_id,
+                        "metadata": json.dumps(window.get("metadata") or {}, ensure_ascii=False),
+                    },
+                ).mappings().one()
+                recorded.append(dict(row))
+        return recorded
 
     def list_runs(self, *, limit: int = 100) -> list[dict[str, Any]]:
         with self.engine.connect() as connection:

@@ -101,9 +101,13 @@
                         <div><span class="section-kicker">ORCHESTRATION</span><h2>同步任务</h2><p>配置同步模式、Cron 表达式、时区及产物保留策略。生产调度由外部 CronJob 触发。</p></div>
                     </div>
                     <div id="jobGrid" class="job-grid"></div>
+                    <article class="panel capability-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">SOURCE CAPABILITIES</span><h3>数据库增量能力</h3></div><div class="card-action-buttons"><button class="mini-btn" id="probeIncremental">重新检测</button><button class="mini-btn" id="planIncremental">规划增量窗口</button></div></div>
+                        <div id="incrementalCapabilitySummary" class="capability-summary"><span>尚未检测 SQL Server CT/CDC 或 Oracle SCN</span></div>
+                    </article>
                     <article class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">TABLE STRATEGIES</span><h3>表级同步策略</h3></div><span id="tablePolicyRiskCount" class="count-badge">0 个待审核</span></div>
-                        <div class="table-wrap table-policy-wrap"><table><thead><tr><th>本体类 / 表</th><th>估算行数</th><th>同步策略</th><th>批大小</th><th>状态</th><th>操作</th></tr></thead><tbody id="tablePolicyRows"></tbody></table></div>
+                        <div class="table-wrap table-policy-wrap"><table><thead><tr><th>本体类 / 表</th><th>估算行数</th><th>同步策略</th><th>原生增量</th><th>批大小</th><th>状态</th><th>操作</th></tr></thead><tbody id="tablePolicyRows"></tbody></table></div>
                     </article>
                 </section>
 
@@ -154,6 +158,6 @@
     </dialog>
 
     <div id="toast" class="toast" hidden></div>
-    <script src="/static/sync.js?v=20260812-6"></script>
+    <script src="/static/sync.js?v=20260813-1"></script>
 </body>
 </html>

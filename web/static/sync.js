@@ -7,6 +7,7 @@
         connections: [],
         jobs: [],
         tablePolicies: [],
+        incrementalProbe: null,
         mappings: null,
         runs: [],
         settings: [],
@@ -170,6 +171,7 @@
 
     function renderTablePolicies() {
         const rows = state.tablePolicies || [];
+        const capabilities = new Map((state.incrementalProbe?.tables || []).map(item => [item.className, item]));
         const risky = rows.filter(item => item.requires_review);
         $("#tablePolicyRiskCount").textContent = `${risky.length} 个待审核`;
         $("#tablePolicyRows").innerHTML = rows.map(item => {
@@ -180,15 +182,60 @@
                     ? '<span class="status-pill online">已配置</span>'
                     : '<span class="status-pill">默认安全策略</span>';
             const recommendation = item.requires_review ? `建议：${strategyLabel(item.recommended_strategy)}` : "";
+            const capability = capabilities.get(item.class_name);
+            const nativeAdapter = capability?.nativeAdapter
+                ? capability.nativeAdapter.replace("sqlserver_", "").replaceAll("_", " ").toUpperCase()
+                : "—";
             return `<tr data-policy-class="${escapeHtml(item.class_name)}">
                 <td><strong>${escapeHtml(item.class_name)}</strong><br><small>${escapeHtml(`${item.physical_schema}.${item.physical_table}`)}</small></td>
                 <td>${Number(item.approximate_rows || 0).toLocaleString()}</td>
                 <td>${escapeHtml(strategyLabel(effective))}${recommendation ? `<br><small>${escapeHtml(recommendation)}</small>` : ""}</td>
+                <td>${escapeHtml(nativeAdapter)}</td>
                 <td>${Number(item.batch_rows || 0).toLocaleString()} 行</td>
                 <td>${status}</td>
                 <td><button class="mini-btn" data-action="edit-table-policy">配置</button></td>
             </tr>`;
-        }).join("") || '<tr class="empty-row"><td colspan="6">请先编译本体映射目录</td></tr>';
+        }).join("") || '<tr class="empty-row"><td colspan="7">请先编译本体映射目录</td></tr>';
+    }
+
+    function renderIncrementalCapabilities() {
+        const probe = state.incrementalProbe;
+        const container = $("#incrementalCapabilitySummary");
+        if (!probe || probe.available === false) {
+            container.innerHTML = "<span>尚未检测 SQL Server CT/CDC 或 Oracle SCN</span>";
+            renderTablePolicies(); return;
+        }
+        const tables = probe.tables || [];
+        const ready = tables.filter(item => item.nativeChangeCaptureReady).length;
+        const position = probe.sourcePosition || {};
+        const sourceCapabilities = probe.capabilities || {};
+        const positionText = position.changeTrackingVersion != null
+            ? `CT ${position.changeTrackingVersion}`
+            : position.cdcMaxLsn ? `LSN ${position.cdcMaxLsn}`
+                : position.scn != null ? `SCN ${position.scn}` : "无原生位置";
+        const chips = [
+            ["数据源", connectionKindLabel(probe.sourceKind)],
+            ["原生增量就绪", `${ready}/${tables.length} 张表`],
+            ["当前位置", positionText],
+            ["检测时间", formatDate(probe.capturedAt, true)],
+        ];
+        if (probe.sourceKind === "camstar_sqlserver") {
+            chips.push(
+                ["Change Tracking", sourceCapabilities.changeTrackingEnabled ? "已启用" : "未启用", !sourceCapabilities.changeTrackingEnabled],
+                ["CDC", sourceCapabilities.cdcEnabled ? "已启用" : "未启用", !sourceCapabilities.cdcEnabled],
+                ["Snapshot Isolation", sourceCapabilities.snapshotIsolation || "未知", sourceCapabilities.snapshotIsolation !== "ON"],
+            );
+        } else {
+            chips.push(
+                ["Flashback SCN", sourceCapabilities.flashbackScnAvailable ? "可用" : "不可用", !sourceCapabilities.flashbackScnAvailable],
+                ["Undo Retention", sourceCapabilities.undoRetentionSeconds ? `${sourceCapabilities.undoRetentionSeconds}s` : "未知", !sourceCapabilities.undoRetentionSeconds],
+            );
+        }
+        const warning = ready === 0
+            ? '<div class="capability-warning">当前源库没有可用的原生变更捕获。请先由 DBA 审核并启用相应能力；工具不会将 CDC 策略退化为全表扫描。</div>'
+            : "";
+        container.innerHTML = `<div class="capability-chips">${chips.map(([label, value, danger]) => `<span class="capability-chip ${danger ? "danger" : ""}">${escapeHtml(label)} <strong>${escapeHtml(value)}</strong></span>`).join("")}</div>${warning}`;
+        renderTablePolicies();
     }
 
     function renderMappings() {
@@ -427,6 +474,7 @@
     async function loadConnections() { state.connections = (await request("/api/sync/connections")).items; renderConnections(); }
     async function loadJobs() { state.jobs = (await request("/api/sync/jobs")).items; renderJobs(); }
     async function loadTablePolicies() { state.tablePolicies = (await request("/api/sync/jobs/camstar-full/table-policies")).items; renderTablePolicies(); }
+    async function loadIncrementalCapabilities() { state.incrementalProbe = await request("/api/sync/jobs/camstar-full/incremental-capabilities"); renderIncrementalCapabilities(); }
     async function loadMappings() { state.mappings = await request("/api/sync/mappings"); renderMappings(); renderOverview(); }
     async function loadRuns() { state.runs = (await request("/api/sync/runs?limit=100")).items; renderRuns(); }
     async function loadSettings() { state.settings = (await request("/api/sync/settings")).items; renderSettings(); }
@@ -435,7 +483,7 @@
         setAlert();
         try {
             await loadNavigation();
-            await Promise.all([loadConnections(), loadJobs(), loadTablePolicies(), loadMappings(), loadRuns(), loadSettings()]);
+            await Promise.all([loadConnections(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadRuns(), loadSettings()]);
             await loadOverview();
         } catch (error) {
             setAlert(`同步中心加载失败：${error.message}`);
@@ -540,6 +588,25 @@
 
     window.addEventListener("hashchange", () => setActiveSection(location.hash.slice(1)));
     $("#testConnectionsPage").addEventListener("click", event => runAllConnectionTests(event.currentTarget));
+    $("#probeIncremental").addEventListener("click", async event => {
+        const button = event.currentTarget; button.disabled = true; button.textContent = "检测中…";
+        try {
+            state.incrementalProbe = await request("/api/sync/jobs/camstar-full/incremental-capabilities/probe", { method: "POST" });
+            renderIncrementalCapabilities();
+            toast(`增量能力检测完成：${state.incrementalProbe.summary.nativeChangeCaptureReady}/${state.incrementalProbe.summary.mappedTables} 张表原生就绪`);
+        } catch (error) { toast(error.message, true); }
+        finally { button.disabled = false; button.textContent = "重新检测"; }
+    });
+    $("#planIncremental").addEventListener("click", async event => {
+        const button = event.currentTarget; button.disabled = true; button.textContent = "规划中…";
+        try {
+            const result = await request("/api/sync/jobs/camstar-full/incremental-plan", { method: "POST" });
+            state.incrementalProbe = await request("/api/sync/jobs/camstar-full/incremental-capabilities");
+            renderIncrementalCapabilities();
+            toast(`增量窗口规划完成：${result.summary.incrementalTables} 张增量表`);
+        } catch (error) { toast(error.message, true); }
+        finally { button.disabled = false; button.textContent = "规划增量窗口"; }
+    });
     $("#compileMappings").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true; button.textContent = "编译中…";
         try {

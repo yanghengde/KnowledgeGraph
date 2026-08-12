@@ -19,6 +19,8 @@ Schema、双写一致性、更多存储和额外时延。只有当后续需要�
 - 属性与物理列的可确定映射为 4,451/4,483（99.29%），剩余 32 个需要显式映射或确认为计算属性。
 - 当前已映射的 318 张表中 70 张非空，总行数约 632。
 - Graphmart `Opcenter2607` 在线，已发现 Graph Lakehouse 可访问的共享文件连接 `localShare`。
+- 当前 SQL Server 实测未启用 Change Tracking、CDC、Snapshot Isolation 或 Read Committed Snapshot；
+  因而目前只能安全执行小表流式快照，不能把生产策略切换成数据库原生增量。
 
 因此，当前测试库可以生成完整 RDF 快照。但生产 Camstar 可能存在亿级历史表，
 不能把测试库的规模结论直接外推到生产；执行器必须先按表策略审核，再决定全量、
@@ -94,6 +96,19 @@ flowchart LR
 断点恢复命令及删除事件应用属于下一阶段。在连接器上线前，预览遇到这三种策略会在
 连接源表前失败，绝不会退化为全表扫描；暂不导入的亿级表应显式选择 `excluded`。
 
+### 增量能力证据与窗口
+
+- `probe-incremental` 只读查询 SQL Server `sys.databases`、`sys.change_tracking_tables`、
+  `cdc.change_tables`，或 Oracle 当前 SCN、UNDO 与表级 Flashback Versions 可访问性。
+- 每次探测保存到 `source_capability_snapshot`，因此页面上显示的是带时间戳的数据库事实，
+  不是根据表名推测的能力。
+- `plan-incremental` 在抽取前冻结上界：CT version、CDC LSN、Oracle SCN 或水位列最大值；
+  窗口写入 `incremental_window`。
+- 没有 checkpoint 时窗口标记为 `baseline_required`；CT/CDC checkpoint 早于数据库最小
+  有效位置时标记为 `blocked`，必须重新做基线，不能跳过丢失区间。
+- 当前阶段只完成能力探测和窗口规划。窗口规划不会抽取业务行、提交 checkpoint 或修改
+  Graph Studio；源库的 CT/CDC/Flashback 配置必须由 DBA 审核。
+
 ### 触发升级到增量的条件
 
 任一条连续出现时再升级：快照超过 5 GB、单次超过 30 分钟、源库压力不可接受，
@@ -128,13 +143,14 @@ flowchart LR
 - `plan`：输出类/表覆盖、属性映射率、行数估算和推荐模式。
 - `preview`：使用主键 keyset 分页生成完整、确定性的 OWL/Turtle 模型与分片 RDF ZIP，执行逐分片回读、URI、引用和数据类型校验，全程不调用 Graph Studio 写接口。
 - 表级同步策略、安全阈值、批大小/RDF 分片配置，以及 `sync_batch` 分片审计台账。
+- SQL Server CT/CDC、Oracle SCN/Flashback 能力探测，以及可持久化的增量窗口规划。
 - PostgreSQL 控制面 DDL，本地 Compose 和暂停状态的 Kubernetes CronJob 模板。
 - Product/MfgOrder 子图的 RDF 导出和 API 导入已作为端到端概念验证。
 
 ### 下一个实现里程碑
 
 1. 在生产源库执行盘点，对所有超过阈值的表显式确认策略、主键/水位列和历史窗口。
-2. 实现 SQL Server Snapshot + CT/CDC LSN 和 Oracle SCN 增量连接器，并补齐删除事件与断点恢复。
+2. 由 DBA 审核并在生产候选库启用 CT/CDC 或 Oracle Flashback；随后实现变更行抽取、删除事件 RDF 应用与断点恢复。
 3. 审核 32 个未确定属性、159 个多候选关系、72 个未解析关系，以及预览报告中的引用和数据类型告警。
 4. 实现幂等的 `sync --job camstar-full --apply`，包含蓝绿 Dataset 切换、SPARQL 验收和回滚。
 5. 通过 UAT 后取消 CronJob 模板的 `suspend: true`；秒级 SLA 再评估 Kafka。
@@ -148,6 +164,8 @@ python scripts/graphstudio_sync.py init-db
 python scripts/graphstudio_sync.py compile-catalog
 python scripts/graphstudio_sync.py dry-run --job camstar-full
 python scripts/graphstudio_sync.py preview --job camstar-full
+python scripts/graphstudio_sync.py probe-incremental --job camstar-full
+python scripts/graphstudio_sync.py plan-incremental --job camstar-full
 
 # 启动可选 PostgreSQL 控制面
 $env:PGSQL_PASSWORD = '<secret>'

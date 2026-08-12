@@ -175,6 +175,49 @@ CREATE TABLE IF NOT EXISTS graphsync.sync_batch (
 CREATE INDEX IF NOT EXISTS ix_graphsync_batch_run_status
     ON graphsync.sync_batch (run_id, status, class_name, sequence_no);
 
+CREATE TABLE IF NOT EXISTS graphsync.source_capability_snapshot (
+    snapshot_id           uuid PRIMARY KEY,
+    connection_key        text NOT NULL REFERENCES graphsync.connection_profile(connection_key),
+    source_kind           text NOT NULL,
+    captured_at           timestamptz NOT NULL DEFAULT now(),
+    source_position       jsonb NOT NULL DEFAULT '{}'::jsonb,
+    capabilities          jsonb NOT NULL DEFAULT '{}'::jsonb,
+    table_capabilities    jsonb NOT NULL DEFAULT '[]'::jsonb,
+    success               boolean NOT NULL DEFAULT true,
+    error                 jsonb
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_capability_connection_captured
+    ON graphsync.source_capability_snapshot (connection_key, captured_at DESC);
+
+CREATE TABLE IF NOT EXISTS graphsync.incremental_window (
+    window_id             uuid PRIMARY KEY,
+    job_name              text NOT NULL REFERENCES graphsync.sync_job(job_name) ON DELETE CASCADE,
+    class_name            text NOT NULL,
+    strategy              text NOT NULL CHECK (strategy IN (
+                              'watermark', 'append_only', 'cdc'
+                          )),
+    adapter               text NOT NULL,
+    status                text NOT NULL CHECK (status IN (
+                              'planned', 'baseline_required', 'blocked', 'extracting',
+                              'staged', 'verified', 'committed', 'failed', 'abandoned'
+                          )),
+    lower_bound           jsonb,
+    upper_bound           jsonb NOT NULL,
+    capability_snapshot_id uuid REFERENCES graphsync.source_capability_snapshot(snapshot_id),
+    run_id                uuid REFERENCES graphsync.sync_run(run_id) ON DELETE SET NULL,
+    row_count             bigint NOT NULL DEFAULT 0,
+    tombstone_count       bigint NOT NULL DEFAULT 0,
+    error                 jsonb,
+    metadata              jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (job_name, class_name, upper_bound)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_incremental_window_status
+    ON graphsync.incremental_window (job_name, status, class_name, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS graphsync.artifact (
     artifact_id           uuid PRIMARY KEY,
     run_id                uuid NOT NULL REFERENCES graphsync.sync_run(run_id) ON DELETE CASCADE,
@@ -377,6 +420,11 @@ CREATE TRIGGER trg_table_sync_policy_updated
 BEFORE UPDATE ON graphsync.table_sync_policy
 FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 
+DROP TRIGGER IF EXISTS trg_incremental_window_updated ON graphsync.incremental_window;
+CREATE TRIGGER trg_incremental_window_updated
+BEFORE UPDATE ON graphsync.incremental_window
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
 CREATE OR REPLACE VIEW graphsync.latest_job_run AS
 SELECT DISTINCT ON (job_name)
        job_name, run_id, status, trigger_type, started_at, finished_at,
@@ -432,6 +480,10 @@ ON CONFLICT (version) DO NOTHING;
 
 INSERT INTO graphsync.schema_version (version, description)
 VALUES (5, 'Large-table policies and resumable partition batches')
+ON CONFLICT (version) DO NOTHING;
+
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (6, 'Source capability snapshots and bounded incremental windows')
 ON CONFLICT (version) DO NOTHING;
 
 INSERT INTO graphsync.menu_item
