@@ -19,7 +19,8 @@ Neo4j Ontology      ─┘                  │                         │
 - **PostgreSQL**：控制面，保存连接档案、菜单、任务、映射编译快照、运行日志、检查点和产物 URI。
 - **Graph Studio**：最终本体、Dataset、Layer 和 Graphmart 服务。
 
-PostgreSQL 默认不镜像 Camstar 全量业务表，避免第二套业务 Schema 和双库一致性问题。
+PostgreSQL 默认不镜像 Camstar 全量业务表，避免第二套业务 Schema 和双库一致性问题；
+它只保存表级同步策略、分片台账、检查点和发布审计信息。
 
 ## 当前盘点
 
@@ -90,7 +91,7 @@ python scripts/graphstudio_sync.py preview --job camstar-full
 
 `init-db` 可创建目标 PostgreSQL 数据库和 `graphsync` Schema。已有连接档案默认不会被 `.env` 覆盖；只有显式传入 `--sync-connections` 才会重新同步环境变量中的连接元数据。
 
-`preview` 会在 `outputs/graphstudio/previews/<run-id>/` 生成完整 OWL/Turtle 模型、分片 RDF ZIP、样本、manifest 和校验报告；它只读取 Camstar、Neo4j 与 PostgreSQL，不调用 Graph Studio 写接口。
+`preview` 会在 `outputs/graphstudio/previews/<run-id>/` 生成完整 OWL/Turtle 模型、分片 RDF ZIP、样本、manifest 和校验报告；它只读取 Camstar、Neo4j 与 PostgreSQL，不调用 Graph Studio 写接口。数据读取使用主键 keyset 分页，默认每批 10,000 行、RDF 分片目标 64 MiB，不会一次把整张大表读入内存。
 
 ### 3. 运行 Web 平台
 
@@ -129,11 +130,13 @@ Schema：`graphsync`
 | 分类 | 主要表 |
 |---|---|
 | 平台 | `schema_version`, `app_setting`, `menu_item`, `connection_profile` |
-| 编排 | `sync_job`, `sync_scope`, `sync_run`, `checkpoint` |
+| 编排 | `sync_job`, `sync_scope`, `table_sync_policy`, `sync_run`, `sync_batch`, `checkpoint` |
 | 映射 | `catalog_snapshot`, `class_mapping`, `property_mapping`, `relationship_mapping`, `mapping_override` |
 | 审计 | `artifact`, `validation_result`, `row_state` |
 
 DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapshot`，新编译失败不会破坏当前 `ready` 版本。
+
+“同步任务 → 表级同步策略”可为每个本体类配置全量快照、水位增量、追加增量、CDC 或不导入。超过 `sync.snapshot_row_threshold` 且没有显式策略的表会在抽取前失败，避免误扫亿级表。水位/追加策略必须配置水位列；每个已验证 RDF 分片会写入 `sync_batch`，便于审计和后续断点续跑。
 
 ## 同步安全边界
 
@@ -141,6 +144,7 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 - 发布命令必须使用 PostgreSQL advisory lock，并在 SPARQL 验收成功后才提交 checkpoint。
 - Kubernetes CronJob 模板当前保持 `suspend: true`，完成全量发布 UAT 前不会定时修改 Graphmart。
 - 共享 RDF ZIP 必须放在 Graph Studio 与 Graph Lakehouse 均可访问的 file connection。
+- 当前已完成流式基线和策略保护，但 SQL Server CT/CDC LSN、Oracle SCN、删除事件消费及自动断点恢复仍是下一阶段；连接器上线前，`watermark`、`append_only`、`cdc` 会明确阻止预览，绝不会退化为全表扫描。
 
 详细架构和演进阈值见 [docs/graphstudio_sync_architecture.md](docs/graphstudio_sync_architecture.md)。
 

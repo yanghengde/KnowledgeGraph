@@ -28,6 +28,7 @@ from .source_database import (
     ORACLE_KIND,
     connect_source,
     fetch_dicts,
+    fetchmany_dicts,
     quote_identifier,
     source_cursor,
 )
@@ -476,7 +477,7 @@ def _label_for_row(
     return f"{class_name} {values}"
 
 
-def _fetch_rows(
+def _iter_rows(
     connection,
     *,
     kind: str,
@@ -484,16 +485,228 @@ def _fetch_rows(
     table: str,
     columns: list[str],
     primary_keys: list[str],
-) -> list[dict[str, Any]]:
+    fetch_size: int,
+    start_after: dict[str, Any] | None = None,
+):
     selected = sorted(set(columns), key=lambda value: (value not in primary_keys, value.casefold()))
     sql_columns = ", ".join(_safe_sql_identifier(column, kind) for column in selected)
     order_by = ", ".join(_safe_sql_identifier(column, kind) for column in primary_keys)
     cursor = source_cursor(connection, kind)
-    cursor.execute(
-        f"SELECT {sql_columns} FROM {_safe_sql_identifier(schema, kind)}.{_safe_sql_identifier(table, kind)} "
-        f"ORDER BY {order_by}"
+    last_key = dict(start_after) if start_after else None
+    try:
+        while True:
+            predicate, parameters = _keyset_predicate(primary_keys, last_key, kind)
+            table_name = f"{_safe_sql_identifier(schema, kind)}.{_safe_sql_identifier(table, kind)}"
+            if kind == ORACLE_KIND:
+                sql = (
+                    f"SELECT {sql_columns} FROM {table_name}{predicate} "
+                    f"ORDER BY {order_by} FETCH FIRST {int(fetch_size)} ROWS ONLY"
+                )
+            else:
+                sql = (
+                    f"SELECT TOP ({int(fetch_size)}) {sql_columns} FROM {table_name}{predicate} "
+                    f"ORDER BY {order_by}"
+                )
+            cursor.execute(sql, parameters)
+            page: list[dict[str, Any]] = []
+            while len(page) < fetch_size:
+                rows = fetchmany_dicts(cursor, min(fetch_size - len(page), 10_000))
+                if not rows:
+                    break
+                page.extend(rows)
+            if not page:
+                break
+            yield from page
+            last_key = {column: page[-1][column] for column in primary_keys}
+            if len(page) < fetch_size:
+                break
+    finally:
+        cursor.close()
+
+
+def _keyset_predicate(
+    primary_keys: list[str],
+    last_key: dict[str, Any] | None,
+    kind: str,
+) -> tuple[str, Any]:
+    if not last_key:
+        return "", {} if kind == ORACLE_KIND else ()
+    clauses: list[str] = []
+    if kind == ORACLE_KIND:
+        parameters: dict[str, Any] = {}
+        for index, column in enumerate(primary_keys):
+            parts: list[str] = []
+            for prior in range(index):
+                name = f"k{index}_{prior}"
+                parts.append(f"{_safe_sql_identifier(primary_keys[prior], kind)} = :{name}")
+                parameters[name] = last_key[primary_keys[prior]]
+            name = f"k{index}_{index}"
+            parts.append(f"{_safe_sql_identifier(column, kind)} > :{name}")
+            parameters[name] = last_key[column]
+            clauses.append("(" + " AND ".join(parts) + ")")
+        return " WHERE " + " OR ".join(clauses), parameters
+    parameters_list: list[Any] = []
+    for index, column in enumerate(primary_keys):
+        parts = []
+        for prior in range(index):
+            parts.append(f"{_safe_sql_identifier(primary_keys[prior], kind)} = %s")
+            parameters_list.append(last_key[primary_keys[prior]])
+        parts.append(f"{_safe_sql_identifier(column, kind)} > %s")
+        parameters_list.append(last_key[column])
+        clauses.append("(" + " AND ".join(parts) + ")")
+    return " WHERE " + " OR ".join(clauses), tuple(parameters_list)
+
+
+def _estimated_triple_bytes(triple: tuple[Any, Any, Any]) -> int:
+    return sum(len(term.n3().encode("utf-8")) for term in triple) + 4
+
+
+def _add_triple(graph: Graph, triple: tuple[Any, Any, Any]) -> int:
+    if triple in graph:
+        return 0
+    graph.add(triple)
+    return _estimated_triple_bytes(triple)
+
+
+def _policy_by_class(policies: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return {item["class_name"]: item for item in policies}
+
+
+def _validate_preview_policies(policies: list[dict[str, Any]]) -> None:
+    unreviewed = [item["class_name"] for item in policies if item.get("requires_review")]
+    if unreviewed:
+        raise RuntimeError(
+            "Large tables require an explicit sync policy before extraction: "
+            + ", ".join(unreviewed[:20])
+        )
+    unsupported = [
+        f"{item['class_name']}={item.get('effective_strategy')}"
+        for item in policies
+        if item.get("enabled", True)
+        and item.get("effective_strategy") in {"watermark", "append_only", "cdc"}
+    ]
+    if unsupported:
+        raise RuntimeError(
+            "Incremental source adapters are not enabled; preview will not fall back to a full scan: "
+            + ", ".join(unsupported[:20])
+        )
+
+
+def _load_reference_subjects(
+    settings: SyncSettings,
+    catalog: dict[str, Any],
+    metadata: dict[str, dict[str, Any]],
+    policies: dict[str, dict[str, Any]],
+    *,
+    row_limit: int,
+) -> tuple[set[str], set[str], set[str]]:
+    referenced_classes = {
+        item["target_class"]
+        for item in catalog["relationships"]
+        if item["mapping_status"] == "resolved"
+    }
+    class_by_table = {
+        str(item["physical_table"]).casefold(): item["class_name"]
+        for item in catalog["classes"]
+    }
+    referenced_classes.update(
+        target
+        for item in catalog["properties"]
+        if item["data_type"] == "Navigation"
+        for target in [class_by_table.get(str(item.get("fk_table_name") or "").casefold())]
+        if target
     )
-    return fetch_dicts(cursor)
+    class_rows = {item["class_name"]: int(item.get("approximate_rows") or 0) for item in catalog["classes"]}
+    candidates = sorted(referenced_classes, key=lambda name: (class_rows.get(name, 0), name))
+    subjects: set[str] = set()
+    validated: set[str] = set()
+    skipped: set[str] = set()
+    source = connect_source(settings)
+    try:
+        for class_name in candidates:
+            policy = policies[class_name]
+            if not policy.get("enabled", True) or policy.get("effective_strategy") == "excluded":
+                skipped.add(class_name)
+                continue
+            remaining = row_limit - len(subjects)
+            if remaining <= 0 or class_rows.get(class_name, 0) > remaining:
+                skipped.add(class_name)
+                continue
+            table_meta = metadata[class_name]
+            class_subjects: set[str] = set()
+            row_iterator = _iter_rows(
+                source,
+                kind=settings.source_kind,
+                schema=table_meta["schema"],
+                table=table_meta["table"],
+                columns=table_meta["primaryKeys"],
+                primary_keys=table_meta["primaryKeys"],
+                fetch_size=min(10_000, max(1, remaining + 1)),
+            )
+            overflow = False
+            try:
+                for row in row_iterator:
+                    class_subjects.add(str(_instance_uri(class_name, table_meta["primaryKeys"], row)))
+                    if len(class_subjects) > remaining:
+                        overflow = True
+                        break
+            finally:
+                row_iterator.close()
+            if overflow:
+                skipped.add(class_name)
+                continue
+            subjects.update(class_subjects)
+            validated.add(class_name)
+    finally:
+        source.close()
+    return subjects, validated, skipped
+
+
+def _record_batch(
+    repository: ControlPlaneRepository,
+    *,
+    run_id: uuid.UUID,
+    job_name: str,
+    class_name: str,
+    sequence_no: int,
+    source_from: dict[str, Any],
+    source_to: dict[str, Any],
+    row_count: int,
+    triple_count: int,
+    path: Path,
+) -> None:
+    with repository.engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.sync_batch
+                    (batch_id, run_id, job_name, class_name, partition_key,
+                     sequence_no, status, source_from, source_to, row_count,
+                     triple_count, byte_size, sha256, storage_path,
+                     attempt_count, started_at, finished_at)
+                VALUES
+                    (:batch_id, :run_id, :job_name, :class_name, :partition_key,
+                     :sequence_no, 'verified', CAST(:source_from AS jsonb),
+                     CAST(:source_to AS jsonb), :row_count, :triple_count,
+                     :byte_size, :sha256, :storage_path, 1, now(), now())
+                """
+            ),
+            {
+                "batch_id": uuid.uuid4(),
+                "run_id": run_id,
+                "job_name": job_name,
+                "class_name": class_name,
+                "partition_key": class_name,
+                "sequence_no": sequence_no,
+                "source_from": json.dumps(source_from, ensure_ascii=False, default=str),
+                "source_to": json.dumps(source_to, ensure_ascii=False, default=str),
+                "row_count": row_count,
+                "triple_count": triple_count,
+                "byte_size": path.stat().st_size,
+                "sha256": _sha256(path),
+                "storage_path": str(path),
+            },
+        )
 
 
 def _write_data_shards(
@@ -501,6 +714,11 @@ def _write_data_shards(
     preview_dir: Path,
     catalog: dict[str, Any],
     metadata: dict[str, dict[str, Any]],
+    policies: list[dict[str, Any]],
+    repository: ControlPlaneRepository,
+    run_id: uuid.UUID,
+    job_name: str,
+    reference_validation_row_limit: int,
 ) -> dict[str, Any]:
     shard_dir = preview_dir / "rdf.ttl"
     shard_dir.mkdir(parents=True, exist_ok=True)
@@ -515,42 +733,23 @@ def _write_data_shards(
         str(item["physical_table"]).casefold(): item["class_name"]
         for item in catalog["classes"]
     }
-    subjects: set[str] = set()
-    rows_by_class: dict[str, list[dict[str, Any]]] = {}
+    policies_by_class = _policy_by_class(policies)
+    _validate_preview_policies(policies)
+    reference_subjects, validated_target_classes, skipped_target_classes = _load_reference_subjects(
+        settings,
+        catalog,
+        metadata,
+        policies_by_class,
+        row_limit=reference_validation_row_limit,
+    )
     source = connect_source(settings)
     try:
-        for class_item in catalog["classes"]:
-            class_name = class_item["class_name"]
-            table_meta = metadata[class_name]
-            mapped_columns = [
-                item["physical_column"]
-                for item in properties_by_class[class_name]
-                if item["mapping_status"] in {"resolved", "override"} and item.get("physical_column")
-            ]
-            relationship_columns = [
-                item["physical_column"]
-                for item in relationships_by_class[class_name]
-                if item.get("physical_column")
-            ]
-            rows = _fetch_rows(
-                source,
-                kind=settings.source_kind,
-                schema=table_meta["schema"],
-                table=table_meta["table"],
-                columns=table_meta["primaryKeys"] + mapped_columns + relationship_columns,
-                primary_keys=table_meta["primaryKeys"],
-            )
-            rows_by_class[class_name] = rows
-            for row in rows:
-                uri = str(_instance_uri(class_name, table_meta["primaryKeys"], row))
-                if uri in subjects:
-                    raise RuntimeError(f"Duplicate instance URI: {uri}")
-                subjects.add(uri)
-
         triple_count = 0
+        instance_count = 0
         object_reference_count = 0
         dangling_references: list[dict[str, str]] = []
         dangling_reference_total = 0
+        skipped_reference_total = 0
         datatype_fallbacks: Counter[tuple[str, str, str, str]] = Counter()
         semantic_digest = hashlib.sha256()
         sample_instances: list[dict[str, Any]] = []
@@ -558,23 +757,91 @@ def _write_data_shards(
         class_stats: list[dict[str, Any]] = []
         for index, class_item in enumerate(catalog["classes"], start=1):
             class_name = class_item["class_name"]
-            rows = rows_by_class[class_name]
-            if not rows:
-                class_stats.append({"className": class_name, "instances": 0, "triples": 0})
+            policy = policies_by_class[class_name]
+            if not policy.get("enabled", True) or policy.get("effective_strategy") == "excluded":
+                class_stats.append({"className": class_name, "instances": 0, "triples": 0, "shards": 0, "excluded": True})
                 continue
-            graph = Graph()
-            _bind(graph)
             table_meta = metadata[class_name]
             class_properties = properties_by_class[class_name]
+            mapped_columns = [
+                item["physical_column"]
+                for item in class_properties
+                if item["mapping_status"] in {"resolved", "override"} and item.get("physical_column")
+            ]
+            relationship_columns = [
+                item["physical_column"]
+                for item in relationships_by_class[class_name]
+                if item.get("physical_column")
+            ]
+            graph = Graph()
+            _bind(graph)
+            estimated_bytes = 0
+            rows_in_shard = 0
+            class_instances = 0
+            class_triples = 0
+            shard_sequence = 0
+            first_pk: dict[str, Any] | None = None
+            last_pk: dict[str, Any] | None = None
+            previous_uri: str | None = None
+
+            def flush_shard() -> None:
+                nonlocal graph, estimated_bytes, rows_in_shard, shard_sequence
+                nonlocal class_triples, first_pk, last_pk
+                if rows_in_shard == 0 or first_pk is None or last_pk is None:
+                    return
+                shard_sequence += 1
+                shard_path = shard_dir / (
+                    f"{index:03d}_{re.sub(r'[^A-Za-z0-9_.-]', '_', class_name)}"
+                    f".part{shard_sequence:06d}.ttl"
+                )
+                _serialize_deterministic_turtle(graph, shard_path)
+                parsed = Graph().parse(shard_path, format="turtle")
+                if len(parsed) != len(graph):
+                    raise RuntimeError(f"RDF round-trip changed triples for {class_name} shard {shard_sequence}")
+                semantic_digest.update(_semantic_sha256(graph).encode("ascii"))
+                class_triples += len(graph)
+                _record_batch(
+                    repository,
+                    run_id=run_id,
+                    job_name=job_name,
+                    class_name=class_name,
+                    sequence_no=shard_sequence,
+                    source_from=first_pk,
+                    source_to=last_pk,
+                    row_count=rows_in_shard,
+                    triple_count=len(graph),
+                    path=shard_path,
+                )
+                graph = Graph()
+                _bind(graph)
+                estimated_bytes = 0
+                rows_in_shard = 0
+                first_pk = None
+                last_pk = None
+
+            rows = _iter_rows(
+                source,
+                kind=settings.source_kind,
+                schema=table_meta["schema"],
+                table=table_meta["table"],
+                columns=table_meta["primaryKeys"] + mapped_columns + relationship_columns,
+                primary_keys=table_meta["primaryKeys"],
+                fetch_size=int(policy["batch_rows"]),
+            )
             for row in rows:
                 subject = _instance_uri(class_name, table_meta["primaryKeys"], row)
-                graph.add((subject, RDF.type, _class_uri(class_name)))
-                graph.add(
-                    (
-                        subject,
-                        RDFS.label,
-                        Literal(_label_for_row(class_name, row, class_properties, table_meta["primaryKeys"])),
-                    )
+                subject_text = str(subject)
+                if subject_text == previous_uri:
+                    raise RuntimeError(f"Duplicate instance URI: {subject_text}")
+                previous_uri = subject_text
+                pk_value = {column: _identifier_text(row[column]) for column in table_meta["primaryKeys"]}
+                if first_pk is None:
+                    first_pk = pk_value
+                last_pk = pk_value
+                estimated_bytes += _add_triple(graph, (subject, RDF.type, _class_uri(class_name)))
+                estimated_bytes += _add_triple(
+                    graph,
+                    (subject, RDFS.label, Literal(_label_for_row(class_name, row, class_properties, table_meta["primaryKeys"]))),
                 )
                 exported_values = 0
                 for prop in class_properties:
@@ -590,14 +857,16 @@ def _write_data_shards(
                         if not target_class or len(metadata[target_class]["primaryKeys"]) != 1:
                             continue
                         target = _instance_uri(target_class, metadata[target_class]["primaryKeys"], value)
-                        graph.add((subject, predicate, target))
+                        estimated_bytes += _add_triple(graph, (subject, predicate, target))
                         object_reference_count += 1
-                        if str(target) not in subjects:
+                        if target_class in validated_target_classes and str(target) not in reference_subjects:
                             dangling_reference_total += 1
                             if len(dangling_references) < 200:
                                 dangling_references.append(
                                     {"source": str(subject), "predicate": str(predicate), "target": str(target)}
                                 )
+                        elif target_class not in validated_target_classes:
+                            skipped_reference_total += 1
                     else:
                         literal = _literal(value, prop.get("data_type"))
                         expected_datatype = _xsd_type(prop.get("data_type"))
@@ -610,7 +879,7 @@ def _write_data_shards(
                                     str(literal.datatype),
                                 )
                             ] += 1
-                        graph.add((subject, predicate, literal))
+                        estimated_bytes += _add_triple(graph, (subject, predicate, literal))
                     exported_values += 1
                 for relation in relationships_by_class[class_name]:
                     value = row.get(relation.get("physical_column"))
@@ -621,14 +890,16 @@ def _write_data_shards(
                     predicate = _relationship_uri(
                         relation["source_class"], relation["relationship_name"], relation["target_class"]
                     )
-                    graph.add((subject, predicate, target))
+                    estimated_bytes += _add_triple(graph, (subject, predicate, target))
                     object_reference_count += 1
-                    if str(target) not in subjects:
+                    if target_class in validated_target_classes and str(target) not in reference_subjects:
                         dangling_reference_total += 1
                         if len(dangling_references) < 200:
                             dangling_references.append(
                                 {"source": str(subject), "predicate": str(predicate), "target": str(target)}
                             )
+                    elif target_class not in validated_target_classes:
+                        skipped_reference_total += 1
                     if len(sample_relationships) < 20:
                         sample_relationships.append(
                             {
@@ -649,22 +920,39 @@ def _write_data_shards(
                                 "exportedValues": exported_values,
                             }
                         )
-            shard_path = shard_dir / f"{index:03d}_{re.sub(r'[^A-Za-z0-9_.-]', '_', class_name)}.ttl"
-            _serialize_deterministic_turtle(graph, shard_path)
-            parsed = Graph().parse(shard_path, format="turtle")
-            if len(parsed) != len(graph):
-                raise RuntimeError(f"RDF round-trip changed triples for {class_name}")
-            semantic_digest.update(_semantic_sha256(graph).encode("ascii"))
-            triple_count += len(graph)
-            class_stats.append({"className": class_name, "instances": len(rows), "triples": len(graph)})
+                rows_in_shard += 1
+                class_instances += 1
+                instance_count += 1
+                if (
+                    rows_in_shard >= int(policy["batch_rows"])
+                    or estimated_bytes >= int(policy["target_shard_bytes"])
+                ):
+                    flush_shard()
+            flush_shard()
+            triple_count += class_triples
+            class_stats.append(
+                {
+                    "className": class_name,
+                    "instances": class_instances,
+                    "triples": class_triples,
+                    "shards": shard_sequence,
+                    "strategy": policy.get("effective_strategy"),
+                }
+            )
     finally:
         source.close()
     return {
         "dataTriples": triple_count,
-        "instances": len(subjects),
+        "instances": instance_count,
         "objectReferences": object_reference_count,
         "danglingReferencesTotal": dangling_reference_total,
         "danglingReferences": dangling_references,
+        "referenceValidation": {
+            "rowLimit": reference_validation_row_limit,
+            "validatedTargetClasses": sorted(validated_target_classes),
+            "skippedTargetClasses": sorted(skipped_target_classes),
+            "skippedReferences": skipped_reference_total,
+        },
         "datatypeFallbacks": [
             {
                 "className": key[0],
@@ -722,6 +1010,7 @@ def _report_markdown(manifest: dict[str, Any]) -> str:
         f"- 实例: **{manifest['data']['instances']:,}**",
         f"- 数据三元组: **{manifest['data']['dataTriples']:,}**",
         f"- RDF 数据分片: **{manifest['data']['shardFiles']}**",
+        f"- 最大驻留批次: **{manifest['policies']['maximumBatchRows']:,} 行**",
         "",
         "## 发布门禁",
         "",
@@ -731,6 +1020,7 @@ def _report_markdown(manifest: dict[str, Any]) -> str:
         f"- 多候选关系: **{manifest['catalog']['ambiguousRelationships']}**",
         f"- 未解析关系: **{manifest['catalog']['unresolvedRelationships']}**",
         f"- 引用到未导出实例: **{manifest['data']['danglingReferencesTotal']}**",
+        f"- 因目标类过大跳过精确校验的引用: **{manifest['data']['referenceValidation']['skippedReferences']}**",
         f"- 数据类型回退: **{sum(item['instances'] for item in manifest['data']['datatypeFallbacks'])}** 个值 / **{len(manifest['data']['datatypeFallbacks'])}** 个属性",
         "",
         "## 非空类 Top 20",
@@ -826,6 +1116,20 @@ def build_full_preview(
             try:
                 settings = resolved_settings(base_settings, repository)
                 catalog = _load_catalog(repository)
+                policies = repository.list_table_policies(job_name)
+                reference_validation_row_limit = int(
+                    control.execute(
+                        text(
+                            """
+                            SELECT coalesce(
+                                (SELECT (value #>> '{}')::bigint FROM graphsync.app_setting
+                                 WHERE setting_key='sync.reference_validation_row_limit'),
+                                1000000
+                            )
+                            """
+                        )
+                    ).scalar_one()
+                )
                 descriptions = _load_descriptions(settings)
                 metadata = _source_metadata(settings, catalog["classes"])
 
@@ -836,7 +1140,17 @@ def build_full_preview(
                 if len(parsed_model) != len(model):
                     raise RuntimeError("Ontology RDF round-trip changed the triple count")
 
-                data_result = _write_data_shards(settings, preview_dir, catalog, metadata)
+                data_result = _write_data_shards(
+                    settings,
+                    preview_dir,
+                    catalog,
+                    metadata,
+                    policies,
+                    repository,
+                    run_id,
+                    job_name,
+                    reference_validation_row_limit,
+                )
                 zip_path = _write_zip(preview_dir)
                 samples_path = preview_dir / "samples.json"
                 samples_path.write_text(
@@ -864,6 +1178,14 @@ def build_full_preview(
                     "jobName": job_name,
                     "targetGraphmart": settings.graphmart_uri,
                     "ontologyUri": str(ONTOLOGY_URI),
+                    "policies": {
+                        "explicitlyConfigured": sum(bool(item["explicitly_configured"]) for item in policies),
+                        "requiresReview": sum(bool(item["requires_review"]) for item in policies),
+                        "maximumBatchRows": max((int(item["batch_rows"]) for item in policies), default=0),
+                        "strategyCounts": dict(
+                            Counter(item.get("effective_strategy") or "review_required" for item in policies)
+                        ),
+                    },
                     "catalog": {
                         "snapshotId": str(snapshot["snapshot_id"]),
                         "catalogHash": snapshot["catalog_hash"],
@@ -906,7 +1228,6 @@ def build_full_preview(
 
                 validations = [
                     ("model-class-count", manifest["model"]["classes"] == manifest["catalog"]["classes"], "Ontology class count matches the catalog"),
-                    ("instance-row-count", data_result["instances"] == int(snapshot["approximate_row_count"]), "Exported instances match the catalog source row estimate"),
                     ("rdf-round-trip", True, "Ontology and every data shard parsed successfully"),
                     ("zip-layout", True, "Every ZIP member is a Turtle file below rdf.ttl/"),
                     ("unique-instance-uri", True, "All exported instance URIs are unique"),
@@ -915,6 +1236,22 @@ def build_full_preview(
                 failed = [rule for rule, passed, _ in validations if not passed]
                 for rule, passed, message in validations:
                     _record_validation(control, run_id=run_id, rule=rule, passed=passed, message=message)
+                policy_lookup = _policy_by_class(policies)
+                expected_instances = sum(
+                    int(item.get("approximate_rows") or 0)
+                    for item in catalog["classes"]
+                    if policy_lookup[item["class_name"]].get("effective_strategy") != "excluded"
+                    and policy_lookup[item["class_name"]].get("enabled", True)
+                )
+                _record_validation(
+                    control,
+                    run_id=run_id,
+                    rule="instance-row-count",
+                    passed=data_result["instances"] == expected_instances,
+                    message="Exported instances match the catalog source row estimate",
+                    severity="warning",
+                    details={"expected": expected_instances, "actual": data_result["instances"]},
+                )
                 _record_validation(
                     control,
                     run_id=run_id,
@@ -940,6 +1277,15 @@ def build_full_preview(
                     message="Object references resolve to exported subjects",
                     severity="warning",
                     details={"danglingReferences": data_result["danglingReferencesTotal"]},
+                )
+                _record_validation(
+                    control,
+                    run_id=run_id,
+                    rule="reference-validation-coverage",
+                    passed=not data_result["referenceValidation"]["skippedReferences"],
+                    message="All object references were eligible for exact in-memory validation",
+                    severity="warning",
+                    details=data_result["referenceValidation"],
                 )
                 _record_validation(
                     control,
@@ -979,6 +1325,8 @@ def build_full_preview(
                                 "modelTriples": len(model),
                                 "dataTriples": data_result["dataTriples"],
                                 "shardFiles": data_result["shardFiles"],
+                                "streaming": True,
+                                "maximumBatchRows": manifest["policies"]["maximumBatchRows"],
                                 "danglingReferences": data_result["danglingReferencesTotal"],
                                 "datatypeFallbacks": sum(
                                     item["instances"] for item in data_result["datatypeFallbacks"]

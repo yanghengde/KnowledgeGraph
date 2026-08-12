@@ -120,6 +120,61 @@ CREATE TABLE IF NOT EXISTS graphsync.checkpoint (
     PRIMARY KEY (job_name, partition_key)
 );
 
+CREATE TABLE IF NOT EXISTS graphsync.table_sync_policy (
+    job_name              text NOT NULL REFERENCES graphsync.sync_job(job_name) ON DELETE CASCADE,
+    class_name            text NOT NULL,
+    physical_schema       text NOT NULL,
+    physical_table        text NOT NULL,
+    strategy              text NOT NULL CHECK (strategy IN (
+                              'snapshot', 'watermark', 'append_only', 'cdc', 'excluded'
+                          )),
+    watermark_column      text,
+    partition_column      text,
+    batch_rows            integer NOT NULL DEFAULT 10000 CHECK (
+                              batch_rows BETWEEN 100 AND 1000000
+                          ),
+    target_shard_bytes    bigint NOT NULL DEFAULT 67108864 CHECK (
+                              target_shard_bytes BETWEEN 1048576 AND 4294967296
+                          ),
+    hot_window_days       integer CHECK (hot_window_days IS NULL OR hot_window_days > 0),
+    enabled               boolean NOT NULL DEFAULT true,
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (job_name, class_name)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_table_policy_strategy
+    ON graphsync.table_sync_policy (job_name, strategy, enabled);
+
+CREATE TABLE IF NOT EXISTS graphsync.sync_batch (
+    batch_id              uuid PRIMARY KEY,
+    run_id                uuid NOT NULL REFERENCES graphsync.sync_run(run_id) ON DELETE CASCADE,
+    job_name              text NOT NULL REFERENCES graphsync.sync_job(job_name) ON DELETE CASCADE,
+    class_name            text NOT NULL,
+    partition_key         text NOT NULL,
+    sequence_no           integer NOT NULL,
+    status                text NOT NULL CHECK (status IN (
+                              'queued', 'extracting', 'staged', 'loading',
+                              'verified', 'failed', 'cancelled'
+                          )),
+    source_from           jsonb,
+    source_to             jsonb,
+    row_count             bigint NOT NULL DEFAULT 0,
+    triple_count          bigint NOT NULL DEFAULT 0,
+    byte_size             bigint NOT NULL DEFAULT 0,
+    sha256                text,
+    storage_path          text,
+    attempt_count         integer NOT NULL DEFAULT 0,
+    error                 jsonb,
+    started_at            timestamptz,
+    finished_at           timestamptz,
+    UNIQUE (run_id, class_name, partition_key, sequence_no)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_batch_run_status
+    ON graphsync.sync_batch (run_id, status, class_name, sequence_no);
+
 CREATE TABLE IF NOT EXISTS graphsync.artifact (
     artifact_id           uuid PRIMARY KEY,
     run_id                uuid NOT NULL REFERENCES graphsync.sync_run(run_id) ON DELETE CASCADE,
@@ -317,6 +372,11 @@ CREATE TRIGGER trg_relationship_override_updated
 BEFORE UPDATE ON graphsync.relationship_override
 FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 
+DROP TRIGGER IF EXISTS trg_table_sync_policy_updated ON graphsync.table_sync_policy;
+CREATE TRIGGER trg_table_sync_policy_updated
+BEFORE UPDATE ON graphsync.table_sync_policy
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
 CREATE OR REPLACE VIEW graphsync.latest_job_run AS
 SELECT DISTINCT ON (job_name)
        job_name, run_id, status, trigger_type, started_at, finished_at,
@@ -370,6 +430,10 @@ INSERT INTO graphsync.schema_version (version, description)
 VALUES (4, 'SQL Server and Oracle Camstar source profiles')
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (5, 'Large-table policies and resumable partition batches')
+ON CONFLICT (version) DO NOTHING;
+
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)
 VALUES
@@ -406,6 +470,9 @@ VALUES
     ('product.name', '"Opcenter Graph Sync"'::jsonb, '主页产品名称', true),
     ('workflow.primary', '"camstar-to-graphstudio"'::jsonb, '平台主流程', false),
     ('sync.snapshot_row_threshold', '5000000'::jsonb, '切换到分区增量的建议行数阈值', true),
+    ('sync.default_batch_rows', '10000'::jsonb, '流式导出每批最大行数', true),
+    ('sync.target_shard_bytes', '67108864'::jsonb, '单个 RDF 分片目标字节数', true),
+    ('sync.reference_validation_row_limit', '1000000'::jsonb, '内存引用完整性校验的目标类行数上限', true),
     ('sync.retention_success', '3'::jsonb, '成功产物保留数', true),
     ('catalog.retention_ready', '5'::jsonb, '映射目录 ready 快照保留数', true),
     ('ui.default_language', '"zh-CN"'::jsonb, '同步中心默认语言', true)

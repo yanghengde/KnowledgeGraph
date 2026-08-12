@@ -20,8 +20,9 @@ Schema、双写一致性、更多存储和额外时延。只有当后续需要�
 - 当前已映射的 318 张表中 70 张非空，总行数约 632。
 - Graphmart `Opcenter2607` 在线，已发现 Graph Lakehouse 可访问的共享文件连接 `localShare`。
 
-因此，当前阶段每小时生成一份完整 RDF 快照的成本很低，而且可以自然处理新增、
-更新和删除。在数据规模或 SLA 明显增长前，不建议过早引入 CDC/Kafka。
+因此，当前测试库可以生成完整 RDF 快照。但生产 Camstar 可能存在亿级历史表，
+不能把测试库的规模结论直接外推到生产；执行器必须先按表策略审核，再决定全量、
+水位、追加、CDC 或排除。Kafka 仍只在秒级 SLA 下引入。
 
 ## 目标架构
 
@@ -74,11 +75,24 @@ flowchart LR
 
 ## 全量与增量策略
 
-### 当前：原子全量快照
+### 当前：按表策略的流式基线
 
 - 全部 318 个类使用稳定 URI：`namespace/class/primary-key`。
-- 每次生成完整快照，并用 Dataset 版本切换；删除语义不需要 tombstone。
-- 可先按领域分层，但一次 run 只有在所有层验收成功后才算成功。
+- PostgreSQL `table_sync_policy` 为每个本体类选择 `snapshot`、`watermark`、
+  `append_only`、`cdc` 或 `excluded`；超过行数阈值且没有显式策略时，预览直接失败。
+- 源表按主键 keyset 分页，不使用 `OFFSET`，也不会一次 `fetchall()` 整张表。
+- 默认每批 10,000 行，同时以 64 MiB 为 RDF 分片软上限；每个分片完成 Turtle
+  回读、哈希和计数后写入 `sync_batch` 台账。
+- 引用完整性检查只在配置的上限内保留精确目标 URI 集；超过上限会降级为明确告警，
+  不会无限占用内存。
+- 当前完整快照仍可用 Dataset 版本切换自然表达删除；增量策略需要 tombstone 或
+  周期性 reconciliation 才能处理源端删除。
+
+这解决了“读取/序列化时内存随整表增长”的问题，但不等同于已经完成生产 CDC。
+初始基线期间的数据库一致性边界仍需使用 SQL Server Snapshot/CDC LSN 或 Oracle SCN；
+`watermark`、`append_only`、`cdc` 目前是可审核策略和执行保护，连接器的增量消费、
+断点恢复命令及删除事件应用属于下一阶段。在连接器上线前，预览遇到这三种策略会在
+连接源表前失败，绝不会退化为全表扫描；暂不导入的亿级表应显式选择 `excluded`。
 
 ### 触发升级到增量的条件
 
@@ -112,16 +126,18 @@ flowchart LR
 
 - `doctor`：只读检查 Neo4j、SQL Server、Graph Studio 和 PostgreSQL 连通性。
 - `plan`：输出类/表覆盖、属性映射率、行数估算和推荐模式。
-- `preview`：生成完整、确定性的 OWL/Turtle 模型与分片 RDF ZIP，执行回读、URI、引用和数据类型校验，全程不调用 Graph Studio 写接口。
+- `preview`：使用主键 keyset 分页生成完整、确定性的 OWL/Turtle 模型与分片 RDF ZIP，执行逐分片回读、URI、引用和数据类型校验，全程不调用 Graph Studio 写接口。
+- 表级同步策略、安全阈值、批大小/RDF 分片配置，以及 `sync_batch` 分片审计台账。
 - PostgreSQL 控制面 DDL，本地 Compose 和暂停状态的 Kubernetes CronJob 模板。
 - Product/MfgOrder 子图的 RDF 导出和 API 导入已作为端到端概念验证。
 
 ### 下一个实现里程碑
 
-1. 审核 32 个未确定属性、159 个多候选关系、72 个未解析关系，以及预览报告中的引用和数据类型告警。
-2. 实现幂等的 `sync --job camstar-full --apply`，包含蓝绿 Dataset 切换、SPARQL 验收和回滚。
-3. 通过 UAT 后取消 CronJob 模板的 `suspend: true`。
-4. 运行一个观察周期，再依据实测时间和体积决定是否增加 CDC。
+1. 在生产源库执行盘点，对所有超过阈值的表显式确认策略、主键/水位列和历史窗口。
+2. 实现 SQL Server Snapshot + CT/CDC LSN 和 Oracle SCN 增量连接器，并补齐删除事件与断点恢复。
+3. 审核 32 个未确定属性、159 个多候选关系、72 个未解析关系，以及预览报告中的引用和数据类型告警。
+4. 实现幂等的 `sync --job camstar-full --apply`，包含蓝绿 Dataset 切换、SPARQL 验收和回滚。
+5. 通过 UAT 后取消 CronJob 模板的 `suspend: true`；秒级 SLA 再评估 Kafka。
 
 ## 命令
 

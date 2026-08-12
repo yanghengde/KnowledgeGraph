@@ -155,6 +155,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .table-panel { overflow: hidden; }
 .table-wrap { overflow: auto; }
+.table-policy-wrap { max-height: 520px; }
+.table-policy-wrap thead { position: sticky; top: 0; z-index: 1; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 13px 16px; border-bottom: 1px solid rgba(150,190,200,.09); text-align: left; white-space: nowrap; }
 th { color: var(--dim); background: rgba(255,255,255,.014); font-size: 8px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
@@ -188,6 +190,8 @@ tbody tr:hover td { background: rgba(32,215,179,.025); }
 .dialog-field { min-width: 0; }
 .dialog-field.wide { grid-column: 1 / -1; }
 .dialog-field label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 9px; font-weight: 750; }
+.dialog-field.required-field label::after { content: " *"; color: var(--amber); }
+.dialog-field.required-field input { border-color: rgba(242,184,75,.48); }
 .field-help { display: block; margin-top: 6px; color: var(--dim); font-size: 8px; line-height: 1.45; }
 .switch-field { align-self: end; }
 .switch-row { display: flex !important; align-items: center; justify-content: space-between; gap: 18px; min-height: 54px; margin: 0 !important; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.018); cursor: pointer; }

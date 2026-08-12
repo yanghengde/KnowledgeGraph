@@ -6,6 +6,7 @@
         overview: null,
         connections: [],
         jobs: [],
+        tablePolicies: [],
         mappings: null,
         runs: [],
         settings: [],
@@ -81,6 +82,16 @@
         })[value] || String(value || "").replaceAll("_", " ");
     }
 
+    function strategyLabel(value) {
+        return ({
+            snapshot: "全量快照",
+            watermark: "水位增量",
+            append_only: "追加增量",
+            cdc: "CDC",
+            excluded: "不导入",
+        })[value] || "待配置";
+    }
+
     function renderNavigation() {
         const nav = $("#syncNavigation");
         nav.innerHTML = state.navigation.map(item => `
@@ -154,6 +165,30 @@
                 </div>
                 <div class="card-actions"><small>${item.enabled ? "任务已启用" : "任务已停用"}</small><div class="card-action-buttons"><button class="mini-btn" data-action="dry-run-job">执行盘点</button><button class="mini-btn" data-action="preview-job">生成 RDF 预览</button><button class="mini-btn" data-action="edit-job">配置任务</button></div></div>
             </article>`).join("");
+        renderTablePolicies();
+    }
+
+    function renderTablePolicies() {
+        const rows = state.tablePolicies || [];
+        const risky = rows.filter(item => item.requires_review);
+        $("#tablePolicyRiskCount").textContent = `${risky.length} 个待审核`;
+        $("#tablePolicyRows").innerHTML = rows.map(item => {
+            const effective = item.effective_strategy;
+            const status = item.requires_review
+                ? '<span class="status-pill failed">大表未配置</span>'
+                : item.explicitly_configured
+                    ? '<span class="status-pill online">已配置</span>'
+                    : '<span class="status-pill">默认安全策略</span>';
+            const recommendation = item.requires_review ? `建议：${strategyLabel(item.recommended_strategy)}` : "";
+            return `<tr data-policy-class="${escapeHtml(item.class_name)}">
+                <td><strong>${escapeHtml(item.class_name)}</strong><br><small>${escapeHtml(`${item.physical_schema}.${item.physical_table}`)}</small></td>
+                <td>${Number(item.approximate_rows || 0).toLocaleString()}</td>
+                <td>${escapeHtml(strategyLabel(effective))}${recommendation ? `<br><small>${escapeHtml(recommendation)}</small>` : ""}</td>
+                <td>${Number(item.batch_rows || 0).toLocaleString()} 行</td>
+                <td>${status}</td>
+                <td><button class="mini-btn" data-action="edit-table-policy">配置</button></td>
+            </tr>`;
+        }).join("") || '<tr class="empty-row"><td colspan="6">请先编译本体映射目录</td></tr>';
     }
 
     function renderMappings() {
@@ -313,6 +348,44 @@
         $("#editDialog").showModal();
     }
 
+    function openTablePolicyDialog(item) {
+        const strategy = item.strategy || item.recommended_strategy || "snapshot";
+        $("#dialogTitle").textContent = `${item.class_name} 同步策略`;
+        $("#dialogKicker").textContent = "LARGE TABLE POLICY";
+        $("#dialogFields").innerHTML = [
+            field("strategy", "同步策略", strategy, { type: "select", items: [["snapshot", "全量快照"], ["watermark", "水位增量"], ["append_only", "追加增量"], ["cdc", "CDC"], ["excluded", "不导入"]] }),
+            field("batch_rows", "每批读取行数", item.batch_rows || 10000, { type: "number", help: "建议 10,000～100,000；宽表使用更小批次" }),
+            field("watermark_column", "水位列", item.watermark_column || "", { placeholder: "LastUpdatedDate", help: "水位增量和追加增量必须填写" }),
+            field("partition_column", "分区列", item.partition_column || "", { placeholder: "TxnDate / 主键" }),
+            field("target_shard_mb", "RDF 分片目标大小（MB）", Math.round(Number(item.target_shard_bytes || 67108864) / 1048576), { type: "number" }),
+            field("hot_window_days", "热数据窗口（天）", item.hot_window_days || "", { type: "number", help: "留空表示不限制历史窗口" }),
+            field("enabled", "启用此表策略", item.enabled !== false, { type: "checkbox", wide: true, help: "关闭后此表不会进入同步批次" }),
+        ].join("");
+        const updatePolicyFields = () => {
+            const selected = $("#dialog-strategy").value;
+            const needsWatermark = ["watermark", "append_only"].includes(selected);
+            $('[data-field-name="watermark_column"]', $("#dialogFields")).classList.toggle("required-field", needsWatermark);
+        };
+        $("#dialog-strategy").addEventListener("change", updatePolicyFields);
+        updatePolicyFields();
+        state.dialogSubmit = async (form) => {
+            const payload = {
+                strategy: form.get("strategy"),
+                watermark_column: form.get("watermark_column") || null,
+                partition_column: form.get("partition_column") || null,
+                batch_rows: Number(form.get("batch_rows")),
+                target_shard_bytes: Number(form.get("target_shard_mb")) * 1048576,
+                hot_window_days: form.get("hot_window_days") ? Number(form.get("hot_window_days")) : null,
+                enabled: form.get("enabled") === "on",
+                config: item.config || {},
+            };
+            await request(`/api/sync/jobs/camstar-full/table-policies/${encodeURIComponent(item.class_name)}`, { method: "PUT", body: JSON.stringify(payload) });
+            toast(`${item.class_name} 同步策略已保存`);
+            await loadTablePolicies();
+        };
+        $("#editDialog").showModal();
+    }
+
     function openPropertyOverrideDialog(item) {
         $("#dialogTitle").textContent = `${item.className}.${item.propertyName}`;
         $("#dialogKicker").textContent = "PROPERTY OVERRIDE";
@@ -353,6 +426,7 @@
     async function loadOverview() { state.overview = await request("/api/sync/overview"); renderOverview(); }
     async function loadConnections() { state.connections = (await request("/api/sync/connections")).items; renderConnections(); }
     async function loadJobs() { state.jobs = (await request("/api/sync/jobs")).items; renderJobs(); }
+    async function loadTablePolicies() { state.tablePolicies = (await request("/api/sync/jobs/camstar-full/table-policies")).items; renderTablePolicies(); }
     async function loadMappings() { state.mappings = await request("/api/sync/mappings"); renderMappings(); renderOverview(); }
     async function loadRuns() { state.runs = (await request("/api/sync/runs?limit=100")).items; renderRuns(); }
     async function loadSettings() { state.settings = (await request("/api/sync/settings")).items; renderSettings(); }
@@ -361,7 +435,7 @@
         setAlert();
         try {
             await loadNavigation();
-            await Promise.all([loadConnections(), loadJobs(), loadMappings(), loadRuns(), loadSettings()]);
+            await Promise.all([loadConnections(), loadJobs(), loadTablePolicies(), loadMappings(), loadRuns(), loadSettings()]);
             await loadOverview();
         } catch (error) {
             setAlert(`同步中心加载失败：${error.message}`);
@@ -408,6 +482,10 @@
         }
         if (action.dataset.action === "edit-job" && jobCard) {
             openJobDialog(state.jobs.find(item => item.job_name === jobCard.dataset.job)); return;
+        }
+        if (action.dataset.action === "edit-table-policy") {
+            const row = action.closest("[data-policy-class]");
+            openTablePolicyDialog(state.tablePolicies.find(item => item.class_name === row.dataset.policyClass)); return;
         }
         if (action.dataset.action === "dry-run-job" && jobCard) {
             action.disabled = true; action.textContent = "盘点中…";
@@ -467,7 +545,7 @@
         try {
             const result = await request("/api/sync/mappings/compile", { method: "POST" });
             toast(`映射目录已编译：${result.propertiesResolved}/${result.properties} 个属性`);
-            await loadMappings();
+            await loadMappings(); await loadTablePolicies();
         } catch (error) { toast(error.message, true); }
         finally { button.disabled = false; button.textContent = "重新编译映射"; }
     });

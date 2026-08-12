@@ -6,7 +6,7 @@ from functools import lru_cache
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.catalog import compile_catalog
@@ -66,6 +66,23 @@ class JobUpdate(BaseModel):
     timezone: str = Field(default="Asia/Shanghai", min_length=1, max_length=100)
     enabled: bool = True
     retention_success: int = Field(default=3, ge=1, le=100)
+
+
+class TablePolicyUpdate(BaseModel):
+    strategy: Literal["snapshot", "watermark", "append_only", "cdc", "excluded"]
+    watermark_column: str | None = Field(default=None, max_length=200)
+    partition_column: str | None = Field(default=None, max_length=200)
+    batch_rows: int = Field(default=10000, ge=100, le=1000000)
+    target_shard_bytes: int = Field(default=67108864, ge=1048576, le=4294967296)
+    hot_window_days: int | None = Field(default=None, ge=1, le=36500)
+    enabled: bool = True
+    config: dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def validate_incremental_cursor(self):
+        if self.strategy in {"watermark", "append_only"} and not self.watermark_column:
+            raise ValueError("watermark_column is required for watermark and append_only strategies")
+        return self
 
 
 class SettingUpdate(BaseModel):
@@ -157,6 +174,26 @@ def update_job(job_name: str, request: JobUpdate):
         return _repo().update_job(job_name, **request.model_dump())
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Sync job not found") from exc
+
+
+@router.get("/jobs/{job_name}/table-policies")
+def table_policies(job_name: str):
+    try:
+        return {"items": _repo().list_table_policies(job_name)}
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job not found") from exc
+
+
+@router.put("/jobs/{job_name}/table-policies/{class_name}")
+def update_table_policy(job_name: str, class_name: str, request: TablePolicyUpdate):
+    try:
+        return _repo().upsert_table_policy(
+            job_name,
+            class_name,
+            **request.model_dump(),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Mapped ontology class not found") from exc
 
 
 @router.post("/jobs/{job_name}/dry-run")

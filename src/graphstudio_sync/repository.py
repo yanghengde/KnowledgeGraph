@@ -241,6 +241,142 @@ class ControlPlaneRepository:
             raise KeyError(name)
         return dict(row)
 
+    def list_table_policies(self, job_name: str) -> list[dict[str, Any]]:
+        with self.engine.connect() as connection:
+            job_exists = connection.execute(
+                text("SELECT EXISTS(SELECT 1 FROM graphsync.sync_job WHERE job_name=:job_name)"),
+                {"job_name": job_name},
+            ).scalar_one()
+            if not job_exists:
+                raise KeyError(job_name)
+            settings = {
+                row["setting_key"]: row["value"]
+                for row in connection.execute(
+                    text(
+                        """
+                        SELECT setting_key, value FROM graphsync.app_setting
+                        WHERE setting_key IN (
+                            'sync.snapshot_row_threshold', 'sync.default_batch_rows',
+                            'sync.target_shard_bytes'
+                        )
+                        """
+                    )
+                ).mappings()
+            }
+            rows = _rows(
+                connection.execute(
+                    text(
+                        """
+                        SELECT mapping.class_name, mapping.physical_schema,
+                               mapping.physical_table, mapping.approximate_rows,
+                               policy.strategy, policy.watermark_column,
+                               policy.partition_column, policy.batch_rows,
+                               policy.target_shard_bytes, policy.hot_window_days,
+                               policy.enabled, policy.config, policy.updated_at,
+                               (policy.class_name IS NOT NULL) AS explicitly_configured
+                        FROM graphsync.current_class_mapping mapping
+                        LEFT JOIN graphsync.table_sync_policy policy
+                          ON policy.job_name=:job_name
+                         AND policy.class_name=mapping.class_name
+                        WHERE mapping.mapping_status='resolved'
+                        ORDER BY mapping.approximate_rows DESC, mapping.class_name
+                        """
+                    ),
+                    {"job_name": job_name},
+                )
+            )
+        threshold = int(settings.get("sync.snapshot_row_threshold", 5_000_000))
+        default_batch = int(settings.get("sync.default_batch_rows", 10_000))
+        default_shard_bytes = int(settings.get("sync.target_shard_bytes", 67_108_864))
+        for row in rows:
+            approximate_rows = int(row.get("approximate_rows") or 0)
+            high_volume = approximate_rows > threshold
+            name = str(row["class_name"]).casefold()
+            recommended = (
+                "append_only"
+                if high_volume and any(token in name for token in ("history", "log", "event", "audit"))
+                else "cdc" if high_volume else "snapshot"
+            )
+            row["recommended_strategy"] = recommended
+            row["requires_review"] = high_volume and not row["explicitly_configured"]
+            row["effective_strategy"] = row["strategy"] or (None if high_volume else "snapshot")
+            row["batch_rows"] = int(row["batch_rows"] or default_batch)
+            row["target_shard_bytes"] = int(row["target_shard_bytes"] or default_shard_bytes)
+            row["enabled"] = True if row["enabled"] is None else row["enabled"]
+        return rows
+
+    def upsert_table_policy(
+        self,
+        job_name: str,
+        class_name: str,
+        *,
+        strategy: str,
+        watermark_column: str | None,
+        partition_column: str | None,
+        batch_rows: int,
+        target_shard_bytes: int,
+        hot_window_days: int | None,
+        enabled: bool,
+        config: dict[str, Any],
+    ) -> dict[str, Any]:
+        with self.engine.begin() as connection:
+            mapping = connection.execute(
+                text(
+                    """
+                    SELECT physical_schema, physical_table
+                    FROM graphsync.current_class_mapping
+                    WHERE class_name=:class_name AND mapping_status='resolved'
+                    """
+                ),
+                {"class_name": class_name},
+            ).mappings().one_or_none()
+            if mapping is None:
+                raise KeyError(class_name)
+            row = connection.execute(
+                text(
+                    """
+                    INSERT INTO graphsync.table_sync_policy
+                        (job_name, class_name, physical_schema, physical_table,
+                         strategy, watermark_column, partition_column, batch_rows,
+                         target_shard_bytes, hot_window_days, enabled, config)
+                    VALUES
+                        (:job_name, :class_name, :physical_schema, :physical_table,
+                         :strategy, :watermark_column, :partition_column, :batch_rows,
+                         :target_shard_bytes, :hot_window_days, :enabled,
+                         CAST(:config AS jsonb))
+                    ON CONFLICT (job_name, class_name) DO UPDATE SET
+                        physical_schema=EXCLUDED.physical_schema,
+                        physical_table=EXCLUDED.physical_table,
+                        strategy=EXCLUDED.strategy,
+                        watermark_column=EXCLUDED.watermark_column,
+                        partition_column=EXCLUDED.partition_column,
+                        batch_rows=EXCLUDED.batch_rows,
+                        target_shard_bytes=EXCLUDED.target_shard_bytes,
+                        hot_window_days=EXCLUDED.hot_window_days,
+                        enabled=EXCLUDED.enabled,
+                        config=EXCLUDED.config
+                    RETURNING job_name, class_name, physical_schema, physical_table,
+                              strategy, watermark_column, partition_column, batch_rows,
+                              target_shard_bytes, hot_window_days, enabled, config, updated_at
+                    """
+                ),
+                {
+                    "job_name": job_name,
+                    "class_name": class_name,
+                    "physical_schema": mapping["physical_schema"],
+                    "physical_table": mapping["physical_table"],
+                    "strategy": strategy,
+                    "watermark_column": watermark_column,
+                    "partition_column": partition_column,
+                    "batch_rows": batch_rows,
+                    "target_shard_bytes": target_shard_bytes,
+                    "hot_window_days": hot_window_days,
+                    "enabled": enabled,
+                    "config": json.dumps(config, ensure_ascii=False),
+                },
+            ).mappings().one()
+        return dict(row)
+
     def list_runs(self, *, limit: int = 100) -> list[dict[str, Any]]:
         with self.engine.connect() as connection:
             return _rows(

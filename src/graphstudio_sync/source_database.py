@@ -64,6 +64,16 @@ def fetch_dicts(cursor) -> list[dict[str, Any]]:
     return [dict(zip(columns, row, strict=True)) for row in rows]
 
 
+def fetchmany_dicts(cursor, size: int) -> list[dict[str, Any]]:
+    rows = cursor.fetchmany(size)
+    if not rows:
+        return []
+    if isinstance(rows[0], dict):
+        return [dict(row) for row in rows]
+    columns = [str(item[0]) for item in cursor.description]
+    return [dict(zip(columns, row, strict=True)) for row in rows]
+
+
 def quote_identifier(value: str, kind: str) -> str:
     if kind == ORACLE_KIND:
         return f'"{value}"'
