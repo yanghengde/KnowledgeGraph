@@ -1,0 +1,21 @@
+services:
+  graphsync-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: graphsync
+      POSTGRES_USER: graphsync
+      POSTGRES_PASSWORD: ${GRAPHSYNC_POSTGRES_PASSWORD:?set GRAPHSYNC_POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:${GRAPHSYNC_POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - graphsync_postgres_data:/var/lib/postgresql/data
+      - ../../sql/graphstudio_sync_control_postgres.sql:/docker-entrypoint-initdb.d/001-control-plane.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U graphsync -d graphsync"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  graphsync_postgres_data:

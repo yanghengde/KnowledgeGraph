@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "checks": {
+    "neo4j": {
+      "ok": true,
+      "classes": 318
+    },
+    "sourceDatabase": {
+      "ok": true,
+      "tables": 1272
+    },
+    "graphStudio": {
+      "ok": true,
+      "title": "Opcenter2607",
+      "status": "http://openanzo.org/ontologies/2008/07/System#Online",
+      "sharedFileConnections": [
+        "http://cambridgesemantics.com/File_Connection/localShare"
+      ]
+    },
+    "stateDatabase": {
+      "ok": true,
+      "configured": false,
+      "warning": "SYNC_STATE_DATABASE_URL is not set; production checkpoints are not durable yet"
+    }
+  }
+}

@@ -1,0 +1,305 @@
+{
+  "ontology": {
+    "classes": 318,
+    "properties": 4483,
+    "relationships": 796,
+    "modules": {
+      "unassigned": 318
+    }
+  },
+  "source": {
+    "tablesMatched": 318,
+    "tablesMissing": [],
+    "nonemptyTables": 70,
+    "emptyTables": 248,
+    "approximateRows": 632,
+    "largestMappedTables": [
+      {
+        "className": "ActionDefActionRules",
+        "rows": 141
+      },
+      {
+        "className": "ActionDef",
+        "rows": 51
+      },
+      {
+        "className": "ActionRule",
+        "rows": 38
+      },
+      {
+        "className": "DataPoint",
+        "rows": 37
+      },
+      {
+        "className": "Path",
+        "rows": 30
+      },
+      {
+        "className": "EmployeeRole",
+        "rows": 29
+      },
+      {
+        "className": "RoleDef",
+        "rows": 28
+      },
+      {
+        "className": "ResourceStatusCode",
+        "rows": 26
+      },
+      {
+        "className": "WorkflowStep",
+        "rows": 24
+      },
+      {
+        "className": "SubClassification",
+        "rows": 12
+      },
+      {
+        "className": "PathSelector",
+        "rows": 11
+      },
+      {
+        "className": "NumberingRule",
+        "rows": 10
+      },
+      {
+        "className": "Operation",
+        "rows": 10
+      },
+      {
+        "className": "OrderStatus",
+        "rows": 10
+      },
+      {
+        "className": "BusinessProcessSpec",
+        "rows": 9
+      },
+      {
+        "className": "BusinessProcessSpecBase",
+        "rows": 9
+      },
+      {
+        "className": "ProductFamily",
+        "rows": 9
+      },
+      {
+        "className": "Spec",
+        "rows": 9
+      },
+      {
+        "className": "SpecBase",
+        "rows": 9
+      },
+      {
+        "className": "SpecSchedulingDetail",
+        "rows": 9
+      }
+    ]
+  },
+  "mapping": {
+    "propertiesMappedToPhysicalColumns": 4451,
+    "propertiesUnmapped": 32,
+    "propertyCoveragePercent": 99.29,
+    "unmappedProperties": [
+      {
+        "className": "A_JobCauseCode",
+        "propertyName": "setupAccess",
+        "dataType": "Integer",
+        "sourceFieldId": "689964132"
+      },
+      {
+        "className": "A_JobModel",
+        "propertyName": "setupAccess",
+        "dataType": "Integer",
+        "sourceFieldId": "689964111"
+      },
+      {
+        "className": "A_JobRepairCode",
+        "propertyName": "setupAccess",
+        "dataType": "Integer",
+        "sourceFieldId": "689964141"
+      },
+      {
+        "className": "A_JobStage",
+        "propertyName": "setupAccess",
+        "dataType": "Integer",
+        "sourceFieldId": "689964100"
+      },
+      {
+        "className": "A_JobSymptomCode",
+        "propertyName": "setupAccess",
+        "dataType": "Integer",
+        "sourceFieldId": "689964127"
+      },
+      {
+        "className": "A_PhysicalLocation",
+        "propertyName": "setupAccess",
+        "dataType": "Integer",
+        "sourceFieldId": "689964265"
+      },
+      {
+        "className": "A_PhysicalPosition",
+        "propertyName": "setupAccess",
+        "dataType": "Integer",
+        "sourceFieldId": "689964284"
+      },
+      {
+        "className": "A_ResourceBOM",
+        "propertyName": "setupAccess",
+        "dataType": "Integer",
+        "sourceFieldId": "689964247"
+      },
+      {
+        "className": "A_YieldLimits",
+        "propertyName": "name",
+        "dataType": "String",
+        "sourceFieldId": "689964463"
+      },
+      {
+        "className": "CombineHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689965964"
+      },
+      {
+        "className": "Container",
+        "propertyName": "lastIntegrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689964988"
+      },
+      {
+        "className": "ContainerStatusChangeHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689965983"
+      },
+      {
+        "className": "Employee",
+        "propertyName": "trackCompleteFai",
+        "dataType": "Integer",
+        "sourceFieldId": "689966058"
+      },
+      {
+        "className": "HistoryMainline",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689964551"
+      },
+      {
+        "className": "HoldReleaseHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689966003"
+      },
+      {
+        "className": "IssueActualsHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689965948"
+      },
+      {
+        "className": "MfgOrder",
+        "propertyName": "isWorkflowBase",
+        "dataType": "Integer",
+        "sourceFieldId": "702546673"
+      },
+      {
+        "className": "MoveHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689966011"
+      },
+      {
+        "className": "MoveInHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689966012"
+      },
+      {
+        "className": "Product",
+        "propertyName": "npiJobBase",
+        "dataType": "Integer",
+        "sourceFieldId": "689965419"
+      },
+      {
+        "className": "Product",
+        "propertyName": "productionBomBase",
+        "dataType": "Integer",
+        "sourceFieldId": "689965420"
+      },
+      {
+        "className": "QtyHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689966022"
+      },
+      {
+        "className": "ReprintLabelHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689966029"
+      },
+      {
+        "className": "ResourceDef",
+        "propertyName": "feederPlanBase",
+        "dataType": "Integer",
+        "sourceFieldId": "689963071"
+      },
+      {
+        "className": "ResourceDef",
+        "propertyName": "isRecipeBase",
+        "dataType": "Integer",
+        "sourceFieldId": "702546674"
+      },
+      {
+        "className": "ResourceDef",
+        "propertyName": "lastIntegrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689963070"
+      },
+      {
+        "className": "ResourceStatusHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689966031"
+      },
+      {
+        "className": "ResourceThruputHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689966032"
+      },
+      {
+        "className": "SPCChartDef",
+        "propertyName": "spcChartVisualParams",
+        "dataType": "Integer",
+        "sourceFieldId": "18450"
+      },
+      {
+        "className": "Spec",
+        "propertyName": "targetSpecs",
+        "dataType": "Integer",
+        "sourceFieldId": "689969341"
+      },
+      {
+        "className": "SplitHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689966037"
+      },
+      {
+        "className": "ThruputHistory",
+        "propertyName": "integrationTxn",
+        "dataType": "Integer",
+        "sourceFieldId": "689966042"
+      }
+    ]
+  },
+  "recommendation": {
+    "initialLoadMode": "atomic_snapshot",
+    "steadyStateMode": "atomic_snapshot",
+    "stateStore": "postgresql_control_plane",
+    "scheduler": "external_cronjob_with_concurrency_lock",
+    "graphStudioTransport": "rdf_batches_on_shared_file_store"
+  }
+}

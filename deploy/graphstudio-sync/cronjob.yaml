@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: camstar-graphstudio-sync
+spec:
+  schedule: "0 * * * *"
+  timeZone: "Asia/Shanghai"
+  # Remove this guard only after the production `sync` command has passed UAT.
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3300
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: sync
+              image: registry.example.com/camstar-ontology:latest
+              imagePullPolicy: IfNotPresent
+              command: ["python", "scripts/graphstudio_sync.py", "sync", "--job", "camstar-full"]
+              envFrom:
+                - secretRef:
+                    name: camstar-graphstudio-sync-secrets
+                - configMapRef:
+                    name: camstar-graphstudio-sync-config
+              resources:
+                requests:
+                  cpu: "250m"
+                  memory: "512Mi"
+                limits:
+                  cpu: "2"
+                  memory: "2Gi"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: camstar-graphstudio-sync-config
+data:
+  GRAPHSTUDIO_GRAPHMART_URI: "http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56"
+  GRAPHSTUDIO_FILE_CONNECTION: "http://cambridgesemantics.com/File_Connection/localShare"
+  GRAPHSTUDIO_FILE_PATH: "Opcenter2607/CamstarSync"
+  LOG_LEVEL: "INFO"
+
+# Create the referenced Secret outside source control. It must provide at least:
+# NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD,
+# SRC_DB_HOST, SRC_DB_PORT, SRC_DB_NAME, SRC_DB_USER, SRC_DB_PASSWORD,
+# GRAPHSTUDIO_BASE_URL, GRAPHSTUDIO_USER, GRAPHSTUDIO_PASSWORD,
+# SYNC_STATE_DATABASE_URL.
