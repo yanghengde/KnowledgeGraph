@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: graphsync
       POSTGRES_PASSWORD: ${PGSQL_PASSWORD:?set PGSQL_PASSWORD}
     ports:
-      - "127.0.0.1:${PGSQL_PORT:-5433}:5432"
+      - "127.0.0.1:${GRAPHSYNC_LOCAL_PORT:-5433}:5432"
     volumes:
       - graphsync_postgres_data:/var/lib/postgresql/data
       - ../../sql/graphstudio_sync_control_postgres.sql:/docker-entrypoint-initdb.d/001-control-plane.sql:ro

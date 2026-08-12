@@ -11,7 +11,11 @@ from typing import Any
 from sqlalchemy import create_engine, text
 
 from .config import SyncSettings
+from .catalog import compile_catalog
+from .database import initialize_control_plane
 from .inventory import build_plan, check_graphstudio, read_ontology, read_source_catalog
+from .repository import ControlPlaneRepository
+from .run_manager import execute_dry_run
 
 
 def _write(payload: dict[str, Any], output: Path | None = None) -> None:
@@ -51,7 +55,11 @@ def doctor(settings: SyncSettings) -> dict[str, Any]:
         checks["graphStudio"] = {"ok": False, "error": str(exc).splitlines()[0]}
     if settings.state_database_url:
         try:
-            engine = create_engine(settings.state_database_url, pool_pre_ping=True)
+            engine = create_engine(
+                settings.state_database_url,
+                pool_pre_ping=True,
+                connect_args={"connect_timeout": 10},
+            )
             with engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
             checks["stateDatabase"] = {"ok": True, "configured": True}
@@ -79,9 +87,47 @@ def main(argv: list[str] | None = None) -> int:
     doctor_parser.add_argument("--output", type=Path)
     plan_parser = subparsers.add_parser("plan", help="Build a read-only full synchronization inventory")
     plan_parser.add_argument("--output", type=Path)
+    init_parser = subparsers.add_parser("init-db", help="Create and initialize the PostgreSQL control plane")
+    init_parser.add_argument("--output", type=Path)
+    init_parser.add_argument(
+        "--no-create-database",
+        action="store_true",
+        help="Initialize the configured database without attempting CREATE DATABASE",
+    )
+    init_parser.add_argument(
+        "--sync-connections",
+        action="store_true",
+        help="Overwrite existing connection metadata from environment variables",
+    )
+    dry_run_parser = subparsers.add_parser("dry-run", help="Record a full source and mapping inventory run")
+    dry_run_parser.add_argument("--job", default="camstar-full")
+    dry_run_parser.add_argument("--output", type=Path)
+    catalog_parser = subparsers.add_parser(
+        "compile-catalog",
+        help="Compile Neo4j and Camstar physical mappings into PostgreSQL",
+    )
+    catalog_parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     settings = SyncSettings.from_env()
-    payload = doctor(settings) if args.command == "doctor" else build_plan(settings)
+    if args.command == "doctor":
+        payload = doctor(settings)
+    elif args.command == "plan":
+        payload = build_plan(settings)
+    elif args.command == "init-db":
+        payload = {
+            "ok": True,
+            "controlPlane": initialize_control_plane(
+                settings,
+                create_database=not args.no_create_database,
+                overwrite_connections=args.sync_connections,
+            ),
+        }
+    elif args.command == "dry-run":
+        repository = ControlPlaneRepository(settings)
+        payload = execute_dry_run(settings, repository, job_name=args.job)
+    else:
+        repository = ControlPlaneRepository(settings)
+        payload = {"ok": True, "catalog": compile_catalog(settings, repository)}
     _write(payload, args.output)
     return 0 if payload.get("ok", True) else 1
 

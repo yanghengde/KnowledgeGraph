@@ -1,4 +1,5 @@
 from src.graphstudio_sync.config import _state_database_url
+from src.graphstudio_sync.database import _admin_url
 
 
 PGSQL_KEYS = (
@@ -43,3 +44,11 @@ def test_explicit_url_takes_precedence(monkeypatch) -> None:
     monkeypatch.setenv("SYNC_STATE_DATABASE_URL", "postgresql+psycopg://override/db")
     monkeypatch.setenv("PGSQL_ENABLED", "false")
     assert _state_database_url() == "postgresql+psycopg://override/db"
+
+
+def test_admin_url_preserves_connection_and_switches_database(monkeypatch) -> None:
+    monkeypatch.setenv("PGSQL_ADMIN_DATABASE", "postgres")
+    value = _admin_url("postgresql+psycopg://user:pass@db.internal:5432/OpcenterGraph?sslmode=require")
+    assert value.database == "postgres"
+    assert value.host == "db.internal"
+    assert value.query["sslmode"] == "require"

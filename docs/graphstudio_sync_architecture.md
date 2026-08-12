@@ -98,6 +98,14 @@ flowchart LR
 - 输出结构化日志和 metrics：run 时长、源行数、RDF 三元组数、失败阶段、数据新鲜度。
 - 告警条件：连续失败、超过 SLA 未成功、行数异常变化、本体/Schema hash 未审批变更。
 
+## 管理界面
+
+- `/sync`：主入口，包含总览、连接、任务、映射、运行记录和系统设置。
+- `/ontology`：保留的本体建模工作台。
+- 菜单由 `graphsync.menu_item` 驱动，可在系统设置中修改名称、排序和启用状态。
+- 连接页仅维护脱敏元数据；密码始终通过 `env://...` 引用环境变量。
+- 映射页显示未解析属性及多候选/未解析关系，人工规则分别写入 `mapping_override` 和 `relationship_override`。
+
 ## 工具边界和路线图
 
 ### 已落地
@@ -120,6 +128,9 @@ flowchart LR
 ```powershell
 python scripts/graphstudio_sync.py doctor --output outputs/graphstudio/sync_doctor.json
 python scripts/graphstudio_sync.py plan --output outputs/graphstudio/full_sync_plan.json
+python scripts/graphstudio_sync.py init-db
+python scripts/graphstudio_sync.py compile-catalog
+python scripts/graphstudio_sync.py dry-run --job camstar-full
 
 # 启动可选 PostgreSQL 控制面
 $env:PGSQL_PASSWORD = '<secret>'

@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from web.shared import PROJECT_ROOT
 
 
-app = FastAPI(title="Camstar Ontology API")
+app = FastAPI(title="Opcenter Graph Sync API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,6 +35,7 @@ from web.routers.chat import router as chat_router
 from web.routers.sql_builder import router as sql_builder_router
 from web.routers.i18n import router as i18n_router
 from web.routers.ontology_import import router as ontology_import_router
+from web.routers.sync_center import router as sync_center_router
 
 app.include_router(graph_router)
 app.include_router(wiki_router)
@@ -42,22 +43,43 @@ app.include_router(chat_router)
 app.include_router(sql_builder_router)
 app.include_router(i18n_router)
 app.include_router(ontology_import_router)
+app.include_router(sync_center_router)
 
 
 @app.get("/")
 def index():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "sync.html"))
+
+
+@app.get("/sync")
+def sync_center():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "sync.html"))
+
+
+@app.get("/ontology")
+def ontology_explorer():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "index.html"))
 
 
 @app.get("/healthz", include_in_schema=False)
 def healthz():
     from web.shared import driver
+    from sqlalchemy import text
+    from src.graphstudio_sync.config import SyncSettings
+    from src.graphstudio_sync.database import control_engine
 
     try:
         driver.verify_connectivity()
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Neo4j is unavailable") from exc
-    return {"status": "ok"}
+    try:
+        engine = control_engine(SyncSettings.from_env())
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1 FROM graphsync.schema_version LIMIT 1"))
+        engine.dispose()
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="PostgreSQL control plane is unavailable") from exc
+    return {"status": "ok", "service": "opcenter-graph-sync", "dependencies": {"neo4j": "online", "postgresql": "online"}}
 
 
 if __name__ == "__main__":

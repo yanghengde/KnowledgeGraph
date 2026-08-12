@@ -84,6 +84,14 @@ services:
       app-data-init:
         condition: service_completed_successfully
 
+  sync-control-init:
+    <<: *app-base
+    restart: "no"
+    command: ["python", "scripts/graphstudio_sync.py", "init-db"]
+    depends_on:
+      ontology-init:
+        condition: service_completed_successfully
+
   app:
     <<: *app-base
     restart: unless-stopped
@@ -98,6 +106,8 @@ services:
       app-data-init:
         condition: service_completed_successfully
       ontology-init:
+        condition: service_completed_successfully
+      sync-control-init:
         condition: service_completed_successfully
     healthcheck:
       test:

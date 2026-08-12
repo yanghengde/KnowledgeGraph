@@ -12,6 +12,8 @@ from typing import Any
 import pymssql
 import requests
 from neo4j import GraphDatabase
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from .config import PROJECT_ROOT, SyncSettings
 
@@ -60,7 +62,7 @@ def read_ontology(settings: SyncSettings) -> OntologyInventory:
                 for record in session.run(
                     """
                     MATCH (c:OntologyClass)
-                    RETURN c.name AS name, c.module AS module,
+                    RETURN c.name AS name, coalesce(c.module, c.layer, 'unassigned') AS module,
                            c.sourceWorkspace AS workspace,
                            c.sourceCDODefId AS sourceCDODefId
                     ORDER BY c.name
@@ -136,23 +138,35 @@ def _property_has_column(
     table: dict[str, Any] | None,
     csv_fields: dict[str, dict[str, str]],
 ) -> bool:
+    return resolve_physical_column(prop, table, csv_fields)[0] is not None
+
+
+def resolve_physical_column(
+    prop: dict[str, Any],
+    table: dict[str, Any] | None,
+    csv_fields: dict[str, dict[str, str]],
+) -> tuple[str | None, str | None]:
     if not table:
-        return False
+        return None, None
     columns = table["columns"]
     normalized_columns = {normalize_identifier(column): column for column in columns}
     csv_field = csv_fields.get(str(prop.get("sourceFieldId") or ""))
     if csv_field and normalize_identifier(csv_field.get("FieldName", "")) in normalized_columns:
-        return True
+        return normalized_columns[normalize_identifier(csv_field["FieldName"])], "source_field_id"
     property_name = normalize_identifier(prop["name"])
     if property_name in normalized_columns:
-        return True
+        return normalized_columns[property_name], "property_name"
     if property_name == "name" and normalize_identifier(prop["className"] + "Name") in normalized_columns:
-        return True
+        return normalized_columns[normalize_identifier(prop["className"] + "Name")], "class_name"
     navigation = prop.get("dataType") == "Navigation"
-    return any(
-        property_name in _physical_candidates(column, navigation)
+    matches = [
+        column
         for column in columns
-    )
+        if property_name in _physical_candidates(column, navigation)
+    ]
+    if len(matches) == 1:
+        return matches[0], "normalized_name"
+    return None, "ambiguous_name" if matches else None
 
 
 def build_plan(settings: SyncSettings) -> dict[str, Any]:
@@ -229,6 +243,20 @@ def build_plan(settings: SyncSettings) -> dict[str, Any]:
 
 def check_graphstudio(settings: SyncSettings) -> dict[str, Any]:
     session = requests.Session()
+    session.mount(
+        "https://",
+        HTTPAdapter(
+            max_retries=Retry(
+                total=3,
+                connect=3,
+                read=3,
+                status=3,
+                backoff_factor=0.5,
+                status_forcelist=(429, 502, 503, 504),
+                allowed_methods=frozenset({"GET"}),
+            )
+        ),
+    )
     session.auth = (settings.graphstudio_user, settings.graphstudio_password)
     session.headers.update({"Accept": "application/json", "Accept-Encoding": "identity"})
     graphmart_url = f"{settings.graphstudio_base_url}/api/graphmarts/{requests.utils.quote(settings.graphmart_uri, safe='')}"

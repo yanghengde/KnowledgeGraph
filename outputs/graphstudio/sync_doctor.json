@@ -19,8 +19,7 @@
     },
     "stateDatabase": {
       "ok": true,
-      "configured": false,
-      "warning": "PostgreSQL control plane is disabled; set PGSQL_ENABLED=true and PGSQL_PASSWORD, or provide SYNC_STATE_DATABASE_URL"
+      "configured": true
     }
   }
 }

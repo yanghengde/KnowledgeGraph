@@ -1,0 +1,214 @@
+"""Management API for the Camstar to Graph Studio synchronization center."""
+
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import Any, Literal
+
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from src.graphstudio_sync.config import SyncSettings
+from src.graphstudio_sync.catalog import compile_catalog
+from src.graphstudio_sync.connections import test_all_connections, test_connection
+from src.graphstudio_sync.repository import ControlPlaneRepository
+from src.graphstudio_sync.run_manager import execute_dry_run
+
+
+router = APIRouter(prefix="/api/sync", tags=["Graph Studio Sync"])
+
+
+@lru_cache(maxsize=1)
+def _settings() -> SyncSettings:
+    return SyncSettings.from_env()
+
+
+@lru_cache(maxsize=1)
+def _repository() -> ControlPlaneRepository:
+    return ControlPlaneRepository(_settings())
+
+
+def _repo() -> ControlPlaneRepository:
+    try:
+        repository = _repository()
+        with repository.engine.connect() as connection:
+            connection.exec_driver_sql("SELECT 1")
+        return repository
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"PostgreSQL control plane unavailable: {exc}") from exc
+
+
+class ConnectionUpdate(BaseModel):
+    display_name: str = Field(min_length=1, max_length=120)
+    endpoint: str = Field(min_length=1, max_length=500)
+    database_name: str | None = Field(default=None, max_length=500)
+    username: str | None = Field(default=None, max_length=200)
+    enabled: bool = True
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class NavigationUpdate(BaseModel):
+    label_zh: str = Field(min_length=1, max_length=80)
+    label_en: str = Field(min_length=1, max_length=80)
+    sort_order: int = Field(ge=0, le=10000)
+    enabled: bool = True
+
+
+class JobUpdate(BaseModel):
+    title: str = Field(min_length=1, max_length=160)
+    mode: Literal["atomic_snapshot", "partitioned_incremental"]
+    schedule: str | None = Field(default=None, max_length=100)
+    timezone: str = Field(default="Asia/Shanghai", min_length=1, max_length=100)
+    enabled: bool = True
+    retention_success: int = Field(default=3, ge=1, le=100)
+
+
+class SettingUpdate(BaseModel):
+    value: Any
+
+
+class PropertyOverrideUpdate(BaseModel):
+    physical_table: str = Field(min_length=1, max_length=200)
+    physical_column: str | None = Field(default=None, max_length=200)
+    mapping_kind: Literal["property", "relationship", "computed", "ignored"] = "property"
+    expression: str | None = Field(default=None, max_length=2000)
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class RelationshipOverrideUpdate(BaseModel):
+    source_property: str = Field(min_length=1, max_length=200)
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+@router.get("/overview")
+def overview():
+    return _repo().overview()
+
+
+@router.get("/navigation")
+def navigation(include_disabled: bool = Query(default=False)):
+    return {"items": _repo().list_navigation(include_disabled=include_disabled)}
+
+
+@router.put("/navigation/{menu_key}")
+def update_navigation(menu_key: str, request: NavigationUpdate):
+    try:
+        return _repo().update_navigation(menu_key, **request.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Menu item not found") from exc
+
+
+@router.get("/connections")
+def connections():
+    items = _repo().list_connections()
+    for item in items:
+        item["editable"] = item["connection_key"] != "control-postgresql"
+        item["secret_configured"] = bool(item.get("secret_ref"))
+    return {"items": items}
+
+
+@router.put("/connections/{connection_key}")
+def update_connection(connection_key: str, request: ConnectionUpdate):
+    if connection_key == "control-postgresql":
+        raise HTTPException(
+            status_code=409,
+            detail="The control PostgreSQL connection is environment-managed to prevent self-disconnection",
+        )
+    try:
+        return _repo().update_connection(connection_key, **request.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Connection not found") from exc
+
+
+@router.post("/connections/test-all")
+def test_connections():
+    results = test_all_connections(_settings(), _repo())
+    return {"ok": all(item["ok"] for item in results), "items": results}
+
+
+@router.post("/connections/{connection_key}/test")
+def test_one_connection(connection_key: str):
+    try:
+        return test_connection(_settings(), _repo(), connection_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Connection not found") from exc
+
+
+@router.get("/jobs")
+def jobs():
+    return {"items": _repo().list_jobs()}
+
+
+@router.put("/jobs/{job_name}")
+def update_job(job_name: str, request: JobUpdate):
+    try:
+        return _repo().update_job(job_name, **request.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job not found") from exc
+
+
+@router.post("/jobs/{job_name}/dry-run")
+def dry_run_job(job_name: str):
+    try:
+        result = execute_dry_run(_settings(), _repo(), job_name=job_name)
+        return {"runId": result["runId"], "status": result["status"], "artifact": result["artifact"]}
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.get("/runs")
+def runs(limit: int = Query(default=100, ge=1, le=500)):
+    return {"items": _repo().list_runs(limit=limit)}
+
+
+@router.get("/mappings")
+def mappings():
+    repository = _repo()
+    return {
+        "catalog": repository.mapping_catalog(),
+        "overrides": repository.list_mapping_overrides(),
+    }
+
+
+@router.post("/mappings/compile")
+def compile_mappings():
+    return compile_catalog(_settings(), _repo())
+
+
+@router.put("/mappings/properties/{class_name}/{property_name}/override")
+def override_property(class_name: str, property_name: str, request: PropertyOverrideUpdate):
+    return _repo().upsert_property_override(
+        class_name=class_name,
+        property_name=property_name,
+        **request.model_dump(),
+    )
+
+
+@router.put("/mappings/relationships/{source_class}/{relationship_name}/{target_class}/override")
+def override_relationship(
+    source_class: str,
+    relationship_name: str,
+    target_class: str,
+    request: RelationshipOverrideUpdate,
+):
+    return _repo().upsert_relationship_override(
+        source_class=source_class,
+        relationship_name=relationship_name,
+        target_class=target_class,
+        **request.model_dump(),
+    )
+
+
+@router.get("/settings")
+def settings():
+    return {"items": _repo().list_settings()}
+
+
+@router.put("/settings/{setting_key}")
+def update_setting(setting_key: str, request: SettingUpdate):
+    try:
+        return _repo().update_setting(setting_key, request.value)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Editable setting not found") from exc

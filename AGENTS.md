@@ -1,5 +1,17 @@
 # CamstarOntology — 开发指南
 
+## 当前产品主线（最高优先级）
+
+项目的产品目标已调整为：**将 Camstar SQL Server 业务数据与 Neo4j 本体持续、可审计地发布到 Graph Studio**。
+
+- `src/graphstudio_sync/` 是新的核心业务模块。
+- PostgreSQL `graphsync` Schema 是同步控制面，保存连接元数据、菜单、任务、映射快照、运行记录、checkpoint 和 artifact；密码不得写入 PostgreSQL。
+- `/` 和 `/sync` 是主产品入口；`/ontology` 是辅助建模工作台。
+- `src/ontology/`、Wiki、RAG 和 SQL Builder 是中间/辅助能力，服务于 Graph Studio 发布。
+- `src/etl/` 和 `run_etl_full.py` 是兼容保留的旧 SQL Server 中转 ETL，新代码不得对其增加依赖。
+- 任何 Graph Studio 发布必须幂等、防重叠、先验证后提交 checkpoint，并保留可回滚的 Dataset 版本。
+- 在生产观察周期完成且用户明确确认前，不物理删除旧模块。
+
 ## 项目简介
 
 CamstarOntology 是 Siemens Opcenter Execution (Camstar) MES 系统的知识图谱项目。将 Camstar 建模对象（API 实体）映射为本体图谱（Ontology Graph），存储于 Neo4j 图数据库，并通过 G6 v5 前端可视化展示。

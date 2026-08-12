@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opcenter Graph Sync</title>
+    <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
+    <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
+    <link rel="stylesheet" href="/static/sync.css?v=20260812-2">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="/sync" aria-label="同步中心首页">
+                <span class="brand-mark">GS</span>
+                <span><strong>Opcenter</strong><small>Graph Sync</small></span>
+            </a>
+            <div class="sidebar-caption">CAMSTAR → GRAPH STUDIO</div>
+            <nav id="syncNavigation" class="primary-nav" aria-label="主菜单">
+                <div class="nav-skeleton"></div>
+                <div class="nav-skeleton"></div>
+                <div class="nav-skeleton short"></div>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/ontology" class="workspace-link">
+                    <span class="workspace-icon">◇</span>
+                    <span><strong>本体工作台</strong><small>辅助建模与查询</small></span>
+                </a>
+                <div class="environment-row">
+                    <span id="globalStatusDot" class="status-dot unknown"></span>
+                    <span id="globalStatusText">正在检查系统</span>
+                </div>
+            </div>
+        </aside>
+
+        <div class="workspace">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">OPCENTER2607</p>
+                    <h1 id="pageTitle">同步总览</h1>
+                </div>
+                <div class="topbar-actions">
+                    <span class="updated-at" id="lastUpdated">尚未刷新</span>
+                    <button class="btn secondary" id="refreshPage">刷新</button>
+                    <button class="btn primary" id="testAllConnections">测试全部连接</button>
+                </div>
+            </header>
+
+            <main class="content">
+                <div id="pageAlert" class="alert" hidden></div>
+
+                <section class="page-section active" data-section="overview">
+                    <div class="hero-panel">
+                        <div>
+                            <span class="hero-kicker">PRIMARY WORKFLOW</span>
+                            <h2>将 Camstar 数据可靠地发布到 Graph Studio</h2>
+                            <p>SQL Server 提供业务数据，Neo4j 提供本体映射，PostgreSQL 管理任务状态与检查点，Graph Studio 承载最终图谱。</p>
+                        </div>
+                        <div class="hero-target">
+                            <span>目标 Graphmart</span>
+                            <strong>Opcenter2607</strong>
+                            <small id="graphmartStatus">状态检查中</small>
+                        </div>
+                    </div>
+
+                    <div class="metric-grid">
+                        <article class="metric-card"><span>在线连接</span><strong id="metricConnections">—</strong><small>数据链路</small></article>
+                        <article class="metric-card"><span>启用任务</span><strong id="metricJobs">—</strong><small>同步计划</small></article>
+                        <article class="metric-card"><span>属性映射率</span><strong id="metricCoverage">—</strong><small>物理列覆盖</small></article>
+                        <article class="metric-card"><span>最近成功</span><strong id="metricLastSuccess">—</strong><small>Graphmart 发布</small></article>
+                    </div>
+
+                    <article class="panel pipeline-panel">
+                        <div class="panel-heading">
+                            <div><span class="section-kicker">DATA FLOW</span><h3>主数据链路</h3></div>
+                            <span class="panel-note">检查点仅在 SPARQL 验收成功后提交</span>
+                        </div>
+                        <div class="pipeline">
+                            <div class="pipeline-node"><i>01</i><strong>Camstar</strong><span>SQL Server 数据</span></div>
+                            <b>→</b>
+                            <div class="pipeline-node"><i>02</i><strong>Ontology</strong><span>Neo4j 映射</span></div>
+                            <b>→</b>
+                            <div class="pipeline-node active"><i>03</i><strong>RDF Batch</strong><span>生成与校验</span></div>
+                            <b>→</b>
+                            <div class="pipeline-node"><i>04</i><strong>Graph Studio</strong><span>Dataset 切换</span></div>
+                            <b>→</b>
+                            <div class="pipeline-node"><i>05</i><strong>Verify</strong><span>SPARQL 验收</span></div>
+                        </div>
+                    </article>
+
+                    <div class="two-column">
+                        <article class="panel">
+                            <div class="panel-heading"><div><span class="section-kicker">CONNECTIONS</span><h3>链路健康</h3></div><button class="text-btn" data-go="connections">管理连接</button></div>
+                            <div id="overviewConnections" class="compact-list loading-list"></div>
+                        </article>
+                        <article class="panel">
+                            <div class="panel-heading"><div><span class="section-kicker">RECENT RUNS</span><h3>最近运行</h3></div><button class="text-btn" data-go="runs">查看全部</button></div>
+                            <div id="overviewRuns" class="compact-list loading-list"></div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="page-section" data-section="connections">
+                    <div class="section-header">
+                        <div><span class="section-kicker">CONNECTION PROFILES</span><h2>连接管理</h2><p>连接元数据保存在 PostgreSQL，密码由环境变量引用，页面和数据库均不保存明文密码。</p></div>
+                        <button class="btn primary" id="testConnectionsPage">测试全部连接</button>
+                    </div>
+                    <div id="connectionGrid" class="connection-grid"></div>
+                </section>
+
+                <section class="page-section" data-section="jobs">
+                    <div class="section-header">
+                        <div><span class="section-kicker">ORCHESTRATION</span><h2>同步任务</h2><p>配置同步模式、Cron 表达式、时区及产物保留策略。生产调度由外部 CronJob 触发。</p></div>
+                    </div>
+                    <div id="jobGrid" class="job-grid"></div>
+                </section>
+
+                <section class="page-section" data-section="mappings">
+                    <div class="section-header">
+                        <div><span class="section-kicker">ONTOLOGY COMPILER</span><h2>映射管理</h2><p>Neo4j 本体类和属性映射到 Camstar 物理表列；不确定项必须显式确认，运行时不盲目猜测。</p></div>
+                        <button class="btn primary" id="compileMappings">重新编译映射</button>
+                    </div>
+                    <div id="mappingMetrics" class="metric-grid"></div>
+                    <article class="panel table-panel">
+                        <div class="panel-heading"><div><span class="section-kicker">REVIEW QUEUE</span><h3>待确认映射</h3></div><span id="unmappedCount" class="count-badge">0</span></div>
+                        <div class="table-wrap"><table><thead><tr><th>本体类</th><th>属性</th><th>类型</th><th>Source Field ID</th><th>处理状态</th><th>操作</th></tr></thead><tbody id="mappingRows"></tbody></table></div>
+                    </article>
+                    <article class="panel table-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">RELATIONSHIP REVIEW</span><h3>待确认关系</h3></div><span id="relationshipReviewCount" class="count-badge">0</span></div>
+                        <div class="table-wrap"><table><thead><tr><th>源类</th><th>关系</th><th>目标类</th><th>状态</th><th>候选属性</th><th>操作</th></tr></thead><tbody id="relationshipRows"></tbody></table></div>
+                    </article>
+                </section>
+
+                <section class="page-section" data-section="runs">
+                    <div class="section-header">
+                        <div><span class="section-kicker">AUDIT TRAIL</span><h2>运行记录</h2><p>记录每次同步的阶段、行数、三元组、校验结果和失败原因。</p></div>
+                    </div>
+                    <article class="panel table-panel">
+                        <div class="table-wrap"><table><thead><tr><th>Run ID</th><th>任务</th><th>状态</th><th>触发方式</th><th>开始时间</th><th>耗时</th><th>行数</th><th>三元组</th></tr></thead><tbody id="runRows"></tbody></table></div>
+                    </article>
+                </section>
+
+                <section class="page-section" data-section="settings">
+                    <div class="section-header">
+                        <div><span class="section-kicker">PLATFORM</span><h2>系统设置</h2><p>配置同步中心参数与左侧菜单。不可编辑的主流程标识由系统保护。</p></div>
+                    </div>
+                    <div class="settings-layout">
+                        <article class="panel"><div class="panel-heading"><div><span class="section-kicker">APPLICATION</span><h3>平台参数</h3></div></div><div id="settingList" class="setting-list"></div></article>
+                        <article class="panel"><div class="panel-heading"><div><span class="section-kicker">NAVIGATION</span><h3>菜单配置</h3></div></div><div id="menuSettings" class="menu-settings"></div></article>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <dialog id="editDialog" class="edit-dialog">
+        <form method="dialog" id="editForm">
+            <div class="dialog-heading"><div><span class="section-kicker" id="dialogKicker">CONFIGURATION</span><h2 id="dialogTitle">编辑配置</h2></div><button type="button" id="dialogClose" class="dialog-close" aria-label="关闭">×</button></div>
+            <div id="dialogFields" class="dialog-fields"></div>
+            <div class="dialog-actions"><button type="button" id="dialogCancel" class="btn secondary">取消</button><button type="submit" value="default" class="btn primary" id="dialogSave">保存</button></div>
+        </form>
+    </dialog>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="/static/sync.js?v=20260812-2"></script>
+</body>
+</html>

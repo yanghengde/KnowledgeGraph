@@ -21,7 +21,9 @@ spec:
             - name: sync
               image: registry.example.com/camstar-ontology:latest
               imagePullPolicy: IfNotPresent
-              command: ["python", "scripts/graphstudio_sync.py", "sync", "--job", "camstar-full"]
+              # Safe pre-production command. Replace `dry-run` with the UAT-approved
+              # publish command only after the mapping review queue is cleared.
+              command: ["python", "scripts/graphstudio_sync.py", "dry-run", "--job", "camstar-full"]
               envFrom:
                 - secretRef:
                     name: camstar-graphstudio-sync-secrets

@@ -1,3 +1,9 @@
+"""Deprecated in-process scheduler for the legacy SQL Server mirror ETL.
+
+Graph Studio synchronization uses an external CronJob plus PostgreSQL advisory
+locks. This module is retained only for compatibility with older deployments.
+"""
+
 import schedule
 import time
 import logging

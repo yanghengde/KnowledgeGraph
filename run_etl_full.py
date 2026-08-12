@@ -1,3 +1,9 @@
+"""Legacy SQL Server mirror ETL.
+
+Compatibility entry point only. New Camstar -> Graph Studio work belongs in
+``src.graphstudio_sync`` and must not add dependencies on this pipeline.
+"""
+
 import logging
 import sys
 import os
