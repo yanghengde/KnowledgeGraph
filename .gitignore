@@ -1,0 +1,43 @@
+# Environments
+.env
+.env.*
+!.env.example
+.venv
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs and Data
+*.log
+logs/
+backups/
+data/*
+!data/vector_store/
+*.sqlite3
+!data/vector_store/chroma.sqlite3
+
+# Project Specific Generated Artifacts
+generated_ontology.sql
+*.pdf
+check_camstar.py
+toc_filter.txt
+# (If you want to keep PDFs in the repo, remove the *.pdf line above)
+
+# Installer Scripts (do not track)
+install.bat
+run_server.bat
+
+# Scenarios
+scenarios/

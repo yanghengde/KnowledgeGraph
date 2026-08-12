@@ -1,0 +1,98 @@
+{
+  "module": "printer_label_definition",
+  "classes": [
+    {
+      "className": "PrinterLabelDefinition",
+      "chineseName": "打印机标签定义",
+      "description": "Printer Label Definition — 打印机标签定义实体（CdoId: 7292/3620）。是一个支持版本管理(revisioned)的建模实体，定义标签打印模板(labelTemplate)和标签变量(labelTags)的映射规则。labelTemplate 指定标签模板文件的外部路径，labelTags 定义运行时要替换到模板中的变量值。还可配置标签分隔符(beginDelimiter/endDelimiter)和 WIP 消息管理器(wipMsgDefMgr)。LabelTxnMap 通过 printerLabelDefinition 引用此实体以定义打印策略。",
+      "properties": [
+        {
+          "name": "printerLabelDefinitionBase",
+          "type": "Navigation",
+          "description": "物理字段 PrinterLabelDefinitionBaseId → PrinterLabelDefinitionBase"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置/换线权限配置"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号 (ECO/ECN)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "endDelimiter",
+          "type": "String",
+          "description": "标签变量的结束分隔符"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "版本号（必填，在同一 base entity 上下文内唯一）",
+          "required": true
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active（启用）, 2=Inactive（禁用）"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP 消息定义管理器 → WIPMsgEntity"
+        },
+        {
+          "name": "beginDelimiter",
+          "type": "String",
+          "description": "标签变量的起始分隔符"
+        },
+        {
+          "name": "labelTemplate",
+          "type": "String",
+          "description": "标签模板文件的外部标识（路径和文件名，必填）",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "PrinterLabelDefinition",
+      "toClass": "PrinterLabelDefinitionBase",
+      "relationName": "HAS_PRINTER_LABEL_DEFINITION_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PrinterLabelDefinition.PrinterLabelDefinitionBaseId"
+    }
+  ]
+}

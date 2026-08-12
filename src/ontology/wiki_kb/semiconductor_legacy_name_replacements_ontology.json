@@ -1,0 +1,107 @@
+{
+  "module": "semiconductor_legacy_name_replacements",
+  "classes": [
+    {
+      "className": "ComponentDefectReason",
+      "chineseName": "组件缺陷原因",
+      "description": "组件缺陷业务原因的物理主数据。 物理对应 ComponentDefectReason (CdoId: 744, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "此实例的唯一名称。",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "实体说明；未指定时默认使用实体名称。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结；冻结后不允许修改该实例或其修订。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "与该对象相关的备注和注释。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "以逗号分隔的筛选标签列表。"
+        }
+      ]
+    },
+    {
+      "className": "QtyAdjustGroup",
+      "chineseName": "数量调整原因组",
+      "description": "数量调整原因的物理分组实体。 物理对应 QtyAdjustGroup (CdoId: 800, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 QtyAdjustGroupName",
+          "required": true
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "物理字段 EntryType"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

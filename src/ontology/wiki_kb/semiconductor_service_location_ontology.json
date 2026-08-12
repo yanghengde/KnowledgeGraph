@@ -1,0 +1,900 @@
+{
+  "module": "semiconductor_service_location",
+  "classes": [
+    {
+      "className": "A_ExternalInterface",
+      "chineseName": "外部接口",
+      "description": "定义半导体外部系统接口。 物理对应 A_ExternalInterface (CdoId: 679477443, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ExternalInterfaceName",
+          "required": true
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "className",
+          "type": "String",
+          "description": "物理字段 ClassName"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ExternalLocation",
+      "chineseName": "外部位置",
+      "description": "定义外部业务位置。 物理对应 A_ExternalLocation (CdoId: 679477286, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "isSubCon",
+          "type": "Boolean",
+          "description": "物理字段 IsSubCon"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ExternalLocationName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ExternalLocationType",
+      "chineseName": "外部位置类型",
+      "description": "定义外部位置类型目录。 物理对应 A_ExternalLocationType (CdoId: 679477333, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ExternalLocationTypeName",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ImpoundType",
+      "chineseName": "扣留类型",
+      "description": "定义物料或在制品扣留类型。 物理对应 A_ImpoundType (CdoId: 679477298, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ImpoundTypeName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_InsertionReason",
+      "chineseName": "插入原因",
+      "description": "定义工艺步骤插入原因。 物理对应 A_InsertionReason (CdoId: 679477388, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 InsertionReasonName",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_LocationMap",
+      "chineseName": "位置映射",
+      "description": "定义内部与外部位置映射。 物理对应 A_LocationMap (CdoId: 679477283, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 LocationMapName",
+          "required": true
+        },
+        {
+          "name": "workflow",
+          "type": "Navigation",
+          "description": "物理字段 WorkflowId → Workflow"
+        },
+        {
+          "name": "workflowStep",
+          "type": "Navigation",
+          "description": "物理字段 WorkflowStepId → WorkflowStep"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ScanningName",
+      "chineseName": "扫描名称",
+      "description": "定义扫描数据项目录。 物理对应 A_ScanningName (CdoId: 679477301, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "webAddress",
+          "type": "String",
+          "description": "物理字段 WebAddress"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "scanningPlan",
+          "type": "String",
+          "description": "物理字段 ScanningPlan"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ScanningNameName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ScanningSetup",
+      "chineseName": "扫描配置",
+      "description": "定义扫描采集和验证配置。 物理对应 A_ScanningSetup (CdoId: 679477299, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "serviceName",
+          "type": "String",
+          "description": "物理字段 ServiceName"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "followSequence",
+          "type": "Boolean",
+          "description": "物理字段 FollowSequence"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ScanningSetupName",
+          "required": true
+        },
+        {
+          "name": "clearByContainerOnTransact",
+          "type": "Boolean",
+          "description": "物理字段 ClearByContainerOnTransact"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ServiceAttrsSetup",
+      "chineseName": "服务属性配置",
+      "description": "定义服务可用属性配置。 物理对应 A_ServiceAttrsSetup (CdoId: 679477294, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ServiceAttrsSetupName",
+          "required": true
+        },
+        {
+          "name": "serviceName",
+          "type": "String",
+          "description": "物理字段 ServiceName"
+        },
+        {
+          "name": "externalLocation",
+          "type": "Navigation",
+          "description": "物理字段 ExternalLocationId → A_ExternalLocation"
+        },
+        {
+          "name": "startReason",
+          "type": "Navigation",
+          "description": "物理字段 StartReasonId → StartReason"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ServiceRules",
+      "chineseName": "服务规则",
+      "description": "定义服务执行规则。 物理对应 A_ServiceRules (CdoId: 679477431, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "listItemName",
+          "type": "String",
+          "description": "物理字段 ListItemName"
+        },
+        {
+          "name": "listName",
+          "type": "String",
+          "description": "物理字段 ListName"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ServiceRulesName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ServiceSetup",
+      "chineseName": "服务配置",
+      "description": "定义服务属性、规则和访问配置。 物理对应 A_ServiceSetup (CdoId: 679477326, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ServiceSetupName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "lotIdRule",
+          "type": "Navigation",
+          "description": "物理字段 LotIdRuleId → NumberingRule"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "employeeUserLogic",
+          "type": "String",
+          "description": "物理字段 EmployeeUserLogic"
+        },
+        {
+          "name": "externalInterface",
+          "type": "Navigation",
+          "description": "物理字段 ExternalInterfaceId → A_ExternalInterface"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "verifyLoginEmployeeGroup",
+          "type": "Boolean",
+          "description": "物理字段 VerifyLoginEmployeeGroup"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ldVerifyEmployeeGroup",
+          "type": "Navigation",
+          "description": "物理字段 ldVerifyEmployeeGroupId → A_EmployeeGroup"
+        }
+      ]
+    },
+    {
+      "className": "A_TerminateAccount",
+      "chineseName": "账户终止配置",
+      "description": "定义账户终止处理配置。 物理对应 A_TerminateAccount (CdoId: 679477387, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 TerminateAccountName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_TerminateReason",
+      "chineseName": "终止原因",
+      "description": "定义账户或业务终止原因。 物理对应 A_TerminateReason (CdoId: 679477280, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 TerminateReasonName",
+          "required": true
+        },
+        {
+          "name": "allowInWip",
+          "type": "Boolean",
+          "description": "物理字段 AllowInWIP"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_UTAReason",
+      "chineseName": "UTA原因",
+      "description": "定义UTA处理原因。 物理对应 A_UTAReason (CdoId: 679477315, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 UTAReasonName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_UnTerminateReason",
+      "chineseName": "取消终止原因",
+      "description": "定义撤销终止操作原因。 物理对应 A_UnTerminateReason (CdoId: 679477323, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 UnTerminateReasonName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_LocationMap",
+      "toClass": "Workflow",
+      "relationName": "HAS_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_LocationMap.WorkflowId"
+    },
+    {
+      "fromClass": "A_LocationMap",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_WORKFLOW_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_LocationMap.WorkflowStepId"
+    },
+    {
+      "fromClass": "A_ScanningSetup",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ScanningSetup.SpecId"
+    },
+    {
+      "fromClass": "A_ServiceAttrsSetup",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ServiceAttrsSetup.SpecId"
+    },
+    {
+      "fromClass": "A_ServiceAttrsSetup",
+      "toClass": "A_ExternalLocation",
+      "relationName": "HAS_EXTERNAL_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ServiceAttrsSetup.ExternalLocationId"
+    },
+    {
+      "fromClass": "A_ServiceAttrsSetup",
+      "toClass": "StartReason",
+      "relationName": "HAS_START_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ServiceAttrsSetup.StartReasonId"
+    },
+    {
+      "fromClass": "A_ServiceSetup",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_LOT_ID_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ServiceSetup.LotIdRuleId"
+    },
+    {
+      "fromClass": "A_ServiceSetup",
+      "toClass": "A_ExternalInterface",
+      "relationName": "HAS_EXTERNAL_INTERFACE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ServiceSetup.ExternalInterfaceId"
+    },
+    {
+      "fromClass": "A_ServiceSetup",
+      "toClass": "A_EmployeeGroup",
+      "relationName": "HAS_LD_VERIFY_EMPLOYEE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ServiceSetup.ldVerifyEmployeeGroupId"
+    }
+  ]
+}

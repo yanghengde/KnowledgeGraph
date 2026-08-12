@@ -1,0 +1,98 @@
+{
+  "module": "scheduling_route",
+  "classes": [
+    {
+      "className": "SchedulingRoute",
+      "chineseName": "排程路由",
+      "description": "Scheduling Route — 排程路由定义实体。定义制造排程中的工艺路线和调度规则，指定产品在工厂中的流转路径和排程优先级策略。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单（ECO）。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版（在基础实体上下文中唯一）。"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "当前状态：1=激活，2=停用。"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器（WIPMsgDefMgr）。"
+        },
+        {
+          "name": "erpItem",
+          "type": "String",
+          "description": "引用使用此路线的ERP物料，通常可选。"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "排程路由关联的产品 → Product"
+        },
+        {
+          "name": "schedulingRouteBase",
+          "type": "Navigation",
+          "description": "物理字段 SchedulingRouteBaseId → SchedulingRouteBase"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "SchedulingRoute",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SchedulingRoute.ProductId"
+    },
+    {
+      "fromClass": "SchedulingRoute",
+      "toClass": "SchedulingRouteBase",
+      "relationName": "HAS_SCHEDULING_ROUTE_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SchedulingRoute.SchedulingRouteBaseId"
+    }
+  ]
+}

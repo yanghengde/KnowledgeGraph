@@ -1,0 +1,346 @@
+{
+  "module": "employee",
+  "classes": [
+    {
+      "className": "Employee",
+      "chineseName": "员工",
+      "description": "Employee — 可登录 InSite、执行事务或被记入工时的工厂人员。物理上对应 Employee (CdoId: 277)。 【Swagger】Schema: EmployeeEntity；来源文件: Employees.json；API: /api/Employees。",
+      "properties": [
+        {
+          "name": "verifySessionValues",
+          "type": "Boolean",
+          "description": "物理字段 VerifySessionValues 【Swagger】Flag indicating whether to verify some of the fields within the Session Values during a Shop Floor transaction. The fields include: i) Factory - Compared against Container.Factory. ii) Operation - Compared against Container.Operation. iii) Resource - C"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置/换线权限配置（物理：SetupAccessId） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "accessLevel",
+          "type": "Integer",
+          "description": "物理字段 AccessLevel 【Swagger】The Access Level used to verify Attribute modification. Level 1 being the highest and Level 2 or more are of lower access."
+        },
+        {
+          "name": "isSuperUser",
+          "type": "Boolean",
+          "description": "物理字段 IsSuperUser 【Swagger】Flag indicating whether or not the user is a Super User. If set to true the Attribute Access and Session Values veification will not be done. Also the user is allowed to transaction any Online Query and Printing Setup. NOTE however the Service access i"
+        },
+        {
+          "name": "lastWebLoginTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 LastWebLoginTimestamp 【Swagger】Stores the last time the user login into the Web Application."
+        },
+        {
+          "name": "loginEmployeeGroup",
+          "type": "Navigation",
+          "description": "物理字段 LoginEmployeeGroupId → A_EmployeeGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "historyView",
+          "type": "Navigation",
+          "description": "历史记录视图规则（物理：HistoryViewId） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "languageDictionary",
+          "type": "Navigation",
+          "description": "界面语言词典 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "terminologyDictionary",
+          "type": "Navigation",
+          "description": "术语字典归属（物理：TerminologyDictionaryId） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "webMenuDefinition",
+          "type": "Navigation",
+          "description": "Web常规菜单定义（物理：WebMenuDefinitionId） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "allowOverrideOfSessionValues",
+          "type": "Boolean",
+          "description": "是否允许覆写默认 Session 值 【Swagger】Specifies whether the user is allowed to override default SessionValues"
+        },
+        {
+          "name": "webDrillDownMenuDefinition",
+          "type": "Navigation",
+          "description": "Web下钻菜单定义（物理：WebDrillDownMenuDefinitionId） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "modelerAccess",
+          "type": "Boolean",
+          "description": "是否允许打开 Modeler 建模器 【Swagger】Indicate whether or not an employee is allowed to open up Modeler."
+        },
+        {
+          "name": "menuDefinition",
+          "type": "Navigation",
+          "description": "菜单定义 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "domainName",
+          "type": "String",
+          "description": "Windows 域认证（可选） 【Swagger】Domain is used for authentication of this employee. Optional."
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "员工唯一登录名（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "变更历史状态（物理：ChangeStatusId）"
+        },
+        {
+          "name": "sessionValues",
+          "type": "Navigation",
+          "description": "会话属性预设值（物理：SessionValuesId） 【Swagger】引用 Schema: SessionValuesChanges。"
+        },
+        {
+          "name": "fullName",
+          "type": "String",
+          "description": "员工全名 【Swagger】Full name of employee. This is useful in identifying the employee especially if login names are abbreviated."
+        },
+        {
+          "name": "userComment",
+          "type": "String",
+          "description": "额外描述字段。 【Swagger】An extra description field"
+        },
+        {
+          "name": "canLogin",
+          "type": "Boolean",
+          "description": "是否允许登录 InSite 【Swagger】Can this employee log in"
+        },
+        {
+          "name": "emailAddress",
+          "type": "String",
+          "description": "电子邮件地址 【Swagger】Employee E-mail Address"
+        },
+        {
+          "name": "primaryOrganization",
+          "type": "Navigation",
+          "description": "主组织归属 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "uiPortalProfile",
+          "type": "Navigation",
+          "description": "UI Portal配置文件（物理：UIPortalProfileId） 【Swagger】引用 Schema: UIPortalProfileChanges。"
+        },
+        {
+          "name": "portalMenuDefinition",
+          "type": "Navigation",
+          "description": "Portal 菜单定义 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "eSigRoleGroup",
+          "type": "Navigation",
+          "description": "电子签名角色组 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "trainingPlan",
+          "type": "Navigation",
+          "description": "关联的系统培训计划（物理：TrainingPlanId） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "userProfile",
+          "type": "Navigation",
+          "description": "用户配置偏好（物理：UserProfileId） 【Swagger】引用 Schema: UserProfileChanges。"
+        },
+        {
+          "name": "skipTrainingReqValidation",
+          "type": "Boolean",
+          "description": "跳过员工认证验证的新标志。 【Swagger】New flag to skip validation of employee certification."
+        },
+        {
+          "name": "portalV8MenuDefinition",
+          "type": "Navigation",
+          "description": "Portal V8菜单定义（物理：PortalV8MenuDefinitionId） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "employeeLoginInfo",
+          "type": "Navigation",
+          "description": "登录会话记录（物理：EmployeeLoginInfoId） 【Swagger】引用 Schema: EmployeeLoginInfoChanges。"
+        },
+        {
+          "name": "filterTagAccess",
+          "type": "Integer",
+          "description": "筛选标签访问控制 【Swagger】FilterTagAccess"
+        },
+        {
+          "name": "filterTagsSession",
+          "type": "String",
+          "description": "过滤器标签会话。 【Swagger】FilterTagsSession"
+        },
+        {
+          "name": "portalMobileMenuDefinition",
+          "type": "Navigation",
+          "description": "Portal Mobile 菜单定义 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags"
+        },
+        {
+          "name": "docManagerUser",
+          "type": "String",
+          "description": "外部文档库（如 TeamCenter）用户名 【Swagger】User Name the employee uses to access an external document repository (such as Team Center) to open external documents."
+        },
+        {
+          "name": "docManagerPassword",
+          "type": "String",
+          "description": "外部文档库密码（加密字段） 【Swagger】Password the employee uses to access an external document repository (such as Team Center) to open external documents."
+        }
+      ]
+    },
+    {
+      "className": "EmployeeLoginInfo",
+      "chineseName": "登录信息",
+      "description": "Employee Login Info — 员工的登录会话信息。物理上对应 EmployeeLoginInfo (CdoId: 1734)。 【Swagger】Schema: EmployeeLoginInfoChanges；来源文件: Employees.json；API: /api/Employees。",
+      "properties": [
+        {
+          "name": "timeZone",
+          "type": "String",
+          "description": "时区设置 【Swagger】Time Zone"
+        },
+        {
+          "name": "employee",
+          "type": "Navigation",
+          "description": "关联的员工"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "lastLoginDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastLoginDateGMT"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "登录信息名称",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "EmployeeRole",
+      "chineseName": "员工角色分配",
+      "description": "Employee Role — 员工在特定组织上下文中的角色成员关系。物理上对应 EmployeeRole (CdoId: 1217)。 【Swagger】Schema: EmployeeRoleEntity；来源文件: Employees.json；API: /api/Employees。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "role",
+          "type": "Navigation",
+          "description": "分配的角色（RoleDef 引用） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "organization",
+          "type": "Navigation",
+          "description": "组织上下文（Department/Factory） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "propagateToChildOrgs",
+          "type": "Boolean",
+          "description": "是否传播到下级组织 【Swagger】Flag to indicate if this role-membership should be propagated to all the child orgnizations."
+        },
+        {
+          "name": "employee",
+          "type": "Navigation",
+          "description": "关联的员工 【Swagger】引用 Schema: NamedObjectRef。"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Employee",
+      "toClass": "A_EmployeeGroup",
+      "relationName": "HAS_LOGIN_EMPLOYEE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Employee.LoginEmployeeGroupId"
+    },
+    {
+      "fromClass": "Employee",
+      "toClass": "Organization",
+      "relationName": "HAS_PRIMARY_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Employee.PrimaryOrganizationId"
+    },
+    {
+      "fromClass": "Employee",
+      "toClass": "TrainingPlan",
+      "relationName": "HAS_TRAINING_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Employee.TrainingPlanId"
+    },
+    {
+      "fromClass": "Employee",
+      "toClass": "EmployeeLoginInfo",
+      "relationName": "HAS_EMPLOYEE_LOGIN_INFO",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Employee.EmployeeLoginInfoId"
+    },
+    {
+      "fromClass": "EmployeeLoginInfo",
+      "toClass": "Employee",
+      "relationName": "HAS_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EmployeeLoginInfo.EmployeeId"
+    },
+    {
+      "fromClass": "EmployeeRole",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EmployeeRole.RoleId"
+    },
+    {
+      "fromClass": "EmployeeRole",
+      "toClass": "Organization",
+      "relationName": "HAS_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EmployeeRole.OrganizationId"
+    },
+    {
+      "fromClass": "EmployeeRole",
+      "toClass": "Employee",
+      "relationName": "HAS_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EmployeeRole.EmployeeId"
+    }
+  ]
+}

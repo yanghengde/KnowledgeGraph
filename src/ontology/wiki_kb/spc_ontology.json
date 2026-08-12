@@ -1,0 +1,324 @@
+{
+  "module": "spc",
+  "classes": [
+    {
+      "className": "SPCChartDef",
+      "chineseName": "SPC图表定义",
+      "description": "SPC Chart Definition — 统计过程控制(SPC)控制图表定义实体（CdoId: 1353）。定义过程参数控制图表类型（如 XBar-R 图、XBar-S 图、I-MR 单值移动极差图等）、样本大小及控制限计算规则，用于对生产数据采集进行统计学质量控制。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "recordAgainstCustomSpcDataSrc",
+          "type": "Boolean",
+          "description": "物理字段 RecordAgainstCustomSPCDataSrc"
+        },
+        {
+          "name": "spcChartDisplayOption",
+          "type": "Integer",
+          "description": "物理字段 SPCChartDisplayOption"
+        },
+        {
+          "name": "eMailMessage",
+          "type": "Navigation",
+          "description": "物理字段 EMailMessageId → EMailMessage"
+        },
+        {
+          "name": "chartHeight",
+          "type": "Integer",
+          "description": "物理字段 ChartHeight"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "chartProperties",
+          "type": "String",
+          "description": "物理字段 ChartProperties"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "userParm4",
+          "type": "String",
+          "description": "物理字段 UserParm4"
+        },
+        {
+          "name": "userParm6",
+          "type": "String",
+          "description": "物理字段 UserParm6"
+        },
+        {
+          "name": "userParm8",
+          "type": "String",
+          "description": "物理字段 UserParm8"
+        },
+        {
+          "name": "userParm10",
+          "type": "String",
+          "description": "物理字段 UserParm10"
+        },
+        {
+          "name": "triggerOcaPs",
+          "type": "Boolean",
+          "description": "物理字段 TriggerOCAPs"
+        },
+        {
+          "name": "userParm9",
+          "type": "String",
+          "description": "物理字段 UserParm9"
+        },
+        {
+          "name": "chartType",
+          "type": "String",
+          "description": "控制图类型：1=XBar-R, 2=XBar-S, 3=I-MR, 4=p-Chart, 5=c-Chart等"
+        },
+        {
+          "name": "chartVariable",
+          "type": "String",
+          "description": "物理字段 ChartVariable"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "docToView",
+          "type": "Navigation",
+          "description": "物理字段 DocToViewId → Document"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "macro",
+          "type": "String",
+          "description": "物理字段 Macro"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "图表定义的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "requireAnnotation",
+          "type": "Boolean",
+          "description": "物理字段 RequireAnnotation"
+        },
+        {
+          "name": "userParm2",
+          "type": "String",
+          "description": "物理字段 UserParm2"
+        },
+        {
+          "name": "setResourceStatus",
+          "type": "Navigation",
+          "description": "物理字段 SetResourceStatusId → ResourceStatusCode"
+        },
+        {
+          "name": "userParm1",
+          "type": "String",
+          "description": "物理字段 UserParm1"
+        },
+        {
+          "name": "displayOnException",
+          "type": "Boolean",
+          "description": "物理字段 DisplayOnException"
+        },
+        {
+          "name": "userParm3",
+          "type": "String",
+          "description": "物理字段 UserParm3"
+        },
+        {
+          "name": "emailNotification",
+          "type": "String",
+          "description": "物理字段 EmailNotification"
+        },
+        {
+          "name": "userParm5",
+          "type": "String",
+          "description": "物理字段 UserParm5"
+        },
+        {
+          "name": "putContainerOnHold",
+          "type": "Navigation",
+          "description": "物理字段 PutContainerOnHoldId → HoldReason"
+        },
+        {
+          "name": "userParm7",
+          "type": "String",
+          "description": "物理字段 UserParm7"
+        },
+        {
+          "name": "runTimeDisplay",
+          "type": "Boolean",
+          "description": "物理字段 RunTimeDisplay"
+        },
+        {
+          "name": "chartWidth",
+          "type": "Integer",
+          "description": "物理字段 ChartWidth"
+        },
+        {
+          "name": "showToleranceLimits",
+          "type": "Boolean",
+          "description": "物理字段 ShowToleranceLimits"
+        },
+        {
+          "name": "spcChartSaveOptions",
+          "type": "Integer",
+          "description": "物理字段 SPCChartSaveOptions"
+        },
+        {
+          "name": "legendLocation",
+          "type": "Integer",
+          "description": "物理字段 LegendLocation"
+        },
+        {
+          "name": "spcChartType",
+          "type": "Navigation",
+          "description": "物理字段 SPCChartTypeId → A_SPCChart"
+        },
+        {
+          "name": "isNewSpc",
+          "type": "Boolean",
+          "description": "物理字段 IsNewSPC"
+        },
+        {
+          "name": "spcConnection",
+          "type": "Navigation",
+          "description": "物理字段 SPCConnectionId → A_SPCConnection"
+        },
+        {
+          "name": "spcRules",
+          "type": "Navigation",
+          "description": "物理字段 SPCRulesId → A_SPCRules"
+        },
+        {
+          "name": "spcQuery",
+          "type": "Navigation",
+          "description": "物理字段 SPCQueryId → UserQuery"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "spcChartVisualParams",
+          "type": "Integer",
+          "description": "物理字段 SPCChartVisualParamsId"
+        },
+        {
+          "name": "displayDescriptiveStats",
+          "type": "Boolean",
+          "description": "物理字段 DisplayDescriptiveStats"
+        }
+      ]
+    },
+    {
+      "className": "SPCViolation",
+      "chineseName": "SPC异常事件",
+      "description": "SPC Violation — SPC 控制判异异常触发事件（CdoId: 1750）。当生产采集数据在控制图(SPCChartDef)计算时触发判异准则(SPCRules)违规，自动生成的失控警报事件，包含违规的详情数据，用于触发工艺阻断、通知或返修流程。",
+      "properties": [
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "spcRuleViolationName",
+          "type": "String",
+          "description": "物理字段 SPCRuleViolationName"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "SPCChartDef",
+      "toClass": "Document",
+      "relationName": "HAS_DOC_TO_VIEW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SPCChartDef.DocToViewId"
+    },
+    {
+      "fromClass": "SPCChartDef",
+      "toClass": "ResourceStatusCode",
+      "relationName": "HAS_SET_RESOURCE_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SPCChartDef.SetResourceStatusId"
+    },
+    {
+      "fromClass": "SPCChartDef",
+      "toClass": "HoldReason",
+      "relationName": "HAS_PUT_CONTAINER_ON_HOLD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SPCChartDef.PutContainerOnHoldId"
+    },
+    {
+      "fromClass": "SPCChartDef",
+      "toClass": "A_SPCChart",
+      "relationName": "HAS_SPC_CHART_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SPCChartDef.SPCChartTypeId"
+    },
+    {
+      "fromClass": "SPCChartDef",
+      "toClass": "A_SPCConnection",
+      "relationName": "HAS_SPC_CONNECTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SPCChartDef.SPCConnectionId"
+    },
+    {
+      "fromClass": "SPCChartDef",
+      "toClass": "A_SPCRules",
+      "relationName": "HAS_SPC_RULES",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SPCChartDef.SPCRulesId"
+    }
+  ]
+}

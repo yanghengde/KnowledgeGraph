@@ -1,0 +1,54 @@
+{
+  "module": "scrap_reason",
+  "classes": [
+    {
+      "className": "ScrapReason",
+      "chineseName": "报废原因",
+      "description": "Scrap Reason — 报废原因代码定义实体。定义制造过程中物料/产品报废的原因分类（如工艺缺陷、来料不良、设备故障、超期库存等），在车间报废事务中被操作员选择以标注报废的具体理由。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "报废原因的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

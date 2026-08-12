@@ -1,0 +1,54 @@
+{
+  "module": "rollup_reason",
+  "classes": [
+    {
+      "className": "RollupReason",
+      "chineseName": "汇总原因",
+      "description": "Rollup Reason — 汇总/聚合原因代码定义实体。定义制造数据汇总统计中的原因分类（如 OEE 损失归因、质量数据聚合、产量汇总归因等），是 RollupReasonGroup 分组的成员条目。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "汇总原因的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

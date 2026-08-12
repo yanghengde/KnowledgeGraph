@@ -1,0 +1,591 @@
+{
+  "module": "organization",
+  "classes": [
+    {
+      "className": "Organization",
+      "chineseName": "组织",
+      "description": "Organization — 组织是 Camstar 建模中用于配置层级管理的核心实体。组织可以嵌套（parentOrganization），形成工厂→部门→车间的层级树。每个组织可独立配置类别映射、编号规则、质量处理策略、审批流程、通知事件、UI 偏好和 Portal 主页。员工角色分配（EmployeeRole）和工厂模型都关联到组织上下文。物理上对应 Organization (CdoId: 1125)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限限制 → SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "组织的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明，默认与名称相同"
+        },
+        {
+          "name": "organizationNumber",
+          "type": "String",
+          "description": "组织编号标识"
+        },
+        {
+          "name": "parentOrganization",
+          "type": "Navigation",
+          "description": "上级组织（用于组织层级树）→ Organization"
+        },
+        {
+          "name": "userRequiredForEsig",
+          "type": "Boolean",
+          "description": "电子签名是否需要用户验证"
+        },
+        {
+          "name": "collectESigForAllQualityTxns",
+          "type": "Boolean",
+          "description": "是否为所有质量事务收集电子签名"
+        },
+        {
+          "name": "smtpTransport",
+          "type": "Navigation",
+          "description": "SMTP 邮件传输配置"
+        },
+        {
+          "name": "portalHomePage",
+          "type": "Navigation",
+          "description": "Portal 首页定义 → UIVirtualPage"
+        },
+        {
+          "name": "printQueue",
+          "type": "Navigation",
+          "description": "默认打印队列"
+        },
+        {
+          "name": "portalMobileHomePage",
+          "type": "Navigation",
+          "description": "Portal Mobile 首页定义 → UIVirtualPage"
+        },
+        {
+          "name": "portalV8HomePage",
+          "type": "Navigation",
+          "description": "Portal V8 首页定义 → UIVirtualPage"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签，逗号分隔"
+        }
+      ]
+    },
+    {
+      "className": "CategoryMap",
+      "chineseName": "质量类别映射",
+      "description": "Category Map — 组织级别的质量类别映射，将质量对象类别（Event/CAR）绑定到负责处理的 Triage Spec、Owner、Role，并可配置审批流程映射。是 Organization 的子实体。物理上对应 CategoryMap (CdoId: 1194)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "归属的组织 → Organization"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "category",
+          "type": "Integer",
+          "description": "质量对象类别枚举：1=Event, 2=CAR（必填）",
+          "required": true
+        },
+        {
+          "name": "triageSpec",
+          "type": "Navigation",
+          "description": "分流/处理规格 → TriageSpec"
+        },
+        {
+          "name": "role",
+          "type": "Navigation",
+          "description": "负责处理该类别质量对象的角色 → Role"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "负责处理该类别质量对象的 Owner 员工 → Employee"
+        }
+      ]
+    },
+    {
+      "className": "ApprovalSheetMap",
+      "chineseName": "审批流程映射",
+      "description": "Approval Sheet Map — CategoryMap 的子实体，按 ResolutionAction 绑定 ApprovalSheetTemplate，定义不同审批操作对应的审批模板。物理上对应 ApprovalSheetMap (CdoId: 1215)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "归属的类别映射 → CategoryMap"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "approvalRequired",
+          "type": "Boolean",
+          "description": "是否需要审批"
+        },
+        {
+          "name": "resolutionAction",
+          "type": "Integer",
+          "description": "审批解决操作枚举（必填）：1=Close",
+          "required": true
+        },
+        {
+          "name": "approvalSheetTemplate",
+          "type": "Navigation",
+          "description": "审批模板定义 → ApprovalSheetTemplate"
+        }
+      ]
+    },
+    {
+      "className": "NumberingRuleMap",
+      "chineseName": "组织编号规则",
+      "description": "Numbering Rule Map — 组织级别的编号规则映射，将质量对象类别（Category）与编号规则绑定，定义不同质量事件类型的编号策略。是 Organization 的子实体。物理上对应 NumberingRuleMap (CdoId: 1195)。",
+      "properties": [
+        {
+          "name": "organization",
+          "type": "Navigation",
+          "description": "归属的组织 → Organization"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "category",
+          "type": "Integer",
+          "description": "质量对象类别枚举（必填）",
+          "required": true
+        },
+        {
+          "name": "numberingRule",
+          "type": "Navigation",
+          "description": "编号规则定义（必填）→ NumberingRule",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "EventClassificationSpecMap",
+      "chineseName": "事件分类规格映射",
+      "description": "Event Classification Spec Map — 组织级别的子实体配置，将特定的事件分类（Classification）、子分类（Subclassification）和故障模式组（FailureModeGroup）组合，绑定到 ChecklistTemplate、Owner 和 Role，定义不同事件类型的处理方式和默认责任归属。物理上对应 EventClassificationSpecMap (CdoId: 1007)。",
+      "properties": [
+        {
+          "name": "checklistTemplate",
+          "type": "Navigation",
+          "description": "关联的检查清单模板 → ChecklistTemplate"
+        },
+        {
+          "name": "classification",
+          "type": "Navigation",
+          "description": "关联的事件分类大类（必填）→ Classification",
+          "required": true
+        },
+        {
+          "name": "subClassification",
+          "type": "Navigation",
+          "description": "物理字段 SubClassificationId → SubClassification"
+        },
+        {
+          "name": "failureModeGroup",
+          "type": "Navigation",
+          "description": "关联的故障模式分组（必填）→ FailureModeGroup",
+          "required": true
+        },
+        {
+          "name": "organization",
+          "type": "Navigation",
+          "description": "归属的组织 → Organization"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "role",
+          "type": "Navigation",
+          "description": "负责处理该事件分类的角色 → Role"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "负责处理该事件分类的 Owner 员工 → Owner"
+        },
+        {
+          "name": "peDefault",
+          "type": "Boolean",
+          "description": "是否为该事件分类的默认配置"
+        }
+      ]
+    },
+    {
+      "className": "QualityProcessingMap",
+      "chineseName": "质量处理策略映射",
+      "description": "Quality Processing Map — 组织级别的质量处理策略配置，按 Category/Classification/SubClassification 组合定义标签打印策略。是 Organization 的子实体。物理上对应 QualityProcessingMap (CdoId: 1005)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "归属的组织 → Organization"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "category",
+          "type": "Integer",
+          "description": "质量对象类别枚举：1=Event, 2=CAR（必填）",
+          "required": true
+        },
+        {
+          "name": "classification",
+          "type": "Navigation",
+          "description": "关联的事件分类（可选，用于细化匹配）→ Classification"
+        },
+        {
+          "name": "subClassification",
+          "type": "Navigation",
+          "description": "关联的事件子分类（可选，用于细化匹配）→ SubClassification"
+        }
+      ]
+    },
+    {
+      "className": "LabelTxnMap",
+      "chineseName": "质量对象标签映射",
+      "description": "Label Txn Map — QualityProcessingMap 的子实体，定义在特定事务类型下打印的标签数量和打印机标签模板。物理上对应 LabelTxnMap (CdoId: 1006)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "归属的质量处理映射 → QualityProcessingMap"
+        },
+        {
+          "name": "txnType",
+          "type": "Integer",
+          "description": "适用的质量事务类型 ID（CDO Definition Id）"
+        },
+        {
+          "name": "labelCount",
+          "type": "String",
+          "description": "打印标签数量（必填）",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "printerLabelDefinitionBase",
+          "type": "Integer",
+          "description": "打印机标签定义基类 → PrinterLabelDefinitionBase"
+        },
+        {
+          "name": "printerLabelDefinition",
+          "type": "Navigation",
+          "description": "打印机标签定义模板（必填）→ PrinterLabelDefinition",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "QualityReportConfig",
+      "chineseName": "质量报告配置",
+      "description": "Quality Report Configuration — 组织级别的质量报告配置，按 Action/Category/Classification/SubClassification 组合指定呈现的报告页面。是 Organization 的子实体。物理上对应 QualityReportConfig (CdoId: 1008)。",
+      "properties": [
+        {
+          "name": "subClassification",
+          "type": "Navigation",
+          "description": "关联的事件子分类（必填）→ SubClassification",
+          "required": true
+        },
+        {
+          "name": "classification",
+          "type": "Navigation",
+          "description": "关联的事件分类（必填）→ Classification",
+          "required": true
+        },
+        {
+          "name": "reportPage",
+          "type": "Navigation",
+          "description": "报告页面定义（必填）→ UIVirtualPage",
+          "required": true
+        },
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "归属的组织 → Organization"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "reportAction",
+          "type": "String",
+          "description": "报告操作类型（必填）",
+          "required": true
+        },
+        {
+          "name": "category",
+          "type": "Integer",
+          "description": "质量对象类别枚举：1=Event, 2=CAR（必填）",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "UIPreferenceMap",
+      "chineseName": "UI 偏好映射",
+      "description": "UI Preference Map — 组织级别的 UI 偏好映射，将 RecordType（业务记录类型）绑定 to 特定的 UI Preference 配置，控制不同业务对象类型的界面字段展示。是 Organization 的子实体。物理上对应 UIPreferenceMap (CdoId: 1224)。",
+      "properties": [
+        {
+          "name": "organization",
+          "type": "Navigation",
+          "description": "归属的组织 → Organization"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "uiPreference",
+          "type": "Navigation",
+          "description": "UI 偏好配置定义（必填）→ UIPreference",
+          "required": true
+        },
+        {
+          "name": "recordType",
+          "type": "Integer",
+          "description": "业务记录类型 ID（必填）",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Organization",
+      "toClass": "Organization",
+      "relationName": "HAS_PARENT_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Organization.ParentOrganizationId"
+    },
+    {
+      "fromClass": "Organization",
+      "toClass": "DataTransport",
+      "relationName": "HAS_SMTP_TRANSPORT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Organization.SMTPTransportId"
+    },
+    {
+      "fromClass": "Organization",
+      "toClass": "PrintQueue",
+      "relationName": "HAS_PRINT_QUEUE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Organization.PrintQueueId"
+    },
+    {
+      "fromClass": "CategoryMap",
+      "toClass": "Organization",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CategoryMap.ParentId"
+    },
+    {
+      "fromClass": "CategoryMap",
+      "toClass": "TriageSpec",
+      "relationName": "HAS_TRIAGE_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CategoryMap.TriageSpecId"
+    },
+    {
+      "fromClass": "CategoryMap",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CategoryMap.RoleId"
+    },
+    {
+      "fromClass": "CategoryMap",
+      "toClass": "Employee",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CategoryMap.OwnerId"
+    },
+    {
+      "fromClass": "ApprovalSheetMap",
+      "toClass": "CategoryMap",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ApprovalSheetMap.ParentId"
+    },
+    {
+      "fromClass": "ApprovalSheetMap",
+      "toClass": "ApprovalSheetTemplate",
+      "relationName": "HAS_APPROVAL_SHEET_TEMPLATE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ApprovalSheetMap.ApprovalSheetTemplateId"
+    },
+    {
+      "fromClass": "NumberingRuleMap",
+      "toClass": "Organization",
+      "relationName": "HAS_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NumberingRuleMap.OrganizationId"
+    },
+    {
+      "fromClass": "NumberingRuleMap",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NumberingRuleMap.NumberingRuleId"
+    },
+    {
+      "fromClass": "EventClassificationSpecMap",
+      "toClass": "ChecklistTemplate",
+      "relationName": "HAS_CHECKLIST_TEMPLATE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventClassificationSpecMap.ChecklistTemplateId"
+    },
+    {
+      "fromClass": "EventClassificationSpecMap",
+      "toClass": "Classification",
+      "relationName": "HAS_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventClassificationSpecMap.ClassificationId"
+    },
+    {
+      "fromClass": "EventClassificationSpecMap",
+      "toClass": "SubClassification",
+      "relationName": "HAS_SUB_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventClassificationSpecMap.SubClassificationId"
+    },
+    {
+      "fromClass": "EventClassificationSpecMap",
+      "toClass": "FailureModeGroup",
+      "relationName": "HAS_FAILURE_MODE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventClassificationSpecMap.FailureModeGroupId"
+    },
+    {
+      "fromClass": "EventClassificationSpecMap",
+      "toClass": "Organization",
+      "relationName": "HAS_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventClassificationSpecMap.OrganizationId"
+    },
+    {
+      "fromClass": "EventClassificationSpecMap",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventClassificationSpecMap.RoleId"
+    },
+    {
+      "fromClass": "EventClassificationSpecMap",
+      "toClass": "Employee",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventClassificationSpecMap.OwnerId"
+    },
+    {
+      "fromClass": "QualityProcessingMap",
+      "toClass": "Organization",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "QualityProcessingMap.ParentId"
+    },
+    {
+      "fromClass": "QualityProcessingMap",
+      "toClass": "Classification",
+      "relationName": "HAS_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "QualityProcessingMap.ClassificationId"
+    },
+    {
+      "fromClass": "QualityProcessingMap",
+      "toClass": "SubClassification",
+      "relationName": "HAS_SUB_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "QualityProcessingMap.SubClassificationId"
+    },
+    {
+      "fromClass": "LabelTxnMap",
+      "toClass": "QualityProcessingMap",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "LabelTxnMap.ParentId"
+    },
+    {
+      "fromClass": "LabelTxnMap",
+      "toClass": "PrinterLabelDefinition",
+      "relationName": "HAS_PRINTER_LABEL_DEFINITION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "LabelTxnMap.PrinterLabelDefinitionId"
+    },
+    {
+      "fromClass": "QualityReportConfig",
+      "toClass": "SubClassification",
+      "relationName": "HAS_SUB_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "QualityReportConfig.SubClassificationId"
+    },
+    {
+      "fromClass": "QualityReportConfig",
+      "toClass": "Classification",
+      "relationName": "HAS_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "QualityReportConfig.ClassificationId"
+    },
+    {
+      "fromClass": "QualityReportConfig",
+      "toClass": "Organization",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "QualityReportConfig.ParentId"
+    },
+    {
+      "fromClass": "UIPreferenceMap",
+      "toClass": "Organization",
+      "relationName": "HAS_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "UIPreferenceMap.OrganizationId"
+    }
+  ]
+}

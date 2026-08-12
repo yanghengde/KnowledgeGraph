@@ -1,0 +1,107 @@
+{
+  "module": "buy_reasons",
+  "classes": [
+    {
+      "className": "BuyReason",
+      "chineseName": "购买原因",
+      "description": "Buy Reason — 购买原因。定义当向外部供应商采购或购买特定物料或组件时，指定触发该购买行为的具体业务背景或理由，用以合规审计与成本中心追踪。 【Swagger】Schema: BuyReasonEntity；来源文件: BuyReasons.json；API: /api/BuyReasons。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "购买原因唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "BuyReasonGroup",
+      "chineseName": "购买原因组",
+      "description": "Buy Reason Group — 购买原因组。对具体的购买原因进行逻辑分组，方便在不同工序（Operation）或工厂上下文中限定可选的购买原因范围。 【Swagger】Schema: BuyReasonGroupEntity；来源文件: BuyReasonGroups.json；API: /api/BuyReasonGroups。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "购买原因组名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "对象组中包含的 CDO 定义名称，该字段将移除。 【Swagger】Name of the type of objects (CDO Definition Name) contained in this ObjectGroup. There is no business logic support for this field and it will be eventually removed."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

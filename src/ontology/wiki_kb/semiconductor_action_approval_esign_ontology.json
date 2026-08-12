@@ -1,0 +1,1335 @@
+{
+  "module": "semiconductor_action_approval_esign",
+  "classes": [
+    {
+      "className": "ActionCategory",
+      "chineseName": "动作类别",
+      "description": "动作定义的分类主数据。 物理对应 ActionCategory (CdoId: 1418, Workspace: csi)。 【Swagger】Schema: ActionCategoryEntity；来源文件: ActionCategories.json；API: /api/ActionCategories。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "物理字段 Sequence 【Swagger】Relative sequence number"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ActionCategoryName 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "labelName",
+          "type": "String",
+          "description": "物理字段 LabelName 【Swagger】LabelName"
+        },
+        {
+          "name": "labelText",
+          "type": "String",
+          "description": "物理字段 LabelText 【Swagger】Label Text"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "ActionDef",
+      "chineseName": "动作定义",
+      "description": "可由业务规则或流程触发的动作配置。 物理对应 ActionDef (CdoId: 1355, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "uiAction",
+          "type": "Navigation",
+          "description": "物理字段 UIActionId → UIAction"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ActionName",
+          "required": true
+        },
+        {
+          "name": "actionType",
+          "type": "Integer",
+          "description": "物理字段 ActionType"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ActionRule",
+      "chineseName": "动作规则",
+      "description": "动作执行条件与规则定义。 物理对应 ActionRule (CdoId: 1356, Workspace: csi)。 【Swagger】Schema: ActionRuleEntity；来源文件: ActionRules.json；API: /api/ActionRules。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ActionRuleName 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "expression",
+          "type": "String",
+          "description": "物理字段 Expression 【Swagger】InSite Unified Expression"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "Activity",
+      "chineseName": "活动",
+      "description": "业务过程中的活动配置。 物理对应 Activity (CdoId: 1155, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "firstRoutedOn",
+          "type": "DateTime",
+          "description": "物理字段 FirstRoutedOn"
+        },
+        {
+          "name": "lastCompletedOn",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOn"
+        },
+        {
+          "name": "lastCompletedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOnGMT"
+        },
+        {
+          "name": "firstRoutedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 FirstRoutedOnGMT"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "autoComplete",
+          "type": "Boolean",
+          "description": "物理字段 AutoComplete"
+        },
+        {
+          "name": "reassignmentComments",
+          "type": "String",
+          "description": "物理字段 ReassignmentComments"
+        },
+        {
+          "name": "assigneeRole",
+          "type": "Navigation",
+          "description": "物理字段 AssigneeRoleId → RoleDef"
+        },
+        {
+          "name": "autoExecute",
+          "type": "Boolean",
+          "description": "物理字段 AutoExecute"
+        },
+        {
+          "name": "stage",
+          "type": "Integer",
+          "description": "物理字段 Stage"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "allowReassignment",
+          "type": "Integer",
+          "description": "物理字段 AllowReassignment"
+        },
+        {
+          "name": "completeBy",
+          "type": "DateTime",
+          "description": "物理字段 CompleteBy"
+        },
+        {
+          "name": "completeWithinQty",
+          "type": "Integer",
+          "description": "物理字段 CompleteWithinQty"
+        },
+        {
+          "name": "completeWithinUom",
+          "type": "Float",
+          "description": "物理字段 CompleteWithinUOM"
+        },
+        {
+          "name": "autoStart",
+          "type": "Boolean",
+          "description": "物理字段 AutoStart"
+        },
+        {
+          "name": "attachments",
+          "type": "Navigation",
+          "description": "物理字段 AttachmentsId → DocAttachments"
+        },
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ActivityName",
+          "required": true
+        },
+        {
+          "name": "assignee",
+          "type": "Navigation",
+          "description": "物理字段 AssigneeId → Employee"
+        },
+        {
+          "name": "isRequired",
+          "type": "Boolean",
+          "description": "物理字段 IsRequired"
+        },
+        {
+          "name": "completionAttachments",
+          "type": "Navigation",
+          "description": "物理字段 CompletionAttachmentsId → DocAttachments"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "completionComments",
+          "type": "String",
+          "description": "物理字段 CompletionComments"
+        },
+        {
+          "name": "designated",
+          "type": "Boolean",
+          "description": "物理字段 Designated"
+        },
+        {
+          "name": "lastDesignatedOn",
+          "type": "DateTime",
+          "description": "物理字段 LastDesignatedOn"
+        },
+        {
+          "name": "lastDesignatedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastDesignatedOnGMT"
+        },
+        {
+          "name": "assigneeOption",
+          "type": "Integer",
+          "description": "物理字段 AssigneeOption"
+        },
+        {
+          "name": "lastStage",
+          "type": "Integer",
+          "description": "物理字段 LastStage"
+        },
+        {
+          "name": "completeByGmt",
+          "type": "DateTime",
+          "description": "物理字段 CompleteByGMT"
+        },
+        {
+          "name": "defaultAssigneeInfo",
+          "type": "Boolean",
+          "description": "物理字段 DefaultAssigneeInfo"
+        },
+        {
+          "name": "disposition",
+          "type": "Navigation",
+          "description": "物理字段 DispositionId → Disposition"
+        },
+        {
+          "name": "reconcileQuantity",
+          "type": "Boolean",
+          "description": "物理字段 ReconcileQuantity"
+        },
+        {
+          "name": "displayConformingQuantity",
+          "type": "Boolean",
+          "description": "物理字段 DisplayConformingQuantity"
+        },
+        {
+          "name": "lastCompletedBy",
+          "type": "Navigation",
+          "description": "物理字段 LastCompletedById → Employee"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "物理字段 DocumentSetId → DocumentSet"
+        },
+        {
+          "name": "autoCompleteFailure",
+          "type": "Boolean",
+          "description": "物理字段 AutoCompleteFailure"
+        },
+        {
+          "name": "outstandingDetailStatus",
+          "type": "Integer",
+          "description": "物理字段 OutstandingDetailStatus"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "物理字段 Sequence"
+        },
+        {
+          "name": "dataPointCollection",
+          "type": "Navigation",
+          "description": "物理字段 DataPointCollectionId → DataPointCollection"
+        },
+        {
+          "name": "checklist",
+          "type": "Navigation",
+          "description": "物理字段 ChecklistId → Checklist"
+        }
+      ]
+    },
+    {
+      "className": "ActivityPlan",
+      "chineseName": "活动计划",
+      "description": "活动执行顺序和计划配置。 物理对应 ActivityPlan (CdoId: 1156, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "firstRoutedOn",
+          "type": "DateTime",
+          "description": "物理字段 FirstRoutedOn"
+        },
+        {
+          "name": "lastCompletedOn",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOn"
+        },
+        {
+          "name": "lastCompletedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOnGMT"
+        },
+        {
+          "name": "firstRoutedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 FirstRoutedOnGMT"
+        },
+        {
+          "name": "autoComplete",
+          "type": "Boolean",
+          "description": "物理字段 AutoComplete"
+        },
+        {
+          "name": "reassignmentComments",
+          "type": "String",
+          "description": "物理字段 ReassignmentComments"
+        },
+        {
+          "name": "assigneeRole",
+          "type": "Navigation",
+          "description": "物理字段 AssigneeRoleId → RoleDef"
+        },
+        {
+          "name": "completeWithinUom",
+          "type": "Float",
+          "description": "物理字段 CompleteWithinUOM"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "allowReassignment",
+          "type": "Integer",
+          "description": "物理字段 AllowReassignment"
+        },
+        {
+          "name": "attachments",
+          "type": "Navigation",
+          "description": "物理字段 AttachmentsId → DocAttachments"
+        },
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "stage",
+          "type": "Integer",
+          "description": "物理字段 Stage"
+        },
+        {
+          "name": "completeWithinQty",
+          "type": "Integer",
+          "description": "物理字段 CompleteWithinQty"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "planName",
+          "type": "String",
+          "description": "物理字段 PlanName"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "assignee",
+          "type": "Navigation",
+          "description": "物理字段 AssigneeId → Employee"
+        },
+        {
+          "name": "isRequired",
+          "type": "Boolean",
+          "description": "物理字段 IsRequired"
+        },
+        {
+          "name": "autoStart",
+          "type": "Boolean",
+          "description": "物理字段 AutoStart"
+        },
+        {
+          "name": "completeBy",
+          "type": "DateTime",
+          "description": "物理字段 CompleteBy"
+        },
+        {
+          "name": "completionComments",
+          "type": "String",
+          "description": "物理字段 CompletionComments"
+        },
+        {
+          "name": "designated",
+          "type": "Boolean",
+          "description": "物理字段 Designated"
+        },
+        {
+          "name": "lastDesignatedOn",
+          "type": "DateTime",
+          "description": "物理字段 LastDesignatedOn"
+        },
+        {
+          "name": "assigneeOption",
+          "type": "Integer",
+          "description": "物理字段 AssigneeOption"
+        },
+        {
+          "name": "lastDesignatedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastDesignatedOnGMT"
+        },
+        {
+          "name": "completeByGmt",
+          "type": "DateTime",
+          "description": "物理字段 CompleteByGMT"
+        },
+        {
+          "name": "defaultAssigneeInfo",
+          "type": "Boolean",
+          "description": "物理字段 DefaultAssigneeInfo"
+        },
+        {
+          "name": "lastStage",
+          "type": "Integer",
+          "description": "物理字段 LastStage"
+        },
+        {
+          "name": "lastCompletedBy",
+          "type": "Navigation",
+          "description": "物理字段 LastCompletedById → Employee"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "物理字段 DocumentSetId → DocumentSet"
+        },
+        {
+          "name": "lastApprovalRouted",
+          "type": "Navigation",
+          "description": "物理字段 LastApprovalRoutedId → ApprovalSheet"
+        },
+        {
+          "name": "autoCompleteFailure",
+          "type": "Boolean",
+          "description": "物理字段 AutoCompleteFailure"
+        },
+        {
+          "name": "outstandingDetailStatus",
+          "type": "Integer",
+          "description": "物理字段 OutstandingDetailStatus"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "物理字段 Sequence"
+        },
+        {
+          "name": "dataPointCollection",
+          "type": "Navigation",
+          "description": "物理字段 DataPointCollectionId → DataPointCollection"
+        },
+        {
+          "name": "checklist",
+          "type": "Navigation",
+          "description": "物理字段 ChecklistId → Checklist"
+        }
+      ]
+    },
+    {
+      "className": "Phase",
+      "chineseName": "阶段",
+      "description": "业务过程或计划中的阶段定义。 物理对应 Phase (CdoId: 1154, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "firstRoutedOn",
+          "type": "DateTime",
+          "description": "物理字段 FirstRoutedOn"
+        },
+        {
+          "name": "lastCompletedOn",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOn"
+        },
+        {
+          "name": "lastCompletedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOnGMT"
+        },
+        {
+          "name": "firstRoutedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 FirstRoutedOnGMT"
+        },
+        {
+          "name": "autoComplete",
+          "type": "Boolean",
+          "description": "物理字段 AutoComplete"
+        },
+        {
+          "name": "reassignmentComments",
+          "type": "String",
+          "description": "物理字段 ReassignmentComments"
+        },
+        {
+          "name": "assigneeRole",
+          "type": "Navigation",
+          "description": "物理字段 AssigneeRoleId → RoleDef"
+        },
+        {
+          "name": "allowReassignment",
+          "type": "Integer",
+          "description": "物理字段 AllowReassignment"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "assignee",
+          "type": "Navigation",
+          "description": "物理字段 AssigneeId → Employee"
+        },
+        {
+          "name": "isRequired",
+          "type": "Boolean",
+          "description": "物理字段 IsRequired"
+        },
+        {
+          "name": "autoStart",
+          "type": "Boolean",
+          "description": "物理字段 AutoStart"
+        },
+        {
+          "name": "completeBy",
+          "type": "DateTime",
+          "description": "物理字段 CompleteBy"
+        },
+        {
+          "name": "attachments",
+          "type": "Navigation",
+          "description": "物理字段 AttachmentsId → DocAttachments"
+        },
+        {
+          "name": "completeWithinQty",
+          "type": "Integer",
+          "description": "物理字段 CompleteWithinQty"
+        },
+        {
+          "name": "stage",
+          "type": "Integer",
+          "description": "物理字段 Stage"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "completeWithinUom",
+          "type": "Float",
+          "description": "物理字段 CompleteWithinUOM"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PhaseName",
+          "required": true
+        },
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "designated",
+          "type": "Boolean",
+          "description": "物理字段 Designated"
+        },
+        {
+          "name": "lastDesignatedOn",
+          "type": "DateTime",
+          "description": "物理字段 LastDesignatedOn"
+        },
+        {
+          "name": "lastDesignatedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastDesignatedOnGMT"
+        },
+        {
+          "name": "completionComments",
+          "type": "String",
+          "description": "物理字段 CompletionComments"
+        },
+        {
+          "name": "assigneeOption",
+          "type": "Integer",
+          "description": "物理字段 AssigneeOption"
+        },
+        {
+          "name": "lastStage",
+          "type": "Integer",
+          "description": "物理字段 LastStage"
+        },
+        {
+          "name": "completeByGmt",
+          "type": "DateTime",
+          "description": "物理字段 CompleteByGMT"
+        },
+        {
+          "name": "defaultAssigneeInfo",
+          "type": "Boolean",
+          "description": "物理字段 DefaultAssigneeInfo"
+        },
+        {
+          "name": "lastCompletedBy",
+          "type": "Navigation",
+          "description": "物理字段 LastCompletedById → Employee"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "物理字段 DocumentSetId → DocumentSet"
+        },
+        {
+          "name": "lastApprovalRouted",
+          "type": "Navigation",
+          "description": "物理字段 LastApprovalRoutedId → ApprovalSheet"
+        },
+        {
+          "name": "autoCompleteFailure",
+          "type": "Boolean",
+          "description": "物理字段 AutoCompleteFailure"
+        },
+        {
+          "name": "outstandingDetailStatus",
+          "type": "Integer",
+          "description": "物理字段 OutstandingDetailStatus"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "物理字段 Sequence"
+        },
+        {
+          "name": "dataPointCollection",
+          "type": "Navigation",
+          "description": "物理字段 DataPointCollectionId → DataPointCollection"
+        },
+        {
+          "name": "checklist",
+          "type": "Navigation",
+          "description": "物理字段 ChecklistId → Checklist"
+        }
+      ]
+    },
+    {
+      "className": "ApprovalDecision",
+      "chineseName": "审批决定",
+      "description": "审批流程可选决定的主数据。 物理对应 ApprovalDecision (CdoId: 1249, Workspace: csi)。 【Swagger】Schema: ApprovalDecisionChanges；来源文件: ApprovalDecisionLists.json；API: /api/ApprovalDecisionLists。",
+      "properties": [
+        {
+          "name": "approvalDecisionList",
+          "type": "Navigation",
+          "description": "物理字段 ApprovalDecisionListId → ApprovalDecisionList"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ApprovalDecisionName 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "decisionType",
+          "type": "Integer",
+          "description": "物理字段 DecisionType 【Swagger】The decisions that can be made regarding the approval of an object."
+        },
+        {
+          "name": "includeComments",
+          "type": "Boolean",
+          "description": "物理字段 IncludeComments 【Swagger】Controls whether the comments entry field is made available to the user."
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        }
+      ]
+    },
+    {
+      "className": "ApprovalDecisionList",
+      "chineseName": "审批决定列表",
+      "description": "审批决定的分组列表配置。 物理对应 ApprovalDecisionList (CdoId: 1234, Workspace: csi)。 【Swagger】Schema: ApprovalDecisionListEntity；来源文件: ApprovalDecisionLists.json；API: /api/ApprovalDecisionLists。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ApprovalDecisionListName 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "ApprovalSheet",
+      "chineseName": "审批表",
+      "description": "审批参与者、路由和决定的配置载体。 物理对应 ApprovalSheet (CdoId: 1236, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ApprovalSheetName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "approvalDecisionList",
+          "type": "Navigation",
+          "description": "物理字段 ApprovalDecisionListId → ApprovalDecisionList"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → CAPA"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "物理字段 Status"
+        },
+        {
+          "name": "generalInstructions",
+          "type": "String",
+          "description": "物理字段 GeneralInstructions"
+        },
+        {
+          "name": "fromStage",
+          "type": "Integer",
+          "description": "物理字段 FromStage"
+        },
+        {
+          "name": "toStage",
+          "type": "Integer",
+          "description": "物理字段 ToStage"
+        },
+        {
+          "name": "approvalRequired",
+          "type": "Boolean",
+          "description": "物理字段 ApprovalRequired"
+        },
+        {
+          "name": "childRoutingOption",
+          "type": "Integer",
+          "description": "物理字段 ChildRoutingOption"
+        },
+        {
+          "name": "childOpenOption",
+          "type": "Integer",
+          "description": "物理字段 ChildOpenOption"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "lastApprovalCycleGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastApprovalCycleGMT"
+        },
+        {
+          "name": "lastApprovalCycle",
+          "type": "DateTime",
+          "description": "物理字段 LastApprovalCycle"
+        },
+        {
+          "name": "approvalRoutingInfo",
+          "type": "Navigation",
+          "description": "物理字段 ApprovalRoutingInfoId → ApprovalRoutingInfo"
+        },
+        {
+          "name": "designateOnApproval",
+          "type": "Boolean",
+          "description": "物理字段 DesignateOnApproval"
+        }
+      ]
+    },
+    {
+      "className": "AlarmDefinition",
+      "chineseName": "告警定义",
+      "description": "告警消息、优先级、动作和通知配置。 物理对应 AlarmDefinition (CdoId: 272, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "物理字段 DocumentSetId → DocumentSet"
+        },
+        {
+          "name": "alarmPriority",
+          "type": "Integer",
+          "description": "物理字段 AlarmPriority"
+        },
+        {
+          "name": "alarmIconId",
+          "type": "Integer",
+          "description": "物理字段 AlarmIconId"
+        },
+        {
+          "name": "action",
+          "type": "Navigation",
+          "description": "物理字段 ActionId → ActionDefinition"
+        },
+        {
+          "name": "notificationTarget",
+          "type": "Navigation",
+          "description": "物理字段 NotificationTargetId → NotificationTarget"
+        },
+        {
+          "name": "notificationText",
+          "type": "String",
+          "description": "物理字段 NotificationText"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 AlarmDefinitionName",
+          "required": true
+        },
+        {
+          "name": "messageText",
+          "type": "String",
+          "description": "物理字段 MessageText"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "物理字段 ChangeStatusId → ChangeStatus"
+        },
+        {
+          "name": "triggerAction",
+          "type": "Boolean",
+          "description": "物理字段 TriggerAction"
+        },
+        {
+          "name": "sendNotification",
+          "type": "Boolean",
+          "description": "物理字段 SendNotification"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "AttachedDocs",
+      "chineseName": "附件文档配置",
+      "description": "建模对象所附文档集合的配置实体。 物理对应 AttachedDocs (CdoId: 1094, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "docAttachments",
+          "type": "Navigation",
+          "description": "物理字段 DocAttachmentsId → DocAttachments"
+        },
+        {
+          "name": "originalFilePath",
+          "type": "String",
+          "description": "物理字段 OriginalFilePath"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "documentName",
+          "type": "String",
+          "description": "物理字段 DocumentName"
+        },
+        {
+          "name": "version",
+          "type": "String",
+          "description": "物理字段 Version"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "fileName",
+          "type": "String",
+          "description": "物理字段 FileName"
+        },
+        {
+          "name": "originalFileName",
+          "type": "String",
+          "description": "物理字段 OriginalFileName"
+        },
+        {
+          "name": "fileExtension",
+          "type": "String",
+          "description": "物理字段 FileExtension"
+        },
+        {
+          "name": "docContentsId",
+          "type": "Integer",
+          "description": "物理字段 DocContentsId"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Activity",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ASSIGNEE_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Activity.AssigneeRoleId"
+    },
+    {
+      "fromClass": "Activity",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_ATTACHMENTS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Activity.AttachmentsId"
+    },
+    {
+      "fromClass": "Activity",
+      "toClass": "Employee",
+      "relationName": "HAS_ASSIGNEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Activity.AssigneeId"
+    },
+    {
+      "fromClass": "Activity",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_COMPLETION_ATTACHMENTS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Activity.CompletionAttachmentsId"
+    },
+    {
+      "fromClass": "Activity",
+      "toClass": "Disposition",
+      "relationName": "HAS_DISPOSITION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Activity.DispositionId"
+    },
+    {
+      "fromClass": "Activity",
+      "toClass": "Employee",
+      "relationName": "HAS_LAST_COMPLETED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Activity.LastCompletedById"
+    },
+    {
+      "fromClass": "Activity",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Activity.DocumentSetId"
+    },
+    {
+      "fromClass": "Activity",
+      "toClass": "DataPointCollection",
+      "relationName": "HAS_DATA_POINT_COLLECTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Activity.DataPointCollectionId"
+    },
+    {
+      "fromClass": "Activity",
+      "toClass": "Checklist",
+      "relationName": "HAS_CHECKLIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Activity.ChecklistId"
+    },
+    {
+      "fromClass": "ActivityPlan",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ASSIGNEE_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ActivityPlan.AssigneeRoleId"
+    },
+    {
+      "fromClass": "ActivityPlan",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_ATTACHMENTS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ActivityPlan.AttachmentsId"
+    },
+    {
+      "fromClass": "ActivityPlan",
+      "toClass": "Employee",
+      "relationName": "HAS_ASSIGNEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ActivityPlan.AssigneeId"
+    },
+    {
+      "fromClass": "ActivityPlan",
+      "toClass": "Employee",
+      "relationName": "HAS_LAST_COMPLETED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ActivityPlan.LastCompletedById"
+    },
+    {
+      "fromClass": "ActivityPlan",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ActivityPlan.DocumentSetId"
+    },
+    {
+      "fromClass": "ActivityPlan",
+      "toClass": "ApprovalSheet",
+      "relationName": "HAS_LAST_APPROVAL_ROUTED",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ActivityPlan.LastApprovalRoutedId"
+    },
+    {
+      "fromClass": "ActivityPlan",
+      "toClass": "DataPointCollection",
+      "relationName": "HAS_DATA_POINT_COLLECTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ActivityPlan.DataPointCollectionId"
+    },
+    {
+      "fromClass": "ActivityPlan",
+      "toClass": "Checklist",
+      "relationName": "HAS_CHECKLIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ActivityPlan.ChecklistId"
+    },
+    {
+      "fromClass": "Phase",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ASSIGNEE_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Phase.AssigneeRoleId"
+    },
+    {
+      "fromClass": "Phase",
+      "toClass": "Employee",
+      "relationName": "HAS_ASSIGNEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Phase.AssigneeId"
+    },
+    {
+      "fromClass": "Phase",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_ATTACHMENTS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Phase.AttachmentsId"
+    },
+    {
+      "fromClass": "Phase",
+      "toClass": "Employee",
+      "relationName": "HAS_LAST_COMPLETED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Phase.LastCompletedById"
+    },
+    {
+      "fromClass": "Phase",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Phase.DocumentSetId"
+    },
+    {
+      "fromClass": "Phase",
+      "toClass": "ApprovalSheet",
+      "relationName": "HAS_LAST_APPROVAL_ROUTED",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Phase.LastApprovalRoutedId"
+    },
+    {
+      "fromClass": "Phase",
+      "toClass": "DataPointCollection",
+      "relationName": "HAS_DATA_POINT_COLLECTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Phase.DataPointCollectionId"
+    },
+    {
+      "fromClass": "Phase",
+      "toClass": "Checklist",
+      "relationName": "HAS_CHECKLIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Phase.ChecklistId"
+    },
+    {
+      "fromClass": "ApprovalDecision",
+      "toClass": "ApprovalDecisionList",
+      "relationName": "HAS_APPROVAL_DECISION_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ApprovalDecision.ApprovalDecisionListId"
+    },
+    {
+      "fromClass": "ApprovalSheet",
+      "toClass": "ApprovalDecisionList",
+      "relationName": "HAS_APPROVAL_DECISION_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ApprovalSheet.ApprovalDecisionListId"
+    },
+    {
+      "fromClass": "ApprovalSheet",
+      "toClass": "CAPA",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ApprovalSheet.ParentId"
+    },
+    {
+      "fromClass": "AlarmDefinition",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "AlarmDefinition.DocumentSetId"
+    },
+    {
+      "fromClass": "AlarmDefinition",
+      "toClass": "ActionDefinition",
+      "relationName": "HAS_ACTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "AlarmDefinition.ActionId"
+    },
+    {
+      "fromClass": "AttachedDocs",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_DOC_ATTACHMENTS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "AttachedDocs.DocAttachmentsId"
+    }
+  ]
+}

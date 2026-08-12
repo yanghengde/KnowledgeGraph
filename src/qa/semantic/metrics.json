@@ -1,0 +1,464 @@
+{
+  "version": 1,
+  "policy": {
+    "timeRange": "All historical metrics use a parameterized half-open range.",
+    "reversal": "No reversal or rework value is inferred from undocumented enums.",
+    "execution": "Generated SQL is read-only and is never executed by this application."
+  },
+  "metrics": [
+    {
+      "id": "container.current_detail",
+      "nameZh": "容器当前明细",
+      "intent": "detail_query",
+      "status": "approved",
+      "description": "查询容器当前名称、状态、数量及产品名称。",
+      "factTable": "Container",
+      "tables": [
+        {"table": "Container", "alias": "c"},
+        {"table": "Product", "alias": "p"},
+        {"table": "ProductBase", "alias": "pb"}
+      ],
+      "joins": [
+        {"left": "c.ProductId", "right": "p.ProductId"},
+        {"left": "p.ProductBaseId", "right": "pb.ProductBaseId"}
+      ],
+      "select": [
+        {"expression": "c.ContainerId"},
+        {"expression": "c.ContainerName"},
+        {"expression": "c.Status"},
+        {"expression": "c.Qty"},
+        {"expression": "pb.ProductName"}
+      ],
+      "measures": [],
+      "groupBy": [],
+      "orderBy": ["c.ContainerId"],
+      "requiresTimeRange": false,
+      "availableFilters": {
+        "status": {"expression": "c.Status", "parameter": "status"},
+        "container_id": {"expression": "c.ContainerId", "parameter": "container_id"}
+      },
+      "limit": 100,
+      "businessRules": [
+        "Status枚举值未在物理CSV中定义，调用方必须传入已确认的状态参数。"
+      ]
+    },
+    {
+      "id": "wip.current_qty",
+      "nameZh": "当前容器数量合计",
+      "intent": "current_wip",
+      "status": "provisional",
+      "description": "汇总Container当前快照中的Qty，不推断Status枚举。",
+      "factTable": "Container",
+      "tables": [
+        {"table": "Container", "alias": "c"}
+      ],
+      "joins": [],
+      "select": [],
+      "measures": [
+        {"expression": "SUM(c.Qty)", "alias": "CurrentQty"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": false,
+      "availableFilters": {},
+      "businessRules": [
+        "这是Container当前快照的原始数量合计。",
+        "由于Status枚举没有权威映射，本指标不自动排除已完成或非活动状态。"
+      ]
+    },
+    {
+      "id": "throughput.total_qty",
+      "nameZh": "产出数量",
+      "intent": "throughput",
+      "status": "provisional",
+      "description": "按ThruputHistory.Qty汇总容器级原始产出数量。",
+      "factTable": "ThruputHistory",
+      "tables": [
+        {"table": "ThruputHistory", "alias": "th"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "th.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "SUM(th.Qty)", "alias": "ThruputQty"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "按原始ThruputHistory事实汇总。",
+        "不根据未定义的ReversalStatus或返工枚举自动扣减。"
+      ]
+    },
+    {
+      "id": "throughput.by_mfg_order",
+      "nameZh": "工单产出数量",
+      "intent": "throughput",
+      "status": "provisional",
+      "description": "按制造工单汇总ResourceThruputHistory.Qty。",
+      "factTable": "ResourceThruputHistory",
+      "tables": [
+        {"table": "ResourceThruputHistory", "alias": "rth"},
+        {"table": "HistoryMainline", "alias": "hm"},
+        {"table": "MfgOrder", "alias": "mo"}
+      ],
+      "joins": [
+        {"left": "rth.HistoryMainlineId", "right": "hm.HistoryMainlineId"},
+        {"left": "rth.MfgOrderId", "right": "mo.MfgOrderId"}
+      ],
+      "select": [
+        {"expression": "mo.MfgOrderId"},
+        {"expression": "mo.MfgOrderName"}
+      ],
+      "measures": [
+        {"expression": "SUM(rth.Qty)", "alias": "ThruputQty"}
+      ],
+      "groupBy": ["mo.MfgOrderId", "mo.MfgOrderName"],
+      "orderBy": ["mo.MfgOrderId"],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "limit": 100,
+      "businessRules": [
+        "使用ResourceThruputHistory.MfgOrderId直接关联MfgOrder。",
+        "按原始资源产出事实汇总，不推断冲销或返工枚举。"
+      ]
+    },
+    {
+      "id": "throughput.by_resource",
+      "nameZh": "设备产出数量",
+      "intent": "throughput",
+      "status": "provisional",
+      "description": "按设备资源汇总ResourceThruputHistory.Qty。",
+      "factTable": "ResourceThruputHistory",
+      "tables": [
+        {"table": "ResourceThruputHistory", "alias": "rth"},
+        {"table": "HistoryMainline", "alias": "hm"},
+        {"table": "ResourceDef", "alias": "r"}
+      ],
+      "joins": [
+        {"left": "rth.HistoryMainlineId", "right": "hm.HistoryMainlineId"},
+        {"left": "rth.ResourceId", "right": "r.ResourceId"}
+      ],
+      "select": [
+        {"expression": "r.ResourceId"},
+        {"expression": "r.ResourceName"}
+      ],
+      "measures": [
+        {"expression": "SUM(rth.Qty)", "alias": "ThruputQty"}
+      ],
+      "groupBy": ["r.ResourceId", "r.ResourceName"],
+      "orderBy": ["r.ResourceId"],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "limit": 100,
+      "businessRules": [
+        "设备维度使用ResourceThruputHistory.ResourceId。",
+        "按原始资源产出事实汇总，不推断冲销或返工枚举。"
+      ]
+    },
+    {
+      "id": "throughput.by_operation",
+      "nameZh": "工序产出数量",
+      "intent": "throughput",
+      "status": "provisional",
+      "description": "按工序汇总ThruputHistory.Qty。",
+      "factTable": "ThruputHistory",
+      "tables": [
+        {"table": "ThruputHistory", "alias": "th"},
+        {"table": "HistoryMainline", "alias": "hm"},
+        {"table": "Operation", "alias": "op"}
+      ],
+      "joins": [
+        {"left": "th.HistoryMainlineId", "right": "hm.HistoryMainlineId"},
+        {"left": "th.OperationId", "right": "op.OperationId"}
+      ],
+      "select": [
+        {"expression": "op.OperationId"},
+        {"expression": "op.OperationName"}
+      ],
+      "measures": [
+        {"expression": "SUM(th.Qty)", "alias": "ThruputQty"}
+      ],
+      "groupBy": ["op.OperationId", "op.OperationName"],
+      "orderBy": ["op.OperationId"],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "limit": 100,
+      "businessRules": [
+        "工序维度使用ThruputHistory.OperationId。",
+        "按原始容器产出事实汇总。"
+      ]
+    },
+    {
+      "id": "track_in.qty",
+      "nameZh": "Track In数量",
+      "intent": "track_in",
+      "status": "approved",
+      "description": "汇总A_TrackInLotHistory.TrackInQty。",
+      "factTable": "A_TrackInLotHistory",
+      "tables": [
+        {"table": "A_TrackInLotHistory", "alias": "ti"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "ti.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "SUM(ti.TrackInQty)", "alias": "TrackInQty"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "使用半导体Track In事实表的TrackInQty。"
+      ]
+    },
+    {
+      "id": "track_out.qty",
+      "nameZh": "Track Out数量",
+      "intent": "track_out",
+      "status": "approved",
+      "description": "汇总A_TrackOutLotHistory.TrackOutQty。",
+      "factTable": "A_TrackOutLotHistory",
+      "tables": [
+        {"table": "A_TrackOutLotHistory", "alias": "toh"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "toh.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "SUM(toh.TrackOutQty)", "alias": "TrackOutQty"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "使用半导体Track Out事实表的TrackOutQty。"
+      ]
+    },
+    {
+      "id": "move.event_count",
+      "nameZh": "移动事务次数",
+      "intent": "move_history",
+      "status": "approved",
+      "description": "统计MoveHistory物理主键数量。",
+      "factTable": "MoveHistory",
+      "tables": [
+        {"table": "MoveHistory", "alias": "mh"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "mh.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "COUNT(mh.MoveHistoryId)", "alias": "MoveCount"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "一次MoveHistory主键记录计为一次移动事实。"
+      ]
+    },
+    {
+      "id": "start.qty",
+      "nameZh": "开工数量",
+      "intent": "start_history",
+      "status": "provisional",
+      "description": "汇总StartHistoryDetail.Qty。",
+      "factTable": "StartHistoryDetail",
+      "tables": [
+        {"table": "StartHistoryDetail", "alias": "sh"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "sh.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "SUM(sh.Qty)", "alias": "StartQty"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "按开工历史明细中的原始Qty汇总。"
+      ]
+    },
+    {
+      "id": "quantity_change.recorded_qty",
+      "nameZh": "数量变更记录量",
+      "intent": "quantity_history",
+      "status": "provisional",
+      "description": "汇总QtyHistoryDetails.Qty，不推断ChangeQtyType符号。",
+      "factTable": "QtyHistoryDetails",
+      "tables": [
+        {"table": "QtyHistoryDetails", "alias": "qd"},
+        {"table": "QtyHistory", "alias": "qh"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "qd.QtyHistoryId", "right": "qh.QtyHistoryId"},
+        {"left": "qh.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "SUM(qd.Qty)", "alias": "RecordedQty"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "ChangeQtyType枚举没有权威映射，因此结果是记录量而不是带符号净变化量。"
+      ]
+    },
+    {
+      "id": "split.qty",
+      "nameZh": "拆分数量",
+      "intent": "split_history",
+      "status": "provisional",
+      "description": "汇总SplitHistoryDetails.Qty。",
+      "factTable": "SplitHistoryDetails",
+      "tables": [
+        {"table": "SplitHistoryDetails", "alias": "sd"},
+        {"table": "SplitHistory", "alias": "sh"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "sd.SplitHistoryId", "right": "sh.SplitHistoryId"},
+        {"left": "sh.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "SUM(sd.Qty)", "alias": "SplitQty"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "按拆分明细记录的原始Qty汇总。"
+      ]
+    },
+    {
+      "id": "combine.qty",
+      "nameZh": "合并数量",
+      "intent": "combine_history",
+      "status": "provisional",
+      "description": "汇总CombineHistoryDetail.Qty。",
+      "factTable": "CombineHistoryDetail",
+      "tables": [
+        {"table": "CombineHistoryDetail", "alias": "cd"},
+        {"table": "CombineHistory", "alias": "ch"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "cd.CombineHistoryId", "right": "ch.CombineHistoryId"},
+        {"left": "ch.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "SUM(cd.Qty)", "alias": "CombineQty"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "按合并明细记录的原始Qty汇总。"
+      ]
+    },
+    {
+      "id": "hold.duration",
+      "nameZh": "Hold持续时间",
+      "intent": "hold_release_history",
+      "status": "approved",
+      "description": "汇总HoldReleaseHistoryDetail.HoldDuration。",
+      "factTable": "HoldReleaseHistoryDetail",
+      "tables": [
+        {"table": "HoldReleaseHistoryDetail", "alias": "hrd"},
+        {"table": "HoldReleaseHistory", "alias": "hrh"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "hrd.HoldReleaseHistoryId", "right": "hrh.HoldReleaseHistoryId"},
+        {"left": "hrh.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "SUM(hrd.HoldDuration)", "alias": "HoldDuration"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "持续时间直接采用HoldReleaseHistoryDetail.HoldDuration。"
+      ]
+    },
+    {
+      "id": "resource_status.change_count",
+      "nameZh": "资源状态变更次数",
+      "intent": "resource_status_history",
+      "status": "approved",
+      "description": "统计ResourceStatusHistory物理主键数量。",
+      "factTable": "ResourceStatusHistory",
+      "tables": [
+        {"table": "ResourceStatusHistory", "alias": "rsh"},
+        {"table": "HistoryMainline", "alias": "hm"}
+      ],
+      "joins": [
+        {"left": "rsh.HistoryMainlineId", "right": "hm.HistoryMainlineId"}
+      ],
+      "select": [],
+      "measures": [
+        {"expression": "COUNT(rsh.ResourceStatusHistoryId)", "alias": "StatusChangeCount"}
+      ],
+      "groupBy": [],
+      "orderBy": [],
+      "requiresTimeRange": true,
+      "timeAlias": "hm",
+      "allowedTimeFields": ["TxnDate", "TxnDateGMT", "SystemDate", "SystemDateGMT"],
+      "availableFilters": {},
+      "businessRules": [
+        "一次ResourceStatusHistory主键记录计为一次状态变更事实。"
+      ]
+    }
+  ]
+}

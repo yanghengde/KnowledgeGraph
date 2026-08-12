@@ -1,0 +1,165 @@
+{
+  "module": "customer",
+  "classes": [
+    {
+      "className": "Customer",
+      "chineseName": "客户",
+      "description": "Customer — 客户。定义产品/容器的目标客户信息，包含公司名称、联系地址、电话/传真、网站等完整客户资料，以及关联的WIP消息定义管理器。用于在容器(Container)、产品(Product)、发货目的地(ShipmentDestination)等场景中标识和生产面向特定客户的产品。 【Swagger】Schema: CustomerEntity；来源文件: Customers.json；API: /api/Customers。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限限制 → SetupAccess (SetupAccessId) 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "faxNumber",
+          "type": "String",
+          "description": "传真 【Swagger】Company Fax Number"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "String",
+          "description": "电话 【Swagger】Company Phone Number"
+        },
+        {
+          "name": "country",
+          "type": "String",
+          "description": "国家 【Swagger】Country"
+        },
+        {
+          "name": "webSite",
+          "type": "String",
+          "description": "网站URL 【Swagger】Web Site"
+        },
+        {
+          "name": "company",
+          "type": "String",
+          "description": "公司名称，用于标识客户的公司全称 【Swagger】Company Name, or other text identifying the customer, since customer name will in many cases be a number or other ID type of field."
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器 → WIPMsgDefMgr (WIPMsgDefMgrId) 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "客户唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus (ChangeHistoryId) 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "addressLine1",
+          "type": "String",
+          "description": "地址行1 【Swagger】Address Line 1"
+        },
+        {
+          "name": "addressLine2",
+          "type": "String",
+          "description": "地址行2 【Swagger】Address Line 2"
+        },
+        {
+          "name": "city",
+          "type": "String",
+          "description": "城市 【Swagger】City"
+        },
+        {
+          "name": "state",
+          "type": "String",
+          "description": "州/省 【Swagger】State"
+        },
+        {
+          "name": "zipCode",
+          "type": "String",
+          "description": "邮政编码 【Swagger】Zip Code"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "CustomerContact",
+      "chineseName": "客户联系人",
+      "description": "CustomerContact — 客户联系人。客户的联系人信息，包含联系人姓名、电话、邮箱等联系方式。作为Customer的子实体。 【Swagger】Schema: CustomerContactChanges；来源文件: Customers.json；API: /api/Customers。",
+      "properties": [
+        {
+          "name": "primaryContact",
+          "type": "Boolean",
+          "description": "是否为主要联系人 【Swagger】Identifies whether the Contact is the primary contact. Only one Contact should be marked as the primary contact."
+        },
+        {
+          "name": "customer",
+          "type": "Navigation",
+          "description": "关联的客户（必填） → Customer (CustomerId)"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 CustomerContactName 【Swagger】Unique name for the name subentity.",
+          "required": true
+        },
+        {
+          "name": "phoneNumber",
+          "type": "String",
+          "description": "联系人电话 【Swagger】Contacts Phone Number."
+        },
+        {
+          "name": "cellPhoneNumber",
+          "type": "String",
+          "description": "手机号码 (CellPhoneNumber) 【Swagger】Contacts Cell Phone Number."
+        },
+        {
+          "name": "faxNumber",
+          "type": "String",
+          "description": "联系人传真 【Swagger】Contacts Fax Number."
+        },
+        {
+          "name": "emailAddress",
+          "type": "String",
+          "description": "联系人邮箱 (EmailAddress) 【Swagger】Contacts E-mail Address."
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "CustomerContact",
+      "toClass": "Customer",
+      "relationName": "HAS_CUSTOMER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CustomerContact.CustomerId"
+    }
+  ]
+}

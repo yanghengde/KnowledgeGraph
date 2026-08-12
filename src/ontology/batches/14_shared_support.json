@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_shared_support",
+  "titleZh": "半导体公共支撑主数据建模",
+  "titleEn": "Semiconductor Shared Supporting Master Data Modeling",
+  "overviewZh": "本批次补齐被多个已建实体引用的资源、菜单、查询、状态、位置、审批及公共类型实体。",
+  "overviewEn": "This batch closes highly referenced resource, menu, query, status, location, approval, and common-type dependencies.",
+  "entities": [
+    {"className": "ResourceDef", "chineseName": "资源定义", "description": "半导体套件中的物理资源/设备定义。"},
+    {"className": "PortalMenuDefinition", "chineseName": "门户菜单定义", "description": "定义门户端菜单配置。"},
+    {"className": "TargetSystem", "chineseName": "目标系统", "description": "定义集成或部署目标系统。"},
+    {"className": "UserQuery", "chineseName": "用户查询", "description": "定义可复用用户查询。"},
+    {"className": "BillType", "chineseName": "清单类型", "description": "定义BOM及相关清单类型。"},
+    {"className": "A_EmployeeGroup", "chineseName": "员工组", "description": "定义员工业务分组。"},
+    {"className": "MenuDefinition", "chineseName": "菜单定义", "description": "定义Web与客户端菜单。"},
+    {"className": "ApprovalSheetTemplate", "chineseName": "审批单模板", "description": "定义审批单模板。"},
+    {"className": "DataPointCollection", "chineseName": "数据点集合", "description": "定义可复用数据点集合。"},
+    {"className": "CurrentStatus", "chineseName": "当前状态", "description": "保存可追踪对象当前状态。"},
+    {"className": "HoldStatus", "chineseName": "Hold状态", "description": "定义对象Hold状态。"},
+    {"className": "A_JobModel", "chineseName": "作业模型", "description": "定义半导体作业执行模型。"},
+    {"className": "ResourceStatusCodeGroup", "chineseName": "资源状态代码组", "description": "定义资源状态代码分组。"},
+    {"className": "A_PhysicalLocation", "chineseName": "物理位置", "description": "定义半导体物理位置。"},
+    {"className": "Location", "chineseName": "位置", "description": "定义通用业务位置。"}
+  ]
+}

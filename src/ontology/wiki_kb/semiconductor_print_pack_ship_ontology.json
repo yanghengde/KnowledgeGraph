@@ -1,0 +1,1085 @@
+{
+  "module": "semiconductor_print_pack_ship",
+  "classes": [
+    {
+      "className": "A_PrintData",
+      "chineseName": "打印数据",
+      "description": "定义打印内容、模板和业务对象上下文。 物理对应 A_PrintData (CdoId: 679477544, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "printStatus",
+          "type": "String",
+          "description": "物理字段 PrintStatus"
+        },
+        {
+          "name": "printErrorItemSequence",
+          "type": "Integer",
+          "description": "物理字段 PrintErrorItemSequence"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "txnDate",
+          "type": "String",
+          "description": "物理字段 TxnDate"
+        },
+        {
+          "name": "printErrorMessage",
+          "type": "String",
+          "description": "物理字段 PrintErrorMessage"
+        },
+        {
+          "name": "employeeName",
+          "type": "String",
+          "description": "物理字段 EmployeeName"
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PrintDataName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "itemsCount",
+          "type": "Integer",
+          "description": "物理字段 ItemsCount"
+        },
+        {
+          "name": "computerName",
+          "type": "String",
+          "description": "物理字段 ComputerName"
+        },
+        {
+          "name": "employee",
+          "type": "Navigation",
+          "description": "物理字段 EmployeeId → Employee"
+        },
+        {
+          "name": "username",
+          "type": "String",
+          "description": "物理字段 Username"
+        },
+        {
+          "name": "user",
+          "type": "Navigation",
+          "description": "物理字段 UserId → Employee"
+        },
+        {
+          "name": "updateUsername",
+          "type": "String",
+          "description": "物理字段 UpdateUsername"
+        },
+        {
+          "name": "updateTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 UpdateTimestamp"
+        },
+        {
+          "name": "updateComputerName",
+          "type": "String",
+          "description": "物理字段 UpdateComputerName"
+        },
+        {
+          "name": "updateAction",
+          "type": "String",
+          "description": "物理字段 UpdateAction"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_Printer",
+      "chineseName": "打印机",
+      "description": "定义半导体打印机及其类型和连接配置。 物理对应 A_Printer (CdoId: 679477306, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PrinterName",
+          "required": true
+        },
+        {
+          "name": "printingInterval",
+          "type": "Float",
+          "description": "物理字段 PrintingInterval"
+        },
+        {
+          "name": "lastPrintingTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 LastPrintingTimestamp"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "printerType",
+          "type": "Navigation",
+          "description": "物理字段 PrinterTypeId → A_PrinterType"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "printServerName",
+          "type": "String",
+          "description": "物理字段 PrintServerName"
+        },
+        {
+          "name": "inUseTimeout",
+          "type": "Float",
+          "description": "物理字段 InUseTimeout"
+        },
+        {
+          "name": "inUseBy",
+          "type": "String",
+          "description": "物理字段 InUseBy"
+        },
+        {
+          "name": "inUseByTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 InUseByTimestamp"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PrinterType",
+      "chineseName": "打印机类型",
+      "description": "定义打印机类型目录。 物理对应 A_PrinterType (CdoId: 679477305, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "printingType",
+          "type": "Navigation",
+          "description": "物理字段 PrintingTypeId → A_PrintingType"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PrinterTypeName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PrintingAutomation",
+      "chineseName": "打印自动化",
+      "description": "定义自动打印触发和处理配置。 物理对应 A_PrintingAutomation (CdoId: 679477308, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "customerCode",
+          "type": "String",
+          "description": "物理字段 CustomerCode"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "processSpecObjectType",
+          "type": "String",
+          "description": "物理字段 ProcessSpecObjectType"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PrintingAutomationName",
+          "required": true
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "serviceName",
+          "type": "String",
+          "description": "物理字段 ServiceName"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PrintingComputer",
+      "chineseName": "打印计算机",
+      "description": "定义承载打印服务的计算机配置。 物理对应 A_PrintingComputer (CdoId: 679477307, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "computerName",
+          "type": "String",
+          "description": "物理字段 ComputerName"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PrintingComputerName",
+          "required": true
+        },
+        {
+          "name": "printingSetup",
+          "type": "Navigation",
+          "description": "物理字段 PrintingSetupId → A_PrintingSetup"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PrintingConnection",
+      "chineseName": "打印连接",
+      "description": "定义打印系统连接参数。 物理对应 A_PrintingConnection (CdoId: 679477336, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PrintingConnectionName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "username",
+          "type": "String",
+          "description": "物理字段 Username"
+        },
+        {
+          "name": "password",
+          "type": "String",
+          "description": "物理字段 Password"
+        },
+        {
+          "name": "serverName",
+          "type": "String",
+          "description": "物理字段 ServerName"
+        },
+        {
+          "name": "databaseName",
+          "type": "String",
+          "description": "物理字段 DatabaseName"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PrintingSetup",
+      "chineseName": "打印配置",
+      "description": "定义打印机、连接、类型和自动化的组合配置。 物理对应 A_PrintingSetup (CdoId: 679477268, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "enableBoxCountOffset",
+          "type": "Boolean",
+          "description": "物理字段 EnableBoxCountOffset"
+        },
+        {
+          "name": "postTxnSql",
+          "type": "String",
+          "description": "物理字段 PostTxnSQL"
+        },
+        {
+          "name": "preTxnSql",
+          "type": "String",
+          "description": "物理字段 PreTxnSQL"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "printingType",
+          "type": "Navigation",
+          "description": "物理字段 PrintingTypeId → A_PrintingType"
+        },
+        {
+          "name": "filename",
+          "type": "String",
+          "description": "物理字段 Filename"
+        },
+        {
+          "name": "numberOfCopies",
+          "type": "Integer",
+          "description": "物理字段 NumberOfCopies"
+        },
+        {
+          "name": "printingConnection",
+          "type": "Navigation",
+          "description": "物理字段 PrintingConnectionId → A_PrintingConnection"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PrintingSetupName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PrintingType",
+      "chineseName": "打印类型",
+      "description": "定义打印业务类型目录。 物理对应 A_PrintingType (CdoId: 679477302, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PrintingTypeName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ss_LabelPlan",
+      "chineseName": "标签计划",
+      "description": "定义半导体标签生成计划。 物理对应 ss_LabelPlan (CdoId: 681574461, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "numberingRule",
+          "type": "Navigation",
+          "description": "物理字段 NumberingRuleId → NumberingRule"
+        },
+        {
+          "name": "isLinkedToOutputLabel",
+          "type": "Boolean",
+          "description": "物理字段 IsLinkedToOutputLabel"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_LabelPlanName",
+          "required": true
+        },
+        {
+          "name": "defaultQtyPerLabel",
+          "type": "Integer",
+          "description": "物理字段 DefaultQtyPerLabel"
+        },
+        {
+          "name": "noLabelSplits",
+          "type": "Boolean",
+          "description": "物理字段 NoLabelSplits"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ss_LabelSetup",
+      "chineseName": "标签配置",
+      "description": "定义标签类型、打印配置和业务规则。 物理对应 ss_LabelSetup (CdoId: 681574460, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "printingSetup",
+          "type": "Navigation",
+          "description": "物理字段 PrintingSetupId → A_PrintingSetup"
+        },
+        {
+          "name": "ssLabelType",
+          "type": "Navigation",
+          "description": "物理字段 ss_LabelTypeId → ss_LabelType"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_LabelSetupName",
+          "required": true
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "defaultQtyPerLabel",
+          "type": "Integer",
+          "description": "物理字段 DefaultQtyPerLabel"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "numberingRule",
+          "type": "Navigation",
+          "description": "物理字段 NumberingRuleId → NumberingRule"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "eSigRequiredForReprint",
+          "type": "Boolean",
+          "description": "物理字段 ESigRequiredForReprint"
+        }
+      ]
+    },
+    {
+      "className": "ss_LabelType",
+      "chineseName": "标签类型",
+      "description": "定义半导体标签类型目录。 物理对应 ss_LabelType (CdoId: 681574459, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_LabelTypeName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PackingQty",
+      "chineseName": "包装数量",
+      "description": "定义包装数量和相关包装类型。 物理对应 A_PackingQty (CdoId: 679477436, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "packingType",
+          "type": "Navigation",
+          "description": "物理字段 PackingTypeId → A_PackingType"
+        },
+        {
+          "name": "qtyPerPack",
+          "type": "Float",
+          "description": "物理字段 QtyPerPack"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PackingQtyName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PackingType",
+      "chineseName": "包装类型",
+      "description": "定义半导体包装类型目录。 物理对应 A_PackingType (CdoId: 679477322, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PackingTypeName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PackageGroup",
+      "chineseName": "包装组",
+      "description": "定义包装业务分组。 物理对应 A_PackageGroup (CdoId: 679477260, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PackageGroupName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ShipFactoryCode",
+      "chineseName": "出货工厂代码",
+      "description": "定义出货使用的工厂代码目录。 物理对应 A_ShipFactoryCode (CdoId: 679477314, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ShipFactoryCodeName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_PrintData",
+      "toClass": "Employee",
+      "relationName": "HAS_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintData.EmployeeId"
+    },
+    {
+      "fromClass": "A_PrintData",
+      "toClass": "Employee",
+      "relationName": "HAS_USER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintData.UserId"
+    },
+    {
+      "fromClass": "A_Printer",
+      "toClass": "A_PrinterType",
+      "relationName": "HAS_PRINTER_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_Printer.PrinterTypeId"
+    },
+    {
+      "fromClass": "A_PrinterType",
+      "toClass": "A_PrintingType",
+      "relationName": "HAS_PRINTING_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrinterType.PrintingTypeId"
+    },
+    {
+      "fromClass": "A_PrintingAutomation",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintingAutomation.SpecId"
+    },
+    {
+      "fromClass": "A_PrintingComputer",
+      "toClass": "A_PrintingSetup",
+      "relationName": "HAS_PRINTING_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintingComputer.PrintingSetupId"
+    },
+    {
+      "fromClass": "A_PrintingSetup",
+      "toClass": "A_PrintingType",
+      "relationName": "HAS_PRINTING_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintingSetup.PrintingTypeId"
+    },
+    {
+      "fromClass": "A_PrintingSetup",
+      "toClass": "A_PrintingConnection",
+      "relationName": "HAS_PRINTING_CONNECTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintingSetup.PrintingConnectionId"
+    },
+    {
+      "fromClass": "ss_LabelPlan",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_LabelPlan.NumberingRuleId"
+    },
+    {
+      "fromClass": "ss_LabelSetup",
+      "toClass": "A_PrintingSetup",
+      "relationName": "HAS_PRINTING_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_LabelSetup.PrintingSetupId"
+    },
+    {
+      "fromClass": "ss_LabelSetup",
+      "toClass": "ss_LabelType",
+      "relationName": "HAS_SS_LABEL_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_LabelSetup.ss_LabelTypeId"
+    },
+    {
+      "fromClass": "ss_LabelSetup",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_LabelSetup.NumberingRuleId"
+    },
+    {
+      "fromClass": "A_PackingQty",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PackingQty.ProductId"
+    },
+    {
+      "fromClass": "A_PackingQty",
+      "toClass": "A_PackingType",
+      "relationName": "HAS_PACKING_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PackingQty.PackingTypeId"
+    }
+  ]
+}

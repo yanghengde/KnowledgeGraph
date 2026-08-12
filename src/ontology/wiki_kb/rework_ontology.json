@@ -1,0 +1,67 @@
+{
+  "module": "rework",
+  "classes": [
+    {
+      "className": "ReworkStatus",
+      "chineseName": "返工追踪状态",
+      "description": "指示产品处于待返工、返工中还是已修复的状态。",
+      "properties": [
+        {
+          "name": "currentStatus",
+          "type": "Navigation",
+          "description": "物理字段 CurrentStatusId → CurrentStatus"
+        },
+        {
+          "name": "lastRevTxn",
+          "type": "Integer",
+          "description": "物理字段 LastRevTxnId"
+        },
+        {
+          "name": "reworkReason",
+          "type": "Navigation",
+          "description": "物理字段 ReworkReasonId → ReworkReason"
+        },
+        {
+          "name": "endReworkStep",
+          "type": "Navigation",
+          "description": "物理字段 EndReworkStepId → WorkflowStep"
+        },
+        {
+          "name": "reEntryStep",
+          "type": "Navigation",
+          "description": "物理字段 ReEntryStepId → WorkflowStep"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ReworkStatus",
+      "toClass": "CurrentStatus",
+      "relationName": "HAS_CURRENT_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ReworkStatus.CurrentStatusId"
+    },
+    {
+      "fromClass": "ReworkStatus",
+      "toClass": "ReworkReason",
+      "relationName": "HAS_REWORK_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ReworkStatus.ReworkReasonId"
+    },
+    {
+      "fromClass": "ReworkStatus",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_END_REWORK_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ReworkStatus.EndReworkStepId"
+    },
+    {
+      "fromClass": "ReworkStatus",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_RE_ENTRY_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ReworkStatus.ReEntryStepId"
+    }
+  ]
+}

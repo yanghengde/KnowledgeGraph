@@ -1,0 +1,49 @@
+{
+  "module": "pause_reason",
+  "classes": [
+    {
+      "className": "PauseReason",
+      "chineseName": "暂停原因",
+      "description": "Pause Reason — 制造过程中设备/工位暂停的原因代码定义实体（CdoId: 8985）。用于记录和分类生产暂停的具体原因（如缺料等待、设备故障、质量检查等），是 PauseReasonGroup 分组的成员条目，在车间事务中被操作员选择以标注暂停类型。 【Swagger】Schema: PauseReasonEntity；来源文件: PauseReasons.json；API: /api/PauseReasons。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签，逗号分隔 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明，默认与名称相同 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "暂停原因的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

@@ -1,0 +1,20 @@
+{
+  "module": "semiconductor_foundation",
+  "titleZh": "半导体基础主数据建模",
+  "titleEn": "Semiconductor Foundation Master-Data Modeling",
+  "overviewZh": "本批次覆盖半导体访问权限、产品线、工艺分类、设备与工序分组、光罩及物料分类基础主数据。",
+  "overviewEn": "This batch covers semiconductor setup access, product lines, process classification, equipment and operation groups, masks, and material classification.",
+  "entities": [
+    {"className": "A_SetupAccess", "chineseName": "半导体建模访问权限", "description": "定义半导体建模对象使用的访问权限。"},
+    {"className": "A_ProductLine", "chineseName": "半导体产品线", "description": "定义半导体制造产品线主数据。"},
+    {"className": "A_ProcessArea", "chineseName": "半导体工艺区域", "description": "定义半导体工艺区域分类。"},
+    {"className": "A_ProcessType", "chineseName": "半导体工艺类型", "description": "定义半导体生产使用的工艺类型。"},
+    {"className": "A_ProcessCode", "chineseName": "半导体工艺代码", "description": "定义半导体制造工艺代码目录。"},
+    {"className": "A_MachineGroup", "chineseName": "半导体机台组", "description": "定义半导体生产机台的业务分组。"},
+    {"className": "A_OperationGroup", "chineseName": "半导体工序组", "description": "定义半导体工序的业务分组。"},
+    {"className": "A_MaskSet", "chineseName": "光罩集合", "description": "定义半导体制造使用的光罩集合。"},
+    {"className": "A_MaskLayer", "chineseName": "光罩层", "description": "定义半导体光罩层主数据。"},
+    {"className": "A_MaterialCategory", "chineseName": "半导体物料类别", "description": "定义半导体物料类别目录。"},
+    {"className": "A_MaterialType", "chineseName": "半导体物料类型", "description": "定义半导体物料消耗、序列化和批次属性匹配规则。"}
+  ]
+}

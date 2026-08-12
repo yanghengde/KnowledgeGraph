@@ -1,0 +1,23 @@
+{
+  "module": "semiconductor_shipping_integration",
+  "titleZh": "半导体出货、集成与监控建模",
+  "titleEn": "Semiconductor Shipping, Integration, and Monitoring Modeling",
+  "overviewZh": "本批次覆盖出货工厂/工序、集成映射点、Quantix配置、状态模型、监控与追踪标签。",
+  "overviewEn": "This batch covers shipping factories and processes, integration mapping points, Quantix configuration, status models, surveillance, and tracking labels.",
+  "entities": [
+    {"className": "A_ShipErrors", "chineseName": "出货错误配置", "description": "定义出货校验错误和消息。"},
+    {"className": "A_ShipFromFactory", "chineseName": "发货工厂", "description": "定义发货来源工厂。"},
+    {"className": "A_ShipPlantCode", "chineseName": "出货工厂代码", "description": "定义出货Plant代码。"},
+    {"className": "A_ShipToFactory", "chineseName": "收货工厂", "description": "定义出货目标工厂。"},
+    {"className": "A_ShipToProcess", "chineseName": "出货目标工序", "description": "定义出货后的目标工序。"},
+    {"className": "I_IntegrationMap", "chineseName": "集成映射", "description": "定义外部集成对象和字段映射。"},
+    {"className": "I_IntegrationPoint", "chineseName": "集成点", "description": "定义系统集成端点。"},
+    {"className": "scsMapData", "chineseName": "半导体Map数据", "description": "定义Map数据配置。"},
+    {"className": "scsQuantixMatrix", "chineseName": "Quantix矩阵", "description": "按工艺上下文选择Quantix配置。"},
+    {"className": "scsQuantixRecipe", "chineseName": "Quantix配方", "description": "定义Quantix配方和关联参数。"},
+    {"className": "scsStatusModel", "chineseName": "半导体状态模型", "description": "定义半导体专用状态模型。"},
+    {"className": "ss_Surveillance", "chineseName": "过程监控", "description": "定义半导体过程监控和告警规则。"},
+    {"className": "ss_SurveillanceReason", "chineseName": "监控原因", "description": "定义过程监控原因目录。"},
+    {"className": "ss_TrackLabel", "chineseName": "追踪标签", "description": "定义WIP和设备追踪标签配置。"}
+  ]
+}

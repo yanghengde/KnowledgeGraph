@@ -1,0 +1,447 @@
+{
+  "module": "failure",
+  "classes": [
+    {
+      "className": "FailureMode",
+      "chineseName": "失效模式",
+      "description": "FailureMode — 失效模式定义（命名对象）。定义产品/工艺可能出现的具体失效方式，如短路、开路、断裂、变形等。每个失效模式可指定默认严重程度(defaultSeverity → FailureSeverity)和默认缺陷类型(defaultType → NCRFailureType)，用于质量事件(EventDisposition)中描述缺陷的具体失效模式。被 SampleTest、ProcessTimerDtl、EventFailure、FailureData 等实体引用。 【Swagger】Schema: FailureModeEntity；来源文件: FailureModes.json；API: /api/FailureModes。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "失效模式唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "defaultSeverity",
+          "type": "Navigation",
+          "description": "默认严重程度 → FailureSeverity 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "defaultType",
+          "type": "Navigation",
+          "description": "默认缺陷类型 → NCRFailureType 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "FailureModeGroup",
+      "chineseName": "失效模式组",
+      "description": "FailureModeGroup — 失效模式分组。对失效模式(FailureMode)进行分组管理的命名对象，支持嵌套子组(groups)和扁平化解析条目(resolvedEntries)。被 EventClassificationSpecMap 引用用于按事件分类映射失效模式组。 【Swagger】Schema: FailureModeGroupEntity；来源文件: FailureModeGroups.json；API: /api/FailureModeGroups。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "失效模式组唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "条目类型名称（FailureMode） 【Swagger】Name of the type of objects (CDO Definition Name) contained in this ObjectGroup. There is no business logic support for this field and it will be eventually removed."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "NCRFailureType",
+      "chineseName": "NCR缺陷类型",
+      "description": "NCRFailureType — NCR缺陷类型（命名对象）。定义不合格报告(NCR)中缺陷的分类类型，如外观缺陷、尺寸超差、功能失效、材料缺陷等。被 FailureMode.defaultType 和 EventFailure.failureType 引用。 【Swagger】Schema: NCRFailureTypeEntity；来源文件: NCRFailureTypes.json；API: /api/NCRFailureTypes。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "缺陷类型唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "FailureSeverity",
+      "chineseName": "失效严重程度",
+      "description": "FailureSeverity — 失效严重程度分类（命名对象）。定义失效模式的严重级别，如 Critical(致命)、Major(严重)、Minor(轻微) 等。被 FailureMode 和 EventFailure 引用。 【Swagger】Schema: FailureSeverityEntity；来源文件: FailureSeverities.json；API: /api/FailureSeverities。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "严重程度唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "FailureActionType",
+      "chineseName": "失效处理动作类型",
+      "description": "FailureActionType — 失效处理动作类型（命名对象）。定义针对失效模式采取的处理动作分类，如 Repair(维修)、Replace(更换)、Rework(返工)、Scrap(报废) 等。被 EventFailureAction 引用。 【Swagger】Schema: FailureActionTypeEntity；来源文件: FailureActionTypes.json；API: /api/FailureActionTypes。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "处理动作类型唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "FailureActionTypeGroup",
+      "chineseName": "失效处理动作类型组",
+      "description": "FailureActionTypeGroup — 失效处理动作类型分组。对 FailureActionType 进行分组管理，支持嵌套子组。 【Swagger】Schema: FailureActionTypeGroupEntity；来源文件: FailureActionTypeGroups.json；API: /api/FailureActionTypeGroups。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "条目类型名称（FailureActionType） 【Swagger】Name of the type of objects (CDO Definition Name) contained in this ObjectGroup. There is no business logic support for this field and it will be eventually removed."
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "处理动作类型组唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "EventFailure",
+      "chineseName": "事件失效记录",
+      "description": "EventFailure — 事件失效记录。记录在质量事件处置(EventDisposition)中发现的失效模式、严重程度和缺陷类型。通过 EventDataId FK 关联到 EventDisposition，通过 ActivityEventFailures 桥接表与 Activity 关联。",
+      "properties": [
+        {
+          "name": "eventData",
+          "type": "Navigation",
+          "description": "物理字段 EventDataId → EventDisposition"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "failureMode",
+          "type": "Navigation",
+          "description": "失效模式 → FailureMode"
+        },
+        {
+          "name": "failureSeverity",
+          "type": "Navigation",
+          "description": "物理字段 FailureSeverityId → FailureSeverity"
+        },
+        {
+          "name": "failureType",
+          "type": "Navigation",
+          "description": "缺陷类型 → NCRFailureType"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "备注说明"
+        }
+      ]
+    },
+    {
+      "className": "EventFailureAction",
+      "chineseName": "事件失效处理动作",
+      "description": "EventFailureAction — 事件失效处理动作（EventFailure 的子实体，通过 EventFailureCause 间接关联）。记录针对特定失效采取的具体处理动作(FailureActionType)和备注。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "completionDate",
+          "type": "DateTime",
+          "description": "物理字段 CompletionDate"
+        },
+        {
+          "name": "actionOwner",
+          "type": "Navigation",
+          "description": "物理字段 ActionOwnerId → Employee"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "处理动作备注"
+        },
+        {
+          "name": "actionType",
+          "type": "Navigation",
+          "description": "处理动作类型 → FailureActionType"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "FailureMode",
+      "toClass": "FailureSeverity",
+      "relationName": "HAS_DEFAULT_SEVERITY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "FailureMode.DefaultSeverityId"
+    },
+    {
+      "fromClass": "FailureMode",
+      "toClass": "NCRFailureType",
+      "relationName": "HAS_DEFAULT_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "FailureMode.DefaultTypeId"
+    },
+    {
+      "fromClass": "EventFailure",
+      "toClass": "EventData",
+      "relationName": "HAS_EVENT_DATA",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventFailure.EventDataId"
+    },
+    {
+      "fromClass": "EventFailure",
+      "toClass": "FailureMode",
+      "relationName": "HAS_FAILURE_MODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventFailure.FailureModeId"
+    },
+    {
+      "fromClass": "EventFailure",
+      "toClass": "FailureSeverity",
+      "relationName": "HAS_FAILURE_SEVERITY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventFailure.FailureSeverityId"
+    },
+    {
+      "fromClass": "EventFailure",
+      "toClass": "NCRFailureType",
+      "relationName": "HAS_FAILURE_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventFailure.FailureTypeId"
+    },
+    {
+      "fromClass": "EventFailureAction",
+      "toClass": "EventData",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventFailureAction.ParentId"
+    },
+    {
+      "fromClass": "EventFailureAction",
+      "toClass": "Employee",
+      "relationName": "HAS_ACTION_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventFailureAction.ActionOwnerId"
+    },
+    {
+      "fromClass": "EventFailureAction",
+      "toClass": "FailureActionType",
+      "relationName": "HAS_ACTION_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventFailureAction.ActionTypeId"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "module": "pause_reason_group",
+  "classes": [
+    {
+      "className": "PauseReasonGroup",
+      "chineseName": "暂停原因分组",
+      "description": "Pause Reason Group — 暂停原因的分组容器实体（CdoId: 8988）。将多个 PauseReason 条目按业务逻辑分组，支持嵌套子分组（groups），形成层级的暂停原因分类树。可配置 defaultForObjectTypes 指定某些业务对象类型在创建时自动获得该分组的暂停原因列表。已解析条目（resolvedEntries）自动汇总本组及所有嵌套子组中的全部 PauseReason。 【Swagger】Schema: PauseReasonGroupEntity；来源文件: PauseReasonGroups.json；API: /api/PauseReasonGroups。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签，逗号分隔 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明，默认与名称相同 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "暂停原因分组的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "条目对象类型名称（CDO Definition Name），指定 entries 中包含的实体类型 【Swagger】Name of the type of objects (CDO Definition Name) contained in this ObjectGroup. There is no business logic support for this field and it will be eventually removed."
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

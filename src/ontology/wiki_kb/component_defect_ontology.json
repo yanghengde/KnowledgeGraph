@@ -1,0 +1,59 @@
+{
+  "module": "component_defect",
+  "classes": [
+    {
+      "className": "CompDefectReasonGroup",
+      "chineseName": "组件缺陷原因组",
+      "description": "CompDefectReasonGroup — 组件缺陷原因组。对具体的组件缺陷原因代码(CompDefectReason)进行分组管理的命名对象，用以在特定操作工位/工序(Operation)限制可选的组件缺陷原因代码列表。支持嵌套子组。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "组件缺陷原因组名称（必填）",
+          "required": true
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "条目类型名称，固定为 ComponentDefectReason"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

@@ -1,0 +1,2122 @@
+{
+  "module": "ld_extension",
+  "classes": [
+    {
+      "className": "A_ldCSAMData",
+      "chineseName": "CSAM数据",
+      "description": "CSAM数据。物理对应 A_ldCSAMData (CdoId: 671088644, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ldStatusLastChangedDate",
+          "type": "DateTime",
+          "description": "物理字段 ldStatusLastChangedDate"
+        },
+        {
+          "name": "ldProduct",
+          "type": "Navigation",
+          "description": "物理字段 ldProductId → Product"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldCSAMDataName",
+          "required": true
+        },
+        {
+          "name": "ldSpec",
+          "type": "Navigation",
+          "description": "物理字段 ldSpecId → Spec"
+        },
+        {
+          "name": "ldStatusLastChangedDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ldStatusLastChangedDateGMT"
+        },
+        {
+          "name": "ldEquipment",
+          "type": "Navigation",
+          "description": "物理字段 ldEquipmentId → ResourceDef"
+        },
+        {
+          "name": "ldStatusLastChangedByUser",
+          "type": "Navigation",
+          "description": "物理字段 ldStatusLastChangedByUserId → Employee"
+        },
+        {
+          "name": "ldStartTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 ldStartTimestamp"
+        },
+        {
+          "name": "ldEndTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 ldEndTimestamp"
+        },
+        {
+          "name": "ldQty",
+          "type": "Float",
+          "description": "物理字段 ldQty"
+        },
+        {
+          "name": "ldSpecType",
+          "type": "Integer",
+          "description": "物理字段 ldSpecType"
+        },
+        {
+          "name": "ldCsamValidation",
+          "type": "Navigation",
+          "description": "物理字段 ldCSAMValidationId → A_ldCSAMValidation"
+        },
+        {
+          "name": "ldCsamDataStatus",
+          "type": "Integer",
+          "description": "物理字段 ldCSAMDataStatus"
+        },
+        {
+          "name": "ldStartTimestampGmt",
+          "type": "DateTime",
+          "description": "物理字段 ldStartTimestampGMT"
+        },
+        {
+          "name": "ldEndTimestampGmt",
+          "type": "DateTime",
+          "description": "物理字段 ldEndTimestampGMT"
+        },
+        {
+          "name": "ldValidationSpec",
+          "type": "Navigation",
+          "description": "物理字段 ldValidationSpecId → Spec"
+        }
+      ]
+    },
+    {
+      "className": "A_ldCSAMValidation",
+      "chineseName": "CSAM验证",
+      "description": "CSAM验证。物理对应 A_ldCSAMValidation (CdoId: 671088643, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldCSAMValidationName",
+          "required": true
+        },
+        {
+          "name": "ldValidationPercentage",
+          "type": "Float",
+          "description": "物理字段 ldValidationPercentage"
+        },
+        {
+          "name": "ldValidationFrequency",
+          "type": "Float",
+          "description": "物理字段 ldValidationFrequency"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "ldLastOutputSpecBase",
+          "type": "Integer",
+          "description": "物理字段 ldLastOutputSpecBaseId"
+        },
+        {
+          "name": "ldLastOutputSpec",
+          "type": "Navigation",
+          "description": "物理字段 ldLastOutputSpecId → Spec"
+        },
+        {
+          "name": "ldCsamSpecBase",
+          "type": "Integer",
+          "description": "物理字段 ldCSAMSpecBaseId"
+        },
+        {
+          "name": "ldValidationSpecBase",
+          "type": "Integer",
+          "description": "物理字段 ldValidationSpecBaseId"
+        },
+        {
+          "name": "ldCsamSpec",
+          "type": "Navigation",
+          "description": "物理字段 ldCSAMSpecId → Spec"
+        },
+        {
+          "name": "ldValidationSpec",
+          "type": "Navigation",
+          "description": "物理字段 ldValidationSpecId → Spec"
+        }
+      ]
+    },
+    {
+      "className": "A_ldMatReturnOrder",
+      "chineseName": "物料退回订单",
+      "description": "物料退回订单。物理对应 A_ldMatReturnOrder (CdoId: 671088662, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "ldMatReturnStatus",
+          "type": "Integer",
+          "description": "物理字段 ldMatReturnStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "ldMatReturnWorkflowStep",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnWorkflowStepId → WorkflowStep"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "ldMatReturnWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnWorkflowId → Workflow"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldMatReturnOrderName",
+          "required": true
+        },
+        {
+          "name": "ldMatReturnInvLoc",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnInvLocId → Spec"
+        },
+        {
+          "name": "ldMatReturnUser",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnUserId → Employee"
+        },
+        {
+          "name": "ldMatReturnTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 ldMatReturnTimestamp"
+        },
+        {
+          "name": "ldMatReturnTimestampGmt",
+          "type": "DateTime",
+          "description": "物理字段 ldMatReturnTimestampGMT"
+        },
+        {
+          "name": "ldComments",
+          "type": "String",
+          "description": "物理字段 ldComments"
+        },
+        {
+          "name": "ldTxnDate",
+          "type": "DateTime",
+          "description": "物理字段 ldTxnDate"
+        },
+        {
+          "name": "ldTxnDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ldTxnDateGMT"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        }
+      ]
+    },
+    {
+      "className": "A_ldMatReturnOrderHistory",
+      "chineseName": "物料退回订单历史",
+      "description": "物料退回订单历史。物理对应 A_ldMatReturnOrderHistory (CdoId: 671088661, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldMatReturnOrderHistoryName",
+          "required": true
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "ldMatReturnOrder",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnOrderId → A_ldMatReturnOrder"
+        },
+        {
+          "name": "ldMatReturnOrderName",
+          "type": "String",
+          "description": "物理字段 ldMatReturnOrderName"
+        },
+        {
+          "name": "ldMatReturnInvLoc",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnInvLocId → Spec"
+        },
+        {
+          "name": "ldMatReturnUser",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnUserId → Employee"
+        },
+        {
+          "name": "ldComments",
+          "type": "String",
+          "description": "物理字段 ldComments"
+        },
+        {
+          "name": "ldTxnDate",
+          "type": "DateTime",
+          "description": "物理字段 ldTxnDate"
+        },
+        {
+          "name": "ldTxnDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ldTxnDateGMT"
+        },
+        {
+          "name": "historyMainline",
+          "type": "Navigation",
+          "description": "物理字段 HistoryMainlineId → HistoryMainline"
+        },
+        {
+          "name": "ldMatReturnWorkflowStep",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnWorkflowStepId → WorkflowStep"
+        },
+        {
+          "name": "ldMatReturnStatus",
+          "type": "Integer",
+          "description": "物理字段 ldMatReturnStatus"
+        },
+        {
+          "name": "ldMatReturnWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnWorkflowId → Workflow"
+        }
+      ]
+    },
+    {
+      "className": "A_ldMatReturnOrderHistoryDet",
+      "chineseName": "物料退回订单历史明细",
+      "description": "物料退回订单历史明细。物理对应 A_ldMatReturnOrderHistoryDet (CdoId: 671088663, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "ldMaterialLotName",
+          "type": "String",
+          "description": "物理字段 ldMaterialLotName"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldMatReturnOrderHistoryDetName",
+          "required": true
+        },
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → A_ldMatReturnOrderHistory"
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "ldErpLotName",
+          "type": "String",
+          "description": "物理字段 ldERPLotName"
+        },
+        {
+          "name": "ldMatReturnInvShelfLoc",
+          "type": "String",
+          "description": "物理字段 ldMatReturnInvShelfLoc"
+        },
+        {
+          "name": "ldReturnQty",
+          "type": "Float",
+          "description": "物理字段 ldReturnQty"
+        },
+        {
+          "name": "ldProduct",
+          "type": "Navigation",
+          "description": "物理字段 ldProductId → Product"
+        }
+      ]
+    },
+    {
+      "className": "A_ldMatReturnOrderItem",
+      "chineseName": "物料退回订单项",
+      "description": "物料退回订单项。物理对应 A_ldMatReturnOrderItem (CdoId: 671088664, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "ldMatReturnOrder",
+          "type": "Navigation",
+          "description": "物理字段 ldMatReturnOrderId → A_ldMatReturnOrder"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldMatReturnOrderItemName",
+          "required": true
+        },
+        {
+          "name": "ldMatReturnInvShelfLoc",
+          "type": "String",
+          "description": "物理字段 ldMatReturnInvShelfLoc"
+        },
+        {
+          "name": "ldErpLotName",
+          "type": "String",
+          "description": "物理字段 ldERPLotName"
+        },
+        {
+          "name": "ldReturnQty",
+          "type": "Float",
+          "description": "物理字段 ldReturnQty"
+        },
+        {
+          "name": "ldMaterialLot",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialLotId → Container"
+        },
+        {
+          "name": "ldProduct",
+          "type": "Navigation",
+          "description": "物理字段 ldProductId → Product"
+        },
+        {
+          "name": "ldMaterialLotName",
+          "type": "String",
+          "description": "物理字段 ldMaterialLotName"
+        }
+      ]
+    },
+    {
+      "className": "A_ldReworkStatus",
+      "chineseName": "返工状态",
+      "description": "返工状态。物理对应 A_ldReworkStatus (CdoId: 671088646, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "lot",
+          "type": "Navigation",
+          "description": "物理字段 LotId → Container"
+        },
+        {
+          "name": "ldReEntryStep",
+          "type": "Navigation",
+          "description": "物理字段 ldReEntryStepId → WorkflowStep"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldReworkStatusName",
+          "required": true
+        },
+        {
+          "name": "ldReworkReason",
+          "type": "Navigation",
+          "description": "物理字段 ldReworkReasonId → ReworkReason"
+        },
+        {
+          "name": "ldEndReworkStep",
+          "type": "Navigation",
+          "description": "物理字段 ldEndReworkStepId → WorkflowStep"
+        }
+      ]
+    },
+    {
+      "className": "A_ldReworkStatusldReEntryWorkf",
+      "chineseName": "返工状态重入工作流关联",
+      "description": "返工状态重入工作流关联。物理对应 A_ldReworkStatusldReEntryWorkf (CdoId: 671088645, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "fieldId",
+          "type": "Integer",
+          "description": "物理字段 FieldId"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "物理字段 Sequence"
+        },
+        {
+          "name": "ldReEntryWorkflowStack",
+          "type": "Navigation",
+          "description": "物理字段 ldReEntryWorkflowStackId → WorkflowStep"
+        },
+        {
+          "name": "ldReworkStatus",
+          "type": "Navigation",
+          "description": "物理字段 ldReworkStatusId → A_ldReworkStatus"
+        }
+      ]
+    },
+    {
+      "className": "ldAssociateHistoryDetails",
+      "chineseName": "关联历史明细",
+      "description": "关联历史明细。物理对应 ldAssociateHistoryDetails (CdoId: 671088655, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → AssociateHistory"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldAssociateHistoryDetailsName",
+          "required": true
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "ldAssocXLocation",
+          "type": "Integer",
+          "description": "物理字段 ldAssocXLocation"
+        },
+        {
+          "name": "ldAssocYLocation",
+          "type": "Integer",
+          "description": "物理字段 ldAssocYLocation"
+        }
+      ]
+    },
+    {
+      "className": "ldChangeIdHistory",
+      "chineseName": "标识变更历史",
+      "description": "标识变更历史。物理对应 ldChangeIdHistory (CdoId: 671088641, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "newContainerName",
+          "type": "String",
+          "description": "物理字段 NewContainerName"
+        },
+        {
+          "name": "equipment",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentId → ResourceDef"
+        },
+        {
+          "name": "historyMainline",
+          "type": "Navigation",
+          "description": "物理字段 HistoryMainlineId → HistoryMainline"
+        }
+      ]
+    },
+    {
+      "className": "ldChangeIdHistoryDetails",
+      "chineseName": "标识变更历史明细",
+      "description": "标识变更历史明细。物理对应 ldChangeIdHistoryDetails (CdoId: 671088642, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → ldChangeIdHistory"
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "fromContainerName",
+          "type": "String",
+          "description": "物理字段 FromContainerName"
+        },
+        {
+          "name": "itemId",
+          "type": "String",
+          "description": "物理字段 ItemId"
+        },
+        {
+          "name": "newContainer",
+          "type": "Navigation",
+          "description": "物理字段 NewContainerId → Container"
+        },
+        {
+          "name": "newContainerName",
+          "type": "String",
+          "description": "物理字段 NewContainerName"
+        },
+        {
+          "name": "waferNumber",
+          "type": "String",
+          "description": "物理字段 WaferNumber"
+        }
+      ]
+    },
+    {
+      "className": "ldContainerHistoryDetails",
+      "chineseName": "容器历史明细",
+      "description": "容器历史明细。物理对应 ldContainerHistoryDetails (CdoId: 671088665, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "ldContainerName",
+          "type": "String",
+          "description": "物理字段 ldContainerName"
+        },
+        {
+          "name": "ldContainer",
+          "type": "Navigation",
+          "description": "物理字段 ldContainerId → Container"
+        },
+        {
+          "name": "ldContainerLevelName",
+          "type": "String",
+          "description": "物理字段 ldContainerLevelName"
+        },
+        {
+          "name": "historyMainline",
+          "type": "Navigation",
+          "description": "物理字段 HistoryMainlineId → HistoryMainline"
+        }
+      ]
+    },
+    {
+      "className": "ldInspPlanWIPData",
+      "chineseName": "检验计划WIP数据",
+      "description": "检验计划WIP数据。物理对应 ldInspPlanWIPData (CdoId: 671088653, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "ldInspectionPlan",
+          "type": "Navigation",
+          "description": "物理字段 ldInspectionPlanId → ldInspectionPlan"
+        },
+        {
+          "name": "wipDataSetup",
+          "type": "Navigation",
+          "description": "物理字段 WIPDataSetupId → A_WIPDataSetup"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "masterSn",
+          "type": "String",
+          "description": "物理字段 MasterSN"
+        },
+        {
+          "name": "ldInspTaskType",
+          "type": "String",
+          "description": "物理字段 ldInspTaskType"
+        },
+        {
+          "name": "adHocWipDataSetup",
+          "type": "Navigation",
+          "description": "物理字段 AdHocWIPDataSetupId → A_AdHocWIPDataSetup"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        }
+      ]
+    },
+    {
+      "className": "ldInspTask",
+      "chineseName": "检验任务",
+      "description": "检验任务。物理对应 ldInspTask (CdoId: 671088652, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldInspTaskName",
+          "required": true
+        },
+        {
+          "name": "createTime",
+          "type": "DateTime",
+          "description": "物理字段 CreateTime"
+        },
+        {
+          "name": "createUserName",
+          "type": "String",
+          "description": "物理字段 CreateUserName"
+        },
+        {
+          "name": "equipment",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentId → ResourceDef"
+        },
+        {
+          "name": "equipmentName",
+          "type": "String",
+          "description": "物理字段 EquipmentName"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "ldInspTaskStatus",
+          "type": "String",
+          "description": "物理字段 ldInspTaskStatus"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "ldInspTaskTrigger",
+          "type": "String",
+          "description": "物理字段 ldInspTaskTrigger"
+        },
+        {
+          "name": "updateTime",
+          "type": "DateTime",
+          "description": "物理字段 UpdateTime"
+        },
+        {
+          "name": "updateUserName",
+          "type": "String",
+          "description": "物理字段 UpdateUserName"
+        },
+        {
+          "name": "ldInspTaskType",
+          "type": "String",
+          "description": "物理字段 ldInspTaskType"
+        },
+        {
+          "name": "productName",
+          "type": "String",
+          "description": "物理字段 ProductName"
+        }
+      ]
+    },
+    {
+      "className": "ldInspTaskHistory",
+      "chineseName": "检验任务历史",
+      "description": "检验任务历史。物理对应 ldInspTaskHistory (CdoId: 671088649, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "equipmentName",
+          "type": "String",
+          "description": "物理字段 EquipmentName"
+        },
+        {
+          "name": "ldInspTaskStatus",
+          "type": "String",
+          "description": "物理字段 ldInspTaskStatus"
+        },
+        {
+          "name": "ldInspTaskTrigger",
+          "type": "String",
+          "description": "物理字段 ldInspTaskTrigger"
+        },
+        {
+          "name": "ldInspTaskType",
+          "type": "String",
+          "description": "物理字段 ldInspTaskType"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "productName",
+          "type": "String",
+          "description": "物理字段 ProductName"
+        },
+        {
+          "name": "updateTime",
+          "type": "DateTime",
+          "description": "物理字段 UpdateTime"
+        },
+        {
+          "name": "updateUserName",
+          "type": "String",
+          "description": "物理字段 UpdateUserName"
+        },
+        {
+          "name": "ldInspTask",
+          "type": "Navigation",
+          "description": "物理字段 ldInspTaskId → ldInspTask"
+        },
+        {
+          "name": "taskName",
+          "type": "String",
+          "description": "物理字段 TaskName"
+        },
+        {
+          "name": "createTime",
+          "type": "DateTime",
+          "description": "物理字段 CreateTime"
+        },
+        {
+          "name": "equipment",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentId → ResourceDef"
+        },
+        {
+          "name": "historyMainline",
+          "type": "Navigation",
+          "description": "物理字段 HistoryMainlineId → HistoryMainline"
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "createUserName",
+          "type": "String",
+          "description": "物理字段 CreateUserName"
+        }
+      ]
+    },
+    {
+      "className": "ldInspTaskHistoryDetail",
+      "chineseName": "检验任务历史明细",
+      "description": "检验任务历史明细。物理对应 ldInspTaskHistoryDetail (CdoId: 671088648, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → ldInspTaskHistory"
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "wipDataSetup",
+          "type": "Navigation",
+          "description": "物理字段 WIPDataSetupId → A_WIPDataSetup"
+        },
+        {
+          "name": "masterSn",
+          "type": "String",
+          "description": "物理字段 MasterSN"
+        },
+        {
+          "name": "ldInspTaskWipDataStatus",
+          "type": "String",
+          "description": "物理字段 ldInspTaskWIPDataStatus"
+        },
+        {
+          "name": "updateTime",
+          "type": "DateTime",
+          "description": "物理字段 UpdateTime"
+        },
+        {
+          "name": "ldInspTask",
+          "type": "Navigation",
+          "description": "物理字段 ldInspTaskId → ldInspTask"
+        },
+        {
+          "name": "adHocWipDataRecord",
+          "type": "Navigation",
+          "description": "物理字段 AdHocWIPDataRecordId → A_AdHocWIPDataRecord"
+        }
+      ]
+    },
+    {
+      "className": "ldInspTaskList",
+      "chineseName": "检验任务列表",
+      "description": "检验任务列表。物理对应 ldInspTaskList (CdoId: 671088647, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "productionStatus",
+          "type": "Navigation",
+          "description": "物理字段 ProductionStatusId → ProductionStatus"
+        },
+        {
+          "name": "ldInspTask",
+          "type": "Navigation",
+          "description": "物理字段 ldInspTaskId → ldInspTask"
+        }
+      ]
+    },
+    {
+      "className": "ldInspTaskWIPData",
+      "chineseName": "检验任务WIP数据",
+      "description": "检验任务WIP数据。物理对应 ldInspTaskWIPData (CdoId: 671088651, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "ldInspTask",
+          "type": "Navigation",
+          "description": "物理字段 ldInspTaskId → ldInspTask"
+        },
+        {
+          "name": "ldInspTaskWipDataStatus",
+          "type": "String",
+          "description": "物理字段 ldInspTaskWIPDataStatus"
+        },
+        {
+          "name": "updateTime",
+          "type": "DateTime",
+          "description": "物理字段 UpdateTime"
+        },
+        {
+          "name": "updateUserName",
+          "type": "String",
+          "description": "物理字段 UpdateUserName"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "masterSn",
+          "type": "String",
+          "description": "物理字段 MasterSN"
+        },
+        {
+          "name": "ldInspTaskType",
+          "type": "String",
+          "description": "物理字段 ldInspTaskType"
+        },
+        {
+          "name": "wipDataSetup",
+          "type": "Navigation",
+          "description": "物理字段 WIPDataSetupId → A_WIPDataSetup"
+        }
+      ]
+    },
+    {
+      "className": "ldInspectionPlan",
+      "chineseName": "检验计划",
+      "description": "检验计划。物理对应 ldInspectionPlan (CdoId: 671088654, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "eqpInspPnChange",
+          "type": "Boolean",
+          "description": "物理字段 EqpInspPNChange"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldInspectionPlanName",
+          "required": true
+        },
+        {
+          "name": "faInspPnChange",
+          "type": "Boolean",
+          "description": "物理字段 FAInspPNChange"
+        },
+        {
+          "name": "faInspShiftChange",
+          "type": "Boolean",
+          "description": "物理字段 FAInspShiftChange"
+        },
+        {
+          "name": "faInspJobComplete",
+          "type": "Boolean",
+          "description": "物理字段 FAInspJobComplete"
+        },
+        {
+          "name": "idleDuration",
+          "type": "Integer",
+          "description": "物理字段 IdleDuration"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "eqpInspShiftChange",
+          "type": "Boolean",
+          "description": "物理字段 EqpInspShiftChange"
+        },
+        {
+          "name": "eqpInspJobComplete",
+          "type": "Boolean",
+          "description": "物理字段 EqpInspJobComplete"
+        },
+        {
+          "name": "allowLotCount",
+          "type": "Integer",
+          "description": "物理字段 AllowLotCount"
+        },
+        {
+          "name": "faInspStatusChange",
+          "type": "Boolean",
+          "description": "物理字段 FAInspStatusChange"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        }
+      ]
+    },
+    {
+      "className": "ldMaterialRequestOrder",
+      "chineseName": "物料请求订单",
+      "description": "物料请求订单。物理对应 ldMaterialRequestOrder (CdoId: 671088658, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "ldMaterialRequestTimestampGmt",
+          "type": "DateTime",
+          "description": "物理字段 ldMaterialRequestTimestampGMT"
+        },
+        {
+          "name": "ldMaterialRequestUser",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialRequestUserId → Employee"
+        },
+        {
+          "name": "ldMesTransInOrderName",
+          "type": "String",
+          "description": "物理字段 ldMESTransInOrderName"
+        },
+        {
+          "name": "ldMaterialRequestStatus",
+          "type": "Integer",
+          "description": "物理字段 ldMaterialRequestStatus"
+        },
+        {
+          "name": "ldMaterialReqWorkOrder",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialReqWorkOrderId → MfgOrder"
+        },
+        {
+          "name": "ldMaterialReqTransInWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialReqTransInWorkflowId → Workflow"
+        },
+        {
+          "name": "ldMaterialReqTransInStep",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialReqTransInStepId → WorkflowStep"
+        },
+        {
+          "name": "ldErpTransOutOrderName",
+          "type": "String",
+          "description": "物理字段 ldERPTransOutOrderName"
+        },
+        {
+          "name": "ldMaterialRequestTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 ldMaterialRequestTimestamp"
+        },
+        {
+          "name": "ldMaterialReqTransInLoc",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialReqTransInLocId → Spec"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldMaterialRequestOrderName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "ldMaterialRequestOrderItem",
+      "chineseName": "物料请求订单项",
+      "description": "物料请求订单项。物理对应 ldMaterialRequestOrderItem (CdoId: 671088657, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "ldMaterialRequestOrder",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialRequestOrderId → ldMaterialRequestOrder"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldMaterialRequestOrderItemName",
+          "required": true
+        },
+        {
+          "name": "ldConfirmQty",
+          "type": "Integer",
+          "description": "物理字段 ldConfirmQty"
+        },
+        {
+          "name": "ldManufacturingDate",
+          "type": "DateTime",
+          "description": "物理字段 ldManufacturingDate"
+        },
+        {
+          "name": "ldErpLotName",
+          "type": "String",
+          "description": "物理字段 ldERPLotName"
+        },
+        {
+          "name": "ldMaterialLotName",
+          "type": "String",
+          "description": "物理字段 ldMaterialLotName"
+        },
+        {
+          "name": "ldMesStorageLocation",
+          "type": "String",
+          "description": "物理字段 ldMESStorageLocation"
+        },
+        {
+          "name": "ldProduct",
+          "type": "Navigation",
+          "description": "物理字段 ldProductId → Product"
+        },
+        {
+          "name": "ldIsReceived",
+          "type": "Boolean",
+          "description": "物理字段 ldIsReceived"
+        },
+        {
+          "name": "ldRequestQty",
+          "type": "Integer",
+          "description": "物理字段 ldRequestQty"
+        },
+        {
+          "name": "ldConsumeFactor",
+          "type": "Integer",
+          "description": "物理字段 ldConsumeFactor"
+        },
+        {
+          "name": "ldUom",
+          "type": "Navigation",
+          "description": "物理字段 ldUOMId → UOM"
+        },
+        {
+          "name": "ldExpiryDate",
+          "type": "DateTime",
+          "description": "物理字段 ldExpiryDate"
+        },
+        {
+          "name": "ldMaterialVendor",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialVendorId → Vendor"
+        }
+      ]
+    },
+    {
+      "className": "ldMaterialRequestTxnHistDetail",
+      "chineseName": "物料请求事务历史明细",
+      "description": "物料请求事务历史明细。物理对应 ldMaterialRequestTxnHistDetail (CdoId: 671088660, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "ldConsumeFactor",
+          "type": "Integer",
+          "description": "物理字段 ldConsumeFactor"
+        },
+        {
+          "name": "ldUom",
+          "type": "Navigation",
+          "description": "物理字段 ldUOMId → UOM"
+        },
+        {
+          "name": "ldRequestQty",
+          "type": "Integer",
+          "description": "物理字段 ldRequestQty"
+        },
+        {
+          "name": "ldProduct",
+          "type": "Navigation",
+          "description": "物理字段 ldProductId → Product"
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "ldIsReceived",
+          "type": "Boolean",
+          "description": "物理字段 ldIsReceived"
+        },
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "ldConfirmQty",
+          "type": "Integer",
+          "description": "物理字段 ldConfirmQty"
+        },
+        {
+          "name": "ldErpLotName",
+          "type": "String",
+          "description": "物理字段 ldERPLotName"
+        },
+        {
+          "name": "ldExpiryDate",
+          "type": "DateTime",
+          "description": "物理字段 ldExpiryDate"
+        },
+        {
+          "name": "ldManufacturingDate",
+          "type": "DateTime",
+          "description": "物理字段 ldManufacturingDate"
+        },
+        {
+          "name": "ldMaterialLotName",
+          "type": "String",
+          "description": "物理字段 ldMaterialLotName"
+        },
+        {
+          "name": "ldMesStorageLoc",
+          "type": "String",
+          "description": "物理字段 ldMESStorageLoc"
+        },
+        {
+          "name": "ldMaterialRequestTxnHistDeName",
+          "type": "String",
+          "description": "物理字段 ldMaterialRequestTxnHistDeName"
+        },
+        {
+          "name": "ldMaterialVendor",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialVendorId → Vendor"
+        }
+      ]
+    },
+    {
+      "className": "ldMaterialRequestTxnHistory",
+      "chineseName": "物料请求事务历史",
+      "description": "物料请求事务历史。物理对应 ldMaterialRequestTxnHistory (CdoId: 671088659, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "ldWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ldWorkflowId → Workflow"
+        },
+        {
+          "name": "ldErpTransOutOrderName",
+          "type": "String",
+          "description": "物理字段 ldERPTransOutOrderName"
+        },
+        {
+          "name": "ldMesTransInOrderName",
+          "type": "String",
+          "description": "物理字段 ldMESTransInOrderName"
+        },
+        {
+          "name": "ldMaterialRequestTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 ldMaterialRequestTimestamp"
+        },
+        {
+          "name": "ldMaterialRequestTimestampGmt",
+          "type": "DateTime",
+          "description": "物理字段 ldMaterialRequestTimestampGMT"
+        },
+        {
+          "name": "ldMaterialRequestOrderName",
+          "type": "String",
+          "description": "物理字段 ldMaterialRequestOrderName"
+        },
+        {
+          "name": "ldWorkflowStep",
+          "type": "Navigation",
+          "description": "物理字段 ldWorkflowStepId → WorkflowStep"
+        },
+        {
+          "name": "ldMaterialRequestTxnHistorName",
+          "type": "String",
+          "description": "物理字段 ldMaterialRequestTxnHistorName"
+        },
+        {
+          "name": "historyMainline",
+          "type": "Navigation",
+          "description": "物理字段 HistoryMainlineId → HistoryMainline"
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "ldStatus",
+          "type": "Integer",
+          "description": "物理字段 ldStatus"
+        },
+        {
+          "name": "ldStorageLocation",
+          "type": "Navigation",
+          "description": "物理字段 ldStorageLocationId → Spec"
+        },
+        {
+          "name": "ldWorkOrder",
+          "type": "Navigation",
+          "description": "物理字段 ldWorkOrderId → MfgOrder"
+        },
+        {
+          "name": "ldMaterialRequestOrder",
+          "type": "Navigation",
+          "description": "物理字段 ldMaterialRequestOrderId → ldMaterialRequestOrder"
+        }
+      ]
+    },
+    {
+      "className": "ldModelPlan",
+      "chineseName": "模型计划",
+      "description": "模型计划。物理对应 ldModelPlan (CdoId: 671088656, Workspace: 200)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ldModelPlanName",
+          "required": true
+        },
+        {
+          "name": "pn",
+          "type": "Navigation",
+          "description": "物理字段 PNId → Product"
+        },
+        {
+          "name": "planqty",
+          "type": "Integer",
+          "description": "物理字段 planqty"
+        },
+        {
+          "name": "plandate",
+          "type": "DateTime",
+          "description": "物理字段 plandate"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ldInspTaskWIPData",
+      "toClass": "ldInspTask",
+      "relationName": "HAS_LD_INSP_TASK",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskWIPData.ldInspTaskId"
+    },
+    {
+      "fromClass": "ldInspTaskWIPData",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskWIPData.ProductId"
+    },
+    {
+      "fromClass": "ldInspTaskWIPData",
+      "toClass": "A_WIPDataSetup",
+      "relationName": "HAS_WIP_DATA_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskWIPData.WIPDataSetupId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderHistoryDet",
+      "toClass": "A_ldMatReturnOrderHistory",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderHistoryDet.ParentId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderHistoryDet",
+      "toClass": "Product",
+      "relationName": "HAS_LD_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderHistoryDet.ldProductId"
+    },
+    {
+      "fromClass": "ldInspTask",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTask.EquipmentId"
+    },
+    {
+      "fromClass": "ldInspTask",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTask.ProductId"
+    },
+    {
+      "fromClass": "ldMaterialRequestOrderItem",
+      "toClass": "ldMaterialRequestOrder",
+      "relationName": "HAS_LD_MATERIAL_REQUEST_ORDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestOrderItem.ldMaterialRequestOrderId"
+    },
+    {
+      "fromClass": "ldMaterialRequestOrderItem",
+      "toClass": "Product",
+      "relationName": "HAS_LD_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestOrderItem.ldProductId"
+    },
+    {
+      "fromClass": "ldMaterialRequestOrderItem",
+      "toClass": "UOM",
+      "relationName": "HAS_LD_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestOrderItem.ldUOMId"
+    },
+    {
+      "fromClass": "ldMaterialRequestOrderItem",
+      "toClass": "Vendor",
+      "relationName": "HAS_LD_MATERIAL_VENDOR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestOrderItem.ldMaterialVendorId"
+    },
+    {
+      "fromClass": "A_ldReworkStatus",
+      "toClass": "Container",
+      "relationName": "HAS_LOT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldReworkStatus.LotId"
+    },
+    {
+      "fromClass": "A_ldReworkStatus",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_LD_RE_ENTRY_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldReworkStatus.ldReEntryStepId"
+    },
+    {
+      "fromClass": "A_ldReworkStatus",
+      "toClass": "ReworkReason",
+      "relationName": "HAS_LD_REWORK_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldReworkStatus.ldReworkReasonId"
+    },
+    {
+      "fromClass": "A_ldReworkStatus",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_LD_END_REWORK_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldReworkStatus.ldEndReworkStepId"
+    },
+    {
+      "fromClass": "ldMaterialRequestTxnHistDetail",
+      "toClass": "UOM",
+      "relationName": "HAS_LD_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestTxnHistDetail.ldUOMId"
+    },
+    {
+      "fromClass": "ldMaterialRequestTxnHistDetail",
+      "toClass": "Product",
+      "relationName": "HAS_LD_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestTxnHistDetail.ldProductId"
+    },
+    {
+      "fromClass": "ldMaterialRequestTxnHistDetail",
+      "toClass": "Vendor",
+      "relationName": "HAS_LD_MATERIAL_VENDOR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestTxnHistDetail.ldMaterialVendorId"
+    },
+    {
+      "fromClass": "ldInspTaskHistoryDetail",
+      "toClass": "ldInspTaskHistory",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskHistoryDetail.ParentId"
+    },
+    {
+      "fromClass": "ldInspTaskHistoryDetail",
+      "toClass": "A_WIPDataSetup",
+      "relationName": "HAS_WIP_DATA_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskHistoryDetail.WIPDataSetupId"
+    },
+    {
+      "fromClass": "ldInspTaskHistoryDetail",
+      "toClass": "ldInspTask",
+      "relationName": "HAS_LD_INSP_TASK",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskHistoryDetail.ldInspTaskId"
+    },
+    {
+      "fromClass": "ldModelPlan",
+      "toClass": "Product",
+      "relationName": "HAS_PN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldModelPlan.PNId"
+    },
+    {
+      "fromClass": "ldMaterialRequestTxnHistory",
+      "toClass": "Workflow",
+      "relationName": "HAS_LD_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestTxnHistory.ldWorkflowId"
+    },
+    {
+      "fromClass": "ldMaterialRequestTxnHistory",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_LD_WORKFLOW_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestTxnHistory.ldWorkflowStepId"
+    },
+    {
+      "fromClass": "ldMaterialRequestTxnHistory",
+      "toClass": "HistoryMainline",
+      "relationName": "HAS_HISTORY_MAINLINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestTxnHistory.HistoryMainlineId"
+    },
+    {
+      "fromClass": "ldMaterialRequestTxnHistory",
+      "toClass": "Spec",
+      "relationName": "HAS_LD_STORAGE_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestTxnHistory.ldStorageLocationId"
+    },
+    {
+      "fromClass": "ldMaterialRequestTxnHistory",
+      "toClass": "MfgOrder",
+      "relationName": "HAS_LD_WORK_ORDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestTxnHistory.ldWorkOrderId"
+    },
+    {
+      "fromClass": "ldMaterialRequestTxnHistory",
+      "toClass": "ldMaterialRequestOrder",
+      "relationName": "HAS_LD_MATERIAL_REQUEST_ORDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestTxnHistory.ldMaterialRequestOrderId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderItem",
+      "toClass": "A_ldMatReturnOrder",
+      "relationName": "HAS_LD_MAT_RETURN_ORDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderItem.ldMatReturnOrderId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderItem",
+      "toClass": "Container",
+      "relationName": "HAS_LD_MATERIAL_LOT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderItem.ldMaterialLotId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderItem",
+      "toClass": "Product",
+      "relationName": "HAS_LD_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderItem.ldProductId"
+    },
+    {
+      "fromClass": "ldInspTaskHistory",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskHistory.ProductId"
+    },
+    {
+      "fromClass": "ldInspTaskHistory",
+      "toClass": "ldInspTask",
+      "relationName": "HAS_LD_INSP_TASK",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskHistory.ldInspTaskId"
+    },
+    {
+      "fromClass": "ldInspTaskHistory",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskHistory.EquipmentId"
+    },
+    {
+      "fromClass": "ldInspTaskHistory",
+      "toClass": "HistoryMainline",
+      "relationName": "HAS_HISTORY_MAINLINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskHistory.HistoryMainlineId"
+    },
+    {
+      "fromClass": "A_ldCSAMData",
+      "toClass": "Product",
+      "relationName": "HAS_LD_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldCSAMData.ldProductId"
+    },
+    {
+      "fromClass": "A_ldCSAMData",
+      "toClass": "Spec",
+      "relationName": "HAS_LD_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldCSAMData.ldSpecId"
+    },
+    {
+      "fromClass": "A_ldCSAMData",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_LD_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldCSAMData.ldEquipmentId"
+    },
+    {
+      "fromClass": "A_ldCSAMData",
+      "toClass": "Employee",
+      "relationName": "HAS_LD_STATUS_LAST_CHANGED_BY_USER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldCSAMData.ldStatusLastChangedByUserId"
+    },
+    {
+      "fromClass": "A_ldCSAMData",
+      "toClass": "A_ldCSAMValidation",
+      "relationName": "HAS_LD_CSAM_VALIDATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldCSAMData.ldCSAMValidationId"
+    },
+    {
+      "fromClass": "A_ldCSAMData",
+      "toClass": "Spec",
+      "relationName": "HAS_LD_VALIDATION_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldCSAMData.ldValidationSpecId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderHistory",
+      "toClass": "A_ldMatReturnOrder",
+      "relationName": "HAS_LD_MAT_RETURN_ORDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderHistory.ldMatReturnOrderId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderHistory",
+      "toClass": "Spec",
+      "relationName": "HAS_LD_MAT_RETURN_INV_LOC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderHistory.ldMatReturnInvLocId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderHistory",
+      "toClass": "Employee",
+      "relationName": "HAS_LD_MAT_RETURN_USER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderHistory.ldMatReturnUserId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderHistory",
+      "toClass": "HistoryMainline",
+      "relationName": "HAS_HISTORY_MAINLINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderHistory.HistoryMainlineId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderHistory",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_LD_MAT_RETURN_WORKFLOW_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderHistory.ldMatReturnWorkflowStepId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrderHistory",
+      "toClass": "Workflow",
+      "relationName": "HAS_LD_MAT_RETURN_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrderHistory.ldMatReturnWorkflowId"
+    },
+    {
+      "fromClass": "ldChangeIdHistory",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldChangeIdHistory.EquipmentId"
+    },
+    {
+      "fromClass": "ldChangeIdHistory",
+      "toClass": "HistoryMainline",
+      "relationName": "HAS_HISTORY_MAINLINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldChangeIdHistory.HistoryMainlineId"
+    },
+    {
+      "fromClass": "ldInspPlanWIPData",
+      "toClass": "ldInspectionPlan",
+      "relationName": "HAS_LD_INSPECTION_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspPlanWIPData.ldInspectionPlanId"
+    },
+    {
+      "fromClass": "ldInspPlanWIPData",
+      "toClass": "A_WIPDataSetup",
+      "relationName": "HAS_WIP_DATA_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspPlanWIPData.WIPDataSetupId"
+    },
+    {
+      "fromClass": "ldInspPlanWIPData",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspPlanWIPData.ProductId"
+    },
+    {
+      "fromClass": "ldInspPlanWIPData",
+      "toClass": "A_AdHocWIPDataSetup",
+      "relationName": "HAS_AD_HOC_WIP_DATA_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspPlanWIPData.AdHocWIPDataSetupId"
+    },
+    {
+      "fromClass": "A_ldReworkStatusldReEntryWorkf",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_LD_RE_ENTRY_WORKFLOW_STACK",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldReworkStatusldReEntryWorkf.ldReEntryWorkflowStackId"
+    },
+    {
+      "fromClass": "A_ldReworkStatusldReEntryWorkf",
+      "toClass": "A_ldReworkStatus",
+      "relationName": "HAS_LD_REWORK_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldReworkStatusldReEntryWorkf.ldReworkStatusId"
+    },
+    {
+      "fromClass": "A_ldCSAMValidation",
+      "toClass": "Spec",
+      "relationName": "HAS_LD_LAST_OUTPUT_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldCSAMValidation.ldLastOutputSpecId"
+    },
+    {
+      "fromClass": "A_ldCSAMValidation",
+      "toClass": "Spec",
+      "relationName": "HAS_LD_CSAM_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldCSAMValidation.ldCSAMSpecId"
+    },
+    {
+      "fromClass": "A_ldCSAMValidation",
+      "toClass": "Spec",
+      "relationName": "HAS_LD_VALIDATION_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldCSAMValidation.ldValidationSpecId"
+    },
+    {
+      "fromClass": "ldContainerHistoryDetails",
+      "toClass": "Container",
+      "relationName": "HAS_LD_CONTAINER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldContainerHistoryDetails.ldContainerId"
+    },
+    {
+      "fromClass": "ldContainerHistoryDetails",
+      "toClass": "HistoryMainline",
+      "relationName": "HAS_HISTORY_MAINLINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldContainerHistoryDetails.HistoryMainlineId"
+    },
+    {
+      "fromClass": "ldInspTaskList",
+      "toClass": "ldInspTask",
+      "relationName": "HAS_LD_INSP_TASK",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldInspTaskList.ldInspTaskId"
+    },
+    {
+      "fromClass": "ldMaterialRequestOrder",
+      "toClass": "Employee",
+      "relationName": "HAS_LD_MATERIAL_REQUEST_USER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestOrder.ldMaterialRequestUserId"
+    },
+    {
+      "fromClass": "ldMaterialRequestOrder",
+      "toClass": "MfgOrder",
+      "relationName": "HAS_LD_MATERIAL_REQ_WORK_ORDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestOrder.ldMaterialReqWorkOrderId"
+    },
+    {
+      "fromClass": "ldMaterialRequestOrder",
+      "toClass": "Workflow",
+      "relationName": "HAS_LD_MATERIAL_REQ_TRANS_IN_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestOrder.ldMaterialReqTransInWorkflowId"
+    },
+    {
+      "fromClass": "ldMaterialRequestOrder",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_LD_MATERIAL_REQ_TRANS_IN_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestOrder.ldMaterialReqTransInStepId"
+    },
+    {
+      "fromClass": "ldMaterialRequestOrder",
+      "toClass": "Spec",
+      "relationName": "HAS_LD_MATERIAL_REQ_TRANS_IN_LOC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldMaterialRequestOrder.ldMaterialReqTransInLocId"
+    },
+    {
+      "fromClass": "ldChangeIdHistoryDetails",
+      "toClass": "ldChangeIdHistory",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldChangeIdHistoryDetails.ParentId"
+    },
+    {
+      "fromClass": "ldChangeIdHistoryDetails",
+      "toClass": "Container",
+      "relationName": "HAS_NEW_CONTAINER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ldChangeIdHistoryDetails.NewContainerId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrder",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_LD_MAT_RETURN_WORKFLOW_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrder.ldMatReturnWorkflowStepId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrder",
+      "toClass": "Workflow",
+      "relationName": "HAS_LD_MAT_RETURN_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrder.ldMatReturnWorkflowId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrder",
+      "toClass": "Spec",
+      "relationName": "HAS_LD_MAT_RETURN_INV_LOC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrder.ldMatReturnInvLocId"
+    },
+    {
+      "fromClass": "A_ldMatReturnOrder",
+      "toClass": "Employee",
+      "relationName": "HAS_LD_MAT_RETURN_USER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ldMatReturnOrder.ldMatReturnUserId"
+    }
+  ]
+}

@@ -1,0 +1,409 @@
+{
+  "module": "erpbom",
+  "classes": [
+    {
+      "className": "ERPBOM",
+      "chineseName": "ERP物料清单",
+      "description": "ERP Bill of Materials — 从 ERP 系统下载到 InSite 的 BOM，由外部系统（如 SAP）控制和管理。与原生 BOM 不同，ERPBOM 包含 ERP 路由步骤引用，其物料行使用独立的 BOMMaterialListItem 类型存储在专用表中。标记为 externallyControlled，编辑和更新受限制。 【Swagger】Schema: ERPBOMEntity；来源文件: ERPBOMs.json；API: /api/ERPBOMs。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "换线设置权限 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "erpbomBase",
+          "type": "Navigation",
+          "description": "ERPBOM 基线引用 → ERPBOM"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "ERP BOM 的描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "ERP BOM 版本号（必填） 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息定义管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "billType",
+          "type": "Navigation",
+          "description": "BOM 类型（如 Manufacturing, Engineering） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "确定实例当前状态（Active/In-Active），有效值：1=Active，2=Inactive。 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive Note there are no validations (rules enforced) concerning active vs. inactive revisions."
+        },
+        {
+          "name": "externallyControlled",
+          "type": "Boolean",
+          "description": "是否由外部系统（ERP）控制，ERPBOM 始终为 true 【Swagger】Indicates that this object is controlled externally from InSite and updates/edits should be controlled or restricted within InSite"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "内部备注 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "erpRouteBase",
+          "type": "Integer",
+          "description": "ERP工艺路线基线引用"
+        },
+        {
+          "name": "erpRoute",
+          "type": "Navigation",
+          "description": "关联的 ERP 工艺路线（ERP Route/Step），定义物料在哪个工序消耗 【Swagger】引用 Schema: RevisionedObjectRef。"
+        }
+      ]
+    },
+    {
+      "className": "BOMMaterialListItem",
+      "chineseName": "ERP BOM物料行",
+      "description": "BOMMaterialListItem — ERP BOM 中的物料行，与原生 ProductMaterialListItem 类似但存储在独立的表中。由 ERP 系统创建并下载到 InSite，包含 ERP 路由步骤信息。每个物料行指定一种物料、需求数量和发行控制策略。 【Swagger】Schema: BOMMaterialListItemChanges；来源文件: ERPBOMs.json；API: /api/ERPBOMs。",
+      "properties": [
+        {
+          "name": "isSourceProduct",
+          "type": "Boolean",
+          "description": "物理字段 IsSourceProduct 【Swagger】Flag indicating whether the Product should be used as the source material to build the target Product."
+        },
+        {
+          "name": "ssWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WorkflowId → Workflow"
+        },
+        {
+          "name": "scsIsComponentIssue",
+          "type": "Boolean",
+          "description": "物理字段 scsIsComponentIssue 【Swagger】Flag to denote if the material is to be consumed via CEP Component Issue or SCS Material Consumption logic"
+        },
+        {
+          "name": "ssStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_StepId → WorkflowStep"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "isImage",
+          "type": "Navigation",
+          "description": "图像引用 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "uom2",
+          "type": "Navigation",
+          "description": "辅助计量单位 → UOM"
+        },
+        {
+          "name": "issueControl",
+          "type": "Integer",
+          "description": "发行控制：1=Serial, 2=Bulk, 3=Quantity&Lot, 4=FloorStock, 5=Quantity, 6=DisplayOnly 【Swagger】1 - Container is tracked in InSite at the serial level 2 - Container is tracked in InSite at the bulk level 3 - Container is not tracked in InSite ... quantity and lot is recorded 4 - non lot controlled ( floor stock ) location is recorded no container 5 - recording quantities but not container or location 6 - issue quantities are displayed but not recorded"
+        },
+        {
+          "name": "phantomBill",
+          "type": "Navigation",
+          "description": "虚拟件引用的下层 ERP BOM → ERPBOM 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "qtyRequired",
+          "type": "Float",
+          "description": "需求数量（必填） 【Swagger】Quantity of this component item required."
+        },
+        {
+          "name": "qty2Required",
+          "type": "Float",
+          "description": "辅助数量 【Swagger】Quantity of this component item required, if multiple quantities are being tracked."
+        },
+        {
+          "name": "referenceDesignator",
+          "type": "String",
+          "description": "装配位号 【Swagger】The specific position on or in the assembly where this item is placed."
+        },
+        {
+          "name": "routeStep",
+          "type": "Navigation",
+          "description": "指派的 ERP 工步/RouteStep 【Swagger】引用 Schema: NamedSubentityRef。"
+        },
+        {
+          "name": "scrapPercent",
+          "type": "Float",
+          "description": "预期报废百分比 【Swagger】Percent of this item expected to be scrapped."
+        },
+        {
+          "name": "setupQty",
+          "type": "Float",
+          "description": "物理字段 SetupQty 【Swagger】The amount of this component item needed to initialize the processing resource."
+        },
+        {
+          "name": "uom",
+          "type": "Navigation",
+          "description": "主计量单位 → UOM 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "effectiveThruDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveThruDateGMT"
+        },
+        {
+          "name": "vendorControl",
+          "type": "Boolean",
+          "description": "物理字段 VendorControl 【Swagger】Denotes whether Vendor information is required for this item."
+        },
+        {
+          "name": "setupQty2",
+          "type": "Float",
+          "description": "物理字段 SetupQty2 【Swagger】The amount of this component item needed to initialize the processing resource."
+        },
+        {
+          "name": "isPhantom",
+          "type": "Boolean",
+          "description": "是否为虚拟件 【Swagger】Denotes this is a phantom material list item. Phantom items are not actual materials, but are artifical constructs added from grouping component items in a BOM structure to reduce BOM maintenance."
+        },
+        {
+          "name": "isEnabled",
+          "type": "Boolean",
+          "description": "物理字段 IsEnabled"
+        },
+        {
+          "name": "allowSubstitution",
+          "type": "Boolean",
+          "description": "是否允许使用替代料 【Swagger】Allow substitution of the product to be issued."
+        },
+        {
+          "name": "effectiveFromDate",
+          "type": "DateTime",
+          "description": "生效开始日期 【Swagger】If specified, this is the starting date and time when this Path Selector becomes available."
+        },
+        {
+          "name": "effectiveFromDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveFromDateGMT"
+        },
+        {
+          "name": "effectiveThruDate",
+          "type": "DateTime",
+          "description": "生效截止日期 【Swagger】If specified, this is the ending date and time when this Bin becomes no longer available."
+        },
+        {
+          "name": "erpReportingFlag",
+          "type": "Boolean",
+          "description": "物理字段 ERPReportingFlag 【Swagger】Used to indicate if this component needs to have actual qty reported back to ERP or if a backflush will occur within the ERP that does not require this to be reported."
+        },
+        {
+          "name": "defaultStockPoint",
+          "type": "String",
+          "description": "物理字段 DefaultStockPoint 【Swagger】If the component needs to be pulled from a specific location within the Inventory System, this would indicate it."
+        },
+        {
+          "name": "defaultLot",
+          "type": "String",
+          "description": "物理字段 DefaultLot 【Swagger】If a specific lot/batch of the component needs to be issued, this would indicate the lot/batch indicator to be issued"
+        },
+        {
+          "name": "erpLineItem",
+          "type": "String",
+          "description": "物理字段 ERPLineItem 【Swagger】indicates the Line indicator within the BOM structure from the ERP that uniquely identifies this line item"
+        },
+        {
+          "name": "subFactory",
+          "type": "String",
+          "description": "物理字段 SubFactory 【Swagger】used to indicate if this component needs to be pulled from a specific bucket of inventory."
+        },
+        {
+          "name": "allowUnderConsumption",
+          "type": "Boolean",
+          "description": "物理字段 AllowUnderConsumption 【Swagger】This flag determines if the material consumption check will allow less materials to be issued than specified in the MaterialListItem entry"
+        },
+        {
+          "name": "allowOverConsumption",
+          "type": "Boolean",
+          "description": "是否允许超发料 【Swagger】This flag determines if the material consumption check will allow more materials to be issued than specified in the MaterialListItem entry"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "erpbom",
+          "type": "Navigation",
+          "description": "物理字段 ERPBOMId → ERPBOM"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物料行名称 【Swagger】Unique name for the name subentity.",
+          "required": true
+        },
+        {
+          "name": "adjustmentValue",
+          "type": "Float",
+          "description": "自动调整数值 【Swagger】This field defines the value used for auto-adjustments calculations based on the chosen Adjustment Type."
+        },
+        {
+          "name": "adjustmentType",
+          "type": "Integer",
+          "description": "调整类型 【Swagger】This field defines the type of the adjustment (e.g. Percentage or Quantity). The chosen type determines how the AdjustmentValue is interpreted and applied for the auto-adjustment calculations."
+        },
+        {
+          "name": "qtyIssued",
+          "type": "Float",
+          "description": "物理字段 QtyIssued 【Swagger】Material quantity (individual) that has been issued for the item"
+        },
+        {
+          "name": "allowAllRevisionsAsSubstitute",
+          "type": "Boolean",
+          "description": "物理字段 AllowAllRevisionsAsSubstitute 【Swagger】When true it will allow all revisions of the product to be allowed for the material requirement"
+        },
+        {
+          "name": "assemblySequence",
+          "type": "Integer",
+          "description": "装配顺序 【Swagger】Sequence the item should be assembled. The value is only used if the item is assigned to a Step/Spec"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "objectTypeName",
+          "type": "String",
+          "description": "物理字段 ObjectTypeName 【Swagger】Generic String"
+        },
+        {
+          "name": "parentRevision",
+          "type": "String",
+          "description": "物理字段 ParentRevision 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "producingOrder",
+          "type": "String",
+          "description": "物理字段 ProducingOrder 【Swagger】Producing Order is a String field"
+        },
+        {
+          "name": "productBase",
+          "type": "Integer",
+          "description": "产品基线引用"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "关联的产品/物料 → Product 【Swagger】引用 Schema: RevisionedObjectRef。"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ERPBOM",
+      "toClass": "ERPBOMBase",
+      "relationName": "HAS_ERPBOM_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ERPBOM.ERPBOMBaseId"
+    },
+    {
+      "fromClass": "ERPBOM",
+      "toClass": "BillType",
+      "relationName": "HAS_BILL_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ERPBOM.BillTypeId"
+    },
+    {
+      "fromClass": "ERPBOM",
+      "toClass": "ERPRoute",
+      "relationName": "HAS_ERP_ROUTE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ERPBOM.ERPRouteId"
+    },
+    {
+      "fromClass": "BOMMaterialListItem",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOMMaterialListItem.ss_WorkflowId"
+    },
+    {
+      "fromClass": "BOMMaterialListItem",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOMMaterialListItem.ss_StepId"
+    },
+    {
+      "fromClass": "BOMMaterialListItem",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM2",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOMMaterialListItem.UOM2Id"
+    },
+    {
+      "fromClass": "BOMMaterialListItem",
+      "toClass": "ERPBOM",
+      "relationName": "HAS_PHANTOM_BILL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOMMaterialListItem.PhantomBillId"
+    },
+    {
+      "fromClass": "BOMMaterialListItem",
+      "toClass": "RouteStep",
+      "relationName": "HAS_ROUTE_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOMMaterialListItem.RouteStepId"
+    },
+    {
+      "fromClass": "BOMMaterialListItem",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOMMaterialListItem.UOMId"
+    },
+    {
+      "fromClass": "BOMMaterialListItem",
+      "toClass": "ERPBOM",
+      "relationName": "HAS_ERPBOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOMMaterialListItem.ERPBOMId"
+    },
+    {
+      "fromClass": "BOMMaterialListItem",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOMMaterialListItem.ProductId"
+    }
+  ]
+}

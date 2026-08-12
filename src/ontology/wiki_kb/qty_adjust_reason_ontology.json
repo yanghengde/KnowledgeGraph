@@ -1,0 +1,54 @@
+{
+  "module": "qty_adjust_reason",
+  "classes": [
+    {
+      "className": "QtyAdjustReason",
+      "chineseName": "数量调整原因",
+      "description": "Quantity Adjust Reason — 数量调整原因代码定义实体（CdoId: 8985）。定义制造过程中数量调整的原因分类（如盘点差异、损耗、报废补录、来料短少等），是 QtyAdjustReasonGroup 分组的成员条目，在车间事务中被操作员选择以标注库存数量调整的具体理由。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "数量调整原因的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

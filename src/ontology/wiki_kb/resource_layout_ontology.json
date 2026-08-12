@@ -1,0 +1,69 @@
+{
+  "module": "resource_layout",
+  "classes": [
+    {
+      "className": "ResourceLayout",
+      "chineseName": "资源布局",
+      "description": "Resource Layout — 资源布局定义实体。定义设备/资源在工厂物理空间中的布局配置，包括位置排列、区域划分和可视化布局参数。用于工厂建模中的资源配置和可视化展示。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "资源布局的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "backgroundFilename",
+          "type": "String",
+          "description": "用于显示应用程序的背景图片。"
+        },
+        {
+          "name": "layoutHeight",
+          "type": "Integer",
+          "description": "布局的高度。"
+        },
+        {
+          "name": "layoutWidth",
+          "type": "Integer",
+          "description": "布局的宽度。"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置/换线权限配置"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

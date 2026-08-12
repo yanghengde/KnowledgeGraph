@@ -1,0 +1,282 @@
+{
+  "module": "numbering",
+  "classes": [
+    {
+      "className": "NumberingRule",
+      "chineseName": "编号规则",
+      "description": "NumberingRule — 编号规则。定义容器(Container)等对象的自动编号生成规则，包括前缀(Prefix)+零填充序列(SequenceLength)+后缀(Suffix)的格式模板。支持十进制/十六进制/字母数字三种编码方式，可设置序列上限(MaximumValue)和回绕(Rollover)，以及排除特定值(ExcludeLettersMap)。通过 NumberingRuleMap 按组织(Organization)和类别(Category)分配。可迁移到动态编号规则(newDynamicNumberingRule)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "useValues",
+          "type": "Boolean",
+          "description": "物理字段 UseValues"
+        },
+        {
+          "name": "txnDataKey",
+          "type": "String",
+          "description": "物理字段 TxnDataKey"
+        },
+        {
+          "name": "resetValuesWhenPrefixChange",
+          "type": "Boolean",
+          "description": "物理字段 ResetValuesWhenPrefixChange"
+        },
+        {
+          "name": "resetValuesWhenSuffixChange",
+          "type": "Boolean",
+          "description": "物理字段 ResetValuesWhenSuffixChange"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "sequenceLength",
+          "type": "Integer",
+          "description": "序列号最大长度（必填）"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "编号规则唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "prefix",
+          "type": "String",
+          "description": "编号前缀"
+        },
+        {
+          "name": "suffix",
+          "type": "String",
+          "description": "编号后缀"
+        },
+        {
+          "name": "numberingRuleType",
+          "type": "Integer",
+          "description": "编号规则类型：0=AllowSkipping(允许跳号), 1=DisallowSkipping(禁止跳号)"
+        },
+        {
+          "name": "usePrefixBased",
+          "type": "Boolean",
+          "description": "是否基于前缀维护独立计数器"
+        },
+        {
+          "name": "useHexadecimalValue",
+          "type": "Boolean",
+          "description": "是否使用十六进制序列号"
+        },
+        {
+          "name": "maximumValue",
+          "type": "Integer",
+          "description": "序列号最大值上限"
+        },
+        {
+          "name": "useAlphaNumbericValue",
+          "type": "Boolean",
+          "description": "是否使用字母数字序列号"
+        },
+        {
+          "name": "numberingRuleOptions",
+          "type": "Integer",
+          "description": "编号规则选项编码"
+        },
+        {
+          "name": "excludedValues",
+          "type": "Integer",
+          "description": "要排除的特定值"
+        },
+        {
+          "name": "isRollover",
+          "type": "Boolean",
+          "description": "是否在达到最大值后回绕到起始值"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "DynamicNumberingRule",
+      "chineseName": "动态编号规则",
+      "description": "DynamicNumberingRule — 动态编号规则。NumberingRule 的动态变体，在静态规则基础上增加 lastSequenceValue 字段用于保存创建时的初始序列值。支持通过 newDynamicNumberingRule 自引用实现规则版本迁移，通过 resolvedNumberingRule 指向当前生效的规则。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "txnDataKey",
+          "type": "String",
+          "description": "物理字段 TxnDataKey"
+        },
+        {
+          "name": "resetValuesWhenPrefixChange",
+          "type": "Boolean",
+          "description": "物理字段 ResetValuesWhenPrefixChange"
+        },
+        {
+          "name": "resetValuesWhenSuffixChange",
+          "type": "Boolean",
+          "description": "物理字段 ResetValuesWhenSuffixChange"
+        },
+        {
+          "name": "useValues",
+          "type": "Boolean",
+          "description": "物理字段 UseValues"
+        },
+        {
+          "name": "usePrefixBased",
+          "type": "Boolean",
+          "description": "是否基于前缀维护独立计数器"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "动态编号规则唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "numberingRuleType",
+          "type": "Integer",
+          "description": "编号规则类型：0=AllowSkipping, 1=DisallowSkipping"
+        },
+        {
+          "name": "prefix",
+          "type": "String",
+          "description": "编号前缀"
+        },
+        {
+          "name": "sequenceLength",
+          "type": "Integer",
+          "description": "序列号最大长度（必填）"
+        },
+        {
+          "name": "suffix",
+          "type": "String",
+          "description": "编号后缀"
+        },
+        {
+          "name": "lastSequenceValue",
+          "type": "Integer",
+          "description": "创建动态规则时保存的最后一个序列值"
+        },
+        {
+          "name": "resolvedNumberingRule",
+          "type": "Navigation",
+          "description": "解析后的当前生效规则（自引用）"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "newDynamicNumberingRule",
+          "type": "Navigation",
+          "description": "迁移目标的新动态编号规则（自引用）"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "useHexadecimalValue",
+          "type": "Boolean",
+          "description": "是否使用十六进制序列号"
+        },
+        {
+          "name": "maximumValue",
+          "type": "Integer",
+          "description": "序列号最大值上限"
+        },
+        {
+          "name": "useAlphaNumbericValue",
+          "type": "Boolean",
+          "description": "是否使用字母数字序列号"
+        },
+        {
+          "name": "numberingRuleOptions",
+          "type": "Integer",
+          "description": "编号规则选项编码"
+        },
+        {
+          "name": "excludedValues",
+          "type": "Integer",
+          "description": "要排除的特定值"
+        },
+        {
+          "name": "isRollover",
+          "type": "Boolean",
+          "description": "是否在达到最大值后回绕"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "DynamicNumberingRule",
+      "toClass": "DynamicNumberingRule",
+      "relationName": "HAS_RESOLVED_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DynamicNumberingRule.ResolvedNumberingRuleId"
+    },
+    {
+      "fromClass": "DynamicNumberingRule",
+      "toClass": "DynamicNumberingRule",
+      "relationName": "HAS_NEW_DYNAMIC_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DynamicNumberingRule.NewDynamicNumberingRuleId"
+    }
+  ]
+}

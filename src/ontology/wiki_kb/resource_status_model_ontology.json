@@ -1,0 +1,67 @@
+{
+  "module": "resource_status_model",
+  "classes": [
+    {
+      "className": "ResourceStatusModel",
+      "chineseName": "资源状态模型",
+      "description": "Resource Status Model — 资源状态模型定义实体（CdoId: 1384）。定义特定设备资源在生产生命周期中的所有合法状态转换关系和转换规则。约束资源如何从一个状态（如可用）流转到另一个状态（如停机或保养），通过关联多个 ResourceStatusCode 和转换规则构成完整的状态机。被 Resource、Part 和 PartFamily 引用。 【Swagger】Schema: ResourceStatusModelEntity；来源文件: ResourceStatusModels.json；API: /api/ResourceStatusModels。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置/换线权限配置 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "状态模型的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "initStatusCodes",
+          "type": "Navigation",
+          "description": "关联的初始状态代码组。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ResourceStatusModel",
+      "toClass": "ResourceStatusCodeGroup",
+      "relationName": "HAS_INIT_STATUS_CODES",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceStatusModel.InitStatusCodesId"
+    }
+  ]
+}

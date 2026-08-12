@@ -1,0 +1,41 @@
+{
+  "module": "resource",
+  "classes": [
+    {
+      "className": "ResourceLogs",
+      "chineseName": "设备运行日志",
+      "description": "ResourceLogs — 设备资源运行状况和日志记录子实体（CdoId: 296）。用于记录设备资源的各项运行度量、状态计数器或历史计数，是设备全生命周期管理中度量物理设备使用状况的核心日志。",
+      "properties": [
+        {
+          "name": "resource",
+          "type": "Navigation",
+          "description": "关联的物理设备资源 → Resource"
+        },
+        {
+          "name": "fieldId",
+          "type": "Integer",
+          "description": "物理字段 FieldId"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "日志序列号"
+        },
+        {
+          "name": "logs",
+          "type": "Array",
+          "description": "物理字段 LogsId"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ResourceLogs",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_RESOURCE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceLogs.ResourceId"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_cio_bases",
+  "titleZh": "半导体与CIO版本支撑建模",
+  "titleEn": "Semiconductor and CIO Version Support Modeling",
+  "overviewZh": "本批次补齐CIO参数/Base表以及半导体实验、工艺规格、产品BOM、供料器和监控的Base实体。",
+  "overviewEn": "This batch adds CIO parameter and Base tables plus semiconductor experiment, process-specification, product-BOM, feeder, and surveillance Base entities.",
+  "entities": [
+    {"className": "CIOJournalPersist", "chineseName": "CIO日志持久化", "description": "定义CIO日志持久化配置。"},
+    {"className": "CIODetailSection", "chineseName": "CIO明细区段", "description": "定义通道适配器明细区段。"},
+    {"className": "MessageNameParameter", "chineseName": "消息名称参数", "description": "定义消息名称解析参数。"},
+    {"className": "RequestIdParameter", "chineseName": "请求ID参数", "description": "定义请求ID解析参数。"},
+    {"className": "MessageTypeParameter", "chineseName": "消息类型参数", "description": "定义消息类型解析参数。"},
+    {"className": "TagDataParameter", "chineseName": "标签数据参数", "description": "定义标签数据解析参数。"},
+    {"className": "CIOMapSource", "chineseName": "CIO映射源", "description": "定义消息映射数据源。"},
+    {"className": "CIOMessageMapBase", "chineseName": "CIO消息映射Base", "description": "管理消息映射修订记录。"},
+    {"className": "CIOWorkflowBase", "chineseName": "CIO工作流Base", "description": "管理CIO工作流修订记录。"},
+    {"className": "CIOListProcessorBase", "chineseName": "CIO列表处理器Base", "description": "管理列表处理器修订记录。"},
+    {"className": "A_ExperimentPlanBase", "chineseName": "实验计划Base", "description": "管理半导体实验计划修订记录。"},
+    {"className": "A_ProcessSpecBase", "chineseName": "工艺规格Base", "description": "管理半导体工艺规格修订记录。"},
+    {"className": "A_ProductBOMBase", "chineseName": "产品BOM Base", "description": "管理半导体产品BOM修订记录。"},
+    {"className": "ss_FeederPlanBase", "chineseName": "供料器计划Base", "description": "管理供料器计划修订记录。"},
+    {"className": "ss_SurveillanceBase", "chineseName": "过程监控Base", "description": "管理过程监控修订记录。"}
+  ]
+}

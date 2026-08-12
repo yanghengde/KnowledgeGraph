@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_bin_overlay",
+  "titleZh": "半导体Bin与Overlay",
+  "titleEn": "Semiconductor Bin and Overlay",
+  "overviewZh": "补齐晶圆分Bin和Overlay配置使用的半导体物理主数据。",
+  "overviewEn": "Adds semiconductor physical master data for wafer binning and overlay configuration.",
+  "entities": [
+    {
+      "className": "scsBinCode",
+      "chineseName": "Bin代码",
+      "description": "晶圆或测试结果分Bin使用的代码定义。"
+    },
+    {
+      "className": "scsBinDefinition",
+      "chineseName": "Bin定义",
+      "description": "半导体分Bin规则引用的Bin主数据。"
+    },
+    {
+      "className": "scsOverlay",
+      "chineseName": "Overlay定义",
+      "description": "晶圆图和工艺数据使用的Overlay配置。"
+    }
+  ]
+}

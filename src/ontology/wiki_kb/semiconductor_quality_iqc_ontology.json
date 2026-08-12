@@ -1,0 +1,1230 @@
+{
+  "module": "semiconductor_quality_iqc",
+  "classes": [
+    {
+      "className": "A_CheckSheetMatrix",
+      "chineseName": "检查表矩阵",
+      "description": "按产品、规格、设备和步骤选择检查表。 物理对应 A_CheckSheetMatrix (CdoId: 679477687, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 CheckSheetMatrixName",
+          "required": true
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "lotId",
+          "type": "String",
+          "description": "物理字段 LotId"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "equipment",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentId → ResourceDef"
+        },
+        {
+          "name": "processType",
+          "type": "Navigation",
+          "description": "物理字段 ProcessTypeId → A_ProcessType"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        }
+      ]
+    },
+    {
+      "className": "A_CountVarianceLimits",
+      "chineseName": "数量差异限制",
+      "description": "定义数量差异允许范围。 物理对应 A_CountVarianceLimits (CdoId: 679477391, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 CountVarianceLimitsName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PDALimits",
+      "chineseName": "PDA限制",
+      "description": "定义PDA质量限制及失败动作。 物理对应 A_PDALimits (CdoId: 679477341, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "lossReasonsSpec",
+          "type": "Navigation",
+          "description": "物理字段 LossReasonsSpecId → Spec"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "productLine",
+          "type": "Navigation",
+          "description": "物理字段 ProductLineId → A_ProductLine"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PDALimitsName",
+          "required": true
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "referenceSpec",
+          "type": "Navigation",
+          "description": "物理字段 ReferenceSpecId → Spec"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "workCenter",
+          "type": "Navigation",
+          "description": "物理字段 WorkCenterId → WorkCenter"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "failureAction",
+          "type": "String",
+          "description": "物理字段 FailureAction"
+        },
+        {
+          "name": "failureEmailGroup",
+          "type": "Navigation",
+          "description": "物理字段 FailureEmailGroupId → A_EmailGroup"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ProcessSpecBins",
+      "chineseName": "工艺规格Bin",
+      "description": "定义工艺规格关联的Bin规则。 物理对应 A_ProcessSpecBins (CdoId: 679477334, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ProcessSpecBinsName",
+          "required": true
+        },
+        {
+          "name": "testProgramName",
+          "type": "String",
+          "description": "物理字段 TestProgramName"
+        },
+        {
+          "name": "testProgramMajorRevision",
+          "type": "String",
+          "description": "物理字段 TestProgramMajorRevision"
+        },
+        {
+          "name": "testProgramMinorRevision",
+          "type": "String",
+          "description": "物理字段 TestProgramMinorRevision"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_RejectCategory",
+      "chineseName": "拒收类别",
+      "description": "定义质量拒收类别。 物理对应 A_RejectCategory (CdoId: 679477277, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 RejectCategoryName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "A_ResortNoteCode",
+      "chineseName": "重分选备注代码",
+      "description": "定义重分选备注代码。 物理对应 A_ResortNoteCode (CdoId: 679477363, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ResortNoteCodeName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_SortNoteCode",
+      "chineseName": "分选备注代码",
+      "description": "定义分选备注代码。 物理对应 A_SortNoteCode (CdoId: 679477362, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SortNoteCodeName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_SortIQCLotCheck",
+      "chineseName": "IQC批次检查",
+      "description": "定义IQC批次检查配置。 物理对应 A_SortIQCLotCheck (CdoId: 679477360, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SortIQCLotCheckName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_SortIQCWaferCheck",
+      "chineseName": "IQC晶圆检查",
+      "description": "定义IQC晶圆检查配置。 物理对应 A_SortIQCWaferCheck (CdoId: 679477361, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SortIQCWaferCheckName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_SortSQAFailure",
+      "chineseName": "SQA失败配置",
+      "description": "定义分选SQA失败处理配置。 物理对应 A_SortSQAFailure (CdoId: 679477364, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SortSQAFailureName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_TestIQCOption",
+      "chineseName": "IQC测试选项",
+      "description": "定义IQC测试选项。 物理对应 A_TestIQCOption (CdoId: 679477348, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "autoSelectLotsAlert",
+          "type": "Boolean",
+          "description": "物理字段 AutoSelectLotsAlert"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "incomingSolderabilityTestType",
+          "type": "String",
+          "description": "物理字段 IncomingSolderabilityTestType"
+        },
+        {
+          "name": "vmTestType",
+          "type": "String",
+          "description": "物理字段 VMTestType"
+        },
+        {
+          "name": "incomingSolderabilityRequired",
+          "type": "Boolean",
+          "description": "物理字段 IncomingSolderabilityRequired"
+        },
+        {
+          "name": "vmRequired",
+          "type": "Boolean",
+          "description": "物理字段 VMRequired"
+        },
+        {
+          "name": "vmQtyType",
+          "type": "String",
+          "description": "物理字段 VMQtyType"
+        },
+        {
+          "name": "vmLotsRequired",
+          "type": "Integer",
+          "description": "物理字段 VMLotsRequired"
+        },
+        {
+          "name": "vmQtyValue",
+          "type": "Float",
+          "description": "物理字段 VMQtyValue"
+        },
+        {
+          "name": "variableDataLotsRequired",
+          "type": "Integer",
+          "description": "物理字段 VariableDataLotsRequired"
+        },
+        {
+          "name": "variableDataTestType",
+          "type": "String",
+          "description": "物理字段 VariableDataTestType"
+        },
+        {
+          "name": "variableDataQtyValue",
+          "type": "Float",
+          "description": "物理字段 VariableDataQtyValue"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 TestIQCOptionName",
+          "required": true
+        },
+        {
+          "name": "variableDataRequired",
+          "type": "Boolean",
+          "description": "物理字段 VariableDataRequired"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "variableDataQtyType",
+          "type": "String",
+          "description": "物理字段 VariableDataQtyType"
+        },
+        {
+          "name": "autoSelectLots",
+          "type": "Boolean",
+          "description": "物理字段 AutoSelectLots"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_TestIQCParams",
+      "chineseName": "IQC测试参数",
+      "description": "定义IQC测试参数。 物理对应 A_TestIQCParams (CdoId: 679477349, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 TestIQCParamsName",
+          "required": true
+        },
+        {
+          "name": "packageType",
+          "type": "String",
+          "description": "物理字段 PackageType"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_TestIQCSetup",
+      "chineseName": "IQC测试配置",
+      "description": "定义IQC测试总体配置。 物理对应 A_TestIQCSetup (CdoId: 679477351, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "vmTestType",
+          "type": "String",
+          "description": "物理字段 VMTestType"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "autoSelectLotsAlert",
+          "type": "Boolean",
+          "description": "物理字段 AutoSelectLotsAlert"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "vmQtyValue",
+          "type": "Float",
+          "description": "物理字段 VMQtyValue"
+        },
+        {
+          "name": "shipFromFactory",
+          "type": "Navigation",
+          "description": "物理字段 ShipFromFactoryId → A_ShipFromFactory"
+        },
+        {
+          "name": "vmRequired",
+          "type": "Boolean",
+          "description": "物理字段 VMRequired"
+        },
+        {
+          "name": "variableDataRequired",
+          "type": "Boolean",
+          "description": "物理字段 VariableDataRequired"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "packageType",
+          "type": "String",
+          "description": "物理字段 PackageType"
+        },
+        {
+          "name": "leads",
+          "type": "String",
+          "description": "物理字段 Leads"
+        },
+        {
+          "name": "variableDataTestType",
+          "type": "String",
+          "description": "物理字段 VariableDataTestType"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 TestIQCSetupName",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "vmQtyType",
+          "type": "String",
+          "description": "物理字段 VMQtyType"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "vmLotsRequired",
+          "type": "Integer",
+          "description": "物理字段 VMLotsRequired"
+        },
+        {
+          "name": "testIqcOption",
+          "type": "Navigation",
+          "description": "物理字段 TestIQCOptionId → A_TestIQCOption"
+        },
+        {
+          "name": "autoSelectLots",
+          "type": "Boolean",
+          "description": "物理字段 AutoSelectLots"
+        },
+        {
+          "name": "incomingSolderabilityTestType",
+          "type": "String",
+          "description": "物理字段 IncomingSolderabilityTestType"
+        },
+        {
+          "name": "incomingSolderabilityRequired",
+          "type": "Boolean",
+          "description": "物理字段 IncomingSolderabilityRequired"
+        },
+        {
+          "name": "variableDataLotsRequired",
+          "type": "Integer",
+          "description": "物理字段 VariableDataLotsRequired"
+        },
+        {
+          "name": "variableDataQtyType",
+          "type": "String",
+          "description": "物理字段 VariableDataQtyType"
+        },
+        {
+          "name": "variableDataQtyValue",
+          "type": "Float",
+          "description": "物理字段 VariableDataQtyValue"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_VarianceReason",
+      "chineseName": "差异原因",
+      "description": "定义数量或质量差异原因。 物理对应 A_VarianceReason (CdoId: 679477355, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 VarianceReasonName",
+          "required": true
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "scsFailureHoldSetup",
+      "chineseName": "失败Hold配置",
+      "description": "定义质量失败后的Hold动作。 物理对应 scsFailureHoldSetup (CdoId: 681574504, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "holdReason",
+          "type": "Navigation",
+          "description": "物理字段 HoldReasonId → HoldReason"
+        },
+        {
+          "name": "emailGroup",
+          "type": "Navigation",
+          "description": "物理字段 EmailGroupId → A_EmailGroup"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsFailureHoldSetupName",
+          "required": true
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "holdLocation",
+          "type": "Navigation",
+          "description": "物理字段 HoldLocationId → A_HoldLocation"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "expectedHoldDays",
+          "type": "Float",
+          "description": "物理字段 ExpectedHoldDays"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_CheckSheetMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_CheckSheetMatrix.SpecId"
+    },
+    {
+      "fromClass": "A_CheckSheetMatrix",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_CheckSheetMatrix.ProductId"
+    },
+    {
+      "fromClass": "A_CheckSheetMatrix",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_CheckSheetMatrix.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_CheckSheetMatrix",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_CheckSheetMatrix.EquipmentId"
+    },
+    {
+      "fromClass": "A_CheckSheetMatrix",
+      "toClass": "A_ProcessType",
+      "relationName": "HAS_PROCESS_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_CheckSheetMatrix.ProcessTypeId"
+    },
+    {
+      "fromClass": "A_CheckSheetMatrix",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_CheckSheetMatrix.ss_WIPStepId"
+    },
+    {
+      "fromClass": "A_CheckSheetMatrix",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_CheckSheetMatrix.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "A_CountVarianceLimits",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_CountVarianceLimits.SpecId"
+    },
+    {
+      "fromClass": "A_PDALimits",
+      "toClass": "Spec",
+      "relationName": "HAS_LOSS_REASONS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PDALimits.LossReasonsSpecId"
+    },
+    {
+      "fromClass": "A_PDALimits",
+      "toClass": "A_ProductLine",
+      "relationName": "HAS_PRODUCT_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PDALimits.ProductLineId"
+    },
+    {
+      "fromClass": "A_PDALimits",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PDALimits.SpecId"
+    },
+    {
+      "fromClass": "A_PDALimits",
+      "toClass": "Spec",
+      "relationName": "HAS_REFERENCE_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PDALimits.ReferenceSpecId"
+    },
+    {
+      "fromClass": "A_PDALimits",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PDALimits.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_PDALimits",
+      "toClass": "WorkCenter",
+      "relationName": "HAS_WORK_CENTER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PDALimits.WorkCenterId"
+    },
+    {
+      "fromClass": "A_PDALimits",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PDALimits.OwnerId"
+    },
+    {
+      "fromClass": "A_PDALimits",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PDALimits.ProductId"
+    },
+    {
+      "fromClass": "A_ProcessSpecBins",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpecBins.OwnerId"
+    },
+    {
+      "fromClass": "A_ProcessSpecBins",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpecBins.ProductId"
+    },
+    {
+      "fromClass": "A_ProcessSpecBins",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpecBins.SpecId"
+    },
+    {
+      "fromClass": "A_ProcessSpecBins",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpecBins.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_TestIQCSetup",
+      "toClass": "A_ShipFromFactory",
+      "relationName": "HAS_SHIP_FROM_FACTORY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_TestIQCSetup.ShipFromFactoryId"
+    },
+    {
+      "fromClass": "A_TestIQCSetup",
+      "toClass": "A_TestIQCOption",
+      "relationName": "HAS_TEST_IQC_OPTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_TestIQCSetup.TestIQCOptionId"
+    },
+    {
+      "fromClass": "scsFailureHoldSetup",
+      "toClass": "HoldReason",
+      "relationName": "HAS_HOLD_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsFailureHoldSetup.HoldReasonId"
+    },
+    {
+      "fromClass": "scsFailureHoldSetup",
+      "toClass": "A_HoldLocation",
+      "relationName": "HAS_HOLD_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsFailureHoldSetup.HoldLocationId"
+    }
+  ]
+}

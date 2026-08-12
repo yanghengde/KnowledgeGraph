@@ -1,0 +1,916 @@
+{
+  "module": "mfgorder",
+  "classes": [
+    {
+      "className": "MfgOrder",
+      "chineseName": "制造工单",
+      "description": "MfgOrder — 制造工单。生产特定数量产品的业务指令，定义目标产品(Product)、数量(Qty/Qty2)、工艺路线(Workflow/BillOfProcess)、ERP BOM、物料需求清单(MaterialList)、执行任务历史等完整生产执行配置。工单发放后产生容器(Container)追踪生产进度。 【Swagger】Schema: MfgOrderEntity；来源文件: MfgOrders.json；API: /api/MfgOrders。",
+      "properties": [
+        {
+          "name": "isMaster",
+          "type": "Boolean",
+          "description": "物理字段 IsMaster"
+        },
+        {
+          "name": "orderStartDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 OrderStartDateGMT"
+        },
+        {
+          "name": "orderCompletionDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 OrderCompletionDateGMT"
+        },
+        {
+          "name": "scheduleType",
+          "type": "String",
+          "description": "物理字段 ScheduleType 【Swagger】Optional value used to indicate the type of schedule required for the order. If a value is not entered any schedule type can be used. Valid values include: i) WAFER ii) WAFERSORT iii) ASSEMBLYCARRIER iv) ASSEMBLYMOTHERLOT v) ASSEMBLYSUBLOT vi) BACKG"
+        },
+        {
+          "name": "scheduleQtyCanceled",
+          "type": "Float",
+          "description": "物理字段 ScheduleQtyCanceled 【Swagger】Stores the quantity from schedules that were canceled. This value will be updated when a schedule is canceled through LotScheduleCancel."
+        },
+        {
+          "name": "orderCompletionDate",
+          "type": "DateTime",
+          "description": "物理字段 OrderCompletionDate 【Swagger】Stores the timestamp when the order is completed."
+        },
+        {
+          "name": "orderStartDate",
+          "type": "DateTime",
+          "description": "物理字段 OrderStartDate 【Swagger】Stores the timestamp when a schedule was first created for the Work Order."
+        },
+        {
+          "name": "scheduleQtyCompleted",
+          "type": "Float",
+          "description": "物理字段 ScheduleQtyCompleted 【Swagger】Stores the total quantity completed for the Work Order. This value is updated when the schedule completes from WIP to INVENTORY."
+        },
+        {
+          "name": "scheduleQty",
+          "type": "Float",
+          "description": "物理字段 ScheduleQty 【Swagger】Stores the total quantity scheduled for the Work Order. This value will be updated when a schedule is created."
+        },
+        {
+          "name": "scheduleCanceled",
+          "type": "Integer",
+          "description": "物理字段 ScheduleCanceled 【Swagger】Stores the number of schedules that was canceled for the Work Order. This value will be automatically updated when a schedule is canceled."
+        },
+        {
+          "name": "scheduleCompleted",
+          "type": "Integer",
+          "description": "物理字段 ScheduleCompleted 【Swagger】Stores the number of schedules completed for the Work Order. This value will be automatically updated when a schedule completes successfully."
+        },
+        {
+          "name": "scheduleCount",
+          "type": "Integer",
+          "description": "物理字段 ScheduleCount 【Swagger】Stores the number of schedules used for the Work Order. This value is automatically updated when a schedule is created for the Work Order."
+        },
+        {
+          "name": "scheduleLimit",
+          "type": "Integer",
+          "description": "物理字段 ScheduleLimit 【Swagger】This field is used to indicate the maximum number of schedules allowed to meet the Work Order. A Work Order is considered completed if the completed quantity meets or exceeds its required quantity. A value of 0 or less means no limits hence the Work Or"
+        },
+        {
+          "name": "isCompleted",
+          "type": "Boolean",
+          "description": "物理字段 IsCompleted 【Swagger】Flag indicaiting whether the Work Order is completed. This value is updated when the Work Order quantity is met or exceeded or when the ScheduleLimit with value greater than 0 is reached and all schedules are completed."
+        },
+        {
+          "name": "erpCreationDate",
+          "type": "DateTime",
+          "description": "物理字段 ERPCreationDate"
+        },
+        {
+          "name": "isCanceled",
+          "type": "Boolean",
+          "description": "物理字段 IsCanceled 【Swagger】Flag indicating whether the Work Order was canceled. This flag can be updated to cancel the Work Order such that it will not appear during Lot Schedule."
+        },
+        {
+          "name": "customerExpectedDate",
+          "type": "DateTime",
+          "description": "物理字段 CustomerExpectedDate"
+        },
+        {
+          "name": "estimatedCompletionDate",
+          "type": "DateTime",
+          "description": "物理字段 EstimatedCompletionDate"
+        },
+        {
+          "name": "promisedDate",
+          "type": "DateTime",
+          "description": "物理字段 PromisedDate"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限配置 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "customerProductCode",
+          "type": "String",
+          "description": "物理字段 CustomerProductCode 【Swagger】Customer Product Code"
+        },
+        {
+          "name": "ssMfgLine",
+          "type": "Navigation",
+          "description": "物理字段 ss_MfgLineId → ss_MfgLine"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息定义管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "工单唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "状态变更记录 → ChangeStatus"
+        },
+        {
+          "name": "qty",
+          "type": "Float",
+          "description": "计划生产数量 【Swagger】Identifies the (final) quantity to be produced to fulfill this Manufacturing Order"
+        },
+        {
+          "name": "qty2",
+          "type": "Float",
+          "description": "辅助数量 【Swagger】Identifies the (final) quantity to be produced to fulfill this Manufacturing Order"
+        },
+        {
+          "name": "uom",
+          "type": "Navigation",
+          "description": "工单计划数量主单位 → UOM 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "uom2",
+          "type": "Navigation",
+          "description": "工单计划数量副单位 → UOM"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "plannedCompletionDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 PlannedCompletionDateGMT"
+        },
+        {
+          "name": "plannedStartDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 PlannedStartDateGMT"
+        },
+        {
+          "name": "releaseDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ReleaseDateGMT"
+        },
+        {
+          "name": "reportingFactory",
+          "type": "Navigation",
+          "description": "汇报/所属工厂 → Factory 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "defaultLot",
+          "type": "String",
+          "description": "生产容器的默认批次号 【Swagger】If a lot or batch ID have been assigned to this order then it would be listed here. Optionally, this can be the container name when the container is started."
+        },
+        {
+          "name": "orderStatus",
+          "type": "Navigation",
+          "description": "工单状态 → OrderStatus 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "externallyControlled",
+          "type": "Boolean",
+          "description": "是否由外部系统控制 【Swagger】Indicates that this object is controlled externally from InSite and updates/edits should be controlled or restricted within InSite"
+        },
+        {
+          "name": "priority",
+          "type": "Navigation",
+          "description": "工单优先级限制 → PriorityCode 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "orderType",
+          "type": "Navigation",
+          "description": "工单类型 → OrderType 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "plannedStartDate",
+          "type": "DateTime",
+          "description": "计划生产开始日期 【Swagger】Indicates the planned start date for this order"
+        },
+        {
+          "name": "plannedCompletionDate",
+          "type": "DateTime",
+          "description": "计划生产完成日期 【Swagger】Indicates the planned completion date for this order"
+        },
+        {
+          "name": "defaultPutawayStockPoint",
+          "type": "String",
+          "description": "默认入库库存点 【Swagger】Indicates the ERP location that the finished assembly should be put away to at the end of WIP."
+        },
+        {
+          "name": "erpbom",
+          "type": "Navigation",
+          "description": "ERP BOM 引用 → ERPBOM 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "releaseDate",
+          "type": "DateTime",
+          "description": "工单发放到生产线的日期 【Swagger】Indicates the date this order was released from the ERP down to InSite"
+        },
+        {
+          "name": "preProductionProcedure",
+          "type": "Navigation",
+          "description": "前置生产流程 → MfgOrderProcedure 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "postProductionProcedure",
+          "type": "Navigation",
+          "description": "后置生产流程 → MfgOrderProcedure 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "preProductionProcedureRequired",
+          "type": "Integer",
+          "description": "指示是否需要预生产程序（0=否，1=是，默认-1），首次Move/MoveIn时更新。 【Swagger】Indicates if a Pre-Production Procedure is required for this order. 0 = No 1 = Yes Default is -1. Processing during the first Move/MoveIn Txn for the a container will query the workflow for any spec with the RequirePreProductionProcedure option set. If any spec has it, the field value is updated to 1, else set to 0."
+        },
+        {
+          "name": "holdStatus",
+          "type": "Navigation",
+          "description": "物理字段 HoldStatusId → HoldStatus"
+        },
+        {
+          "name": "productionCompleteDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ProductionCompleteDateGMT"
+        },
+        {
+          "name": "preProductionProcedureState",
+          "type": "Integer",
+          "description": "MfgOrderTaskState：1-未开始，2-进行中，3-失败，4-完成。 【Swagger】MfgOrderTaskState 1 - Not Started 2 - In Progress 3 - Failed 4 - Complete"
+        },
+        {
+          "name": "postProductionProcedureState",
+          "type": "Integer",
+          "description": "MfgOrderTaskState：1-未开始，2-进行中，3-失败，4-完成。 【Swagger】MfgOrderTaskState 1 - Not Started 2 - In Progress 3 - Failed 4 - Complete"
+        },
+        {
+          "name": "preProductionStartDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 PreProductionStartDateGMT"
+        },
+        {
+          "name": "productionStartDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ProductionStartDateGMT"
+        },
+        {
+          "name": "postProductionStartDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 PostProductionStartDateGMT"
+        },
+        {
+          "name": "postProductionCompleteDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 PostProductionCompleteDateGMT"
+        },
+        {
+          "name": "preProductionCompleteDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 PreProductionCompleteDateGMT"
+        },
+        {
+          "name": "consumingOrder",
+          "type": "String",
+          "description": "父级消耗工单引用 【Swagger】Consuming Order is a String field."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "containerNumberingRule",
+          "type": "Navigation",
+          "description": "容器编号规则 → NumberingRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "beginProductBase",
+          "type": "Integer",
+          "description": "初始产品基线引用"
+        },
+        {
+          "name": "beginProduct",
+          "type": "Navigation",
+          "description": "初始/开工产品 → Product 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "productBase",
+          "type": "Integer",
+          "description": "产品基线引用"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "目标产品 → Product 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "erpRouteBase",
+          "type": "Integer",
+          "description": "ERP工艺路线基线引用"
+        },
+        {
+          "name": "erpRoute",
+          "type": "Navigation",
+          "description": "ERP 工艺路线 → ERPRoute 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "billOfProcessBase",
+          "type": "Integer",
+          "description": "BOP基线引用"
+        },
+        {
+          "name": "billOfProcess",
+          "type": "Navigation",
+          "description": "BOP 工艺清单 → BillOfProcess 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "processSpecBase",
+          "type": "Integer",
+          "description": "物理字段 ProcessSpecBaseId"
+        },
+        {
+          "name": "productBom",
+          "type": "Navigation",
+          "description": "物理字段 ProductBOMId → A_ProductBOM"
+        },
+        {
+          "name": "productBomBase",
+          "type": "Integer",
+          "description": "物理字段 ProductBOMBaseId"
+        },
+        {
+          "name": "ldDepartment",
+          "type": "String",
+          "description": "物理字段 ldDepartment"
+        }
+      ]
+    },
+    {
+      "className": "OrderType",
+      "chineseName": "工单类型",
+      "description": "OrderType — 工单类型（命名对象）。定义制造工单的分类类型，如 Production(生产)、Rework(返工)、Sample(样品)、Engineering(工程试制) 等。通过 RequireIssueCondition 控制是否需要验证发行条件。被 MfgOrder 和 OrderTypeIssueConditions 引用。 【Swagger】Schema: OrderTypeEntity；来源文件: OrderTypes.json；API: /api/OrderTypes。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限配置 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "工单类型唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "requireIssueCondition",
+          "type": "Boolean",
+          "description": "是否要求验证物料发行条件 【Swagger】Indicate whether the component (Container) must have defined issue conditions. When set to true, the component (Container) cannot be issued without any issue conditions. When set to false, the component (Container) can be issued without any defined issue conditions."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "OrderStatus",
+      "chineseName": "工单状态",
+      "description": "OrderStatus — 工单状态（命名对象）。定义制造工单的生命周期状态，如 Planned(计划)、Released(已下达)、InProgress(生产中)、Completed(已完成)、Closed(已关闭) 等。通过 IsConfirmed 标记是否为已确认状态。被 MfgOrder 和 MfgOrderProcedure(CompletedOrderStatusId) 引用。 【Swagger】Schema: OrderStatusEntity；来源文件: OrderStatuses.json；API: /api/OrderStatuses。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限配置 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isAvailable",
+          "type": "Boolean",
+          "description": "物理字段 IsAvailable 【Swagger】Flag indicating whether the status is an available status."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "工单状态唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "MfgOrderMaterialListItem",
+      "chineseName": "工单物料需求明细",
+      "description": "MfgOrderMaterialListItem — 制造工单运行时所拥有的物料需求明细记录。当工单下达或发放时，系统根据 BOM 结构解析生成该表中的数据，用于记录运行时工单实际消耗的物料及其工艺绑定、替代关系、数量要求等。",
+      "properties": [
+        {
+          "name": "mfgOrder",
+          "type": "Navigation",
+          "description": "所属制造工单 → MfgOrder"
+        },
+        {
+          "name": "isSourceProduct",
+          "type": "Boolean",
+          "description": "物理字段 IsSourceProduct"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WorkflowId → Workflow"
+        },
+        {
+          "name": "ssStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_StepId → WorkflowStep"
+        },
+        {
+          "name": "scsIsComponentIssue",
+          "type": "Boolean",
+          "description": "物理字段 scsIsComponentIssue"
+        },
+        {
+          "name": "isImage",
+          "type": "Navigation",
+          "description": "图片引用"
+        },
+        {
+          "name": "qtyRequired",
+          "type": "Float",
+          "description": "需求数量（必填）"
+        },
+        {
+          "name": "qty2Required",
+          "type": "Float",
+          "description": "辅助数量"
+        },
+        {
+          "name": "referenceDesignator",
+          "type": "String",
+          "description": "装配位号"
+        },
+        {
+          "name": "routeStep",
+          "type": "Navigation",
+          "description": "映射的ERP工艺步骤 → RouteStep"
+        },
+        {
+          "name": "scrapPercent",
+          "type": "Float",
+          "description": "预期报废百分比"
+        },
+        {
+          "name": "setupQty",
+          "type": "Float",
+          "description": "初始化准备用量"
+        },
+        {
+          "name": "setupQty2",
+          "type": "Float",
+          "description": "辅助初始化用量"
+        },
+        {
+          "name": "uom",
+          "type": "Navigation",
+          "description": "主计量单位 → UOM"
+        },
+        {
+          "name": "vendorControl",
+          "type": "Boolean",
+          "description": "物理字段 VendorControl"
+        },
+        {
+          "name": "uom2",
+          "type": "Navigation",
+          "description": "副计量单位 → UOM"
+        },
+        {
+          "name": "isPhantom",
+          "type": "Boolean",
+          "description": "是否为虚拟件"
+        },
+        {
+          "name": "phantomBill",
+          "type": "Navigation",
+          "description": "虚拟件BOM → ERPBOM"
+        },
+        {
+          "name": "allowSubstitution",
+          "type": "Boolean",
+          "description": "是否允许替代物料"
+        },
+        {
+          "name": "effectiveFromDate",
+          "type": "DateTime",
+          "description": "生效开始日期"
+        },
+        {
+          "name": "effectiveFromDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveFromDateGMT"
+        },
+        {
+          "name": "effectiveThruDate",
+          "type": "DateTime",
+          "description": "生效截止日期"
+        },
+        {
+          "name": "effectiveThruDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveThruDateGMT"
+        },
+        {
+          "name": "isEnabled",
+          "type": "Boolean",
+          "description": "是否启用"
+        },
+        {
+          "name": "issueControl",
+          "type": "Integer",
+          "description": "发行控制策略"
+        },
+        {
+          "name": "erpReportingFlag",
+          "type": "Boolean",
+          "description": "是否向ERP进行汇报"
+        },
+        {
+          "name": "defaultLot",
+          "type": "String",
+          "description": "默认发料批次号"
+        },
+        {
+          "name": "erpLineItem",
+          "type": "String",
+          "description": "ERP行项目号"
+        },
+        {
+          "name": "subFactory",
+          "type": "String",
+          "description": "所属分厂或车间名称"
+        },
+        {
+          "name": "defaultStockPoint",
+          "type": "String",
+          "description": "默认发料库存点"
+        },
+        {
+          "name": "allowOverConsumption",
+          "type": "Boolean",
+          "description": "是否允许超领"
+        },
+        {
+          "name": "allowUnderConsumption",
+          "type": "Boolean",
+          "description": "是否允许少领"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物料行名称",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结"
+        },
+        {
+          "name": "adjustmentValue",
+          "type": "Float",
+          "description": "调整数量值"
+        },
+        {
+          "name": "adjustmentType",
+          "type": "Integer",
+          "description": "调整计算类型"
+        },
+        {
+          "name": "qtyIssued",
+          "type": "Float",
+          "description": "已发料数量"
+        },
+        {
+          "name": "allowAllRevisionsAsSubstitute",
+          "type": "Boolean",
+          "description": "物理字段 AllowAllRevisionsAsSubstitute"
+        },
+        {
+          "name": "assemblySequence",
+          "type": "Integer",
+          "description": "装配顺序"
+        },
+        {
+          "name": "parentRevision",
+          "type": "String",
+          "description": "物理字段 ParentRevision"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "objectTypeName",
+          "type": "String",
+          "description": "物理字段 ObjectTypeName"
+        },
+        {
+          "name": "producingOrder",
+          "type": "String",
+          "description": "关联的生产工单"
+        },
+        {
+          "name": "productBase",
+          "type": "Integer",
+          "description": "产品基线引用"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "引用的物料/产品 → Product"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "ss_MfgLine",
+      "relationName": "HAS_SS_MFG_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.ss_MfgLineId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.UOMId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM2",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.UOM2Id"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "Factory",
+      "relationName": "HAS_REPORTING_FACTORY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.ReportingFactoryId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "OrderStatus",
+      "relationName": "HAS_ORDER_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.OrderStatusId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "PriorityCode",
+      "relationName": "HAS_PRIORITY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.PriorityId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "OrderType",
+      "relationName": "HAS_ORDER_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.OrderTypeId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "ERPBOM",
+      "relationName": "HAS_ERPBOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.ERPBOMId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "MfgOrderProcedure",
+      "relationName": "HAS_PRE_PRODUCTION_PROCEDURE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.PreProductionProcedureId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "MfgOrderProcedure",
+      "relationName": "HAS_POST_PRODUCTION_PROCEDURE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.PostProductionProcedureId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "HoldStatus",
+      "relationName": "HAS_HOLD_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.HoldStatusId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_CONTAINER_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.ContainerNumberingRuleId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "Product",
+      "relationName": "HAS_BEGIN_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.BeginProductId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.ProductId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "ERPRoute",
+      "relationName": "HAS_ERP_ROUTE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.ERPRouteId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "BillOfProcess",
+      "relationName": "HAS_BILL_OF_PROCESS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.BillOfProcessId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.ProcessSpecId"
+    },
+    {
+      "fromClass": "MfgOrder",
+      "toClass": "A_ProductBOM",
+      "relationName": "HAS_PRODUCT_BOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrder.ProductBOMId"
+    },
+    {
+      "fromClass": "MfgOrderMaterialListItem",
+      "toClass": "MfgOrder",
+      "relationName": "HAS_MFG_ORDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderMaterialListItem.MfgOrderId"
+    },
+    {
+      "fromClass": "MfgOrderMaterialListItem",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderMaterialListItem.ss_WorkflowId"
+    },
+    {
+      "fromClass": "MfgOrderMaterialListItem",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderMaterialListItem.ss_StepId"
+    },
+    {
+      "fromClass": "MfgOrderMaterialListItem",
+      "toClass": "RouteStep",
+      "relationName": "HAS_ROUTE_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderMaterialListItem.RouteStepId"
+    },
+    {
+      "fromClass": "MfgOrderMaterialListItem",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderMaterialListItem.UOMId"
+    },
+    {
+      "fromClass": "MfgOrderMaterialListItem",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM2",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderMaterialListItem.UOM2Id"
+    },
+    {
+      "fromClass": "MfgOrderMaterialListItem",
+      "toClass": "ERPBOM",
+      "relationName": "HAS_PHANTOM_BILL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderMaterialListItem.PhantomBillId"
+    },
+    {
+      "fromClass": "MfgOrderMaterialListItem",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderMaterialListItem.ProductId"
+    }
+  ]
+}

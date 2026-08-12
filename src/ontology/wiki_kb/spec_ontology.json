@@ -1,0 +1,970 @@
+{
+  "module": "spec",
+  "classes": [
+    {
+      "className": "Spec",
+      "chineseName": "规范/规格",
+      "description": "Spec — 定义生产步骤的执行细节，包括操作指令、工艺参数、调度计划、资源要求、电子程序及自动化规则。Spec 是 WorkflowStep 的核心执行载体，可绑定 Operation、ElectronicProcedure、Resource、SamplingPlan 等。物理上对应 Spec (CdoId: 361)。 【Swagger】Schema: SpecEntity；来源文件: Specs.json；API: /api/Specs。",
+      "properties": [
+        {
+          "name": "allowCountVariance",
+          "type": "Boolean",
+          "description": "物理字段 AllowCountVariance 【Swagger】Flag indicating whether Count Variance recording is allowed for the step."
+        },
+        {
+          "name": "maxInsertion",
+          "type": "Integer",
+          "description": "物理字段 MaxInsertion 【Swagger】i) The maximum number of insertions a lot is allowed to go through at the operation. ii) This value will be copied to the lot’s insertion information for possible modification. This is to allow case-by-case basis where the lot is allowed to go beyond thi"
+        },
+        {
+          "name": "requireTrackInQty",
+          "type": "Boolean",
+          "description": "物理字段 RequireTrackInQty 【Swagger】i) Sets whether the track in quantity is required."
+        },
+        {
+          "name": "autoMoveOut",
+          "type": "Boolean",
+          "description": "物理字段 AutoMoveOut 【Swagger】i) Auto move out when the current insertion has completed."
+        },
+        {
+          "name": "setQtyFromWafers",
+          "type": "Boolean",
+          "description": "物理字段 SetQtyFromWafers 【Swagger】Flag indicating whether to set the lot's Qty from the wafers' records. The Good Qty will be used if it is greater than 0. Otherwise the NDPW will be used."
+        },
+        {
+          "name": "yieldOffDefects",
+          "type": "Boolean",
+          "description": "物理字段 YieldOffDefects 【Swagger】Flag indicating whether the defects collected should be yielded off."
+        },
+        {
+          "name": "inputCarrierFamily",
+          "type": "Navigation",
+          "description": "物理字段 InputCarrierFamilyId → ResourceFamily 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "checkScanning",
+          "type": "Boolean",
+          "description": "物理字段 CheckScanning 【Swagger】Flag indicating whether to check for Scanning requirements."
+        },
+        {
+          "name": "autoSelectTrackOutLots",
+          "type": "Boolean",
+          "description": "物理字段 AutoSelectTrackOutLots 【Swagger】i) Automatically select the rest of the lots that were track in together into the equipment when one of them is selected during track out."
+        },
+        {
+          "name": "verifyWafersGoodQty",
+          "type": "Boolean",
+          "description": "物理字段 VerifyWafersGoodQty 【Swagger】Flag indicating whether to verify the total Good Qty of the wafers against the move out quantity. If different do not allow move out."
+        },
+        {
+          "name": "allowDummyQty",
+          "type": "Boolean",
+          "description": "物理字段 AllowDummyQty 【Swagger】i) Set whether the collection of dummy quantity during track out and move out is allowed."
+        },
+        {
+          "name": "testIqcRequired",
+          "type": "Boolean",
+          "description": "物理字段 TestIQCRequired"
+        },
+        {
+          "name": "allowDefectQty",
+          "type": "Boolean",
+          "description": "物理字段 AllowDefectQty 【Swagger】Flag indicating whether the Defect Qty is allowed to collect."
+        },
+        {
+          "name": "autoCreateFirstInsertion",
+          "type": "Boolean",
+          "description": "物理字段 AutoCreateFirstInsertion 【Swagger】Flag indicating whether to automatically create the first insertion right after the lot moves into a WIP step."
+        },
+        {
+          "name": "processCode",
+          "type": "Navigation",
+          "description": "物理字段 ProcessCodeId → A_ProcessCode 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "uom",
+          "type": "Navigation",
+          "description": "物理字段 UOMId → UOM 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "requireMaxTimeWindow",
+          "type": "Boolean",
+          "description": "物理字段 RequireMaxTimeWindow 【Swagger】Flag indicating whether to check for any Max Time Window to initiate for a lot."
+        },
+        {
+          "name": "allowMaterialLoading",
+          "type": "Boolean",
+          "description": "物理字段 AllowMaterialLoading 【Swagger】Flag indicating whether the lot can be loaded into the equipment at its step."
+        },
+        {
+          "name": "utaPrefix",
+          "type": "String",
+          "description": "物理字段 UTAPrefix 【Swagger】UTA Prefix"
+        },
+        {
+          "name": "checkPrinting",
+          "type": "Boolean",
+          "description": "物理字段 CheckPrinting 【Swagger】Flag indicating whether to check for Printing Automation requirements."
+        },
+        {
+          "name": "consolidatePreviousBins",
+          "type": "Boolean",
+          "description": "物理字段 ConsolidatePreviousBins 【Swagger】i) Set whether previous insertion’s bins are added to the current insertion bins. ii) Only GOOD and NOTREQUIRED bins will be consolidated."
+        },
+        {
+          "name": "autoRejectsRescreens",
+          "type": "Integer",
+          "description": "物理字段 AutoRejectsRescreens 【Swagger】Field used to specify whether to automatically create a new insertion if there is a reject detected. A value of 3 means rescreen will be automatically created up to the 3rd insertion (i.e. up to 2nd rescreen). For Wafer Processing, only wafers selected to"
+        },
+        {
+          "name": "uom2",
+          "type": "Navigation",
+          "description": "物理字段 UOM2Id → UOM"
+        },
+        {
+          "name": "externalInterface",
+          "type": "Navigation",
+          "description": "物理字段 ExternalInterfaceId → A_ExternalInterface 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "runNumberSetup",
+          "type": "Navigation",
+          "description": "物理字段 RunNumberSetupId → A_RunNumberSetup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "要求的设置权限控制 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "objectCategory",
+          "type": "String",
+          "description": "物理字段 ObjectCategory"
+        },
+        {
+          "name": "objectType",
+          "type": "String",
+          "description": "物理字段 ObjectType"
+        },
+        {
+          "name": "stepLogic",
+          "type": "Navigation",
+          "description": "物理字段 StepLogicId → A_StepLogic 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "holdLotIfLimitsNotFound",
+          "type": "Boolean",
+          "description": "物理字段 HoldLotIfLimitsNotFound 【Swagger】i) Flag to hold the lot if limits criteria could not be found."
+        },
+        {
+          "name": "allowNumberOfStrips",
+          "type": "Boolean",
+          "description": "物理字段 AllowNumberOfStrips 【Swagger】i) Set whether the collection of number of strips during track out and move out is allowed."
+        },
+        {
+          "name": "maxLotsPerUser",
+          "type": "Integer",
+          "description": "物理字段 MaxLotsPerUser 【Swagger】Max Lots Per User"
+        },
+        {
+          "name": "maxEquipmentPerLot",
+          "type": "Integer",
+          "description": "物理字段 MaxEquipmentPerLot 【Swagger】i) Defines the maximum number of equipment the lot is allowed to process in. ii) The default value is 0 meaning unlimited."
+        },
+        {
+          "name": "consolidatePreviousRejects",
+          "type": "Boolean",
+          "description": "物理字段 ConsolidatePreviousRejects 【Swagger】i) Set whether previous insertion's rejects are added to the current insertion rejects."
+        },
+        {
+          "name": "binSplitRequired",
+          "type": "Boolean",
+          "description": "物理字段 BinSplitRequired 【Swagger】i) Flag indicating whether to split the bins recorded in the last binning operation. ii) This is to cater for the case where PBI bins are split out at the next PDA calculation operation."
+        },
+        {
+          "name": "binType",
+          "type": "Navigation",
+          "description": "物理字段 BinTypeId → A_BinType 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isTest",
+          "type": "Boolean",
+          "description": "物理字段 IsTest 【Swagger】Flag indicating whether the step is a test step."
+        },
+        {
+          "name": "allowRejectsRecording",
+          "type": "Boolean",
+          "description": "物理字段 AllowRejectsRecording 【Swagger】i) Set whether the operation allows reject recording."
+        },
+        {
+          "name": "allowUnidentifiableRejectQty",
+          "type": "Boolean",
+          "description": "物理字段 AllowUnidentifiableRejectQty 【Swagger】i) Set whether the collection of unidentifiable rejects during rejects recording is allowed."
+        },
+        {
+          "name": "allowReworkableRejectQty",
+          "type": "Boolean",
+          "description": "物理字段 AllowReworkableRejectQty 【Swagger】i) Set whether the collection of re-workable rejects during rejects recording is allowed."
+        },
+        {
+          "name": "wipDataSetup",
+          "type": "Navigation",
+          "description": "物理字段 WIPDataSetupId → A_WIPDataSetup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notRequiredBinsLocation",
+          "type": "Navigation",
+          "description": "物理字段 NotRequiredBinsLocationId → A_LocationMap 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isWaferProcessing",
+          "type": "Boolean",
+          "description": "物理字段 IsWaferProcessing 【Swagger】Flag indicating whether the WIP Spec is tracked using wafers. If this flag is set to true all processing must be done using Container and Wafer Scribe Number."
+        },
+        {
+          "name": "outputCarrierFamily",
+          "type": "Navigation",
+          "description": "物理字段 OutputCarrierFamilyId → ResourceFamily 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "autoSetTestProgram",
+          "type": "Boolean",
+          "description": "物理字段 AutoSetTestProgram 【Swagger】Flag indicating whether to automatically set the test program for test steps. If set to true the first record found in TestProgramSetup that matches the Process Spec, ProcessType and Spec will be used."
+        },
+        {
+          "name": "setDateCode",
+          "type": "Boolean",
+          "description": "物理字段 SetDateCode 【Swagger】Flag indicating whether to set the date code during Move Lot."
+        },
+        {
+          "name": "removeDateCode",
+          "type": "Boolean",
+          "description": "物理字段 RemoveDateCode 【Swagger】i) The Remove Date Code step attribute is used to nullify the Date Code when a lot moves to a Die Bank Inventory step during Lot Schedule Cancel ii) This logic is used for all the ASSEMBLY Process Specs only."
+        },
+        {
+          "name": "pdaLimitsRequired",
+          "type": "Boolean",
+          "description": "物理字段 PDALimitsRequired 【Swagger】Flag indicating whether PDA Limits verification is required."
+        },
+        {
+          "name": "sameParentLot",
+          "type": "Boolean",
+          "description": "物理字段 SameParentLot 【Swagger】Flag used to indicate whether or not lots processing (or to be processed) in the same equipment must belong to the same parent lot"
+        },
+        {
+          "name": "autoSetTrackInQty",
+          "type": "Boolean",
+          "description": "物理字段 AutoSetTrackInQty 【Swagger】Flag indicating whether the Track In Qty will be automatically set."
+        },
+        {
+          "name": "dispatchPlan",
+          "type": "Navigation",
+          "description": "物理字段 DispatchPlanId → A_DispatchPlan 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "verifyStepCycleTime",
+          "type": "Boolean",
+          "description": "物理字段 VerifyStepCycleTime 【Swagger】Flag indicating whether to check the StepCycleTimeSetup."
+        },
+        {
+          "name": "useEquipmentMatrix",
+          "type": "Boolean",
+          "description": "物理字段 UseEquipmentMatrix 【Swagger】Flag indicating whether the Equipment Matrix should be used to pull out available equipment for track in."
+        },
+        {
+          "name": "autoRemoveMaterials",
+          "type": "Boolean",
+          "description": "物理字段 AutoRemoveMaterials 【Swagger】Flag indicating whether to remove all the materials from the equipment after the last lot in the equipment tracks out."
+        },
+        {
+          "name": "allowSplitUnProcessed",
+          "type": "Boolean",
+          "description": "物理字段 AllowSplitUnProcessed 【Swagger】Flag indicating whether to display the Split Un-Processed fields during Track Out."
+        },
+        {
+          "name": "isSubCon",
+          "type": "Boolean",
+          "description": "物理字段 IsSubCon 【Swagger】Flag indicating whether the spec is a sub-con spec."
+        },
+        {
+          "name": "defaultMaterialWipLocation",
+          "type": "Navigation",
+          "description": "物理字段 DefaultMaterialWIPLocationId → A_LocationMap"
+        },
+        {
+          "name": "autoSetTrackOutQty",
+          "type": "Boolean",
+          "description": "物理字段 AutoSetTrackOutQty 【Swagger】Flag indicating whether to automatically set the Track Out Qty for the lot during Track Out."
+        },
+        {
+          "name": "autoSetMoveOutQty",
+          "type": "Boolean",
+          "description": "物理字段 AutoSetMoveOutQty 【Swagger】Flag indicating whether to automatically set the move out quantity. If set to false the user is required to enter the move out quantity."
+        },
+        {
+          "name": "ssOnlyCalculateYield",
+          "type": "Boolean",
+          "description": "物理字段 ss_OnlyCalculateYield"
+        },
+        {
+          "name": "ssBypassRecipeVerification",
+          "type": "Boolean",
+          "description": "物理字段 ss_BypassRecipeVerification"
+        },
+        {
+          "name": "ssBypassToolPlanVerification",
+          "type": "Boolean",
+          "description": "物理字段 ss_BypassToolPlanVerification"
+        },
+        {
+          "name": "ssLabelPlan",
+          "type": "Navigation",
+          "description": "物理字段 ss_LabelPlanId → ss_LabelPlan"
+        },
+        {
+          "name": "verifyToolPlan",
+          "type": "Boolean",
+          "description": "物理字段 ES_VerifyToolPlan"
+        },
+        {
+          "name": "scsFieldEnable",
+          "type": "Boolean",
+          "description": "物理字段 scsFieldEnable 【Swagger】to enable field for semi"
+        },
+        {
+          "name": "scsRecipeConfigRequired",
+          "type": "Boolean",
+          "description": "物理字段 scsRecipeConfigRequired 【Swagger】This field will be used during Setup and TrackIn to provide additional information related to the status of Recipe Modeling."
+        },
+        {
+          "name": "scsSpecSlotMappingRequired",
+          "type": "Boolean",
+          "description": "物理字段 scsSpecSlotMappingRequired 【Swagger】Indicate wheter the assign lot is using Spec that need to perform Slot Mapping Requirement"
+        },
+        {
+          "name": "ssUseWipDataSetupMatrix",
+          "type": "Boolean",
+          "description": "物理字段 ss_UseWIPDataSetupMatrix"
+        },
+        {
+          "name": "ssAutoUnloadFeeders",
+          "type": "Boolean",
+          "description": "物理字段 ss_AutoUnloadFeeders"
+        },
+        {
+          "name": "ssMfgLine",
+          "type": "Navigation",
+          "description": "物理字段 ss_MfgLineId → ss_MfgLine"
+        },
+        {
+          "name": "ssVerifyMfgLine",
+          "type": "Boolean",
+          "description": "物理字段 ss_VerifyMfgLine"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "schedulingDetail",
+          "type": "Navigation",
+          "description": "产能调度明细参数 → SpecSchedulingDetail 【Swagger】引用 Schema: SpecSchedulingDetailChanges。"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "specBase",
+          "type": "Navigation",
+          "description": "规格对应的基线版本 → SpecBase"
+        },
+        {
+          "name": "operation",
+          "type": "Navigation",
+          "description": "关联的工序操作定义 → Operation 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "resourceGroup",
+          "type": "Navigation",
+          "description": "允许执行的设备资源组限制 → ResourceGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "maxQueueTime",
+          "type": "Float",
+          "description": "最大排队时间 【Swagger】This is not implemented in the current version of InSite. This value determines the maximum length of time a Container can remain in an in-queue state at the Step that uses this Spec. The value for MaximumQueueTimeAction determines the action to take if the in-queue time exceeds this value."
+        },
+        {
+          "name": "maxQueueTimeAction",
+          "type": "Integer",
+          "description": "超时动作：0=None, 1=Warn, 3=Hold, 4=Block 【Swagger】This is not implemented in the current version of InSite. This value is used to determine the action to take when a Service (transaction) is started for a Container that has been in-queue longer than the allowable queue time (MaxQueueTime). The values for this option are: 0 = No action 1 = Warning to Operator 2 = Warning to Operator requiring a password to continue 3 = Place container on Hold 4 = Do not allow transaction to continue These values and their associated actions are intended to match the values and actions for field validations. This action applies to any service that changes a Container from an In-Queue to an In-Process state."
+        },
+        {
+          "name": "warningQueueTime",
+          "type": "Float",
+          "description": "容器排队状态触发警告前的时长（当前版本未实现）。 【Swagger】This is not implemented in the current version of InSite. This value specifies the length of time a Container can remain in an in-queue state before a warning is to be triggered."
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "绑定的作业指导文档集 → DocumentSet 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "allowReworkTo",
+          "type": "Boolean",
+          "description": "允许此规格的步骤作为返工目标步骤。 【Swagger】Determines if a Step that references this Spec can be the To-Step for a Rework Transaction."
+        },
+        {
+          "name": "trainingReqGroup",
+          "type": "Navigation",
+          "description": "要求的培训/上岗资格限制组 → TrainingRequirementGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "allowOverrides",
+          "type": "Boolean",
+          "description": "允许覆盖。 【Swagger】Allow Overrides"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "validateMaterialConsumption",
+          "type": "Boolean",
+          "description": "对规格强制执行材料消耗检查。 【Swagger】This flag determines if the material consumption check should be enforced for this spec"
+        },
+        {
+          "name": "allowReprocess",
+          "type": "Boolean",
+          "description": "允许容器重复移入此规格（如重测）。 【Swagger】Allow a Container to be Moved through/into this Spec repeatedly. Commonly used to rerun a Container through automated testing equipment if the previous test was invalid"
+        },
+        {
+          "name": "ssIsSendAheadRequired",
+          "type": "Boolean",
+          "description": "物理字段 ss_IsSendAheadRequired"
+        },
+        {
+          "name": "autoFillDataPointHistoryValue",
+          "type": "Boolean",
+          "description": "从最新记录自动填充数据采集值。 【Swagger】This Boolean is to auto filling data collection values from previous latest record"
+        },
+        {
+          "name": "validateActiveMfgOrder",
+          "type": "Boolean",
+          "description": "启用或禁用对资源活动工单的验证。 【Swagger】This field enables or disables the validation process for active mfg order assigned to the resource. When enabled, the container's mfg order will be validated during the process."
+        },
+        {
+          "name": "allowOtherResource",
+          "type": "Boolean",
+          "description": "允许其他资源（非上次移动的资源）。 【Swagger】Allow other resource than the resource that performed last movement"
+        },
+        {
+          "name": "optional",
+          "type": "Integer",
+          "description": "步骤可选并可跳过。 【Swagger】Specifies whether the step is considered optional and can be skipped"
+        },
+        {
+          "name": "postProductionAction",
+          "type": "Integer",
+          "description": "工单完成后操作：1=启用过程 2=要求过程。 【Swagger】What to do when production completed for an Mfg Order with a configured post-production procedure 1 - EnableProcedure 2 - RequireProcedure"
+        },
+        {
+          "name": "requirePreProductionProcedure",
+          "type": "Boolean",
+          "description": "标识容器移动被阻止直到预生产程序完成的步骤。 【Swagger】Identifies step at which container movement blocked until Pre-Production Procedure is complete."
+        },
+        {
+          "name": "validateLotSamplingComplete",
+          "type": "Boolean",
+          "description": "若为True，则验证批次抽样是否已完成。 【Swagger】If True Validates that the Lot Sampling has been completed"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "setupBase",
+          "type": "Integer",
+          "description": "多态换线基准 revision 字段 → SetupBase"
+        },
+        {
+          "name": "setup",
+          "type": "Navigation",
+          "description": "要求的设备换线配置 → Setup 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "recipeFileBase",
+          "type": "Integer",
+          "description": "多态配方文档基准 revision 字段 → DocumentBase"
+        },
+        {
+          "name": "recipeFile",
+          "type": "Navigation",
+          "description": "工位关联的默认配方/指导文档 → Document 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "electronicProcedureBase",
+          "type": "Integer",
+          "description": "多态电子程序基准 revision 字段 → ElectronicProcedureBase"
+        },
+        {
+          "name": "electronicProcedure",
+          "type": "Navigation",
+          "description": "绑定的电子操作规程流程 → ElectronicProcedure 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "ldIsStorageLocRequired",
+          "type": "Boolean",
+          "description": "物理字段 ldIsStorageLocRequired"
+        },
+        {
+          "name": "ldN2Cabinet",
+          "type": "Boolean",
+          "description": "物理字段 ldN2Cabinet"
+        },
+        {
+          "name": "ldIsInspectionSpec",
+          "type": "Boolean",
+          "description": "物理字段 ldIsInspectionSpec"
+        },
+        {
+          "name": "ldIsNgSpec",
+          "type": "Boolean",
+          "description": "物理字段 ldIsNGSpec"
+        },
+        {
+          "name": "ldIsCarrierRequiredForRework",
+          "type": "Boolean",
+          "description": "物理字段 ldIsCarrierRequiredForRework"
+        },
+        {
+          "name": "ldMaxReworkCount",
+          "type": "Integer",
+          "description": "物理字段 ldMaxReworkCount"
+        }
+      ]
+    },
+    {
+      "className": "SpecSchedulingDetail",
+      "chineseName": "规格调度详情",
+      "description": "Spec Scheduling Detail — 定义规格层面的产能和周期时间参数（节拍、准备时间、良率）。物理上对应 SpecSchedulingDetail (CdoId: 389)。 【Swagger】Schema: SpecSchedulingDetailChanges；来源文件: AssemblyScheduledSpecs.json；API: /api/AssemblyScheduledSpecs。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "durationPerUnit",
+          "type": "Float",
+          "description": "单单位加工时长 【Swagger】This value specifies the amount of time needed to process a single unit. This is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "yield",
+          "type": "Float",
+          "description": "预期良率 (%) 【Swagger】Specifies the standard yield expected for processing with this Spec. This value is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "spec",
+          "type": "Integer",
+          "description": "关联的母规格定义 → Spec"
+        },
+        {
+          "name": "fastCycleTime",
+          "type": "Float",
+          "description": "物理字段 FastCycleTime 【Swagger】This is a calculated value that denotes the time required processing a standard size batch of material using this Spec, assuming fast queue time. This is used to determine, for example, how quickly a job can be expedited through the Factory. The calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved."
+        },
+        {
+          "name": "normalCycleTime",
+          "type": "Float",
+          "description": "物理字段 NormalCycleTime 【Swagger】This is a calculated value that denotes the time required processing a standard size batch of material using this Spec, assuming normal queue time. The calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved."
+        },
+        {
+          "name": "runRateOption",
+          "type": "Integer",
+          "description": "物理字段 RunRateOption 【Swagger】This option determines if run rate is specified as hours per unit or units per hour or time per batch. The values and their meanings are: 1 = Hours per unit (RunRateTime) 2 = Unites per hour (RunRateQuantity) 3 = Time Per Batch (RunRate Time)"
+        },
+        {
+          "name": "unitsPerHour",
+          "type": "Float",
+          "description": "每小时产出单位数 (UPH) 【Swagger】This value specifies the number of units processed in an hour. This is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "stdBatchSize",
+          "type": "Float",
+          "description": "标准批次大小 【Swagger】This value specifies the standard size of a batch of material processed using this Spec. This is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "setupTime",
+          "type": "Float",
+          "description": "设置/换线时长 【Swagger】This value specifies the time required for a Setup at this Operation. This is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "unscheduledTime",
+          "type": "Float",
+          "description": "物理字段 UnscheduledTime 【Swagger】Process time that is not contained in the UPH,HPU or Batch Time entries."
+        },
+        {
+          "name": "timePerBatch",
+          "type": "Float",
+          "description": "物理字段 TimePerBatch 【Swagger】This value specified the time needed to process a single Batch."
+        }
+      ]
+    },
+    {
+      "className": "TxnMap",
+      "chineseName": "事务映射",
+      "description": "Transaction Map — 将系统事务类型映射到特定的数据采集定义，限定各工序下可采集的参数。物理上对应 TxnMap (CdoId: 411)。 【Swagger】Schema: TxnMapChanges；来源文件: AssemblyScheduledSpecs.json；API: /api/AssemblyScheduledSpecs。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "执行顺序 【Swagger】Relative sequence for performing this transaction."
+        },
+        {
+          "name": "txnType",
+          "type": "Integer",
+          "description": "事务类型标识"
+        },
+        {
+          "name": "txnToUse",
+          "type": "Integer",
+          "description": "使用的底层交易ID 【Swagger】Id of the User Defined Transaction (CDO Definition Id) to be used in place of the standard Transaction (see TxnToUseName)."
+        },
+        {
+          "name": "required",
+          "type": "Boolean",
+          "description": "该数据采集是否为必填项 【Swagger】Determines if this transaction must be performed before the Spec is complete (and a Move-out is allowed)"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "归属的规格定义 → Spec"
+        },
+        {
+          "name": "dataCollectionDefinitionBase",
+          "type": "Integer",
+          "description": "数据采集定义基线 revision 字段"
+        },
+        {
+          "name": "dataCollectionDefinition",
+          "type": "Navigation",
+          "description": "绑定的数据采集定义 → DataCollectionDef"
+        }
+      ]
+    },
+    {
+      "className": "ESigReqTxnMap",
+      "chineseName": "电子签名事务映射",
+      "description": "E-Signature Requirement Transaction Map — 定义规格事务执行的电子签名限制要求。物理上对应 ESigReqTxnMap (CdoId: 964)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "归属的规格定义 → Spec"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "allTxns",
+          "type": "Boolean",
+          "description": "是否应用于所有事务"
+        },
+        {
+          "name": "eSigRequirement",
+          "type": "Navigation",
+          "description": "物理字段 ESigRequirementId → ESigRequirement"
+        },
+        {
+          "name": "txnId",
+          "type": "Integer",
+          "description": "事务定义 ID"
+        },
+        {
+          "name": "txnToUse",
+          "type": "String",
+          "description": "适用的底层事务名"
+        }
+      ]
+    },
+    {
+      "className": "BPSpecBizRuleTxnMap",
+      "chineseName": "业务规则事务映射",
+      "description": "Business Process Spec BizRule Transaction Map — 定义在特定规格事务事件发生时触发的业务规则逻辑。物理上对应 BPSpecBizRuleTxnMap (CdoId: 1727)。 【Swagger】Schema: BPSpecBizRuleTxnMapChanges；来源文件: AssemblyScheduledSpecs.json；API: /api/AssemblyScheduledSpecs。",
+      "properties": [
+        {
+          "name": "businessProcessSpec",
+          "type": "Navigation",
+          "description": "归属的业务流程规格定义 → BusinessProcessSpec"
+        },
+        {
+          "name": "event",
+          "type": "Integer",
+          "description": "触发事件 ID 【Swagger】The event which should fire."
+        },
+        {
+          "name": "businessRule",
+          "type": "Navigation",
+          "description": "触发执行的业务规则主数据 → BusinessRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "txnToUse",
+          "type": "Integer",
+          "description": "适用的交易ID 【Swagger】The transaction that will execute the business rule."
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Spec",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_INPUT_CARRIER_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.InputCarrierFamilyId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "A_ProcessCode",
+      "relationName": "HAS_PROCESS_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.ProcessCodeId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.UOMId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM2",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.UOM2Id"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "A_ExternalInterface",
+      "relationName": "HAS_EXTERNAL_INTERFACE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.ExternalInterfaceId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "A_RunNumberSetup",
+      "relationName": "HAS_RUN_NUMBER_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.RunNumberSetupId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "A_StepLogic",
+      "relationName": "HAS_STEP_LOGIC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.StepLogicId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "A_BinType",
+      "relationName": "HAS_BIN_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.BinTypeId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "A_WIPDataSetup",
+      "relationName": "HAS_WIP_DATA_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.WIPDataSetupId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "A_LocationMap",
+      "relationName": "HAS_NOT_REQUIRED_BINS_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.NotRequiredBinsLocationId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_OUTPUT_CARRIER_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.OutputCarrierFamilyId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "A_DispatchPlan",
+      "relationName": "HAS_DISPATCH_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.DispatchPlanId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "A_LocationMap",
+      "relationName": "HAS_DEFAULT_MATERIAL_WIP_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.DefaultMaterialWIPLocationId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "ss_LabelPlan",
+      "relationName": "HAS_SS_LABEL_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.ss_LabelPlanId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "ss_MfgLine",
+      "relationName": "HAS_SS_MFG_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.ss_MfgLineId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "SpecSchedulingDetail",
+      "relationName": "HAS_SCHEDULING_DETAIL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.SchedulingDetailId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "SpecBase",
+      "relationName": "HAS_SPEC_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.SpecBaseId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "Operation",
+      "relationName": "HAS_OPERATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.OperationId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_RESOURCE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.ResourceGroupId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.DocumentSetId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "TrainingRequirementGroup",
+      "relationName": "HAS_TRAINING_REQ_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.TrainingReqGroupId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "Setup",
+      "relationName": "HAS_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.SetupId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "Document",
+      "relationName": "HAS_RECIPE_FILE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.RecipeFileId"
+    },
+    {
+      "fromClass": "Spec",
+      "toClass": "ElectronicProcedure",
+      "relationName": "HAS_ELECTRONIC_PROCEDURE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Spec.ElectronicProcedureId"
+    },
+    {
+      "fromClass": "TxnMap",
+      "toClass": "BillOfProcessOverride",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TxnMap.SpecId"
+    },
+    {
+      "fromClass": "TxnMap",
+      "toClass": "DataCollectionDef",
+      "relationName": "HAS_DATA_COLLECTION_DEFINITION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TxnMap.DataCollectionDefinitionId"
+    },
+    {
+      "fromClass": "ESigReqTxnMap",
+      "toClass": "Factory",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ESigReqTxnMap.ParentId"
+    },
+    {
+      "fromClass": "BPSpecBizRuleTxnMap",
+      "toClass": "BusinessProcessSpec",
+      "relationName": "HAS_BUSINESS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BPSpecBizRuleTxnMap.BusinessProcessSpecId"
+    },
+    {
+      "fromClass": "BPSpecBizRuleTxnMap",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_BUSINESS_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BPSpecBizRuleTxnMap.BusinessRuleId"
+    }
+  ]
+}

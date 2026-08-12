@@ -1,0 +1,130 @@
+{
+  "module": "semiconductor_bin_overlay",
+  "classes": [
+    {
+      "className": "scsBinCode",
+      "chineseName": "Bin代码",
+      "description": "晶圆或测试结果分Bin使用的代码定义。 物理对应 scsBinCode (CdoId: 681574495, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "scsBinCodeMap",
+          "type": "Navigation",
+          "description": "物理字段 scsBinCodeMapId → scsBinCodeMap"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsBinCodeName",
+          "required": true
+        },
+        {
+          "name": "binCodeSequence",
+          "type": "Integer",
+          "description": "物理字段 BinCodeSequence"
+        },
+        {
+          "name": "binCodeValues",
+          "type": "String",
+          "description": "物理字段 BinCodeValues"
+        },
+        {
+          "name": "binCodeX",
+          "type": "Integer",
+          "description": "物理字段 BinCodeX"
+        },
+        {
+          "name": "binCodeNumber",
+          "type": "Integer",
+          "description": "物理字段 BinCodeNumber"
+        },
+        {
+          "name": "binCodeY",
+          "type": "Integer",
+          "description": "物理字段 BinCodeY"
+        }
+      ]
+    },
+    {
+      "className": "scsBinDefinition",
+      "chineseName": "Bin定义",
+      "description": "半导体分Bin规则引用的Bin主数据。 物理对应 scsBinDefinition (CdoId: 681574494, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "scsBinCodeMap",
+          "type": "Navigation",
+          "description": "物理字段 scsBinCodeMapId → scsBinCodeMap"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsBinDefinitionName",
+          "required": true
+        },
+        {
+          "name": "pick",
+          "type": "Boolean",
+          "description": "物理字段 Pick"
+        },
+        {
+          "name": "binDescription",
+          "type": "String",
+          "description": "物理字段 BinDescription"
+        },
+        {
+          "name": "binQuality",
+          "type": "String",
+          "description": "物理字段 BinQuality"
+        },
+        {
+          "name": "binCount",
+          "type": "Integer",
+          "description": "物理字段 BinCount"
+        },
+        {
+          "name": "binCode",
+          "type": "String",
+          "description": "物理字段 BinCode"
+        }
+      ]
+    },
+    {
+      "className": "scsOverlay",
+      "chineseName": "Overlay定义",
+      "description": "晶圆图和工艺数据使用的Overlay配置。 物理对应 scsOverlay (CdoId: 681574489, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "scsMapDataSubstrateMap",
+          "type": "Navigation",
+          "description": "物理字段 scsMapDataSubstrateMapId → scsMapDataSubstrateMap"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsOverlayName",
+          "required": true
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "mapName",
+          "type": "String",
+          "description": "物理字段 MapName"
+        },
+        {
+          "name": "mapVersion",
+          "type": "String",
+          "description": "物理字段 MapVersion"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

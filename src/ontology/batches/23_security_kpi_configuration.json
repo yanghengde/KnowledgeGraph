@@ -1,0 +1,84 @@
+{
+  "module": "semiconductor_security_kpi_configuration",
+  "titleZh": "安全、KPI与公共配置",
+  "titleEn": "Security, KPI, and Shared Configuration",
+  "overviewZh": "补齐安全权限、KPI、通知、代码组和公共建模配置实体。",
+  "overviewEn": "Adds physical security, KPI, notification, code-group, and shared modeling configuration entities.",
+  "entities": [
+    {
+      "className": "ESigRoleGroup",
+      "chineseName": "电子签名角色组",
+      "description": "电子签名允许角色的分组配置。"
+    },
+    {
+      "className": "ExternalPermission",
+      "chineseName": "外部权限",
+      "description": "外部系统或功能权限定义。"
+    },
+    {
+      "className": "FilterTag",
+      "chineseName": "过滤标签",
+      "description": "建模对象过滤和分类使用的标签。"
+    },
+    {
+      "className": "ErrorMsg",
+      "chineseName": "错误消息",
+      "description": "系统错误消息和显示内容配置。"
+    },
+    {
+      "className": "KPIMatrix",
+      "chineseName": "KPI矩阵",
+      "description": "KPI指标组合与矩阵配置。"
+    },
+    {
+      "className": "KPITimeframe",
+      "chineseName": "KPI时间范围",
+      "description": "KPI统计和展示使用的时间范围。"
+    },
+    {
+      "className": "KPIType",
+      "chineseName": "KPI类型",
+      "description": "KPI指标类型主数据。"
+    },
+    {
+      "className": "NamedObjectGroup",
+      "chineseName": "命名对象组",
+      "description": "命名建模对象的通用分组定义。"
+    },
+    {
+      "className": "NotifVar",
+      "chineseName": "通知变量",
+      "description": "通知模板可引用的变量定义。"
+    },
+    {
+      "className": "ReprintReason",
+      "chineseName": "重新打印原因",
+      "description": "标签或文档重新打印的原因代码。"
+    },
+    {
+      "className": "RevisionedObjectGroup",
+      "chineseName": "版本对象组",
+      "description": "版本化建模对象的通用分组。"
+    },
+    {
+      "className": "SummaryTableDef",
+      "chineseName": "汇总表定义",
+      "description": "汇总数据表结构与展示配置。"
+    },
+    {
+      "className": "SystemSecurityGroup",
+      "chineseName": "系统安全组",
+      "description": "系统级用户和权限安全组。"
+    },
+    {
+      "className": "TextVariable",
+      "chineseName": "文本变量",
+      "description": "消息与模板中的文本变量定义。"
+    },
+    {
+      "className": "UserCodeGroup",
+      "chineseName": "用户代码组",
+      "description": "用户自定义代码的分组配置。"
+    }
+  ]
+}

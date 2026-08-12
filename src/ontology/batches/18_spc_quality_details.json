@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_spc_quality_details",
+  "titleZh": "半导体SPC与质量参数明细建模",
+  "titleEn": "Semiconductor SPC and Quality Parameter Detail Modeling",
+  "overviewZh": "本批次覆盖SPC矩阵、规则、配置、WIP矩阵及IQC的配置参数和明细，不包含SPC事务采集明细。",
+  "overviewEn": "This batch covers configuration parameters and details for SPC matrices, rules, setup, WIP matrices, and IQC, excluding runtime SPC transaction details.",
+  "entities": [
+    {"className": "A_SPCMatrixParams", "chineseName": "SPC矩阵参数", "description": "定义SPC矩阵参数。"},
+    {"className": "A_SPCRulesParams", "chineseName": "SPC规则参数", "description": "定义SPC规则参数。"},
+    {"className": "A_SPCSetupDetails", "chineseName": "SPC配置明细", "description": "定义SPC图表和数据项明细。"},
+    {"className": "A_SPCSetupDetailsInlineParam", "chineseName": "SPC内联参数", "description": "定义SPC配置内联参数。"},
+    {"className": "A_SPCSetupDetailsParams", "chineseName": "SPC明细参数", "description": "定义SPC明细参数。"},
+    {"className": "A_SPCSetupDetailsTitle", "chineseName": "SPC明细标题", "description": "定义SPC明细显示标题。"},
+    {"className": "A_SPCSetupParams", "chineseName": "SPC配置参数", "description": "定义SPC配置级参数。"},
+    {"className": "A_SPCWIPDataMatrixParams", "chineseName": "SPC WIP矩阵参数", "description": "定义SPC WIP数据矩阵参数。"},
+    {"className": "ss_CustomSPCGridFilter", "chineseName": "SPC网格过滤器", "description": "定义SPC网格自定义过滤配置。"},
+    {"className": "ss_SPCGPCChartData", "chineseName": "SPC GPC图表配置", "description": "定义SPC GPC图表数据配置。"},
+    {"className": "ss_ParameterMatrixList", "chineseName": "参数矩阵列表", "description": "定义参数矩阵列表明细。"},
+    {"className": "ss_ParamNameDetails", "chineseName": "参数名称明细", "description": "定义参数名称的可选项和规则。"},
+    {"className": "scsInlineParams", "chineseName": "内联参数", "description": "定义半导体内联参数。"},
+    {"className": "A_TestIQCParamsDetails", "chineseName": "IQC参数明细", "description": "定义IQC测试参数明细。"},
+    {"className": "ss_UsageReqSetupDetails", "chineseName": "使用需求配置明细", "description": "定义使用需求配置明细。"}
+  ]
+}

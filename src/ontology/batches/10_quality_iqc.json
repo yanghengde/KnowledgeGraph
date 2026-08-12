@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_quality_iqc",
+  "titleZh": "半导体质量、IQC与分选建模",
+  "titleEn": "Semiconductor Quality, IQC, and Sorting Modeling",
+  "overviewZh": "本批次覆盖检查表矩阵、PDA限制、规格Bin、IQC检查与参数、分选代码及失败Hold配置；运行时IQC数据不作为顶级配置实体。",
+  "overviewEn": "This batch covers check-sheet matrices, PDA limits, specification bins, IQC checks and parameters, sorting codes, and failure-hold setup. Runtime IQC data is excluded.",
+  "entities": [
+    {"className": "A_CheckSheetMatrix", "chineseName": "检查表矩阵", "description": "按产品、规格、设备和步骤选择检查表。"},
+    {"className": "A_CountVarianceLimits", "chineseName": "数量差异限制", "description": "定义数量差异允许范围。"},
+    {"className": "A_PDALimits", "chineseName": "PDA限制", "description": "定义PDA质量限制及失败动作。"},
+    {"className": "A_ProcessSpecBins", "chineseName": "工艺规格Bin", "description": "定义工艺规格关联的Bin规则。"},
+    {"className": "A_RejectCategory", "chineseName": "拒收类别", "description": "定义质量拒收类别。"},
+    {"className": "A_ResortNoteCode", "chineseName": "重分选备注代码", "description": "定义重分选备注代码。"},
+    {"className": "A_SortNoteCode", "chineseName": "分选备注代码", "description": "定义分选备注代码。"},
+    {"className": "A_SortIQCLotCheck", "chineseName": "IQC批次检查", "description": "定义IQC批次检查配置。"},
+    {"className": "A_SortIQCWaferCheck", "chineseName": "IQC晶圆检查", "description": "定义IQC晶圆检查配置。"},
+    {"className": "A_SortSQAFailure", "chineseName": "SQA失败配置", "description": "定义分选SQA失败处理配置。"},
+    {"className": "A_TestIQCOption", "chineseName": "IQC测试选项", "description": "定义IQC测试选项。"},
+    {"className": "A_TestIQCParams", "chineseName": "IQC测试参数", "description": "定义IQC测试参数。"},
+    {"className": "A_TestIQCSetup", "chineseName": "IQC测试配置", "description": "定义IQC测试总体配置。"},
+    {"className": "A_VarianceReason", "chineseName": "差异原因", "description": "定义数量或质量差异原因。"},
+    {"className": "scsFailureHoldSetup", "chineseName": "失败Hold配置", "description": "定义质量失败后的Hold动作。"}
+  ]
+}

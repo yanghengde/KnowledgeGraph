@@ -1,0 +1,150 @@
+{
+  "module": "issue",
+  "classes": [
+    {
+      "className": "IssueReason",
+      "chineseName": "物料发行原因",
+      "description": "IssueReason — 物料发行原因代码（命名对象）。用于指定在制品容器(Container)在进行物料发行(Issue)交易时的具体业务原因，如生产消耗、补料、损耗等。通过 applyToReq 标记是否将发行数量计入需求满足。 【Swagger】Schema: IssueReasonEntity；来源文件: IssueReasons.json；API: /api/IssueReasons。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "发行原因唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "applyToReq",
+          "type": "Boolean",
+          "description": "是否将发行数量用于满足物料需求 【Swagger】Determines whether the quantity being issued is used to satisfy the requirement"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "IssueDifferenceReason",
+      "chineseName": "物料发行差异原因",
+      "description": "IssueDifferenceReason — 物料发行差异原因代码（命名对象）。用于解释实际发行数量与计划需求数量之间出现差异的原因，如库存不足、替代物料、溢领(超额发放)等。被 Spec(DefaultIssueDifferenceReasonId) 和 Factory(isDefaultIssueDiffReasonId, isDefaultReplaceReasonId) 作为默认配置引用。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "发行差异原因唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "IssueCondition",
+      "chineseName": "物料发行条件",
+      "description": "IssueCondition — 物料发行条件（命名对象）。定义在何种条件/状态下才允许进行物料发行交易，如容器状态为 Active、工单状态为 Released 等。通过 ContainerIssueConditions 和 OrderTypeIssueConditions 桥接表分别与容器(Container)和工单类型(OrderType)建立多对多关联。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "发行条件唯一名称（必填）",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

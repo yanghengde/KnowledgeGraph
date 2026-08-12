@@ -1,0 +1,72 @@
+{
+  "module": "resource_type",
+  "classes": [
+    {
+      "className": "ResourceType",
+      "chineseName": "资源类型",
+      "description": "Resource Type — 资源类型定义实体。定义设备资源的分类类型（如设备、工具、人员、夹具等）。 【Swagger】Schema: ResourceTypeEntity；来源文件: ResourceTypes.json；API: /api/ResourceTypes。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "resourceStatusModel",
+          "type": "Navigation",
+          "description": "关联的资源状态模型。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "资源类型的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "uiPreference",
+          "type": "Navigation",
+          "description": "关联的UI偏好设置。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ResourceType",
+      "toClass": "ResourceStatusModel",
+      "relationName": "HAS_RESOURCE_STATUS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceType.ResourceStatusModelId"
+    }
+  ]
+}

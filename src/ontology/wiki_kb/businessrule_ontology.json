@@ -1,0 +1,325 @@
+{
+  "module": "businessrule",
+  "classes": [
+    {
+      "className": "BusinessRule",
+      "chineseName": "业务规则",
+      "description": "Business Rule — 定义在 MES 事务执行过程中自动触发的业务逻辑。BusinessRule 通过 Spec 的 BizRuleTxnMap（业务规则事务映射）与特定事务事件绑定，当事务发生时自动校验或执行业务规则。规则可包含参数(BizRuleParameter)和数据处理逻辑(data)。 【Swagger】Schema: BusinessRuleEntity；来源文件: BusinessRules.json；API: /api/BusinessRules。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "安全配置访问控制 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "businessRuleData",
+          "type": "Navigation",
+          "description": "业务规则的数据/逻辑定义 → BusinessRuleData"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "业务规则的描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "业务规则的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "BusinessRuleData",
+      "chineseName": "业务规则数据",
+      "description": "BusinessRuleData — 业务规则的数据/逻辑定义主体（CdoId: 1119）。定义业务规则运行的触发条件、执行条件表达式、执行范围以及关联的母业务规则定义。 【Swagger】Schema: BusinessRuleDataChanges；来源文件: BusinessRules.json；API: /api/BusinessRules。",
+      "properties": [
+        {
+          "name": "businessRuleCondition",
+          "type": "String",
+          "description": "规则执行条件表达式（最长4000字符）"
+        },
+        {
+          "name": "alwaysExecute",
+          "type": "Boolean",
+          "description": "是否总是执行（不判断条件） 【Swagger】Always Execute"
+        },
+        {
+          "name": "scope",
+          "type": "Integer",
+          "description": "规则执行范围编码 【Swagger】Biz Rule Scope: 0 = Global 1 = Local"
+        },
+        {
+          "name": "contextType",
+          "type": "Integer",
+          "description": "规则执行上下文类型编码 【Swagger】Context Type"
+        },
+        {
+          "name": "businessRule",
+          "type": "Navigation",
+          "description": "关联的业务规则定义 → BusinessRule"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "规则数据块唯一名称（必填，通常映射 BusinessRuleDataName） 【Swagger】Unique name for the name subentity.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "BizRuleParameter",
+      "chineseName": "业务规则参数",
+      "description": "Business Rule Parameter — 业务规则的输入参数，定义规则执行时需要的参数名称、类型和默认值。 【Swagger】Schema: BizRuleParameterChanges；来源文件: BusinessRules.json；API: /api/BusinessRules。",
+      "properties": [
+        {
+          "name": "businessRuleData",
+          "type": "Navigation",
+          "description": "关联的规则数据实体 → BusinessRuleData"
+        },
+        {
+          "name": "valueExpression",
+          "type": "String",
+          "description": "物理字段 ValueExpression 【Swagger】InSite Unified Expression for the Parameter Value"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "paramSpec",
+          "type": "Navigation",
+          "description": "引用的处理器参数规格 → BizRuleHandlerParameter 【Swagger】引用 Schema: NamedSubentityRef。"
+        },
+        {
+          "name": "businessRuleHandler",
+          "type": "Navigation",
+          "description": "引用的规则处理器 → BusinessRuleHandler 【Swagger】引用 Schema: NamedObjectRef。"
+        }
+      ]
+    },
+    {
+      "className": "BusinessRuleHandler",
+      "chineseName": "业务规则动作处理器",
+      "description": "BusinessRuleHandler — 规则动作处理器（CdoId: 1116）。定义业务规则被触发时执行的具体后端逻辑、服务方法、以及用于进行保存前校验的开关配置。 【Swagger】Schema: BusinessRuleHandlerEntity；来源文件: BusinessRuleHandlers.json；API: /api/BusinessRuleHandlers。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "安全访问设置控制 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "businessRuleHandlerData",
+          "type": "Navigation",
+          "description": "处理器底层数据主体 → BusinessRuleHandlerData"
+        },
+        {
+          "name": "validateOnSave",
+          "type": "Boolean",
+          "description": "是否开启在保存时校验 【Swagger】Validate On Save"
+        },
+        {
+          "name": "isValid",
+          "type": "Boolean",
+          "description": "动作处理器有效状态"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "动作处理器名称（必填，通常映射 BusinessRuleHandlerName） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类过滤器标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "BusinessRuleHandlerData",
+      "chineseName": "业务规则动作处理器数据",
+      "description": "BusinessRuleHandlerData — 规则动作处理器的配置数据实体（CdoId: 1117）。存储动作处理器的脚本内容、动作执行类型与关联服务类型定义。 【Swagger】Schema: BusinessRuleHandlerDataChanges；来源文件: BusinessRuleHandlers.json；API: /api/BusinessRuleHandlers。",
+      "properties": [
+        {
+          "name": "serviceType",
+          "type": "Integer",
+          "description": "调用服务类型编码 【Swagger】'Update' Service Type"
+        },
+        {
+          "name": "bizRuleHandlerType",
+          "type": "Integer",
+          "description": "动作处理器类型编码 【Swagger】Biz Rule Handler Type: 1 = Script 2 = Service 3 = CLF 4 = Method"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "script",
+          "type": "String",
+          "description": "执行动作对应的脚本逻辑内容（最长4000字符） 【Swagger】Script"
+        },
+        {
+          "name": "businessRuleHandler",
+          "type": "Navigation",
+          "description": "关联的动作处理器 → BusinessRuleHandler"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "数据块名称（必填，通常映射 BusinessRuleHandlerDataName） 【Swagger】Unique name for the name subentity.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "BizRuleHandlerParameter",
+      "chineseName": "规则处理器参数规格",
+      "description": "BizRuleHandlerParameter — 规则动作处理器的输入参数规格定义（CdoId: 1115）。用于定义特定动作处理器所需传入的底层参数规格及默认值。 【Swagger】Schema: BizRuleHandlerParameterChanges；来源文件: BusinessRuleHandlers.json；API: /api/BusinessRuleHandlers。",
+      "properties": [
+        {
+          "name": "businessRuleHandlerData",
+          "type": "Navigation",
+          "description": "处理器底层数据主体 → BusinessRuleHandlerData"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "参数规格名称（必填，通常映射 BizRuleHandlerParameterName） 【Swagger】Unique name for the name subentity.",
+          "required": true
+        },
+        {
+          "name": "dataType",
+          "type": "Integer",
+          "description": "参数类型编码 【Swagger】The Insite data type. 1 Integer 2 Float 3 Fixed 4 String 5 Object 6 TimeStamp 7 Boolean 9 Decimal"
+        },
+        {
+          "name": "defaultValue",
+          "type": "String",
+          "description": "参数默认值表达式 【Swagger】Default Value"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "BusinessRule",
+      "toClass": "BusinessRuleData",
+      "relationName": "HAS_BUSINESS_RULE_DATA",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessRule.BusinessRuleDataId"
+    },
+    {
+      "fromClass": "BusinessRuleData",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_BUSINESS_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessRuleData.BusinessRuleId"
+    },
+    {
+      "fromClass": "BizRuleParameter",
+      "toClass": "BusinessRuleData",
+      "relationName": "HAS_BUSINESS_RULE_DATA",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BizRuleParameter.BusinessRuleDataId"
+    },
+    {
+      "fromClass": "BizRuleParameter",
+      "toClass": "BizRuleHandlerParameter",
+      "relationName": "HAS_PARAM_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BizRuleParameter.ParamSpecId"
+    },
+    {
+      "fromClass": "BizRuleParameter",
+      "toClass": "BusinessRuleHandler",
+      "relationName": "HAS_BUSINESS_RULE_HANDLER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BizRuleParameter.BusinessRuleHandlerId"
+    },
+    {
+      "fromClass": "BusinessRuleHandler",
+      "toClass": "BusinessRuleHandlerData",
+      "relationName": "HAS_BUSINESS_RULE_HANDLER_DATA",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessRuleHandler.BusinessRuleHandlerDataId"
+    },
+    {
+      "fromClass": "BusinessRuleHandlerData",
+      "toClass": "BusinessRuleHandler",
+      "relationName": "HAS_BUSINESS_RULE_HANDLER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessRuleHandlerData.BusinessRuleHandlerId"
+    },
+    {
+      "fromClass": "BizRuleHandlerParameter",
+      "toClass": "BusinessRuleHandlerData",
+      "relationName": "HAS_BUSINESS_RULE_HANDLER_DATA",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BizRuleHandlerParameter.BusinessRuleHandlerDataId"
+    }
+  ]
+}

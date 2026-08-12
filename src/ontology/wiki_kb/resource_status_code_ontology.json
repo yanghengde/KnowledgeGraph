@@ -1,0 +1,107 @@
+{
+  "module": "resource_status_code",
+  "classes": [
+    {
+      "className": "ResourceStatusCode",
+      "chineseName": "资源状态代码",
+      "description": "Resource Status Code — 资源状态代码定义实体。定义设备资源可处于的状态代码（如 Available可用、InUse使用中、Down停机、Maintenance维护中、Idle空闲等），配合 ResourceStatusModel 的状态流转模型使用。 【Swagger】Schema: ResourceStatusCodeEntity；来源文件: ResourceStatusCodes.json；API: /api/ResourceStatusCodes。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isAvailable",
+          "type": "Boolean",
+          "description": "物理字段 IsAvailable 【Swagger】Flag indicating whether the status is an available or unavailable status."
+        },
+        {
+          "name": "nextTxnType",
+          "type": "Integer",
+          "description": "资源处于此状态时默认“下一步”（生产）事务的ID。 【Swagger】Id of the default \"Next\" (production) transaction for a Resource currently in this status."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "资源状态代码的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "resourceState",
+          "type": "Integer",
+          "description": "资源状态定义：1.非计划，2.非计划停机，3.计划停机，4.工程，5.生产，6.待机。 【Swagger】Resource State definition: 1. NonScheduled 2. UnscheduleDown 3. ScheduleDown 4. Engineering 5. Productive 6. Standby"
+        },
+        {
+          "name": "resourceStatusReasons",
+          "type": "Navigation",
+          "description": "关联的资源状态原因组。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "availability",
+          "type": "Integer",
+          "description": "定义资源的当前可用性状态：1=正常（可用），2=停机（不可用）。 【Swagger】Defines the current availability status for a Resource. Valid values and their meanings are: 1 = Up (Available) 2 = Down (Not available)"
+        },
+        {
+          "name": "resourceCdoTypeName",
+          "type": "String",
+          "description": "物理字段 ResourceCDOTypeName"
+        },
+        {
+          "name": "statusCodeBehavior",
+          "type": "Integer",
+          "description": "用于MM/MDM集成。 【Swagger】For MM/MDM integration."
+        },
+        {
+          "name": "omlStatus",
+          "type": "String",
+          "description": "OML状态。 【Swagger】OMLStatus"
+        },
+        {
+          "name": "statusId",
+          "type": "Integer",
+          "description": "通用整数。 【Swagger】Generic Integer"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ResourceStatusCode",
+      "toClass": "ResStatusReasonGroup",
+      "relationName": "HAS_RESOURCE_STATUS_REASONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceStatusCode.ResourceStatusReasonsId"
+    }
+  ]
+}

@@ -1,0 +1,982 @@
+{
+  "module": "Product Modeling",
+  "classes": [
+    {
+      "className": "Product",
+      "chineseName": "产品",
+      "description": "核心建模实体，定义制造、追踪或消耗的成品、半成品或组件，包含工作流、BOM及产能定义。 【Swagger】Schema: ProductEntity；来源文件: Products.json；API: /api/Products。",
+      "properties": [
+        {
+          "name": "productBase",
+          "type": "Navigation",
+          "description": "产品基线版本 → ProductBase"
+        },
+        {
+          "name": "limitsEmailGroup",
+          "type": "Navigation",
+          "description": "限制警报邮件组 → EmailGroup"
+        },
+        {
+          "name": "lifetimeLimit2",
+          "type": "Integer",
+          "description": "物理字段 LifetimeLimit2"
+        },
+        {
+          "name": "lifetimeLimit",
+          "type": "Integer",
+          "description": "物理字段 LifetimeLimit"
+        },
+        {
+          "name": "warningLifetimeLimit",
+          "type": "Integer",
+          "description": "物理字段 WarningLifetimeLimit"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置/换线权限配置 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "objectType",
+          "type": "String",
+          "description": "物理字段 ObjectType"
+        },
+        {
+          "name": "objectCategory",
+          "type": "String",
+          "description": "物理字段 ObjectCategory"
+        },
+        {
+          "name": "minQtyReorderEmailGroup",
+          "type": "Navigation",
+          "description": "最小再订货量邮件组 → EmailGroup"
+        },
+        {
+          "name": "usageLimit2",
+          "type": "Integer",
+          "description": "物理字段 UsageLimit2"
+        },
+        {
+          "name": "maxQty",
+          "type": "Integer",
+          "description": "物理字段 MaxQty"
+        },
+        {
+          "name": "minQty",
+          "type": "Integer",
+          "description": "物理字段 MinQty"
+        },
+        {
+          "name": "warningUsageLimit2",
+          "type": "Integer",
+          "description": "物理字段 WarningUsageLimit2"
+        },
+        {
+          "name": "warningUsageLimit",
+          "type": "Integer",
+          "description": "物理字段 WarningUsageLimit"
+        },
+        {
+          "name": "warningLifetimeLimit2",
+          "type": "Integer",
+          "description": "物理字段 WarningLifetimeLimit2"
+        },
+        {
+          "name": "warningExpiryDuration",
+          "type": "Float",
+          "description": "物理字段 WarningExpiryDuration"
+        },
+        {
+          "name": "usageLimit",
+          "type": "Integer",
+          "description": "物理字段 UsageLimit"
+        },
+        {
+          "name": "reconditionLimit",
+          "type": "Integer",
+          "description": "物理字段 ReconditionLimit"
+        },
+        {
+          "name": "partType",
+          "type": "Integer",
+          "description": "物理字段 PartType"
+        },
+        {
+          "name": "minQtyReorderLimit",
+          "type": "Integer",
+          "description": "物理字段 MinQtyReorderLimit"
+        },
+        {
+          "name": "tcReleaseStatus",
+          "type": "String",
+          "description": "Teamcenter 发布状态（TC状态字符串）。 【Swagger】Teamcenter Release Status - string field indicating TC Status"
+        },
+        {
+          "name": "uom2",
+          "type": "Navigation",
+          "description": "辅助计量单位 → UOM"
+        },
+        {
+          "name": "unitsPerStrip",
+          "type": "Float",
+          "description": "物理字段 UnitsPerStrip 【Swagger】Free numeric field used for reporting purpose."
+        },
+        {
+          "name": "scsFieldMp",
+          "type": "Boolean",
+          "description": "物理字段 scsFieldMP"
+        },
+        {
+          "name": "thawingDuration",
+          "type": "Float",
+          "description": "物理字段 ThawingDuration 【Swagger】Thawing duration in hours. A value of 0 means no thawing duration required."
+        },
+        {
+          "name": "waferSize",
+          "type": "Float",
+          "description": "物理字段 WaferSize 【Swagger】i) E.g.: a. 8"
+        },
+        {
+          "name": "scsFieldEnable",
+          "type": "Boolean",
+          "description": "物理字段 scsFieldEnable 【Swagger】to enable field for semi"
+        },
+        {
+          "name": "accumulateExposure",
+          "type": "Boolean",
+          "description": "物理字段 AccumulateExposure 【Swagger】Flag indicating whether the exposure time is accumulated when the material is returned and retrieved back from store."
+        },
+        {
+          "name": "alternateName",
+          "type": "String",
+          "description": "物理字段 AlternateName 【Swagger】Used for reporting purpose. Can be used to represent the SAP Id."
+        },
+        {
+          "name": "assemblyVersion",
+          "type": "String",
+          "description": "物理字段 AssemblyVersion 【Swagger】i) E.g.: a. I0"
+        },
+        {
+          "name": "binList",
+          "type": "Integer",
+          "description": "物理字段 BinListId 【Swagger】The Bin List for a Product."
+        },
+        {
+          "name": "defaultStartLocation",
+          "type": "Navigation",
+          "description": "物理字段 DefaultStartLocationId → A_LocationMap 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "defaultStartOwner",
+          "type": "Navigation",
+          "description": "物理字段 DefaultStartOwnerId → Owner 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "deviceVersion",
+          "type": "String",
+          "description": "物理字段 DeviceVersion 【Swagger】i) The device version obtained from the alphabetical values of IDV. ii) E.g.: a. AEH"
+        },
+        {
+          "name": "splitNumberingRule",
+          "type": "Navigation",
+          "description": "物理字段 SplitNumberingRuleId → NumberingRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "defaultStartReason",
+          "type": "Navigation",
+          "description": "物理字段 DefaultStartReasonId → StartReason 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "productLine",
+          "type": "Navigation",
+          "description": "物理字段 ProductLineId → A_ProductLine 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "productSubProductList",
+          "type": "Integer",
+          "description": "物理字段 ProductSubProductListId 【Swagger】Sub-Product List, the list of products to be define as sub-products；OriginalType: ProductSubProductListChanges"
+        },
+        {
+          "name": "qtyPerBox",
+          "type": "Float",
+          "description": "物理字段 QtyPerBox 【Swagger】Qty Per Box"
+        },
+        {
+          "name": "roHsCompliance",
+          "type": "String",
+          "description": "物理字段 RoHSCompliance"
+        },
+        {
+          "name": "roHsComplianceDate",
+          "type": "DateTime",
+          "description": "物理字段 RoHSComplianceDate"
+        },
+        {
+          "name": "roHsRequired",
+          "type": "Boolean",
+          "description": "物理字段 RoHSRequired"
+        },
+        {
+          "name": "opnRevision",
+          "type": "String",
+          "description": "物理字段 OPNRevision 【Swagger】Free field for the Ordering Part Number Revision."
+        },
+        {
+          "name": "serialId",
+          "type": "String",
+          "description": "物理字段 SerialId 【Swagger】Optional attribute to further identify the material. E.g. SRAM ID."
+        },
+        {
+          "name": "opn",
+          "type": "String",
+          "description": "物理字段 OPN 【Swagger】Free field for the Ordering Part Number."
+        },
+        {
+          "name": "ssContainerDimension",
+          "type": "Navigation",
+          "description": "物理字段 ss_ContainerDimensionId → ss_ContainerDimension"
+        },
+        {
+          "name": "ssDummyProductLifeSpan",
+          "type": "Integer",
+          "description": "物理字段 ss_DummyProductLifeSpan"
+        },
+        {
+          "name": "ssDummyProductMaxProcessTime",
+          "type": "Float",
+          "description": "物理字段 ss_DummyProductMaxProcessTime"
+        },
+        {
+          "name": "ssIsDummyProduct",
+          "type": "Boolean",
+          "description": "物理字段 ss_IsDummyProduct"
+        },
+        {
+          "name": "subLotMinQty",
+          "type": "Float",
+          "description": "物理字段 SubLotMinQty 【Swagger】The minimum quantity to consider sub-lot generations for Assembly Sub Lot process. Used by SchedulingTxn to default the InProcessSplitSubLotMinQty."
+        },
+        {
+          "name": "subLotQty",
+          "type": "Float",
+          "description": "物理字段 SubLotQty 【Swagger】The quantity for each sublot to generate for Assembly Sub Lot process. Used by SchedulingTxn to default the InProcessSplitSubLotQty."
+        },
+        {
+          "name": "technology",
+          "type": "String",
+          "description": "物理字段 Technology 【Swagger】i) E.g.: a. 74"
+        },
+        {
+          "name": "scsAllowZeroQty",
+          "type": "Boolean",
+          "description": "物理字段 scsAllowZeroQty 【Swagger】Allow Zero Qty Containers"
+        },
+        {
+          "name": "leads",
+          "type": "String",
+          "description": "物理字段 Leads 【Swagger】i) E.g.: a. 575"
+        },
+        {
+          "name": "exposureDuration",
+          "type": "Float",
+          "description": "物理字段 ExposureDuration 【Swagger】Exposure Duration in hours. A value of 0 means no exposure duration required. Hence the material can be used without time limit."
+        },
+        {
+          "name": "externalDevice",
+          "type": "String",
+          "description": "物理字段 ExternalDevice 【Swagger】i) E.g.: a. K7-TB"
+        },
+        {
+          "name": "fabPlantArea",
+          "type": "String",
+          "description": "物理字段 FabPlantArea 【Swagger】i) E.g.: a. AFB25"
+        },
+        {
+          "name": "formatCode",
+          "type": "String",
+          "description": "物理字段 FormatCode 【Swagger】The format code to differentiate the different levels of Products."
+        },
+        {
+          "name": "gdpw",
+          "type": "Float",
+          "description": "物理字段 GDPW 【Swagger】Gross Die Per Wafer. Used during Sorting."
+        },
+        {
+          "name": "isAvailable",
+          "type": "Boolean",
+          "description": "物理字段 IsAvailable 【Swagger】Flag indicating whether the product is available to start or schedule a lot with."
+        },
+        {
+          "name": "packageType",
+          "type": "String",
+          "description": "物理字段 PackageType 【Swagger】i) E.g.: a. CCF"
+        },
+        {
+          "name": "isMultiProducts",
+          "type": "Boolean",
+          "description": "物理字段 IsMultiProducts 【Swagger】flag to indicate the Product required sub products"
+        },
+        {
+          "name": "device",
+          "type": "String",
+          "description": "物理字段 Device 【Swagger】i) The device obtained from the numerical values of IDV. ii) E.g.: a. 6309"
+        },
+        {
+          "name": "lotSize",
+          "type": "Float",
+          "description": "物理字段 LotSize 【Swagger】Free numeric field used for reporting purpose."
+        },
+        {
+          "name": "maskSet",
+          "type": "Navigation",
+          "description": "物理字段 MaskSetId → A_MaskSet 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "materialCategory",
+          "type": "Navigation",
+          "description": "物理字段 MaterialCategoryId → A_MaterialCategory 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "materialType",
+          "type": "Navigation",
+          "description": "物理字段 MaterialTypeId → A_MaterialType 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "maxReturns",
+          "type": "Integer",
+          "description": "物理字段 MaxReturns 【Swagger】The maximum number of returns allowed. A value of 0 means no return."
+        },
+        {
+          "name": "numberOfCols",
+          "type": "Integer",
+          "description": "物理字段 NumberOfCols 【Swagger】Indicate the number of columns for BGA products."
+        },
+        {
+          "name": "numberOfRows",
+          "type": "Integer",
+          "description": "物理字段 NumberOfRows 【Swagger】Indicate the number of rows for BGA products."
+        },
+        {
+          "name": "isConsignment",
+          "type": "Boolean",
+          "description": "物理字段 IsConsignment 【Swagger】Flag for information purpose."
+        },
+        {
+          "name": "fefoEnforce",
+          "type": "Integer",
+          "description": "FEFO强制类型枚举（0=未强制，1=强制，2=警告，3=带电子签名的警告）。 【Swagger】An enumeration of FEFOEnforceType. 0=Not Enforced, 1=Enforced, 2=Warn, 3=WarnWithESig"
+        },
+        {
+          "name": "fefoOverrideESigRequirement",
+          "type": "Navigation",
+          "description": "FEFO重写电子签名要求 → ESigRequirement 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "isPhantom",
+          "type": "Boolean",
+          "description": "是否为虚拟件 【Swagger】Denotes this is a phantom product. Phantom product are not actual materials, but are artificial constructs added from grouping component items in a BOM structure to reduce BOM maintenance."
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "关联的文档集 → DocumentSet 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "productFamily",
+          "type": "Navigation",
+          "description": "所属产品家族 → ProductFamily 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "productType",
+          "type": "Navigation",
+          "description": "产品类型 → ProductType 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "stdCost",
+          "type": "Float",
+          "description": "标准成本 【Swagger】Standard cost per unit (if any)"
+        },
+        {
+          "name": "stdStartQty",
+          "type": "Float",
+          "description": "标准起产数量 【Swagger】If specified, this value is used as the default for a Container Start transaction."
+        },
+        {
+          "name": "stdStartQty2",
+          "type": "Float",
+          "description": "容器启动事务的默认起始数量。 【Swagger】If specified, this value is used as the default for a Container Start transaction."
+        },
+        {
+          "name": "stdStartUom",
+          "type": "Navigation",
+          "description": "物理字段 StdStartUOMId → UOM"
+        },
+        {
+          "name": "stdStartUom2",
+          "type": "Navigation",
+          "description": "物理字段 StdStartUOM2Id → UOM"
+        },
+        {
+          "name": "customerProductNumber",
+          "type": "String",
+          "description": "客户产品料号 【Swagger】Text string that represents the Customers Identifier for this product (if any)"
+        },
+        {
+          "name": "plannedCost",
+          "type": "Float",
+          "description": "计划成本 【Swagger】Planned cost per unit (if any)"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "currentCost",
+          "type": "Float",
+          "description": "当前成本 【Swagger】Current cost per unit (if any)"
+        },
+        {
+          "name": "customer",
+          "type": "Navigation",
+          "description": "客户实体 → Customer 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "brandName",
+          "type": "String",
+          "description": "品牌名称 【Swagger】Brand Name"
+        },
+        {
+          "name": "catalogNumber",
+          "type": "String",
+          "description": "目录编号 【Swagger】Catalog Number"
+        },
+        {
+          "name": "concomitantProductNumber",
+          "type": "String",
+          "description": "伴随产品编号。 【Swagger】Concomitant Product Number"
+        },
+        {
+          "name": "deviceType",
+          "type": "String",
+          "description": "器件/设备类型 【Swagger】Device Type"
+        },
+        {
+          "name": "modelNumber",
+          "type": "String",
+          "description": "型号 【Swagger】Model Number"
+        },
+        {
+          "name": "trainingReqGroup",
+          "type": "Navigation",
+          "description": "培训要求组 → TrainingRequirementGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "stockPointControlled",
+          "type": "Boolean",
+          "description": "标识产品是否受ERP库位控制（受控产品需分配ERP库位）。 【Swagger】Identifies if this product is under location control within the ERP inventory system. A product under location control must be have an ERP location assigned to it to be able to transact within the ERP"
+        },
+        {
+          "name": "externallyControlled",
+          "type": "Boolean",
+          "description": "是否外部系统控制 【Swagger】Identifies to LiveConnect logic that this product is controlled via an external application."
+        },
+        {
+          "name": "lotControlled",
+          "type": "Boolean",
+          "description": "是否批次控制 【Swagger】Identifies to LiveConnect if a batch/lot id needs to be reported back to the ERP for this product"
+        },
+        {
+          "name": "productVariation",
+          "type": "String",
+          "description": "产品变体 【Swagger】Additional product identifier that can be used"
+        },
+        {
+          "name": "inventoryControlled",
+          "type": "Boolean",
+          "description": "是否库存控制 【Swagger】Identifies if this product is under inventory control within the ERP inventory system. A product under Inventory control must have a specific inventory bucket or sub-factory assigned to it to transact within the ERP."
+        },
+        {
+          "name": "subFactory",
+          "type": "String",
+          "description": "细分子工厂区域（库存或车间考量）。 【Swagger】Further structuring of the business organization that sub divides the factory into areas. This can be due to Inventory considerations or shop floor considerations."
+        },
+        {
+          "name": "glEntity",
+          "type": "String",
+          "description": "该产品的ERP会计ID，用于处理ERP杂项交易。 【Swagger】ERP Accounting ID for this product. Used to transact miscellaneous transactions within the ERP."
+        },
+        {
+          "name": "serialControlled",
+          "type": "Boolean",
+          "description": "是否序列号控制 【Swagger】Identifies to LiveConnect if a serial ids needs to be reported back to the ERP"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "与该对象相关的备注和注释。 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "inspectAll",
+          "type": "Boolean",
+          "description": "若设置此标记，每批采样率设为1，即每个容器都将被采样。 【Swagger】If flag is set every sample rate = 1 so every container will be sampled"
+        },
+        {
+          "name": "targetFinalYield",
+          "type": "Float",
+          "description": "目标终结良率 【Swagger】BI TargetFinalYield"
+        },
+        {
+          "name": "targetRolledThroughputYield",
+          "type": "Float",
+          "description": "目标滚动通过良率 【Swagger】BI TargetRolledThroughputYield"
+        },
+        {
+          "name": "targetDurationPerUnit",
+          "type": "Float",
+          "description": "BI 每单位目标持续时间。 【Swagger】BI TargetDurationPerUnit"
+        },
+        {
+          "name": "targetCycleTime",
+          "type": "Float",
+          "description": "目标生产周期时长 【Swagger】BI TargetCycleTime"
+        },
+        {
+          "name": "targetUnitsPerHour",
+          "type": "Float",
+          "description": "目标小时产出数量 【Swagger】BI TargetUnitsPerHour"
+        },
+        {
+          "name": "containerNumberingRule",
+          "type": "Navigation",
+          "description": "容器编号规则 → NumberingRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "slitCount",
+          "type": "Integer",
+          "description": "对父容器的分割次数。 【Swagger】Indicates the number of splits that will be performed against the parent container."
+        },
+        {
+          "name": "slitProduct",
+          "type": "Navigation",
+          "description": "产品分切/衍生关联产品 → Product 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "totalProcessTime",
+          "type": "Float",
+          "description": "总加工时长（按默认数量计） 【Swagger】It takes a product lot to process through a given process spec/workflow and default qty."
+        },
+        {
+          "name": "adjustmentType",
+          "type": "Integer",
+          "description": "调整类型（百分比或数量），用于自动调整计算。 【Swagger】This field defines the type of the adjustment (e.g. Percentage or Quantity). The chosen type determines how the AdjustmentValue is interpreted and applied for the auto-adjustment calculations."
+        },
+        {
+          "name": "adjustmentValue",
+          "type": "Float",
+          "description": "定义基于所选调整类型用于自动调整计算的值。 【Swagger】This field defines the value used for auto-adjustments calculations based on the chosen AdjustmentType."
+        },
+        {
+          "name": "totalProcessTimeBulk",
+          "type": "Float",
+          "description": "总加工时长（整批处理） 【Swagger】The total process time where containers/lots are processed in bulk. The entire lot is processed as one unit. There is no dependence on the process time for the qty of units in the lot/container. TPT Bulk based on Default Qty."
+        },
+        {
+          "name": "totalProcessTimeUnit",
+          "type": "Float",
+          "description": "总加工时长（按单位独立计） 【Swagger】The total process time where containers/lots are processed by units. Each unit is the lot is processed independently. The quantity of units in the lot impact the process time at a process step."
+        },
+        {
+          "name": "rptMinimumValue",
+          "type": "Float",
+          "description": "允许的最小RPT值，默认为1，用户可改为大于1.0的值。 【Swagger】This is the Minimum RPT value allowed. Default is set to 1. User can change as long as > 1.0.​"
+        },
+        {
+          "name": "holdStatus",
+          "type": "Navigation",
+          "description": "物理字段 HoldStatusId → HoldStatus"
+        },
+        {
+          "name": "allowAllRevisionsAsSubstitute",
+          "type": "Boolean",
+          "description": "若为true，则允许该产品的所有修订版作为物料需求的替代品发放。 【Swagger】When true it will allow all revisions of the product to be issued for a material requirement"
+        },
+        {
+          "name": "isImage",
+          "type": "Navigation",
+          "description": "产品图像 → isImage 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "以逗号分隔的筛选标签列表。 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "workflowBase",
+          "type": "Integer",
+          "description": "工作流基线版本"
+        },
+        {
+          "name": "workflow",
+          "type": "Navigation",
+          "description": "关联的工艺路线 → Workflow 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "bomBase",
+          "type": "Integer",
+          "description": "BOM基线版本 → BOM"
+        },
+        {
+          "name": "bom",
+          "type": "Navigation",
+          "description": "关联的物料清单 → BOM 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "erpbomBase",
+          "type": "Integer",
+          "description": "ERPBOM基线版本 → ERPBOM"
+        },
+        {
+          "name": "erpbom",
+          "type": "Navigation",
+          "description": "关联的 ERP BOM → ERPBOM 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "erpRouteBase",
+          "type": "Integer",
+          "description": "ERP路线基线版本"
+        },
+        {
+          "name": "erpRoute",
+          "type": "Navigation",
+          "description": "关联的 ERP 工艺路线 → ERPRoute 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "billOfProcessBase",
+          "type": "Integer",
+          "description": "BOP基线版本"
+        },
+        {
+          "name": "billOfProcess",
+          "type": "Navigation",
+          "description": "工艺过程 → BillOfProcess 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "samplingPlanBase",
+          "type": "Integer",
+          "description": "抽样计划基线版本"
+        },
+        {
+          "name": "samplingPlan",
+          "type": "Navigation",
+          "description": "质量抽样计划 → SamplingPlan 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "ldInnerPackingSize",
+          "type": "Integer",
+          "description": "物理字段 ldInnerPackingSize"
+        },
+        {
+          "name": "ldOuterPackingSize",
+          "type": "Integer",
+          "description": "物理字段 ldOuterPackingSize"
+        },
+        {
+          "name": "ldMaxWithdrawals",
+          "type": "Integer",
+          "description": "物理字段 ldMaxWithdrawals"
+        },
+        {
+          "name": "ldUtilizationTime",
+          "type": "Float",
+          "description": "物理字段 ldUtilizationTime"
+        },
+        {
+          "name": "ldProlongedExposureTime",
+          "type": "Float",
+          "description": "物理字段 ldProlongedExposureTime"
+        }
+      ]
+    },
+    {
+      "className": "VendorItem",
+      "chineseName": "供应商物料",
+      "description": "供应商销售的产品定义，用于外购件关联 and 发料追溯。物理上对应 VendorItem (CdoId: 686)。",
+      "properties": [
+        {
+          "name": "vendor",
+          "type": "Navigation",
+          "description": "所属供应商 → Vendor"
+        },
+        {
+          "name": "leadTime",
+          "type": "Float",
+          "description": "物理字段 LeadTime"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "cost",
+          "type": "Float",
+          "description": "物理字段 Cost"
+        },
+        {
+          "name": "minOrderQty",
+          "type": "Float",
+          "description": "物理字段 MinOrderQty"
+        },
+        {
+          "name": "itemName",
+          "type": "String",
+          "description": "物理字段 ItemName"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "minOrderQty2",
+          "type": "Float",
+          "description": "物理字段 MinOrderQty2"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Product",
+      "toClass": "ProductBase",
+      "relationName": "HAS_PRODUCT_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.ProductBaseId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM2",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.UOM2Id"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "A_LocationMap",
+      "relationName": "HAS_DEFAULT_START_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.DefaultStartLocationId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "Owner",
+      "relationName": "HAS_DEFAULT_START_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.DefaultStartOwnerId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_SPLIT_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.SplitNumberingRuleId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "StartReason",
+      "relationName": "HAS_DEFAULT_START_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.DefaultStartReasonId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "A_ProductLine",
+      "relationName": "HAS_PRODUCT_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.ProductLineId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "ss_ContainerDimension",
+      "relationName": "HAS_SS_CONTAINER_DIMENSION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.ss_ContainerDimensionId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "A_MaskSet",
+      "relationName": "HAS_MASK_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.MaskSetId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "A_MaterialCategory",
+      "relationName": "HAS_MATERIAL_CATEGORY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.MaterialCategoryId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "A_MaterialType",
+      "relationName": "HAS_MATERIAL_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.MaterialTypeId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.DocumentSetId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "ProductFamily",
+      "relationName": "HAS_PRODUCT_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.ProductFamilyId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "ProductType",
+      "relationName": "HAS_PRODUCT_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.ProductTypeId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "UOM",
+      "relationName": "HAS_STD_START_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.StdStartUOMId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "UOM",
+      "relationName": "HAS_STD_START_UOM2",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.StdStartUOM2Id"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "Customer",
+      "relationName": "HAS_CUSTOMER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.CustomerId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "TrainingRequirementGroup",
+      "relationName": "HAS_TRAINING_REQ_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.TrainingReqGroupId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_CONTAINER_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.ContainerNumberingRuleId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "Product",
+      "relationName": "HAS_SLIT_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.SlitProductId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "HoldStatus",
+      "relationName": "HAS_HOLD_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.HoldStatusId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "Workflow",
+      "relationName": "HAS_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.WorkflowId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "BOM",
+      "relationName": "HAS_BOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.BOMId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "ERPBOM",
+      "relationName": "HAS_ERPBOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.ERPBOMId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "ERPRoute",
+      "relationName": "HAS_ERP_ROUTE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.ERPRouteId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "BillOfProcess",
+      "relationName": "HAS_BILL_OF_PROCESS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.BillOfProcessId"
+    },
+    {
+      "fromClass": "Product",
+      "toClass": "SamplingPlan",
+      "relationName": "HAS_SAMPLING_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Product.SamplingPlanId"
+    },
+    {
+      "fromClass": "VendorItem",
+      "toClass": "Vendor",
+      "relationName": "HAS_VENDOR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "VendorItem.VendorId"
+    }
+  ]
+}

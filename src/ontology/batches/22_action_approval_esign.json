@@ -1,0 +1,84 @@
+{
+  "module": "semiconductor_action_approval_esign",
+  "titleZh": "动作审批与电子签名",
+  "titleEn": "Action, Approval, and Electronic Signature",
+  "overviewZh": "补齐动作规则、活动阶段、审批和电子签名相关的物理配置实体。",
+  "overviewEn": "Adds physical configuration entities for actions, activities, approvals, alarms, and electronic signatures.",
+  "entities": [
+    {
+      "className": "ActionCategory",
+      "chineseName": "动作类别",
+      "description": "动作定义的分类主数据。"
+    },
+    {
+      "className": "ActionDef",
+      "chineseName": "动作定义",
+      "description": "可由业务规则或流程触发的动作配置。"
+    },
+    {
+      "className": "ActionRule",
+      "chineseName": "动作规则",
+      "description": "动作执行条件与规则定义。"
+    },
+    {
+      "className": "ActionsMenu",
+      "chineseName": "动作菜单",
+      "description": "操作和界面可用动作的菜单配置。"
+    },
+    {
+      "className": "Activity",
+      "chineseName": "活动",
+      "description": "业务过程中的活动配置。"
+    },
+    {
+      "className": "ActivityPlan",
+      "chineseName": "活动计划",
+      "description": "活动执行顺序和计划配置。"
+    },
+    {
+      "className": "Phase",
+      "chineseName": "阶段",
+      "description": "业务过程或计划中的阶段定义。"
+    },
+    {
+      "className": "ApprovalDecision",
+      "chineseName": "审批决定",
+      "description": "审批流程可选决定的主数据。"
+    },
+    {
+      "className": "ApprovalDecisionList",
+      "chineseName": "审批决定列表",
+      "description": "审批决定的分组列表配置。"
+    },
+    {
+      "className": "ApprovalSheet",
+      "chineseName": "审批表",
+      "description": "审批参与者、路由和决定的配置载体。"
+    },
+    {
+      "className": "AlarmDefinition",
+      "chineseName": "告警定义",
+      "description": "告警消息、优先级、动作和通知配置。"
+    },
+    {
+      "className": "AttachedDocs",
+      "chineseName": "附件文档配置",
+      "description": "建模对象所附文档集合的配置实体。"
+    },
+    {
+      "className": "ModelingESigReq",
+      "chineseName": "建模电子签名要求",
+      "description": "建模变更所需电子签名规则。"
+    },
+    {
+      "className": "ESigMeaning",
+      "chineseName": "电子签名含义",
+      "description": "电子签名业务含义的主数据。"
+    },
+    {
+      "className": "ESigCosignReason",
+      "chineseName": "电子签名会签原因",
+      "description": "电子签名会签场景使用的原因代码。"
+    }
+  ]
+}

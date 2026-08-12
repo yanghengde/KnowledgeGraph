@@ -1,0 +1,242 @@
+{
+  "module": "master_recipe",
+  "classes": [
+    {
+      "className": "MasterRecipe",
+      "chineseName": "主配方/主电子程序",
+      "description": "MasterRecipe — 主配方（版本化实体）。定义特定产品(RecipeProduct)的标准电子程序模板，包含执行模式(Sequential/Non-Sequential)、显示模式、任务列表(TaskList)引用、配方产品数量范围(下限/标称/上限)、计量单位(UOM)、关联的工作流(Workflow)和打印机标签定义。当容器启动时根据配方产品自动加载对应的主配方来生成执行程序。",
+      "properties": [
+        {
+          "name": "masterRecipeBase",
+          "type": "Navigation",
+          "description": "物理字段 MasterRecipeBaseId → MasterRecipeBase"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息定义管理器"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "displayMode",
+          "type": "Integer",
+          "description": "显示模式"
+        },
+        {
+          "name": "executionMode",
+          "type": "Integer",
+          "description": "执行模式：1=Sequential(顺序), 2=Non-Sequential(非顺序)（必填）"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本号"
+        },
+        {
+          "name": "recipeQtyUpperLimit",
+          "type": "String",
+          "description": "配方产品数量的上限值"
+        },
+        {
+          "name": "recipeQtyLowerLimit",
+          "type": "String",
+          "description": "配方产品数量的下限值"
+        },
+        {
+          "name": "recipeUom",
+          "type": "Navigation",
+          "description": "物理字段 RecipeUOMId → UOM"
+        },
+        {
+          "name": "recipeQtyNominal",
+          "type": "String",
+          "description": "配方产品数量的标称值"
+        },
+        {
+          "name": "printerLabelDefinition",
+          "type": "Navigation",
+          "description": "打印机标签定义 → PrinterLabelDefinition"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号(ECO)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "recipeProductBase",
+          "type": "Integer",
+          "description": "物理字段 RecipeProductBaseId"
+        },
+        {
+          "name": "workflowBase",
+          "type": "Integer",
+          "description": "物理字段 WorkflowBaseId"
+        },
+        {
+          "name": "recipeProduct",
+          "type": "Navigation",
+          "description": "配方目标产品 → Product"
+        },
+        {
+          "name": "workflow",
+          "type": "Navigation",
+          "description": "关联的工艺路线/工作流 → Workflow"
+        },
+        {
+          "name": "keepCompletedTasks",
+          "type": "Boolean",
+          "description": "物理字段 KeepCompletedTasks"
+        },
+        {
+          "name": "keepCompletedTasksOnOpen",
+          "type": "Boolean",
+          "description": "物理字段 KeepCompletedTasksOnOpen"
+        }
+      ]
+    },
+    {
+      "className": "MasterRecipeDetail",
+      "chineseName": "主配方明细",
+      "description": "MasterRecipeDetail — 主配方明细（MasterRecipe 的子实体）。连接 MasterRecipe 与 TaskList，定义该任务列表在主配方中的引用和执行配置。",
+      "properties": [
+        {
+          "name": "masterRecipe",
+          "type": "Navigation",
+          "description": "物理字段 MasterRecipeId → MasterRecipe"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "任务列表在主配方中的顺序号"
+        },
+        {
+          "name": "subSequence",
+          "type": "Integer",
+          "description": "物理字段 SubSequence"
+        },
+        {
+          "name": "taskListBase",
+          "type": "Integer",
+          "description": "物理字段 TaskListBaseId"
+        },
+        {
+          "name": "taskList",
+          "type": "Navigation",
+          "description": "引用的任务列表(TaskList)"
+        },
+        {
+          "name": "specBase",
+          "type": "Integer",
+          "description": "物理字段 SpecBaseId"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "MasterRecipe",
+      "toClass": "MasterRecipeBase",
+      "relationName": "HAS_MASTER_RECIPE_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterRecipe.MasterRecipeBaseId"
+    },
+    {
+      "fromClass": "MasterRecipe",
+      "toClass": "UOM",
+      "relationName": "HAS_RECIPE_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterRecipe.RecipeUOMId"
+    },
+    {
+      "fromClass": "MasterRecipe",
+      "toClass": "PrinterLabelDefinition",
+      "relationName": "HAS_PRINTER_LABEL_DEFINITION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterRecipe.PrinterLabelDefinitionId"
+    },
+    {
+      "fromClass": "MasterRecipe",
+      "toClass": "Product",
+      "relationName": "HAS_RECIPE_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterRecipe.RecipeProductId"
+    },
+    {
+      "fromClass": "MasterRecipe",
+      "toClass": "Workflow",
+      "relationName": "HAS_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterRecipe.WorkflowId"
+    },
+    {
+      "fromClass": "MasterRecipeDetail",
+      "toClass": "MasterRecipe",
+      "relationName": "HAS_MASTER_RECIPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterRecipeDetail.MasterRecipeId"
+    },
+    {
+      "fromClass": "MasterRecipeDetail",
+      "toClass": "RecipeList",
+      "relationName": "HAS_TASK_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterRecipeDetail.TaskListId"
+    },
+    {
+      "fromClass": "MasterRecipeDetail",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterRecipeDetail.SpecId"
+    }
+  ]
+}

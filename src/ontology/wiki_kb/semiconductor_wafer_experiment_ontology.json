@@ -1,0 +1,1058 @@
+{
+  "module": "semiconductor_wafer_experiment",
+  "classes": [
+    {
+      "className": "A_AttributeType",
+      "chineseName": "属性类型",
+      "description": "定义半导体对象可配置属性的类型目录。 物理对应 A_AttributeType (CdoId: 679477288, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 AttributeTypeName",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_BinType",
+      "chineseName": "Bin类型",
+      "description": "定义晶圆或产品Bin分类及其关联属性。 物理对应 A_BinType (CdoId: 679477281, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "attribute",
+          "type": "Navigation",
+          "description": "物理字段 AttributeId → A_ModifyAttrsSetup"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 BinTypeName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ItemCategory",
+      "chineseName": "物项类别",
+      "description": "定义半导体物项的类别主数据。 物理对应 A_ItemCategory (CdoId: 679477414, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "maxLevel",
+          "type": "Integer",
+          "description": "物理字段 MaxLevel"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ItemCategoryName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ItemType",
+      "chineseName": "物项类型",
+      "description": "定义物项类型、保管期限、序列化和数量控制规则。 物理对应 A_ItemType (CdoId: 679477412, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ItemTypeName",
+          "required": true
+        },
+        {
+          "name": "maxZValue",
+          "type": "Float",
+          "description": "物理字段 MaxZValue"
+        },
+        {
+          "name": "minXValue",
+          "type": "Float",
+          "description": "物理字段 MinXValue"
+        },
+        {
+          "name": "maxYValue",
+          "type": "Float",
+          "description": "物理字段 MaxYValue"
+        },
+        {
+          "name": "maxXValue",
+          "type": "Float",
+          "description": "物理字段 MaxXValue"
+        },
+        {
+          "name": "maxItemQty",
+          "type": "Float",
+          "description": "物理字段 MaxItemQty"
+        },
+        {
+          "name": "minItemQty",
+          "type": "Float",
+          "description": "物理字段 MinItemQty"
+        },
+        {
+          "name": "minZValue",
+          "type": "Float",
+          "description": "物理字段 MinZValue"
+        },
+        {
+          "name": "dynamicItemQty",
+          "type": "String",
+          "description": "物理字段 DynamicItemQty"
+        },
+        {
+          "name": "minYValue",
+          "type": "Float",
+          "description": "物理字段 MinYValue"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        }
+      ]
+    },
+    {
+      "className": "A_WaferAttributeSetup",
+      "chineseName": "晶圆属性配置",
+      "description": "定义晶圆属性的配置主数据。 物理对应 A_WaferAttributeSetup (CdoId: 679477439, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 WaferAttributeSetupName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "fieldType",
+          "type": "String",
+          "description": "物理字段 FieldType"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "scsWaferDataSampling",
+      "chineseName": "晶圆数据抽样",
+      "description": "定义晶圆数据抽样及数量选择规则。 物理对应 scsWaferDataSampling (CdoId: 681574703, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsWaferDataSamplingName",
+          "required": true
+        },
+        {
+          "name": "scsSlotNumbers",
+          "type": "Integer",
+          "description": "物理字段 scsSlotNumbers"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "scsSamplingMethod",
+          "type": "Integer",
+          "description": "物理字段 scsSamplingMethod"
+        },
+        {
+          "name": "scsSampleSize",
+          "type": "Integer",
+          "description": "物理字段 scsSampleSize"
+        },
+        {
+          "name": "scsSamplePercentage",
+          "type": "Integer",
+          "description": "物理字段 scsSamplePercentage"
+        }
+      ]
+    },
+    {
+      "className": "A_ExperimentPlan",
+      "chineseName": "实验计划",
+      "description": "定义可版本控制的半导体实验计划及审批组、工艺规格和消息配置。 物理对应 A_ExperimentPlan (CdoId: 679477692, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "experimentPlanBase",
+          "type": "Navigation",
+          "description": "物理字段 ExperimentPlanBaseId → A_ExperimentPlanBase"
+        },
+        {
+          "name": "experimentPlanStatus",
+          "type": "String",
+          "description": "物理字段 ExperimentPlanStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "effectiveThruDate",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveThruDate"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "物理字段 WIPMsgDefMgrId → WIPMsgDefMgr"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "物理字段 Revision"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "物理字段 Status"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "物理字段 ECO"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "effectiveFromDate",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveFromDate"
+        },
+        {
+          "name": "ownerGroup",
+          "type": "Navigation",
+          "description": "物理字段 OwnerGroupId → A_EmployeeGroup"
+        },
+        {
+          "name": "reviewAndApprovalGroup",
+          "type": "Navigation",
+          "description": "物理字段 ReviewAndApprovalGroupId → A_EmployeeGroup"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ExpAutoHold",
+      "chineseName": "实验自动Hold",
+      "description": "定义实验过程自动Hold的位置、原因和通知规则。 物理对应 A_ExpAutoHold (CdoId: 679477688, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "holdLocation",
+          "type": "Navigation",
+          "description": "物理字段 HoldLocationId → A_HoldLocation"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "emailGroup",
+          "type": "Navigation",
+          "description": "物理字段 EmailGroupId → A_EmailGroup"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ExpAutoHoldName",
+          "required": true
+        },
+        {
+          "name": "expectedHoldDays",
+          "type": "Float",
+          "description": "物理字段 ExpectedHoldDays"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "holdReason",
+          "type": "Navigation",
+          "description": "物理字段 HoldReasonId → HoldReason"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ExpAutoSS",
+      "chineseName": "实验自动排程计划",
+      "description": "定义实验过程自动应用的排程计划。 物理对应 A_ExpAutoSS (CdoId: 679477690, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "ssPlan",
+          "type": "Navigation",
+          "description": "物理字段 SSPlanId → A_ScheduleSSPlan"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ExpAutoSSName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ExpAutoSplit",
+      "chineseName": "实验自动拆分",
+      "description": "定义实验批次自动拆分和后续合并规则。 物理对应 A_ExpAutoSplit (CdoId: 679477689, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "slotNumbers",
+          "type": "String",
+          "description": "物理字段 SlotNumbers"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ExpAutoSplitName",
+          "required": true
+        },
+        {
+          "name": "actionPlanAfterSplit",
+          "type": "Integer",
+          "description": "物理字段 ActionPlanAfterSplit"
+        },
+        {
+          "name": "futureCombineSpec",
+          "type": "Navigation",
+          "description": "物理字段 FutureCombineSpecId → Spec"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "waferCount",
+          "type": "Integer",
+          "description": "物理字段 WaferCount"
+        },
+        {
+          "name": "splitType",
+          "type": "Integer",
+          "description": "物理字段 SplitType"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "ssSplitQty",
+          "type": "Integer",
+          "description": "物理字段 ss_SplitQty"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ExpSpecialCheckSheet",
+      "chineseName": "实验特殊检查表",
+      "description": "定义实验使用的特殊检查表配置。 物理对应 A_ExpSpecialCheckSheet (CdoId: 679477696, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ExpSpecialCheckSheetName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ExpSpecialInstructions",
+      "chineseName": "实验特殊指令",
+      "description": "定义实验过程的特殊作业指令。 物理对应 A_ExpSpecialInstructions (CdoId: 679477697, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ExpSpecialInstructionsName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "trackOutInstruction",
+          "type": "String",
+          "description": "物理字段 TrackOutInstruction"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "moveOutInstruction",
+          "type": "String",
+          "description": "物理字段 MoveOutInstruction"
+        },
+        {
+          "name": "trackInInstruction",
+          "type": "String",
+          "description": "物理字段 TrackInInstruction"
+        },
+        {
+          "name": "moveInInstruction",
+          "type": "String",
+          "description": "物理字段 MoveInInstruction"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ss_BlanketExperiments",
+      "chineseName": "批量实验配置",
+      "description": "按工单、产品、设备、规格和工作流步骤配置批量实验。 物理对应 ss_BlanketExperiments (CdoId: 681574431, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "scsWorkOrder",
+          "type": "Navigation",
+          "description": "物理字段 scsWorkOrderId → MfgOrder"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "ssSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_SpecId → Spec"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "ssOwner",
+          "type": "Navigation",
+          "description": "物理字段 ss_OwnerId → Owner"
+        },
+        {
+          "name": "ssEquipmentGroup",
+          "type": "Navigation",
+          "description": "物理字段 ss_EquipmentGroupId → ResourceGroup"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_BlanketExperimentsName",
+          "required": true
+        },
+        {
+          "name": "ssExperimentPlan",
+          "type": "Navigation",
+          "description": "物理字段 ss_ExperimentPlanId → A_ExperimentPlan"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssEffectiveFromDate",
+          "type": "DateTime",
+          "description": "物理字段 ss_EffectiveFromDate"
+        },
+        {
+          "name": "ssEffectiveThruDate",
+          "type": "DateTime",
+          "description": "物理字段 ss_EffectiveThruDate"
+        },
+        {
+          "name": "ssEquipment",
+          "type": "Navigation",
+          "description": "物理字段 ss_EquipmentId → ResourceDef"
+        },
+        {
+          "name": "ssProduct",
+          "type": "Navigation",
+          "description": "物理字段 ss_ProductId → Product"
+        },
+        {
+          "name": "ssProcessSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_ProcessSpecId → A_ProcessSpec"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_BinType",
+      "toClass": "A_ModifyAttrsSetup",
+      "relationName": "HAS_ATTRIBUTE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_BinType.AttributeId"
+    },
+    {
+      "fromClass": "A_ExperimentPlan",
+      "toClass": "A_ExperimentPlanBase",
+      "relationName": "HAS_EXPERIMENT_PLAN_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExperimentPlan.ExperimentPlanBaseId"
+    },
+    {
+      "fromClass": "A_ExperimentPlan",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExperimentPlan.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_ExperimentPlan",
+      "toClass": "A_EmployeeGroup",
+      "relationName": "HAS_OWNER_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExperimentPlan.OwnerGroupId"
+    },
+    {
+      "fromClass": "A_ExperimentPlan",
+      "toClass": "A_EmployeeGroup",
+      "relationName": "HAS_REVIEW_AND_APPROVAL_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExperimentPlan.ReviewAndApprovalGroupId"
+    },
+    {
+      "fromClass": "A_ExpAutoHold",
+      "toClass": "A_HoldLocation",
+      "relationName": "HAS_HOLD_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExpAutoHold.HoldLocationId"
+    },
+    {
+      "fromClass": "A_ExpAutoHold",
+      "toClass": "HoldReason",
+      "relationName": "HAS_HOLD_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExpAutoHold.HoldReasonId"
+    },
+    {
+      "fromClass": "A_ExpAutoSS",
+      "toClass": "A_ScheduleSSPlan",
+      "relationName": "HAS_SS_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExpAutoSS.SSPlanId"
+    },
+    {
+      "fromClass": "A_ExpAutoSplit",
+      "toClass": "Spec",
+      "relationName": "HAS_FUTURE_COMBINE_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExpAutoSplit.FutureCombineSpecId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "MfgOrder",
+      "relationName": "HAS_SCS_WORK_ORDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.scsWorkOrderId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "Spec",
+      "relationName": "HAS_SS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.ss_SpecId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "Owner",
+      "relationName": "HAS_SS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.ss_OwnerId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_SS_EQUIPMENT_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.ss_EquipmentGroupId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "A_ExperimentPlan",
+      "relationName": "HAS_SS_EXPERIMENT_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.ss_ExperimentPlanId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.ss_WIPStepId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_SS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.ss_EquipmentId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "Product",
+      "relationName": "HAS_SS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.ss_ProductId"
+    },
+    {
+      "fromClass": "ss_BlanketExperiments",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_SS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_BlanketExperiments.ss_ProcessSpecId"
+    }
+  ]
+}

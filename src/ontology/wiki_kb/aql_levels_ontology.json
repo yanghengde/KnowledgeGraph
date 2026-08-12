@@ -1,0 +1,99 @@
+{
+  "module": "aql_levels",
+  "classes": [
+    {
+      "className": "AQLLevel",
+      "chineseName": "AQL检验水平",
+      "description": "AQL Level — AQL检验水平/等级。定义检验的严格程度标准（如 Level I, Level II, Level III, S-1 等），包含特定抽样方案的明细配置。 【Swagger】Schema: AQLLevelEntity；来源文件: AQLLevels.json；API: /api/AQLLevels。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "检验水平/等级的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "SampleSizeDetails",
+      "chineseName": "样本量明细",
+      "description": "Sample Size Detail — 样本量明细条目。存储特定AQL水平和样本量字码下的样本量(sampleSize)、接收判定数(accepts) and 拒收判定数(rejects)。 【Swagger】Schema: SampleSizeDetailsChanges；来源文件: AQLLevels.json；API: /api/AQLLevels。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "accepts",
+          "type": "Integer",
+          "description": "接收数 (Ac，判定合格的最多不良样本数) 【Swagger】The number of rejects allowed and still accept"
+        },
+        {
+          "name": "sampleSize",
+          "type": "String",
+          "description": "样本量（必填，对应字码的实际抽样样本数） 【Swagger】The sample size associated with the SampleSizeCode"
+        },
+        {
+          "name": "sampleSizeCode",
+          "type": "String",
+          "description": "样本量字码（必填，如 A, B, C, D 等） 【Swagger】The Sample Size Code for the assoctiated Container Qty Range defined in the Inspection Level"
+        },
+        {
+          "name": "rejects",
+          "type": "Integer",
+          "description": "拒收数 (Re，判定不合格的最低不良样本数，必填) 【Swagger】The number ot failed samples to rejects the Container on. The container will be rejected if the the number of samples rejected >= Rejects"
+        },
+        {
+          "name": "aqlLevel",
+          "type": "Navigation",
+          "description": "关联的AQL检验水平（必填）"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "SampleSizeDetails",
+      "toClass": "AQLLevel",
+      "relationName": "HAS_AQL_LEVEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SampleSizeDetails.AQLLevelId"
+    }
+  ]
+}

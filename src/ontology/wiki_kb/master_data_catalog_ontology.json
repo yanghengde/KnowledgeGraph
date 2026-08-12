@@ -1,0 +1,110 @@
+{
+  "module": "master_data_catalog",
+  "classes": [
+    {
+      "className": "MasterDataCatalog",
+      "chineseName": "主数据目录",
+      "description": "MasterDataCatalog — 主数据目录（命名对象）。定义产品/工艺的标准数据目录模板，通过 MasterDataCatalogDtl 子实体列表定义目录中的具体数据项条目。用于在创建或维护产品数据时提供标准化的数据项参照。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "主数据目录唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "MasterDataCatalogDtl",
+      "chineseName": "主数据目录明细",
+      "description": "MasterDataCatalogDtl — 主数据目录明细（MasterDataCatalog 的子实体）。定义目录中的具体数据项条目。",
+      "properties": [
+        {
+          "name": "masterDataCatalog",
+          "type": "Navigation",
+          "description": "物理字段 MasterDataCatalogId → MasterDataCatalog"
+        },
+        {
+          "name": "cdoDisplayName",
+          "type": "String",
+          "description": "物理字段 CDODisplayName"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "数据项名称",
+          "required": true
+        },
+        {
+          "name": "maintenanceTypeId",
+          "type": "Integer",
+          "description": "物理字段 MaintenanceTypeID"
+        },
+        {
+          "name": "anyWorkflowControlled",
+          "type": "Boolean",
+          "description": "物理字段 AnyWorkflowControlled"
+        },
+        {
+          "name": "approvalWorkflowControlled",
+          "type": "Boolean",
+          "description": "物理字段 ApprovalWorkflowControlled"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "displayNameLabelId",
+          "type": "Integer",
+          "description": "物理字段 DisplayNameLabelId"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "MasterDataCatalogDtl",
+      "toClass": "MasterDataCatalog",
+      "relationName": "HAS_MASTER_DATA_CATALOG",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterDataCatalogDtl.MasterDataCatalogId"
+    }
+  ]
+}

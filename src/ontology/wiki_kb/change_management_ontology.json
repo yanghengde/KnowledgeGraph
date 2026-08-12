@@ -1,0 +1,576 @@
+{
+  "module": "change_management",
+  "classes": [
+    {
+      "className": "ChangeMgtApplication",
+      "chineseName": "变更管理应用",
+      "description": "Change Management Application — 定义变更管理的应用类型和通知规则。配置内容协作提醒(contentCollaborationReminders)、包审批提醒(packageApprovalReminders)、通知事件(notificationEvents)和最大引用实例数(maxWhereUsedInstances)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "应用名称（必填）",
+          "required": true
+        },
+        {
+          "name": "maxWhereUsedInstances",
+          "type": "Integer",
+          "description": "最大引用(Where-Used)实例数"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "以逗号分隔的筛选标签列表。"
+        }
+      ]
+    },
+    {
+      "className": "ChangePackage",
+      "chineseName": "变更包",
+      "description": "Change Package — 打包的一组工程或工艺数据变更(如ECO)，用于统一审批和发布。关联到 ChangeMgtSpec(审批规则)和 ChangeMgtWorkflow(审批流程)。",
+      "properties": [
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "物理字段 Status"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "变更包负责人"
+        },
+        {
+          "name": "lastActivityDate",
+          "type": "DateTime",
+          "description": "物理字段 LastActivityDate"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "变更包编号",
+          "required": true
+        },
+        {
+          "name": "ownerRole",
+          "type": "Navigation",
+          "description": "物理字段 OwnerRoleId → RoleDef"
+        },
+        {
+          "name": "ecoecn",
+          "type": "String",
+          "description": "物理字段 ECOECN"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "locklnstances",
+          "type": "Boolean",
+          "description": "物理字段 Locklnstances"
+        },
+        {
+          "name": "notifyOwnerAllStateChanges",
+          "type": "Boolean",
+          "description": "物理字段 NotifyOwnerAllStateChanges"
+        },
+        {
+          "name": "notifyOwnerRoleAllStateChgs",
+          "type": "Boolean",
+          "description": "物理字段 NotifyOwnerRoleAllStateChgs"
+        },
+        {
+          "name": "priority",
+          "type": "Navigation",
+          "description": "执行优先级"
+        },
+        {
+          "name": "reason",
+          "type": "Navigation",
+          "description": "变更起因"
+        },
+        {
+          "name": "lastActivityDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastActivityDateGMT"
+        },
+        {
+          "name": "lastUpdatedDate",
+          "type": "DateTime",
+          "description": "物理字段 LastUpdatedDate"
+        },
+        {
+          "name": "lastUpdatedDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastUpdatedDateGMT"
+        },
+        {
+          "name": "ownerName",
+          "type": "String",
+          "description": "物理字段 OwnerName"
+        },
+        {
+          "name": "ownerRoleName",
+          "type": "String",
+          "description": "物理字段 OwnerRoleName"
+        },
+        {
+          "name": "priorityName",
+          "type": "String",
+          "description": "物理字段 PriorityName"
+        },
+        {
+          "name": "reasonName",
+          "type": "String",
+          "description": "物理字段 ReasonName"
+        },
+        {
+          "name": "sourceSystemName",
+          "type": "String",
+          "description": "物理字段 SourceSystemName"
+        },
+        {
+          "name": "author",
+          "type": "Navigation",
+          "description": "物理字段 AuthorId → Employee"
+        },
+        {
+          "name": "cpImportStatus",
+          "type": "Integer",
+          "description": "物理字段 CPImportStatus"
+        },
+        {
+          "name": "cpExportStatus",
+          "type": "Integer",
+          "description": "物理字段 CPExportStatus"
+        },
+        {
+          "name": "exportRequestDate",
+          "type": "DateTime",
+          "description": "物理字段 ExportRequestDate"
+        },
+        {
+          "name": "exportRequestDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ExportRequestDateGMT"
+        },
+        {
+          "name": "creationDate",
+          "type": "DateTime",
+          "description": "物理字段 CreationDate"
+        },
+        {
+          "name": "creationDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 CreationDateGMT"
+        },
+        {
+          "name": "currentStatus",
+          "type": "Navigation",
+          "description": "物理字段 CurrentStatusId → TrackableObjectCurrentStatus"
+        },
+        {
+          "name": "exportCount",
+          "type": "Integer",
+          "description": "物理字段 ExportCount"
+        },
+        {
+          "name": "modelingImportFile",
+          "type": "String",
+          "description": "物理字段 ModelingImportFile"
+        },
+        {
+          "name": "collaboratorData",
+          "type": "Navigation",
+          "description": "物理字段 CollaboratorDataId → CollaboratorData"
+        },
+        {
+          "name": "packageCreationTemplate",
+          "type": "Navigation",
+          "description": "物理字段 PackageCreationTemplateId → PackageCreationTemplate"
+        },
+        {
+          "name": "recommendedDeploymentDate",
+          "type": "DateTime",
+          "description": "物理字段 RecommendedDeploymentDate"
+        },
+        {
+          "name": "authorName",
+          "type": "String",
+          "description": "物理字段 AuthorName"
+        },
+        {
+          "name": "lockAllModelingInstances",
+          "type": "Boolean",
+          "description": "物理字段 LockAllModelingInstances"
+        },
+        {
+          "name": "packageType",
+          "type": "Navigation",
+          "description": "物理字段 PackageTypeId → PackageType"
+        },
+        {
+          "name": "packageTypeName",
+          "type": "String",
+          "description": "物理字段 PackageTypeName"
+        },
+        {
+          "name": "exportFolderLocation",
+          "type": "String",
+          "description": "物理字段 ExportFolderLocation"
+        }
+      ]
+    },
+    {
+      "className": "ChangePackageReason",
+      "chineseName": "变更原因",
+      "description": "ChangePackageReason — 变更原因。用于对启动或创建变更包时的具体原因和业务触发点进行细化和解释（如纠正性措施、预防性维护、工艺优化、ECO工程变更等）。 【Swagger】Schema: ChangePackageReasonEntity；来源文件: ChangePackageReasons.json；API: /api/ChangePackageReasons。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "原因代码的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "详细备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "过滤器标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "ChangePackagePriority",
+      "chineseName": "变更优先级",
+      "description": "ChangePackagePriority — 变更优先级。定义变更包审批 and 发布执行的优先级（如紧急、高、中、低），包含其排序的相对优先级值(relativePriority)。 【Swagger】Schema: ChangePackagePriorityEntity；来源文件: ChangePackagePriorities.json；API: /api/ChangePackagePriorities。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "详细备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "relativePriority",
+          "type": "Integer",
+          "description": "相对优先级排序值 【Swagger】Numeric value to allow user defined sorting. The reason for sorting is to provide a Dispatch List (list what container to work on next)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "优先级的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "过滤器标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "CollaboratorTemplate",
+      "chineseName": "协作模板",
+      "description": "Collaborator Template — 协作模板。用于预定义变更包的协同评审/会签人员与角色列表，定义协同人员的分工、层级（Sheet Level）和处理时限，作为包创建模板（PackageCreationTemplate）或变更包的协作流程模板。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "模板唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "详细备注信息"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "generalInstructions",
+          "type": "String",
+          "description": "全局协作说明/指南"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "过滤器标签"
+        }
+      ]
+    },
+    {
+      "className": "CollaboratorEntry",
+      "chineseName": "协作条目",
+      "description": "Collaborator Entry — 协作会签条目。定义协作模板中的单个参与人或角色，包含指定员工（Employee）、分配角色（Role）、会签层级（Sheet Level）、响应期限以及是否允许替签等配置属性。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "completedBy",
+          "type": "Navigation",
+          "description": "物理字段 CompletedById → Employee"
+        },
+        {
+          "name": "completeByGmt",
+          "type": "DateTime",
+          "description": "物理字段 CompleteByGMT"
+        },
+        {
+          "name": "delegationTask",
+          "type": "Navigation",
+          "description": "物理字段 DelegationTaskId → DelegationTask"
+        },
+        {
+          "name": "assignedCollaborator",
+          "type": "Navigation",
+          "description": "物理字段 AssignedCollaboratorId → Employee"
+        },
+        {
+          "name": "completionDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 CompletionDateGMT"
+        },
+        {
+          "name": "collaborator",
+          "type": "Navigation",
+          "description": "物理字段 CollaboratorId → Employee"
+        },
+        {
+          "name": "role",
+          "type": "Navigation",
+          "description": "物理字段 RoleId → RoleDef"
+        },
+        {
+          "name": "substituteOption",
+          "type": "Integer",
+          "description": "代理/替代选项策略 (如不允许、仅限同角色等)"
+        },
+        {
+          "name": "sheetLevel",
+          "type": "Integer",
+          "description": "评审会签层级序号，用于控制多人串行或并行会签的优先级"
+        },
+        {
+          "name": "specialInstructions",
+          "type": "String",
+          "description": "针对该协作人员/角色的特殊说明/指令"
+        },
+        {
+          "name": "duration",
+          "type": "Float",
+          "description": "规定的处理持续时间"
+        },
+        {
+          "name": "durationUom",
+          "type": "Float",
+          "description": "物理字段 DurationUOM"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "协作状态"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "条目唯一标识名称",
+          "required": true
+        },
+        {
+          "name": "collaboratorComments",
+          "type": "String",
+          "description": "物理字段 CollaboratorComments"
+        },
+        {
+          "name": "assignedDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 AssignedDateGMT"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ChangePackage",
+      "toClass": "Employee",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChangePackage.OwnerId"
+    },
+    {
+      "fromClass": "ChangePackage",
+      "toClass": "RoleDef",
+      "relationName": "HAS_OWNER_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChangePackage.OwnerRoleId"
+    },
+    {
+      "fromClass": "ChangePackage",
+      "toClass": "ChangePackagePriority",
+      "relationName": "HAS_PRIORITY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChangePackage.PriorityId"
+    },
+    {
+      "fromClass": "ChangePackage",
+      "toClass": "ChangePackageReason",
+      "relationName": "HAS_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChangePackage.ReasonId"
+    },
+    {
+      "fromClass": "ChangePackage",
+      "toClass": "Employee",
+      "relationName": "HAS_AUTHOR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChangePackage.AuthorId"
+    },
+    {
+      "fromClass": "ChangePackage",
+      "toClass": "PackageCreationTemplate",
+      "relationName": "HAS_PACKAGE_CREATION_TEMPLATE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChangePackage.PackageCreationTemplateId"
+    },
+    {
+      "fromClass": "ChangePackage",
+      "toClass": "PackageType",
+      "relationName": "HAS_PACKAGE_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChangePackage.PackageTypeId"
+    },
+    {
+      "fromClass": "CollaboratorEntry",
+      "toClass": "CollaboratorTemplate",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CollaboratorEntry.ParentId"
+    },
+    {
+      "fromClass": "CollaboratorEntry",
+      "toClass": "Employee",
+      "relationName": "HAS_COMPLETED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CollaboratorEntry.CompletedById"
+    },
+    {
+      "fromClass": "CollaboratorEntry",
+      "toClass": "DelegationTask",
+      "relationName": "HAS_DELEGATION_TASK",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CollaboratorEntry.DelegationTaskId"
+    },
+    {
+      "fromClass": "CollaboratorEntry",
+      "toClass": "Employee",
+      "relationName": "HAS_ASSIGNED_COLLABORATOR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CollaboratorEntry.AssignedCollaboratorId"
+    },
+    {
+      "fromClass": "CollaboratorEntry",
+      "toClass": "Employee",
+      "relationName": "HAS_COLLABORATOR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CollaboratorEntry.CollaboratorId"
+    },
+    {
+      "fromClass": "CollaboratorEntry",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CollaboratorEntry.RoleId"
+    }
+  ]
+}

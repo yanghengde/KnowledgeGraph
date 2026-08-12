@@ -1,0 +1,397 @@
+{
+  "module": "semiconductor_user_job_spc_configuration",
+  "classes": [
+    {
+      "className": "UserConstant",
+      "chineseName": "用户常量",
+      "description": "用户可配置的命名常量。 物理对应 UserConstant (CdoId: 1058, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "unresolvedValue",
+          "type": "String",
+          "description": "物理字段 UnresolvedValue"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 UserConstantName",
+          "required": true
+        },
+        {
+          "name": "variableExpression",
+          "type": "String",
+          "description": "物理字段 VariableExpression"
+        },
+        {
+          "name": "variableUsage",
+          "type": "Integer",
+          "description": "物理字段 VariableUsage"
+        },
+        {
+          "name": "dataType",
+          "type": "Integer",
+          "description": "物理字段 DataType"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "WhereUsedConfig",
+      "chineseName": "使用位置配置",
+      "description": "建模对象Where-Used查询行为配置。 物理对应 WhereUsedConfig (CdoId: 1686, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 WhereUsedConfigName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_SPCChart",
+      "chineseName": "SPC图表",
+      "description": "半导体SPC图表主数据。 物理对应 A_SPCChart (CdoId: 679477366, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SPCChartName",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "scsLegacyChartType",
+          "type": "Boolean",
+          "description": "物理字段 scsLegacyChartType"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_JobCauseCode",
+      "chineseName": "作业原因代码",
+      "description": "维修或服务作业的原因代码。 物理对应 A_JobCauseCode (CdoId: 679477472, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 JobCauseCodeName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_JobRepairCode",
+      "chineseName": "作业维修代码",
+      "description": "维修作业采用的维修措施代码。 物理对应 A_JobRepairCode (CdoId: 679477473, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 JobRepairCodeName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_JobStage",
+      "chineseName": "作业阶段",
+      "description": "维修或服务作业的阶段配置。 物理对应 A_JobStage (CdoId: 679477401, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 JobStageName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_JobSymptomCode",
+      "chineseName": "作业症状代码",
+      "description": "维修或服务作业的症状代码。 物理对应 A_JobSymptomCode (CdoId: 679477474, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 JobSymptomCodeName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ResourceStatusCodeGroupDef",
+      "chineseName": "资源状态代码组定义",
+      "description": "资源状态代码组的定义记录。 物理对应 ResourceStatusCodeGroupDef (CdoId: 1383, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "resourceStatusCodeGroup",
+          "type": "Navigation",
+          "description": "物理字段 ResourceStatusCodeGroupId → ResourceStatusCodeGroup"
+        },
+        {
+          "name": "fieldId",
+          "type": "Integer",
+          "description": "物理字段 FieldId"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "物理字段 Sequence"
+        },
+        {
+          "name": "defaultForObjectTypes",
+          "type": "Array",
+          "description": "物理字段 DefaultForObjectTypes"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ResourceStatusCodeGroupDef",
+      "toClass": "ResourceStatusCodeGroup",
+      "relationName": "HAS_RESOURCE_STATUS_CODE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceStatusCodeGroupDef.ResourceStatusCodeGroupId"
+    }
+  ]
+}

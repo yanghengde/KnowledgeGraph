@@ -1,0 +1,59 @@
+{
+  "module": "UOMs Modeling",
+  "classes": [
+    {
+      "className": "UOM",
+      "chineseName": "计量单位",
+      "description": "定义物料、产品、批次等的度量单位，支持整数控制和折算关系。物理上对应 UOM (CdoId: 349)。 【Swagger】Schema: UOMEntity；来源文件: UOMs.json；API: /api/UOMs。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置/换线权限配置 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否冻结 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "状态变更记录 → ChangeStatus"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "计量单位名称 (如 PCS, KG) 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "单位描述 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "与该对象相关的备注和注释。 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "过滤标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

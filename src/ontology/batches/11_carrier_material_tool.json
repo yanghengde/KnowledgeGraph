@@ -1,0 +1,23 @@
+{
+  "module": "semiconductor_carrier_material_tool",
+  "titleZh": "半导体载具、物料与工装建模",
+  "titleEn": "Semiconductor Carrier, Material, and Tooling Modeling",
+  "overviewZh": "本批次覆盖载具验证、产品BOM、资源图标、工装矩阵、供料器、参数矩阵及属性访问配置。",
+  "overviewEn": "This batch covers carrier validation, product BOM, resource icons, tooling matrices, feeders, parameter matrices, and attribute-access configuration.",
+  "entities": [
+    {"className": "A_AttributeAccess", "chineseName": "属性访问", "description": "定义对象属性的访问控制。"},
+    {"className": "A_CarrierValidationSetup", "chineseName": "载具验证配置", "description": "定义载具装载与使用验证规则。"},
+    {"className": "A_ModifyAttrsReason", "chineseName": "属性修改原因", "description": "定义修改属性时使用的原因代码。"},
+    {"className": "A_ParamName", "chineseName": "参数名称", "description": "定义半导体参数名称和类型。"},
+    {"className": "A_ProcessData", "chineseName": "工艺数据", "description": "定义工艺数据主目录。"},
+    {"className": "A_ProductBOM", "chineseName": "半导体产品BOM", "description": "定义半导体产品BOM及工艺上下文。"},
+    {"className": "A_ResourceIcon", "chineseName": "资源图标", "description": "定义设备资源显示图标。"},
+    {"className": "A_ToolPlanMatrix", "chineseName": "工装计划矩阵", "description": "按产品、设备、规格和步骤选择工装计划。"},
+    {"className": "scsCarrierFamilyMatrix", "chineseName": "载具家族矩阵", "description": "按产品和工艺上下文选择载具家族。"},
+    {"className": "ss_ContainerDimension", "chineseName": "容器尺寸", "description": "定义半导体容器尺寸主数据。"},
+    {"className": "ss_FeederPlan", "chineseName": "供料器计划", "description": "定义设备供料器计划。"},
+    {"className": "ss_FeederSlot", "chineseName": "供料器槽位", "description": "定义供料器槽位主数据。"},
+    {"className": "ss_ParameterMatrix", "chineseName": "参数矩阵", "description": "按产品、设备、规格和步骤选择参数配置。"},
+    {"className": "ss_ToolAction", "chineseName": "工装动作", "description": "定义工装使用和状态动作。"}
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "module": "delegation",
+  "classes": [
+    {
+      "className": "DelegationReasonCode",
+      "chineseName": "委托原因代码",
+      "description": "DelegationReasonCode — 委托原因代码。用于指定在任务/权限委托(DelegationTask)时选择的具体业务原因，例如：员工休假、出差、跨部门审批、上级主动指派等。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "委托原因唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "DelegationTask",
+      "chineseName": "委派任务",
+      "description": "DelegationTask — 委派任务。定义将某个员工的审批/协作任务委托给另一员工的委派关系，包含受让人(TargetEmployee)、原责任人(AssignedEmployee)、委托发起人(DelegatedBy)、委托原因(DelegationReasonCode)、有效时间范围(StartDate~EndDate)以及委托的具体条目列表(DelegationTaskEntries)。可以通过 DelegationForwarding 标志表示转授权。",
+      "properties": [
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "assignedEmployee",
+          "type": "Navigation",
+          "description": "原始任务责任人(AssignedEmployee)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "委派任务名称",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "targetEmployee",
+          "type": "Navigation",
+          "description": "被委托的目标员工(TargetEmployee)"
+        },
+        {
+          "name": "delegatedBy",
+          "type": "Navigation",
+          "description": "委托发起人(DelegatedBy)"
+        },
+        {
+          "name": "delegationReason",
+          "type": "Navigation",
+          "description": "委托原因代码"
+        },
+        {
+          "name": "delegationForwarding",
+          "type": "Boolean",
+          "description": "是否为转授权(Forwarding)模式"
+        },
+        {
+          "name": "startDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 StartDateGMT"
+        },
+        {
+          "name": "endDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EndDateGMT"
+        },
+        {
+          "name": "applicationType",
+          "type": "Integer",
+          "description": "应用类型编码"
+        }
+      ]
+    },
+    {
+      "className": "DelegateTaskHistory",
+      "chineseName": "委派任务历史",
+      "description": "DelegateTaskHistory — 委派任务历史记录。记录委派任务执行和变更的审计追踪信息，包括源员工(SourceEmployee)、目标员工(TargetEmployee)、委托原因、委托目标实体(DelegationTarget)和备注信息。通过 HistoryMainline 关联到主历史记录。",
+      "properties": [
+        {
+          "name": "sourceEmployee",
+          "type": "Navigation",
+          "description": "源员工-原始任务责任人"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "历史记录名称",
+          "required": true
+        },
+        {
+          "name": "historyMainline",
+          "type": "Navigation",
+          "description": "物理字段 HistoryMainlineId → HistoryMainline"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "targetEmployee",
+          "type": "Navigation",
+          "description": "目标员工-被委托人"
+        },
+        {
+          "name": "delegationReasonCode",
+          "type": "Navigation",
+          "description": "委托原因代码"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "delegationTarget",
+          "type": "Integer",
+          "description": "被委托的目标实体"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "DelegationTask",
+      "toClass": "Employee",
+      "relationName": "HAS_ASSIGNED_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DelegationTask.AssignedEmployeeId"
+    },
+    {
+      "fromClass": "DelegationTask",
+      "toClass": "Employee",
+      "relationName": "HAS_TARGET_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DelegationTask.TargetEmployeeId"
+    },
+    {
+      "fromClass": "DelegationTask",
+      "toClass": "Employee",
+      "relationName": "HAS_DELEGATED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DelegationTask.DelegatedById"
+    },
+    {
+      "fromClass": "DelegationTask",
+      "toClass": "DelegationReasonCode",
+      "relationName": "HAS_DELEGATION_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DelegationTask.DelegationReasonId"
+    },
+    {
+      "fromClass": "DelegateTaskHistory",
+      "toClass": "Employee",
+      "relationName": "HAS_SOURCE_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DelegateTaskHistory.SourceEmployeeId"
+    },
+    {
+      "fromClass": "DelegateTaskHistory",
+      "toClass": "HistoryMainline",
+      "relationName": "HAS_HISTORY_MAINLINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DelegateTaskHistory.HistoryMainlineId"
+    },
+    {
+      "fromClass": "DelegateTaskHistory",
+      "toClass": "Employee",
+      "relationName": "HAS_TARGET_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DelegateTaskHistory.TargetEmployeeId"
+    },
+    {
+      "fromClass": "DelegateTaskHistory",
+      "toClass": "DelegationReasonCode",
+      "relationName": "HAS_DELEGATION_REASON_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DelegateTaskHistory.DelegationReasonCodeId"
+    }
+  ]
+}

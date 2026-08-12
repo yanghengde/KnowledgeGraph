@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_print_interface_details",
+  "titleZh": "半导体打印、接口与标签明细建模",
+  "titleEn": "Semiconductor Printing, Interface, and Label Detail Modeling",
+  "overviewZh": "本批次覆盖打印数据项、外部接口、服务规则、标签计划和追踪标签的配置明细。",
+  "overviewEn": "This batch covers configuration details for print data items, external interfaces, service rules, label plans, and tracking labels.",
+  "entities": [
+    {"className": "A_PrintDataItem", "chineseName": "打印数据项", "description": "定义打印数据项目。"},
+    {"className": "A_PrintDataItemParams", "chineseName": "打印数据项参数", "description": "定义打印数据项参数。"},
+    {"className": "A_PrintingSetupParameters", "chineseName": "打印配置参数", "description": "定义打印配置参数。"},
+    {"className": "A_ExternalInterfaceDetail", "chineseName": "外部接口明细", "description": "定义外部接口动作明细。"},
+    {"className": "A_ExternalInterfaceDetailParam", "chineseName": "外部接口明细参数", "description": "定义外部接口明细参数。"},
+    {"className": "A_ExternalInterfaceDetailRule", "chineseName": "外部接口明细规则", "description": "定义外部接口明细规则。"},
+    {"className": "A_RunNumberSetupData", "chineseName": "运行号配置数据", "description": "定义运行号配置数据项。"},
+    {"className": "A_ServiceRulesValidations", "chineseName": "服务规则验证", "description": "定义服务规则验证项。"},
+    {"className": "A_ServiceSetupBusinessRules", "chineseName": "服务业务规则", "description": "定义服务配置关联业务规则。"},
+    {"className": "ss_LabelPlanDetails", "chineseName": "标签计划明细", "description": "定义标签计划步骤明细。"},
+    {"className": "ss_LabelSourceInput", "chineseName": "标签源输入", "description": "定义标签数据源输入。"},
+    {"className": "ss_TrackLabelDetails", "chineseName": "追踪标签明细", "description": "定义追踪标签明细。"},
+    {"className": "ss_TrackLabelDetailsSource", "chineseName": "追踪标签明细来源", "description": "定义追踪标签明细数据源。"},
+    {"className": "ss_TrackLabelSource", "chineseName": "追踪标签来源", "description": "定义追踪标签数据源。"},
+    {"className": "ss_SlotWaferInstruction", "chineseName": "槽位晶圆指令", "description": "定义槽位和晶圆作业指令。"}
+  ]
+}

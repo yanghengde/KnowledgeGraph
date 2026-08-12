@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_revision_bases",
+  "titleZh": "版本控制Base实体建模",
+  "titleEn": "Revision-Control Base Entity Modeling",
+  "overviewZh": "本批次补齐已建版本控制实体直接依赖的物理Base表，形成版本记录与当前修订之间的双向基础。",
+  "overviewEn": "This batch adds physical Base tables directly required by modeled revision-controlled entities.",
+  "entities": [
+    {"className": "MasterRecipeBase", "chineseName": "主配方Base", "description": "管理主配方修订记录。"},
+    {"className": "ProcessModelTemplateBase", "chineseName": "过程模型模板Base", "description": "管理过程模型模板修订记录。"},
+    {"className": "BusinessProcessSpecBase", "chineseName": "业务过程规格Base", "description": "管理业务过程规格修订记录。"},
+    {"className": "BusinessProcessWorkflowBase", "chineseName": "业务过程工作流Base", "description": "管理业务过程工作流修订记录。"},
+    {"className": "ProcessTimerBase", "chineseName": "过程计时器Base", "description": "管理过程计时器修订记录。"},
+    {"className": "isImageBase", "chineseName": "图像Base", "description": "管理图像对象修订记录。"},
+    {"className": "BOMBase", "chineseName": "BOM Base", "description": "管理BOM修订记录。"},
+    {"className": "DataCollectionDefBase", "chineseName": "数据采集定义Base", "description": "管理数据采集定义修订记录。"},
+    {"className": "SetupBase", "chineseName": "Setup Base", "description": "管理Setup修订记录。"},
+    {"className": "MaintenanceReqBase", "chineseName": "维护需求Base", "description": "管理维护需求修订记录。"},
+    {"className": "ERPBOMBase", "chineseName": "ERP BOM Base", "description": "管理ERP BOM修订记录。"},
+    {"className": "MfgOrderProcedureBase", "chineseName": "制造工单程序Base", "description": "管理制造工单程序修订记录。"},
+    {"className": "MfgOrderTaskListBase", "chineseName": "制造工单任务列表Base", "description": "管理制造工单任务列表修订记录。"},
+    {"className": "SchedulingRouteBase", "chineseName": "排程路线Base", "description": "管理排程路线修订记录。"},
+    {"className": "CIOTemplateBase", "chineseName": "CIO模板Base", "description": "管理CIO模板修订记录。"}
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "module": "process_timer",
+  "classes": [
+    {
+      "className": "ProcessTimer",
+      "chineseName": "流程计时器",
+      "description": "Process Timer — 流程计时器定义实体（CdoId: 8641，版本控制对象 CdoId: 3620）。定义流程中各阶段的时限阈值和颜色警示配置，包括最短时间(minTime)、最长时间(maxTime)、警告时间(maxWarningTime)及对应的显示颜色。通过 endProcessTimerMapDtl 子实体将计时器映射到具体的流程阶段结束事件。",
+      "properties": [
+        {
+          "name": "processTimerBase",
+          "type": "Navigation",
+          "description": "物理字段 ProcessTimerBaseId → ProcessTimerBase"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号 (ECO/ECN)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "processTimerMinTimeDtl",
+          "type": "Navigation",
+          "description": "关联的最小时间明细(ProcessTimerDtl)。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "processTimerMaxTimeDtl",
+          "type": "Navigation",
+          "description": "关联的最大时间明细(ProcessTimerDtl)。"
+        },
+        {
+          "name": "timerType",
+          "type": "Integer",
+          "description": "计时器类型（1=仅最小，2=仅最大，3=最小和最大）。"
+        },
+        {
+          "name": "minTimeColor",
+          "type": "String",
+          "description": "低于最小时限时的显示颜色"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "版本号（必填）",
+          "required": true
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP 消息定义管理器 → WIPMsgEntity"
+        },
+        {
+          "name": "processTimerType",
+          "type": "Navigation",
+          "description": "关联的计时器类型。"
+        },
+        {
+          "name": "minWarningTime",
+          "type": "Float",
+          "description": "持续时间格式的最小警告时间。"
+        },
+        {
+          "name": "minTime",
+          "type": "Float",
+          "description": "最小允许时间（最短时限阈值）"
+        },
+        {
+          "name": "maxWarningTime",
+          "type": "Float",
+          "description": "警告时间阈值"
+        },
+        {
+          "name": "minWarningTimeColor",
+          "type": "String",
+          "description": "通用字符串（最小警告时间颜色）。"
+        },
+        {
+          "name": "maxWarningTimeColor",
+          "type": "String",
+          "description": "达到警告时间时的显示颜色"
+        },
+        {
+          "name": "maxTimeColor",
+          "type": "String",
+          "description": "超过最大时限时的显示颜色"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "maxTime",
+          "type": "Float",
+          "description": "最大允许时间（最大时限阈值）"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ProcessTimer",
+      "toClass": "ProcessTimerBase",
+      "relationName": "HAS_PROCESS_TIMER_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessTimer.ProcessTimerBaseId"
+    },
+    {
+      "fromClass": "ProcessTimer",
+      "toClass": "ProcessTimerType",
+      "relationName": "HAS_PROCESS_TIMER_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessTimer.ProcessTimerTypeId"
+    }
+  ]
+}

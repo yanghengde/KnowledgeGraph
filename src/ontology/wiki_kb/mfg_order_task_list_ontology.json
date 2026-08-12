@@ -1,0 +1,139 @@
+{
+  "module": "mfg_order_task_list",
+  "classes": [
+    {
+      "className": "MfgOrderTaskList",
+      "chineseName": "制造工单任务清单",
+      "description": "MfgOrder Task List — 制造工单任务清单定义实体（CdoId: 8911，版本控制对象）。定义制造工单(MfgOrder)执行过程中需要完成的任务列表(tasks)，支持顺序(Sequential)或非顺序(Non-Sequential)执行模式(executionMode)，可指定工作站(workstation/stationGroup)。与 ProcessList 类似但专用于工单执行上下文。 【Swagger】Schema: MfgOrderTaskListEntity；来源文件: MfgOrderTaskLists.json；API: /api/MfgOrderTaskLists。",
+      "properties": [
+        {
+          "name": "mfgOrderTaskListBase",
+          "type": "Navigation",
+          "description": "物理字段 MfgOrderTaskListBaseId → MfgOrderTaskListBase"
+        },
+        {
+          "name": "isImage",
+          "type": "Navigation",
+          "description": "关联的映像版本对象。 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "executionMode",
+          "type": "Integer",
+          "description": "任务执行模式（必填）：1=Sequential, 2=Non-Sequential 【Swagger】Identifies whether the Tasks are to be performed in sequence. 1 = Sequential 2 = Non-Sequential",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "以逗号分隔的筛选标签列表。 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "版本号（必填） 【Swagger】Revision (unique within the context of the base entity)",
+          "required": true
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器（WIPMsgDefMgr）。 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "instruction",
+          "type": "String",
+          "description": "用户执行任务列表中任务的说明。 【Swagger】Instructions for the user on how to execute the Tasks in the TaskList."
+        },
+        {
+          "name": "prerequisiteTaskList",
+          "type": "Navigation",
+          "description": "关联的先决任务列表。 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "reportInstruction",
+          "type": "String",
+          "description": "用户执行任务列表中任务的说明（无显示格式），主要用于报告。 【Swagger】Instructions for the user on how to execute the Tasks in the TaskList without any display format applied. Used primarly for reporting purposes where markup and tags are not supported."
+        },
+        {
+          "name": "workstation",
+          "type": "Navigation",
+          "description": "指定执行任务的工作站 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "workstationGroup",
+          "type": "Navigation",
+          "description": "指定执行任务的工作站组 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "variantExpression",
+          "type": "String",
+          "description": "物理字段 VariantExpression 【Swagger】Variant expression to be resolved to allow for filtering out configurable activities."
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "MfgOrderTaskList",
+      "toClass": "MfgOrderTaskListBase",
+      "relationName": "HAS_MFG_ORDER_TASK_LIST_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderTaskList.MfgOrderTaskListBaseId"
+    },
+    {
+      "fromClass": "MfgOrderTaskList",
+      "toClass": "MfgOrderTaskList",
+      "relationName": "HAS_PREREQUISITE_TASK_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderTaskList.PrerequisiteTaskListId"
+    },
+    {
+      "fromClass": "MfgOrderTaskList",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_WORKSTATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderTaskList.WorkstationId"
+    },
+    {
+      "fromClass": "MfgOrderTaskList",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_WORKSTATION_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderTaskList.WorkstationGroupId"
+    }
+  ]
+}

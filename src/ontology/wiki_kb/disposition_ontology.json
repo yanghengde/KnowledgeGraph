@@ -1,0 +1,138 @@
+{
+  "module": "disposition",
+  "classes": [
+    {
+      "className": "Disposition",
+      "chineseName": "不合格处置决定",
+      "description": "Disposition — 不合格处置决定（命名对象）。定义对不合格报告(NCR)中被检出缺陷的物料/容器的处置方式，如让步接收、报废、返工、退货、降级使用等。由 Activity/ActivityTemplate 引用作为默认处置，同时被 EventDisposition 引用记录实际执行的处置。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "处置决定唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "EventDisposition",
+      "chineseName": "事件处置记录",
+      "description": "EventDisposition — 事件处置记录（EventLot 的子实体）。记录对质量事件批次(EventLot)中具体物料的处置执行信息，包含处置决定(Disposition)、处置数量(Qty)、备注(Comments)，以及关联的失效模式(EventFailure)。通过 EventLotEventDispositions 桥接表关联到 EventLot。",
+      "properties": [
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "处置备注说明"
+        },
+        {
+          "name": "disposition",
+          "type": "Navigation",
+          "description": "处置决定 → Disposition"
+        },
+        {
+          "name": "qty",
+          "type": "Float",
+          "description": "处置数量"
+        },
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → EventLot"
+        }
+      ]
+    },
+    {
+      "className": "EventDispositionHistoryDetail",
+      "chineseName": "事件处置历史明细",
+      "description": "EventDispositionHistoryDetail — 事件处置历史明细。记录质量事件处置操作的审计追踪信息，包括处置决定(Disposition)、处置数量(Qty)、批号(Lot)、备注(Comments)，以及关联的失效历史明细(EventFailureHistoryDetail)。关联到 EventLotHistoryDetail / EventLogHistoryDetail 主历史记录。",
+      "properties": [
+        {
+          "name": "historyDetails",
+          "type": "Navigation",
+          "description": "物理字段 HistoryDetailsId → UpdateEventDetailsHistory"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "处置备注说明"
+        },
+        {
+          "name": "qty",
+          "type": "Float",
+          "description": "处置数量"
+        },
+        {
+          "name": "disposition",
+          "type": "Navigation",
+          "description": "处置决定 → Disposition"
+        },
+        {
+          "name": "lot",
+          "type": "String",
+          "description": "物料批号"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "EventDisposition",
+      "toClass": "Disposition",
+      "relationName": "HAS_DISPOSITION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventDisposition.DispositionId"
+    },
+    {
+      "fromClass": "EventDispositionHistoryDetail",
+      "toClass": "Disposition",
+      "relationName": "HAS_DISPOSITION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventDispositionHistoryDetail.DispositionId"
+    }
+  ]
+}

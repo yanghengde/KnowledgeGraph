@@ -1,0 +1,113 @@
+{
+  "module": "shipment_destination",
+  "classes": [
+    {
+      "className": "ShipmentDestination",
+      "chineseName": "出货目的地",
+      "description": "Shipment Destination — 出货/发货目的地定义实体。定义产品出货的目的地信息（如客户仓库、分销中心、第三方物流仓库等），是 ShipmentDestinationGrp 分组的成员条目。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "customer",
+          "type": "Navigation",
+          "description": "关联的Customer。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "目的地的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "location",
+          "type": "Navigation",
+          "description": "关联的Location。"
+        },
+        {
+          "name": "remoteContainerStatus",
+          "type": "Integer",
+          "description": "容器在远程站点状态，接收时设置：0=已删除 1=活动 2=已关闭 3=在途 4=已发出。"
+        },
+        {
+          "name": "factory",
+          "type": "Navigation",
+          "description": "关联的Factory。"
+        },
+        {
+          "name": "remoteSite",
+          "type": "Navigation",
+          "description": "关联的Site。"
+        },
+        {
+          "name": "localContainerStatus",
+          "type": "Integer",
+          "description": "容器在本地站点状态，发送时设置：0=已删除 1=活动 2=已关闭 3=在途 4=已发出。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ShipmentDestination",
+      "toClass": "Customer",
+      "relationName": "HAS_CUSTOMER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShipmentDestination.CustomerId"
+    },
+    {
+      "fromClass": "ShipmentDestination",
+      "toClass": "Location",
+      "relationName": "HAS_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShipmentDestination.LocationId"
+    },
+    {
+      "fromClass": "ShipmentDestination",
+      "toClass": "Factory",
+      "relationName": "HAS_FACTORY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShipmentDestination.FactoryId"
+    },
+    {
+      "fromClass": "ShipmentDestination",
+      "toClass": "Site",
+      "relationName": "HAS_REMOTE_SITE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShipmentDestination.RemoteSiteId"
+    }
+  ]
+}

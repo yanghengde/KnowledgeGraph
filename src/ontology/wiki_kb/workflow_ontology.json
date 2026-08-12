@@ -1,0 +1,822 @@
+{
+  "module": "Workflow Modeling",
+  "classes": [
+    {
+      "className": "Workflow",
+      "chineseName": "工作流",
+      "description": "定义生产流程的模型，包含步骤序列、路径、路由和子工作流。一个产品定义可以引用一个默认工作流。 【Swagger】Schema: WorkflowEntity；来源文件: Workflows.json；API: /api/Workflows。",
+      "properties": [
+        {
+          "name": "workflowBase",
+          "type": "Navigation",
+          "description": "工作流基线引用"
+        },
+        {
+          "name": "wipStepCountOnDefault",
+          "type": "Integer",
+          "description": "物理字段 WIPStepCountOnDefault"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "换线设置权限 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "inTransitStepCountOnDefault",
+          "type": "Integer",
+          "description": "物理字段 InTransitStepCountOnDefault"
+        },
+        {
+          "name": "objectCategory",
+          "type": "String",
+          "description": "物理字段 ObjectCategory"
+        },
+        {
+          "name": "objectType",
+          "type": "String",
+          "description": "物理字段 ObjectType"
+        },
+        {
+          "name": "scheduledStepCountOnDefault",
+          "type": "Integer",
+          "description": "物理字段 ScheduledStepCountOnDefault"
+        },
+        {
+          "name": "scheduledStepCount",
+          "type": "Integer",
+          "description": "物理字段 ScheduledStepCount"
+        },
+        {
+          "name": "inventoryStepCount",
+          "type": "Integer",
+          "description": "物理字段 InventoryStepCount"
+        },
+        {
+          "name": "inTransitStepCount",
+          "type": "Integer",
+          "description": "物理字段 InTransitStepCount"
+        },
+        {
+          "name": "wipStepCount",
+          "type": "Integer",
+          "description": "物理字段 WIPStepCount"
+        },
+        {
+          "name": "inventoryStepCountOnDefault",
+          "type": "Integer",
+          "description": "物理字段 InventoryStepCountOnDefault"
+        },
+        {
+          "name": "scsSelValResultsetStartRow",
+          "type": "Integer",
+          "description": "物理字段 scsSelValResultsetStartRow 【Swagger】This field is used by the _GetStepsOrSpecsSelection method to handle pagination from the portal control. Its default value is 1 but the actual value should be set to the CLF::__ResultsetStartRow from whichever CDO that is calling the method."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述信息（可选） 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "totalCycleTime",
+          "type": "Float",
+          "description": "整个工作流的总正常节拍时间（计算值） 【Swagger】This is the sum of all through the Workflow (following defaults Paths). Note: The calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结；冻结后不允许修改该实例或其修订。 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本标识（必需） 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active (启用), 2=Inactive (禁用) 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "firstStep",
+          "type": "Navigation",
+          "description": "工作流的首个起始步骤 → WorkflowStep 【Swagger】引用 Schema: NamedSubentityRef。"
+        },
+        {
+          "name": "totalYield",
+          "type": "Float",
+          "description": "整个工作流的标准累计产出率（计算值） 【Swagger】Standard (cumulative) yield through the Workflow (following defaults Paths). Note: The calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved."
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息定义管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "image",
+          "type": "String",
+          "description": "图像。 【Swagger】Image"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "与该对象相关的备注和注释。 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号（可选） 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "remainingProcessTimeEnabled",
+          "type": "Boolean",
+          "description": "是否启用剩余处理时间计算（可选） 【Swagger】A flag that enable RPT calculation."
+        },
+        {
+          "name": "schedulingRoute",
+          "type": "Navigation",
+          "description": "关联的排程工艺路线 → SchedulingRoute 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "以逗号分隔的筛选标签列表。 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "erpRoute",
+          "type": "Navigation",
+          "description": "关联的 ERP 工艺路线 → ERPRoute 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "erpRouteBase",
+          "type": "Integer",
+          "description": "ERP 工艺路线基线引用"
+        }
+      ]
+    },
+    {
+      "className": "WorkflowStep",
+      "chineseName": "工作流步骤",
+      "description": "工作流中的一个步骤，指向一个规范或子工作流，定义该步骤的处理要求。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "defaultPath",
+          "type": "Navigation",
+          "description": "步骤的默认出站路径 → Path"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 WorkflowStepName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "步骤描述"
+        },
+        {
+          "name": "workflow",
+          "type": "Integer",
+          "description": "所属工作流 → Workflow"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注"
+        },
+        {
+          "name": "onDefaultRoute",
+          "type": "Boolean",
+          "description": "是否位于默认路由（Standard Route）上"
+        },
+        {
+          "name": "schedulingDetail",
+          "type": "Navigation",
+          "description": "排程属性明细 → StepSchedulingDetail"
+        },
+        {
+          "name": "stepType",
+          "type": "Integer",
+          "description": "步骤类型：1=Spec (规范), 2=Workflow (工作流)"
+        },
+        {
+          "name": "xlocation",
+          "type": "Integer",
+          "description": "物理字段 Xlocation"
+        },
+        {
+          "name": "ylocation",
+          "type": "Integer",
+          "description": "物理字段 Ylocation"
+        },
+        {
+          "name": "wipMsgLabel",
+          "type": "String",
+          "description": "WIP消息标签，用于关联特定消息"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "步骤在工作流中的相对顺序（只读）"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "routeStep",
+          "type": "Navigation",
+          "description": "关联的ERP路由步骤 → RouteStep"
+        },
+        {
+          "name": "isLastStep",
+          "type": "Boolean",
+          "description": "是否为结束步骤"
+        },
+        {
+          "name": "optional",
+          "type": "Integer",
+          "description": "步骤是否可选，可选值：NotSet, Yes, No"
+        },
+        {
+          "name": "schedulingRouteStep",
+          "type": "Navigation",
+          "description": "排程工艺步骤引用 → RouteStep"
+        },
+        {
+          "name": "specBase",
+          "type": "Integer",
+          "description": "工位规格基线引用"
+        },
+        {
+          "name": "subWorkflowBase",
+          "type": "Integer",
+          "description": "子工作流基线引用"
+        },
+        {
+          "name": "subWorkflow",
+          "type": "Navigation",
+          "description": "引用的子工作流 → Workflow"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "绑定的工序/规格 → Spec"
+        }
+      ]
+    },
+    {
+      "className": "Path",
+      "chineseName": "路径",
+      "description": "Path — 定义工作流中两个步骤之间的有向连线，决定制品容器的流向。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "txnDetails",
+          "type": "Navigation",
+          "description": "事务/执行明细 → TxnDetails"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 PathName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "fromStep",
+          "type": "Navigation",
+          "description": "路径起始步骤 → WorkflowStep"
+        },
+        {
+          "name": "toStep",
+          "type": "Navigation",
+          "description": "路径目标步骤 → WorkflowStep"
+        },
+        {
+          "name": "returnToStep",
+          "type": "Navigation",
+          "description": "返回步骤 → WorkflowStep"
+        },
+        {
+          "name": "endReworkStep",
+          "type": "Navigation",
+          "description": "返工路径结束步骤 → WorkflowStep"
+        },
+        {
+          "name": "reEntryStep",
+          "type": "Navigation",
+          "description": "返工后重新进入的步骤 → WorkflowStep"
+        },
+        {
+          "name": "rptBulkDelta",
+          "type": "Integer",
+          "description": "批量剩余处理时间差异"
+        },
+        {
+          "name": "rptUnitDelta",
+          "type": "Integer",
+          "description": "单位剩余处理时间差异"
+        }
+      ]
+    },
+    {
+      "className": "ProcessingGate",
+      "chineseName": "加工闸门",
+      "description": "ProcessingGate — 定义工作流中需要满足加工条件的控制闸门，关联起始与结束步骤。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "闸门名称",
+          "required": true
+        },
+        {
+          "name": "workflow",
+          "type": "Integer",
+          "description": "所属工作流 → Workflow"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注"
+        },
+        {
+          "name": "gateType",
+          "type": "Integer",
+          "description": "闸门类型"
+        },
+        {
+          "name": "entryStep",
+          "type": "Navigation",
+          "description": "准入起始步骤 → WorkflowStep"
+        },
+        {
+          "name": "entryType",
+          "type": "Integer",
+          "description": "物理字段 EntryType"
+        },
+        {
+          "name": "exitStep",
+          "type": "Navigation",
+          "description": "准出结束步骤 → WorkflowStep"
+        },
+        {
+          "name": "exitType",
+          "type": "Integer",
+          "description": "物理字段 ExitType"
+        }
+      ]
+    },
+    {
+      "className": "CollectionGate",
+      "chineseName": "数据收集闸门",
+      "description": "CollectionGate — 定义工作流中需要满足数据收集条件的控制闸门，关联起始与结束步骤。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "entryStep",
+          "type": "Navigation",
+          "description": "准入起始步骤 → WorkflowStep"
+        },
+        {
+          "name": "entryType",
+          "type": "Integer",
+          "description": "物理字段 EntryType"
+        },
+        {
+          "name": "exitStep",
+          "type": "Navigation",
+          "description": "准出结束步骤 → WorkflowStep"
+        },
+        {
+          "name": "exitType",
+          "type": "Integer",
+          "description": "物理字段 ExitType"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述"
+        },
+        {
+          "name": "gateType",
+          "type": "Integer",
+          "description": "闸门类型"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "workflow",
+          "type": "Integer",
+          "description": "所属工作流 → Workflow"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "闸门名称",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "CycleTimeGate",
+      "chineseName": "时效控制闸门",
+      "description": "CycleTimeGate — 定义工作流中需要满足时效控制条件的闸门，关联起始与结束步骤。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "workflow",
+          "type": "Integer",
+          "description": "所属工作流 → Workflow"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "闸门名称",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注"
+        },
+        {
+          "name": "gateType",
+          "type": "Integer",
+          "description": "闸门类型"
+        },
+        {
+          "name": "entryStep",
+          "type": "Navigation",
+          "description": "准入起始步骤 → WorkflowStep"
+        },
+        {
+          "name": "entryType",
+          "type": "Integer",
+          "description": "物理字段 EntryType"
+        },
+        {
+          "name": "exitStep",
+          "type": "Navigation",
+          "description": "准出结束步骤 → WorkflowStep"
+        },
+        {
+          "name": "exitType",
+          "type": "Integer",
+          "description": "物理字段 ExitType"
+        }
+      ]
+    },
+    {
+      "className": "PathSelector",
+      "chineseName": "路径选择器",
+      "description": "定义条件表达式，当表达式为真时覆盖默认路径。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "step",
+          "type": "Navigation",
+          "description": "关联的工作流步骤 → WorkflowStep"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注"
+        },
+        {
+          "name": "path",
+          "type": "Navigation",
+          "description": "关联的工作流路径 → Path"
+        },
+        {
+          "name": "effectiveFromDate",
+          "type": "DateTime",
+          "description": "生效开始日期时间"
+        },
+        {
+          "name": "effectiveThruDate",
+          "type": "DateTime",
+          "description": "生效截止日期时间"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：Active 或 Inactive"
+        },
+        {
+          "name": "expression",
+          "type": "String",
+          "description": "布尔表达式（必需）"
+        },
+        {
+          "name": "effectiveThruDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveThruDateGMT"
+        },
+        {
+          "name": "effectiveFromDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveFromDateGMT"
+        }
+      ]
+    },
+    {
+      "className": "ActionDefinition",
+      "chineseName": "动作定义",
+      "description": "ActionDefinition — 定义系统在特定事件或WIP消息触发时执行的联动动作（如：发送邮件、冻结容器等）。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "换线设置权限 → SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "动作名称（必填）",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "动作描述"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Workflow",
+      "toClass": "WorkflowBase",
+      "relationName": "HAS_WORKFLOW_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Workflow.WorkflowBaseId"
+    },
+    {
+      "fromClass": "Workflow",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_FIRST_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Workflow.FirstStepId"
+    },
+    {
+      "fromClass": "Workflow",
+      "toClass": "SchedulingRoute",
+      "relationName": "HAS_SCHEDULING_ROUTE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Workflow.SchedulingRouteId"
+    },
+    {
+      "fromClass": "Workflow",
+      "toClass": "ERPRoute",
+      "relationName": "HAS_ERP_ROUTE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Workflow.ERPRouteId"
+    },
+    {
+      "fromClass": "WorkflowStep",
+      "toClass": "Path",
+      "relationName": "HAS_DEFAULT_PATH",
+      "cardinality": "MANY_TO_ONE",
+      "description": "WorkflowStep.DefaultPathId"
+    },
+    {
+      "fromClass": "WorkflowStep",
+      "toClass": "StepSchedulingDetail",
+      "relationName": "HAS_SCHEDULING_DETAIL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "WorkflowStep.SchedulingDetailId"
+    },
+    {
+      "fromClass": "WorkflowStep",
+      "toClass": "RouteStep",
+      "relationName": "HAS_ROUTE_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "WorkflowStep.RouteStepId"
+    },
+    {
+      "fromClass": "WorkflowStep",
+      "toClass": "RouteStep",
+      "relationName": "HAS_SCHEDULING_ROUTE_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "WorkflowStep.SchedulingRouteStepId"
+    },
+    {
+      "fromClass": "WorkflowStep",
+      "toClass": "Workflow",
+      "relationName": "HAS_SUB_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "WorkflowStep.SubWorkflowId"
+    },
+    {
+      "fromClass": "WorkflowStep",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "WorkflowStep.SpecId"
+    },
+    {
+      "fromClass": "Path",
+      "toClass": "TxnDetails",
+      "relationName": "HAS_TXN_DETAILS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Path.TxnDetailsId"
+    },
+    {
+      "fromClass": "Path",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_FROM_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Path.FromStepId"
+    },
+    {
+      "fromClass": "Path",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_TO_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Path.ToStepId"
+    },
+    {
+      "fromClass": "Path",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_RETURN_TO_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Path.ReturnToStepId"
+    },
+    {
+      "fromClass": "Path",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_END_REWORK_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Path.EndReworkStepId"
+    },
+    {
+      "fromClass": "Path",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_RE_ENTRY_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Path.ReEntryStepId"
+    },
+    {
+      "fromClass": "ProcessingGate",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_ENTRY_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessingGate.EntryStepId"
+    },
+    {
+      "fromClass": "ProcessingGate",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_EXIT_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessingGate.ExitStepId"
+    },
+    {
+      "fromClass": "CollectionGate",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_ENTRY_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CollectionGate.EntryStepId"
+    },
+    {
+      "fromClass": "CollectionGate",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_EXIT_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CollectionGate.ExitStepId"
+    },
+    {
+      "fromClass": "CycleTimeGate",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_ENTRY_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CycleTimeGate.EntryStepId"
+    },
+    {
+      "fromClass": "CycleTimeGate",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_EXIT_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CycleTimeGate.ExitStepId"
+    },
+    {
+      "fromClass": "PathSelector",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PathSelector.StepId"
+    },
+    {
+      "fromClass": "PathSelector",
+      "toClass": "Path",
+      "relationName": "HAS_PATH",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PathSelector.PathId"
+    }
+  ]
+}

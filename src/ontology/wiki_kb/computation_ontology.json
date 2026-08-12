@@ -1,0 +1,150 @@
+{
+  "module": "computation",
+  "classes": [
+    {
+      "className": "Computation",
+      "chineseName": "计算公式",
+      "description": "Computation — 计算公式表达式。定义带输入参数和输出结果的数学/逻辑表达式，用于在电子程序(ElectronicProcedure)的任务列表(TaskList)中自动计算基于操作员采集数据点(DataPoint)的结果值。支持结果上下限验证、舍入规则、以及将结果映射回容器(Container)属性。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "安全配置访问控制 → SetupAccess"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "计算公式唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "computationExpression",
+          "type": "String",
+          "description": "计算公式表达式（必填，最长4000字符）"
+        },
+        {
+          "name": "resultName",
+          "type": "String",
+          "description": "计算结果名称（必填）"
+        },
+        {
+          "name": "resultDataType",
+          "type": "Integer",
+          "description": "计算结果数据类型编码（必填）"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "displayLimits",
+          "type": "Boolean",
+          "description": "运行时是否向操作员显示结果上下限"
+        },
+        {
+          "name": "isLimitOverrideAllowed",
+          "type": "Boolean",
+          "description": "是否允许在运行时覆盖上限/下限验证违规"
+        },
+        {
+          "name": "lowerLimit",
+          "type": "String",
+          "description": "计算结果可接受的下限值"
+        },
+        {
+          "name": "upperLimit",
+          "type": "String",
+          "description": "计算结果可接受的上限值"
+        },
+        {
+          "name": "roundingRule",
+          "type": "Integer",
+          "description": "舍入规则：1=向下取整(Floor), 2=向上取整(Ceiling), 3=四舍五入(Nearest)"
+        },
+        {
+          "name": "decimalScale",
+          "type": "Integer",
+          "description": "计算结果保留小数位数"
+        },
+        {
+          "name": "mapToContainerAttribute",
+          "type": "Boolean",
+          "description": "是否将计算结果映射到容器属性"
+        },
+        {
+          "name": "attributeName",
+          "type": "String",
+          "description": "映射目标容器属性名称（当MapToContainerAttribute=true时）"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "ComputationParamSpec",
+      "chineseName": "计算参数规格",
+      "description": "ComputationParamSpec — 计算公式的输入参数规格。定义计算公式(Computation)所需的每个输入变量的名称、数据类型和默认值。在电子程序任务中通过 ComputationParamMap 将参数与数据采集点(DataPoint)绑定。",
+      "properties": [
+        {
+          "name": "dataType",
+          "type": "Integer",
+          "description": "参数数据类型编码"
+        },
+        {
+          "name": "defaultValue",
+          "type": "String",
+          "description": "参数默认值"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "参数名称（必填）",
+          "required": true
+        },
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "归属的母计算公式 → Computation"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ComputationParamSpec",
+      "toClass": "Computation",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ComputationParamSpec.ParentId"
+    }
+  ]
+}

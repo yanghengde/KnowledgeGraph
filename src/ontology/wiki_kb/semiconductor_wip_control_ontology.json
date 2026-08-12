@@ -1,0 +1,1654 @@
+{
+  "module": "semiconductor_wip_control",
+  "classes": [
+    {
+      "className": "A_WIPDataSetup",
+      "chineseName": "WIP数据配置",
+      "description": "定义WIP数据采集、显示、验证和失败处理规则。 物理对应 A_WIPDataSetup (CdoId: 679477267, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "defaultFailureMode",
+          "type": "Navigation",
+          "description": "物理字段 DefaultFailureModeId → FailureMode"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "failureStatus",
+          "type": "Navigation",
+          "description": "物理字段 FailureStatusId → ResourceStatusCode"
+        },
+        {
+          "name": "scrapCountedRejectsByReason",
+          "type": "Boolean",
+          "description": "物理字段 ScrapCountedRejectsByReason"
+        },
+        {
+          "name": "defaultPeDescription",
+          "type": "String",
+          "description": "物理字段 DefaultPEDescription"
+        },
+        {
+          "name": "defaultRejectReason",
+          "type": "Navigation",
+          "description": "物理字段 DefaultRejectReasonId → LossReason"
+        },
+        {
+          "name": "sampleType",
+          "type": "Integer",
+          "description": "物理字段 SampleType"
+        },
+        {
+          "name": "decreaseByRejectCountReason",
+          "type": "Navigation",
+          "description": "物理字段 DecreaseByRejectCountReasonId → LossReason"
+        },
+        {
+          "name": "decreaseBySampleSizeReason",
+          "type": "Navigation",
+          "description": "物理字段 DecreaseBySampleSizeReasonId → LossReason"
+        },
+        {
+          "name": "allowMoveOnFailure",
+          "type": "Boolean",
+          "description": "物理字段 AllowMoveOnFailure"
+        },
+        {
+          "name": "classification",
+          "type": "Navigation",
+          "description": "物理字段 ClassificationId → Classification"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 WIPDataSetupName",
+          "required": true
+        },
+        {
+          "name": "failureReason",
+          "type": "Navigation",
+          "description": "物理字段 FailureReasonId → ResourceStatusReason"
+        },
+        {
+          "name": "failureSpec",
+          "type": "Navigation",
+          "description": "物理字段 FailureSpecId → Spec"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "calculateYield",
+          "type": "Boolean",
+          "description": "物理字段 CalculateYield"
+        },
+        {
+          "name": "subClassification",
+          "type": "Navigation",
+          "description": "物理字段 SubClassificationId → SubClassification"
+        },
+        {
+          "name": "ssSkipWipLotFailures",
+          "type": "Boolean",
+          "description": "物理字段 ss_SkipWIPLotFailures"
+        },
+        {
+          "name": "scsEnforceSampling",
+          "type": "Boolean",
+          "description": "物理字段 scsEnforceSampling"
+        },
+        {
+          "name": "scsWaferWipDataSampling",
+          "type": "Navigation",
+          "description": "物理字段 scsWaferWIPDataSamplingId → scsWaferDataSampling"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_WIPDataName",
+      "chineseName": "WIP数据名称",
+      "description": "定义WIP数据项目录及其属性配置。 物理对应 A_WIPDataName (CdoId: 679477330, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "fieldType",
+          "type": "String",
+          "description": "物理字段 FieldType"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 WIPDataNameName",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "ssUom",
+          "type": "Navigation",
+          "description": "物理字段 ss_UOMId → UOM"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_WIPDataDisplayFilter",
+      "chineseName": "WIP数据显示过滤器",
+      "description": "定义WIP数据的显示过滤配置。 物理对应 A_WIPDataDisplayFilter (CdoId: 679477420, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 WIPDataDisplayFilterName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_AdHocWIPDataSetup",
+      "chineseName": "临时WIP数据配置",
+      "description": "定义临时WIP数据采集配置。 物理对应 A_AdHocWIPDataSetup (CdoId: 679477418, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "fieldType",
+          "type": "String",
+          "description": "物理字段 FieldType"
+        },
+        {
+          "name": "recordCount",
+          "type": "Integer",
+          "description": "物理字段 RecordCount"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 AdHocWIPDataSetupName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_FutureHoldSetup",
+      "chineseName": "未来Hold配置",
+      "description": "定义未来工步触发Hold的位置、原因、规格和通知规则。 物理对应 A_FutureHoldSetup (CdoId: 679477356, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 FutureHoldSetupName",
+          "required": true
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "emailGroup",
+          "type": "Navigation",
+          "description": "物理字段 EmailGroupId → A_EmailGroup"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "waferRunNumber",
+          "type": "String",
+          "description": "物理字段 WaferRunNumber"
+        },
+        {
+          "name": "receivingLotId",
+          "type": "String",
+          "description": "物理字段 ReceivingLotId"
+        },
+        {
+          "name": "dateCode",
+          "type": "String",
+          "description": "物理字段 DateCode"
+        },
+        {
+          "name": "holdReason",
+          "type": "Navigation",
+          "description": "物理字段 HoldReasonId → HoldReason"
+        },
+        {
+          "name": "holdLocation",
+          "type": "Navigation",
+          "description": "物理字段 HoldLocationId → A_HoldLocation"
+        },
+        {
+          "name": "includeChildLots",
+          "type": "Boolean",
+          "description": "物理字段 IncludeChildLots"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "expectedHoldDays",
+          "type": "Float",
+          "description": "物理字段 ExpectedHoldDays"
+        },
+        {
+          "name": "scsWorkOrder",
+          "type": "Navigation",
+          "description": "物理字段 scsWorkOrderId → MfgOrder"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_HoldLocation",
+      "chineseName": "Hold位置",
+      "description": "定义半导体在制品Hold位置目录。 物理对应 A_HoldLocation (CdoId: 679477353, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 HoldLocationName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_MinTimeWindowSetup",
+      "chineseName": "最小时间窗口配置",
+      "description": "定义工艺步骤间最小等待时间及失败处理规则。 物理对应 A_MinTimeWindowSetup (CdoId: 679477358, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "overtimeFrame",
+          "type": "Float",
+          "description": "物理字段 OvertimeFrame"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "overtimeAction",
+          "type": "String",
+          "description": "物理字段 OvertimeAction"
+        },
+        {
+          "name": "minTime",
+          "type": "Float",
+          "description": "物理字段 MinTime"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "productLine",
+          "type": "Navigation",
+          "description": "物理字段 ProductLineId → A_ProductLine"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "beforetimeStatus",
+          "type": "Navigation",
+          "description": "物理字段 BeforetimeStatusId → ResourceStatusCode"
+        },
+        {
+          "name": "beforetimeAction",
+          "type": "String",
+          "description": "物理字段 BeforetimeAction"
+        },
+        {
+          "name": "holdReason",
+          "type": "Navigation",
+          "description": "物理字段 HoldReasonId → HoldReason"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 MinTimeWindowSetupName",
+          "required": true
+        },
+        {
+          "name": "alertFrame",
+          "type": "Float",
+          "description": "物理字段 AlertFrame"
+        },
+        {
+          "name": "emailGroup",
+          "type": "Navigation",
+          "description": "物理字段 EmailGroupId → A_EmailGroup"
+        },
+        {
+          "name": "resourceFamily",
+          "type": "Navigation",
+          "description": "物理字段 ResourceFamilyId → ResourceFamily"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        }
+      ]
+    },
+    {
+      "className": "A_MaxTimeWindowSetup",
+      "chineseName": "最大时间窗口配置",
+      "description": "定义工艺步骤间最大等待时间及失败处理规则。 物理对应 A_MaxTimeWindowSetup (CdoId: 679477357, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 MaxTimeWindowSetupName",
+          "required": true
+        },
+        {
+          "name": "startSpec",
+          "type": "Navigation",
+          "description": "物理字段 StartSpecId → Spec"
+        },
+        {
+          "name": "holdReason",
+          "type": "Navigation",
+          "description": "物理字段 HoldReasonId → HoldReason"
+        },
+        {
+          "name": "productLine",
+          "type": "Navigation",
+          "description": "物理字段 ProductLineId → A_ProductLine"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "stopSpec",
+          "type": "Navigation",
+          "description": "物理字段 StopSpecId → Spec"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "maxTime",
+          "type": "Float",
+          "description": "物理字段 MaxTime"
+        },
+        {
+          "name": "overtimeAction",
+          "type": "String",
+          "description": "物理字段 OvertimeAction"
+        },
+        {
+          "name": "emailGroup",
+          "type": "Navigation",
+          "description": "物理字段 EmailGroupId → A_EmailGroup"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ssStartStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_StartStepWorkflowId → Workflow"
+        },
+        {
+          "name": "ssStopStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_StopStepWorkflowId → Workflow"
+        },
+        {
+          "name": "ssStartStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_StartStepId → WorkflowStep"
+        },
+        {
+          "name": "ssStopStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_StopStepId → WorkflowStep"
+        },
+        {
+          "name": "ssStopStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_StopStepMainWorkflowName"
+        },
+        {
+          "name": "ssStartStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_StartStepMainWorkflowName"
+        },
+        {
+          "name": "ssStopStepStackKey",
+          "type": "String",
+          "description": "物理字段 ss_StopStepStackKey"
+        },
+        {
+          "name": "ssStartStepStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_StartStepStackSteps"
+        },
+        {
+          "name": "ssStopStepStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_StopStepStackSteps"
+        },
+        {
+          "name": "ssStartStepStackKey",
+          "type": "String",
+          "description": "物理字段 ss_StartStepStackKey"
+        }
+      ]
+    },
+    {
+      "className": "A_RunNumberSetup",
+      "chineseName": "运行号配置",
+      "description": "定义WIP运行号生成与管理规则。 物理对应 A_RunNumberSetup (CdoId: 679477452, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "numberingRule",
+          "type": "Navigation",
+          "description": "物理字段 NumberingRuleId → NumberingRule"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 RunNumberSetupName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "dataRequiredPerRunNumber",
+          "type": "Integer",
+          "description": "物理字段 DataRequiredPerRunNumber"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_WIPInstructions",
+      "chineseName": "WIP指令",
+      "description": "按产品、工艺规格、标准规格和工作流步骤配置WIP作业指令。 物理对应 A_WIPInstructions (CdoId: 679477449, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "moveInInstruction",
+          "type": "String",
+          "description": "物理字段 MoveInInstruction"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 WIPInstructionsName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "moveOutInstruction",
+          "type": "String",
+          "description": "物理字段 MoveOutInstruction"
+        },
+        {
+          "name": "trackInInstruction",
+          "type": "String",
+          "description": "物理字段 TrackInInstruction"
+        },
+        {
+          "name": "containerName",
+          "type": "String",
+          "description": "物理字段 ContainerName"
+        },
+        {
+          "name": "trackOutInstruction",
+          "type": "String",
+          "description": "物理字段 TrackOutInstruction"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        }
+      ]
+    },
+    {
+      "className": "ss_WIPDataSetupMatrix",
+      "chineseName": "WIP数据配置矩阵",
+      "description": "按产品、设备、规格和工作流步骤选择WIP数据配置。 物理对应 ss_WIPDataSetupMatrix (CdoId: 681574427, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "ssWipDataSetup",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPDataSetupId → A_WIPDataSetup"
+        },
+        {
+          "name": "ssEquipmentFamily",
+          "type": "Navigation",
+          "description": "物理字段 ss_EquipmentFamilyId → ResourceFamily"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "ssProductLine",
+          "type": "Navigation",
+          "description": "物理字段 ss_ProductLineId → A_ProductLine"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "ssSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_SpecId → Spec"
+        },
+        {
+          "name": "ssProcessSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "ssProduct",
+          "type": "Navigation",
+          "description": "物理字段 ss_ProductId → Product"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssEquipment",
+          "type": "Navigation",
+          "description": "物理字段 ss_EquipmentId → ResourceDef"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_WIPDataSetupMatrixName",
+          "required": true
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssProcessType",
+          "type": "Navigation",
+          "description": "物理字段 ss_ProcessTypeId → A_ProcessType"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ss_FailureFutureHoldSetup",
+      "chineseName": "失败未来Hold配置",
+      "description": "定义失败后使用的未来Hold配置。 物理对应 ss_FailureFutureHoldSetup (CdoId: 681574414, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_FailureFutureHoldSetupName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ss_FailureNCRSetup",
+      "chineseName": "失败NCR配置",
+      "description": "定义失败时创建NCR的规则和分类。 物理对应 ss_FailureNCRSetup (CdoId: 681574412, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "ssNcrDescription",
+          "type": "String",
+          "description": "物理字段 ss_NCRDescription"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_FailureNCRSetupName",
+          "required": true
+        },
+        {
+          "name": "ssFailureMode",
+          "type": "Navigation",
+          "description": "物理字段 ss_FailureModeId → FailureMode"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "ssFailureModeGroup",
+          "type": "Navigation",
+          "description": "物理字段 ss_FailureModeGroupId → FailureModeGroup"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ScheduleSSPlan",
+      "chineseName": "半导体排程计划",
+      "description": "定义半导体特殊排程计划目录。 物理对应 A_ScheduleSSPlan (CdoId: 679477394, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ScheduleSSPlanName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "FailureMode",
+      "relationName": "HAS_DEFAULT_FAILURE_MODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.DefaultFailureModeId"
+    },
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "ResourceStatusCode",
+      "relationName": "HAS_FAILURE_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.FailureStatusId"
+    },
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "LossReason",
+      "relationName": "HAS_DEFAULT_REJECT_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.DefaultRejectReasonId"
+    },
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "LossReason",
+      "relationName": "HAS_DECREASE_BY_REJECT_COUNT_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.DecreaseByRejectCountReasonId"
+    },
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "LossReason",
+      "relationName": "HAS_DECREASE_BY_SAMPLE_SIZE_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.DecreaseBySampleSizeReasonId"
+    },
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "Classification",
+      "relationName": "HAS_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.ClassificationId"
+    },
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "ResourceStatusReason",
+      "relationName": "HAS_FAILURE_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.FailureReasonId"
+    },
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "Spec",
+      "relationName": "HAS_FAILURE_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.FailureSpecId"
+    },
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "SubClassification",
+      "relationName": "HAS_SUB_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.SubClassificationId"
+    },
+    {
+      "fromClass": "A_WIPDataSetup",
+      "toClass": "scsWaferDataSampling",
+      "relationName": "HAS_SCS_WAFER_WIP_DATA_SAMPLING",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataSetup.scsWaferWIPDataSamplingId"
+    },
+    {
+      "fromClass": "A_WIPDataName",
+      "toClass": "UOM",
+      "relationName": "HAS_SS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPDataName.ss_UOMId"
+    },
+    {
+      "fromClass": "A_FutureHoldSetup",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_FutureHoldSetup.OwnerId"
+    },
+    {
+      "fromClass": "A_FutureHoldSetup",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_FutureHoldSetup.ProductId"
+    },
+    {
+      "fromClass": "A_FutureHoldSetup",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_FutureHoldSetup.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_FutureHoldSetup",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_FutureHoldSetup.SpecId"
+    },
+    {
+      "fromClass": "A_FutureHoldSetup",
+      "toClass": "HoldReason",
+      "relationName": "HAS_HOLD_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_FutureHoldSetup.HoldReasonId"
+    },
+    {
+      "fromClass": "A_FutureHoldSetup",
+      "toClass": "A_HoldLocation",
+      "relationName": "HAS_HOLD_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_FutureHoldSetup.HoldLocationId"
+    },
+    {
+      "fromClass": "A_FutureHoldSetup",
+      "toClass": "MfgOrder",
+      "relationName": "HAS_SCS_WORK_ORDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_FutureHoldSetup.scsWorkOrderId"
+    },
+    {
+      "fromClass": "A_FutureHoldSetup",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_FutureHoldSetup.ss_WIPStepId"
+    },
+    {
+      "fromClass": "A_FutureHoldSetup",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_FutureHoldSetup.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.SpecId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.ProductId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "A_ProductLine",
+      "relationName": "HAS_PRODUCT_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.ProductLineId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.OwnerId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "ResourceStatusCode",
+      "relationName": "HAS_BEFORETIME_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.BeforetimeStatusId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "HoldReason",
+      "relationName": "HAS_HOLD_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.HoldReasonId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_RESOURCE_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.ResourceFamilyId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "A_MinTimeWindowSetup",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MinTimeWindowSetup.ss_WIPStepId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "Spec",
+      "relationName": "HAS_START_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.StartSpecId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "HoldReason",
+      "relationName": "HAS_HOLD_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.HoldReasonId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "A_ProductLine",
+      "relationName": "HAS_PRODUCT_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.ProductLineId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.ProductId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.OwnerId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "Spec",
+      "relationName": "HAS_STOP_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.StopSpecId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_START_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.ss_StartStepWorkflowId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_STOP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.ss_StopStepWorkflowId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_START_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.ss_StartStepId"
+    },
+    {
+      "fromClass": "A_MaxTimeWindowSetup",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_STOP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_MaxTimeWindowSetup.ss_StopStepId"
+    },
+    {
+      "fromClass": "A_RunNumberSetup",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RunNumberSetup.NumberingRuleId"
+    },
+    {
+      "fromClass": "A_WIPInstructions",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPInstructions.OwnerId"
+    },
+    {
+      "fromClass": "A_WIPInstructions",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPInstructions.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_WIPInstructions",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPInstructions.ProductId"
+    },
+    {
+      "fromClass": "A_WIPInstructions",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPInstructions.SpecId"
+    },
+    {
+      "fromClass": "A_WIPInstructions",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPInstructions.ss_WIPStepId"
+    },
+    {
+      "fromClass": "A_WIPInstructions",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_WIPInstructions.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "A_WIPDataSetup",
+      "relationName": "HAS_SS_WIP_DATA_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_WIPDataSetupId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_SS_EQUIPMENT_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_EquipmentFamilyId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "A_ProductLine",
+      "relationName": "HAS_SS_PRODUCT_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_ProductLineId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_SpecId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_SS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_ProcessSpecId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "Product",
+      "relationName": "HAS_SS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_ProductId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_WIPStepId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_SS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_EquipmentId"
+    },
+    {
+      "fromClass": "ss_WIPDataSetupMatrix",
+      "toClass": "A_ProcessType",
+      "relationName": "HAS_SS_PROCESS_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_WIPDataSetupMatrix.ss_ProcessTypeId"
+    },
+    {
+      "fromClass": "ss_FailureNCRSetup",
+      "toClass": "FailureMode",
+      "relationName": "HAS_SS_FAILURE_MODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_FailureNCRSetup.ss_FailureModeId"
+    },
+    {
+      "fromClass": "ss_FailureNCRSetup",
+      "toClass": "FailureModeGroup",
+      "relationName": "HAS_SS_FAILURE_MODE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_FailureNCRSetup.ss_FailureModeGroupId"
+    }
+  ]
+}

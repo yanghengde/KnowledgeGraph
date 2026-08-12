@@ -1,0 +1,357 @@
+{
+  "module": "bom",
+  "classes": [
+    {
+      "className": "BOM",
+      "chineseName": "物料清单",
+      "description": "Bill of Materials — 定义制造一个产品所需的所有物料及其数量的主清单。BOM 包含多个 ProductMaterialListItem，每个 ProductMaterialListItem 指定一种物料及其需求数量。BOM 是连接 Product 和 Material 的核心枢纽：Product 通过 HAS_BOM 关联 BOM，MfgOrder 通过 BOM 的 RESOLVES_MATERIALS_FROM_BOM 解析运行时的物料需求。 【Swagger】Schema: BOMEntity；来源文件: BOMs.json；API: /api/BOMs。",
+      "properties": [
+        {
+          "name": "bomBase",
+          "type": "Navigation",
+          "description": "BOM 基线引用 → BOM"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "换线设置权限 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结，冻结后不可修改（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "BOM 版本号（必填） 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active（启用）, 2=Inactive（停用） 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的 WIP 消息定义管理器 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "billType",
+          "type": "Navigation",
+          "description": "BOM 类型（如 Manufacturing=制造BOM, Engineering=工程BOM, Phantom=虚拟BOM） 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "BOM 的描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "内部备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "关联的工程变更单号（Engineering Change Order） 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签（逗号分隔） 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "ProductMaterialListItem",
+      "chineseName": "BOM物料行",
+      "description": "ProductMaterialListItem — BOM 中的一行物料需求记录。每个 ProductMaterialListItem 引用一个具体的 Product/Material，并指定所需数量、单位、发行控制策略等。在 Camstar 中以 ProductMaterialListItem 形式存在，区别于工单级别的 MfgOrderMaterialListItem（工单运行时快照）。 【Swagger】Schema: ProductMaterialListItemChanges；来源文件: BOMs.json；API: /api/BOMs。",
+      "properties": [
+        {
+          "name": "isSourceProduct",
+          "type": "Boolean",
+          "description": "物理字段 IsSourceProduct 【Swagger】Flag indicating whether the Product should be used as the source material to build the target Product."
+        },
+        {
+          "name": "ssStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_StepId → WorkflowStep"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WorkflowId → Workflow"
+        },
+        {
+          "name": "scsIsComponentIssue",
+          "type": "Boolean",
+          "description": "物理字段 scsIsComponentIssue 【Swagger】Flag to denote if the material is to be consumed via CEP Component Issue or SCS Material Consumption logic"
+        },
+        {
+          "name": "isImage",
+          "type": "Navigation",
+          "description": "图像引用 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "allowSubstitution",
+          "type": "Boolean",
+          "description": "是否允许使用替代料 【Swagger】Allow substitution of the product to be issued."
+        },
+        {
+          "name": "setupQty2",
+          "type": "Float",
+          "description": "辅助初始化数量 【Swagger】The amount of this component item needed to initialize the processing resource."
+        },
+        {
+          "name": "effectiveThruDate",
+          "type": "DateTime",
+          "description": "生效截止日期 【Swagger】If specified, this is the ending date and time when this Bin becomes no longer available."
+        },
+        {
+          "name": "uom",
+          "type": "Navigation",
+          "description": "主计量单位 → UOM 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "uom2",
+          "type": "Navigation",
+          "description": "辅助计量单位 → UOM"
+        },
+        {
+          "name": "effectiveFromDate",
+          "type": "DateTime",
+          "description": "生效开始日期 【Swagger】If specified, this is the starting date and time when this Path Selector becomes available."
+        },
+        {
+          "name": "effectiveThruDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveThruDateGMT"
+        },
+        {
+          "name": "referenceDesignator",
+          "type": "String",
+          "description": "装配位号（如 PCB 上的丝印位号 R1, C3） 【Swagger】The specific position on or in the assembly where this item is placed."
+        },
+        {
+          "name": "vendorControl",
+          "type": "Boolean",
+          "description": "是否需要供应商信息 【Swagger】Denotes whether Vendor information is required for this item."
+        },
+        {
+          "name": "qtyRequired",
+          "type": "Float",
+          "description": "需求数量（必填） 【Swagger】Quantity of this component item required."
+        },
+        {
+          "name": "qty2Required",
+          "type": "Float",
+          "description": "辅助数量（如重量或替代单位） 【Swagger】Quantity of this component item required, if multiple quantities are being tracked."
+        },
+        {
+          "name": "setupQty",
+          "type": "Float",
+          "description": "初始化/准备数量 【Swagger】The amount of this component item needed to initialize the processing resource."
+        },
+        {
+          "name": "scrapPercent",
+          "type": "Float",
+          "description": "预期报废百分比 【Swagger】Percent of this item expected to be scrapped."
+        },
+        {
+          "name": "effectiveFromDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveFromDateGMT"
+        },
+        {
+          "name": "allowOverConsumption",
+          "type": "Boolean",
+          "description": "是否允许超发料 【Swagger】This flag determines if the material consumption check will allow more materials to be issued than specified in the MaterialListItem entry"
+        },
+        {
+          "name": "allowUnderConsumption",
+          "type": "Boolean",
+          "description": "是否允许少发料 【Swagger】This flag determines if the material consumption check will allow less materials to be issued than specified in the MaterialListItem entry"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "materialTxnLogic",
+          "type": "Integer",
+          "description": "物理字段 MaterialTxnLogic"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物料行名称 【Swagger】Unique name for the name subentity.",
+          "required": true
+        },
+        {
+          "name": "phantomBill",
+          "type": "Navigation",
+          "description": "虚拟件引用的下层BOM → BOM 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "bom",
+          "type": "Navigation",
+          "description": "所属主BOM → BOM"
+        },
+        {
+          "name": "adjustmentValue",
+          "type": "Float",
+          "description": "自动调整数值 【Swagger】This field defines the value used for auto-adjustments calculations based on the chosen Adjustment Type."
+        },
+        {
+          "name": "adjustmentType",
+          "type": "Integer",
+          "description": "调整类型（百分比或固定数量） 【Swagger】This field defines the type of the adjustment (e.g. Percentage or Quantity). The chosen type determines how the AdjustmentValue is interpreted and applied for the auto-adjustment calculations."
+        },
+        {
+          "name": "qtyIssued",
+          "type": "Float",
+          "description": "已发行消耗的材料数量（只读） 【Swagger】Material quantity (individual) that has been issued for the item"
+        },
+        {
+          "name": "allowAllRevisionsAsSubstitute",
+          "type": "Boolean",
+          "description": "是否允许所有版本作为替代料 【Swagger】When true it will allow all revisions of the product to be allowed for the material requirement"
+        },
+        {
+          "name": "assemblySequence",
+          "type": "Integer",
+          "description": "装配顺序 【Swagger】Sequence the item should be assembled. The value is only used if the item is assigned to a Step/Spec"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "parentRevision",
+          "type": "String",
+          "description": "物理字段 ParentRevision 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "objectTypeName",
+          "type": "String",
+          "description": "物理字段 ObjectTypeName 【Swagger】Generic String"
+        },
+        {
+          "name": "producingOrder",
+          "type": "String",
+          "description": "物理字段 ProducingOrder 【Swagger】Producing Order is a String field"
+        },
+        {
+          "name": "productBase",
+          "type": "Integer",
+          "description": "产品基线引用"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "关联的产品/物料 → Product 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "specBase",
+          "type": "Integer",
+          "description": "工序规格基线引用"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "绑定的工序/规格 → Spec 【Swagger】引用 Schema: RevisionedObjectRef。"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "BOM",
+      "toClass": "BOMBase",
+      "relationName": "HAS_BOM_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOM.BOMBaseId"
+    },
+    {
+      "fromClass": "BOM",
+      "toClass": "BillType",
+      "relationName": "HAS_BILL_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOM.BillTypeId"
+    },
+    {
+      "fromClass": "ProductMaterialListItem",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProductMaterialListItem.ss_StepId"
+    },
+    {
+      "fromClass": "ProductMaterialListItem",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProductMaterialListItem.ss_WorkflowId"
+    },
+    {
+      "fromClass": "ProductMaterialListItem",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProductMaterialListItem.UOMId"
+    },
+    {
+      "fromClass": "ProductMaterialListItem",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM2",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProductMaterialListItem.UOM2Id"
+    },
+    {
+      "fromClass": "ProductMaterialListItem",
+      "toClass": "BOM",
+      "relationName": "HAS_PHANTOM_BILL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProductMaterialListItem.PhantomBillId"
+    },
+    {
+      "fromClass": "ProductMaterialListItem",
+      "toClass": "BOM",
+      "relationName": "HAS_BOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProductMaterialListItem.BOMId"
+    },
+    {
+      "fromClass": "ProductMaterialListItem",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProductMaterialListItem.ProductId"
+    },
+    {
+      "fromClass": "ProductMaterialListItem",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProductMaterialListItem.SpecId"
+    }
+  ]
+}

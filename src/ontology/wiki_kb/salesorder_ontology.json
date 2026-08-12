@@ -1,0 +1,111 @@
+{
+  "module": "salesorder",
+  "classes": [
+    {
+      "className": "SalesOrder",
+      "chineseName": "销售订单",
+      "description": "Sales Order — 客户驱动的生产订单，定义要生产的产品、数量和计量单位。SalesOrder 追踪关联的生产容器(containers)，连接客户需求与 MES 制造执行。与 MfgOrder 不同，SalesOrder 更关注客户交付视角而非工单执行细节。 【Swagger】Schema: SalesOrderEntity；来源文件: SalesOrders.json；API: /api/SalesOrders。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的 WIP 消息定义管理器 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "销售订单的描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "销售订单的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "物理字段 ChangeStatusId → ChangeStatus"
+        },
+        {
+          "name": "qty",
+          "type": "Float",
+          "description": "订单计划生产数量 【Swagger】Identifies the (final) quantity to be produced to fulfill this Sales Order"
+        },
+        {
+          "name": "qty2",
+          "type": "Float",
+          "description": "辅助数量（如重量或替代单位） 【Swagger】Identifies the (final) quantity to be produced to fulfill this Sales Order"
+        },
+        {
+          "name": "uom",
+          "type": "Navigation",
+          "description": "主计量单位 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "uom2",
+          "type": "Navigation",
+          "description": "物理字段 UOM2Id → UOM"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "productBase",
+          "type": "Integer",
+          "description": "物理字段 ProductBaseId"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "订单要求生产的产品 【Swagger】引用 Schema: RevisionedObjectRef。"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "SalesOrder",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SalesOrder.UOMId"
+    },
+    {
+      "fromClass": "SalesOrder",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM2",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SalesOrder.UOM2Id"
+    },
+    {
+      "fromClass": "SalesOrder",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SalesOrder.ProductId"
+    }
+  ]
+}

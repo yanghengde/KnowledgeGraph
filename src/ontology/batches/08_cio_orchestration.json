@@ -1,0 +1,16 @@
+{
+  "module": "semiconductor_cio_orchestration",
+  "titleZh": "CIO编排与派工建模",
+  "titleEn": "CIO Orchestration and Dispatch Modeling",
+  "overviewZh": "本批次覆盖CIO列表处理、派工、出站消息、工作流、测试对象和查询门户页面配置。",
+  "overviewEn": "This batch covers CIO list processing, dispatch, outbound messages, workflows, test objects, and query portal-page configuration.",
+  "entities": [
+    {"className": "CIOListProcessor", "chineseName": "列表处理器", "description": "定义集成列表数据的迭代和处理规则。"},
+    {"className": "CIODispatchRule", "chineseName": "CIO派工规则", "description": "定义消息和工作流派工规则。"},
+    {"className": "CIOSystemDispatchRule", "chineseName": "系统派工规则", "description": "定义按目标系统执行的派工规则。"},
+    {"className": "CIOOutboundMsgDef", "chineseName": "出站消息定义", "description": "定义CIO出站消息和发送配置。"},
+    {"className": "CIOWorkflow", "chineseName": "CIO工作流", "description": "定义集成处理工作流及步骤编排。"},
+    {"className": "CIOTestObject", "chineseName": "CIO测试对象", "description": "定义集成配置验证使用的测试对象。"},
+    {"className": "cioQueryPortalPage", "chineseName": "CIO查询门户页面", "description": "定义CIO查询门户页面配置。"}
+  ]
+}

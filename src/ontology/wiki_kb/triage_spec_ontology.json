@@ -1,0 +1,148 @@
+{
+  "module": "triage_spec",
+  "classes": [
+    {
+      "className": "TriageSpec",
+      "chineseName": "分流/初审规格",
+      "description": "Triage Spec — 分流/初审处理规格定义实体（CdoId: 7708）。定义质量事件（Event）的分流和初审处理规则，指定不同类别的事件由谁负责初审、遵循什么处理流程。在 Organization 的 CategoryMap 子实体中被引用，确定特定质量对象类别（Event/CAR）对应的 TriageSpec，实现质量事件的自动路由和初审分配。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "分流规格的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "TriageSpecDetail",
+      "chineseName": "分流规格明细",
+      "description": "TriageSpecDetail — 分流初审规格明细子实体（CdoId: 1185）。定义具体的质量事件分流初审规则，指定如何将特定类别的质量对象自动分流路由给指定的初审责任人、角色，以及所使用的审批流程、检查清单模板。",
+      "properties": [
+        {
+          "name": "triageSpec",
+          "type": "Navigation",
+          "description": "物理字段 TriageSpecId → TriageSpec"
+        },
+        {
+          "name": "role",
+          "type": "Navigation",
+          "description": "分流指定的初审责任角色 → Role"
+        },
+        {
+          "name": "carRequired",
+          "type": "Boolean",
+          "description": "是否强制要求生成CAR/CAPA"
+        },
+        {
+          "name": "processModel",
+          "type": "Navigation",
+          "description": "分流分配的业务流程模板 → ProcessModelTemplate"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "分流明细条目名称（必填）",
+          "required": true
+        },
+        {
+          "name": "toCategory",
+          "type": "Integer",
+          "description": "分流的目标质量对象类别编码"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "分流指定的初审责任人 → Employee"
+        },
+        {
+          "name": "autoRoute",
+          "type": "Boolean",
+          "description": "是否自动分流路由"
+        },
+        {
+          "name": "checklistTemplate",
+          "type": "Navigation",
+          "description": "关联的作业检查清单模板 → ChecklistTemplate"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "TriageSpecDetail",
+      "toClass": "TriageSpec",
+      "relationName": "HAS_TRIAGE_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TriageSpecDetail.TriageSpecId"
+    },
+    {
+      "fromClass": "TriageSpecDetail",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TriageSpecDetail.RoleId"
+    },
+    {
+      "fromClass": "TriageSpecDetail",
+      "toClass": "ProcessModelTemplate",
+      "relationName": "HAS_PROCESS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TriageSpecDetail.ProcessModelId"
+    },
+    {
+      "fromClass": "TriageSpecDetail",
+      "toClass": "Employee",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TriageSpecDetail.OwnerId"
+    },
+    {
+      "fromClass": "TriageSpecDetail",
+      "toClass": "ChecklistTemplate",
+      "relationName": "HAS_CHECKLIST_TEMPLATE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TriageSpecDetail.ChecklistTemplateId"
+    }
+  ]
+}

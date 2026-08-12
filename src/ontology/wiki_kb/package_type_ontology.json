@@ -1,0 +1,49 @@
+{
+  "module": "package_type",
+  "classes": [
+    {
+      "className": "PackageType",
+      "chineseName": "包类型",
+      "description": "Package Type — 变更管理中的包类型定义实体。用于区分不同类型的变更包（如工程变更、文档变更、流程变更等），在包创建模板（PackageCreationTemplate）中被引用，决定变更包的业务分类和处理路径。 【Swagger】Schema: PackageTypeEntity；来源文件: PackageTypes.json；API: /api/PackageTypes。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "包类型的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明，默认与名称相同 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签，逗号分隔 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

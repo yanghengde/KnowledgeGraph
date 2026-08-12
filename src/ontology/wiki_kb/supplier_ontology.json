@@ -1,0 +1,54 @@
+{
+  "module": "supplier",
+  "classes": [
+    {
+      "className": "Vendor",
+      "chineseName": "供应商",
+      "description": "提供原材料或组件的第三方外部公司。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结；冻结后不允许修改该实例或其修订。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "实体说明；未指定时默认使用实体名称。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "此实例的唯一名称。",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "与该对象相关的备注和注释。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "以逗号分隔的筛选标签列表。"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

@@ -1,0 +1,54 @@
+{
+  "module": "occupation",
+  "classes": [
+    {
+      "className": "Occupation",
+      "chineseName": "职务/岗位",
+      "description": "Occupation — 职务/岗位（命名对象）。定义质量事件处理流程中执行人员的职务分类，如 Inspector（检验员）、Technician（技术员）、Engineer（工程师）、Operator（操作员）等。被 EventData 和 EventCheckBoxFieldData 引用，用于在事件记录中区分不同角色执行的职责。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "职务唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

@@ -1,0 +1,318 @@
+{
+  "module": "document",
+  "classes": [
+    {
+      "className": "Document",
+      "chineseName": "文档",
+      "description": "Document — 文档（版本化实体）。管理 SOP、图纸、安全手册等文件的元数据和版本控制。通过 identifier 指定外部文件路径/URL，fileLocation/fileName 定位文件，viewer 指定查看器，支持 XShare 协作系统集成。被 DocumentSet 引用组成文档集。 【Swagger】Schema: DocumentEntity；来源文件: Documents.json；API: /api/Documents。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "限制的设置权限限制 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本号（必填） 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "documentBase",
+          "type": "Navigation",
+          "description": "关联的文档基类 → DocumentBase"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "viewer",
+          "type": "Navigation",
+          "description": "关联的文档查看器(DocumentViewer) 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "identifier",
+          "type": "String",
+          "description": "外部标识符——文件路径 and 文件名、URL等 【Swagger】External identifier for the document (Path and file name, URL, etc.)"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号(ECO) 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "isAttachment",
+          "type": "Boolean",
+          "description": "是否为附件模式（不重用文档） 【Swagger】Determines if the document attached will not be reused, IsAttachment = true, document will NOT be reused."
+        },
+        {
+          "name": "fileVersion",
+          "type": "String",
+          "description": "文件版本 【Swagger】File Version"
+        },
+        {
+          "name": "attachmentHolder",
+          "type": "Navigation",
+          "description": "关联的质量对象文档附件 → DocAttachments"
+        },
+        {
+          "name": "xShareCollabspaceId",
+          "type": "String",
+          "description": "XShare 协作空间 GUID 【Swagger】Hexadecimal representation of GUID ( e.g. BDE4B634-153E-4A31-A453-EEA85FE80532)"
+        },
+        {
+          "name": "xShareContainerId",
+          "type": "String",
+          "description": "XShare 容器 GUID 【Swagger】Hexadecimal representation of GUID ( e.g. BDE4B634-153E-4A31-A453-EEA85FE80532)"
+        },
+        {
+          "name": "xShareUrn",
+          "type": "String",
+          "description": "物理字段 XShareURN"
+        },
+        {
+          "name": "xShareContainerName",
+          "type": "String",
+          "description": "XShare容器名称。 【Swagger】XShare Container Name"
+        },
+        {
+          "name": "xShareParentFolder",
+          "type": "String",
+          "description": "文件夹路径。 【Swagger】FolderPath"
+        },
+        {
+          "name": "xShareContainerType",
+          "type": "String",
+          "description": "容器类型。 【Swagger】Container Type"
+        },
+        {
+          "name": "browseMode",
+          "type": "Integer",
+          "description": "浏览模式编码 【Swagger】BrowseMode"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "authenticationType",
+          "type": "Integer",
+          "description": "认证类型：10=Basic, 20=None 【Swagger】Enumeration for the Authentication Type: 10 = Basic 20 = None"
+        }
+      ]
+    },
+    {
+      "className": "DocumentViewer",
+      "chineseName": "文档查看器",
+      "description": "DocumentViewer — 文档查看器。定义打开特定类型文档所使用的外部应用程序及命令行参数。commandLine 中 %1 令牌在运行时被替换为文档的 identifier/路径。例如：\"Acrobat.exe %1\" 用 PDF 阅读器打开文档。 【Swagger】Schema: DocumentViewerEntity；来源文件: DocumentViewers.json；API: /api/DocumentViewers。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "限制的设置权限限制 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "查看器唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus"
+        },
+        {
+          "name": "currentDirectory",
+          "type": "String",
+          "description": "应用程序启动时的当前工作目录 【Swagger】Optionally specifies the directory to be used as the current directory when the application is launched."
+        },
+        {
+          "name": "commandLine",
+          "type": "String",
+          "description": "启动应用程序的命令行，%1 令牌代表文档路径（最长2000字符） 【Swagger】Specifies the name of the application to launch and any command line arguments that are required. This string includes an identifier that is to be replaced with a document identifier when the command string is constructed at run-time. For example: Acrobat.exe %1 Where %1 is to be replaced with a document identifier at run time."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "DocumentSet",
+      "chineseName": "文档集",
+      "description": "DocumentSet — 文档集。将多个文档(Document)归组为一个逻辑集合，通过 DocumentEntry 子实体列表定义每个文档的引用和使用说明。可挂载到多种模型对象类型（如 Product、Spec、MfgOrder、Activity 等），由 docSetModelObjectTypeName 指定目标对象类型。 【Swagger】Schema: DocumentSetEntity；来源文件: DocumentSets.json；API: /api/DocumentSets。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "限制的设置权限限制 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "文档集唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "DocumentEntry",
+      "chineseName": "文档条目",
+      "description": "DocumentEntry — 文档条目（DocumentSet 的子实体）。在文档集中引用一个具体的 Document，并提供在此集合中的用途说明(description)，以及一个名称(name)用于在关联步骤中请求特定文档。 【Swagger】Schema: DocumentEntryChanges；来源文件: DocumentSets.json；API: /api/DocumentSets。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结；冻结后不允许修改该实例或其修订。 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "归属的文档集 → DocumentSet 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "条目名称，用于在关联步骤中标识和请求特定文档 【Swagger】Unique name for this Bin (unique within the context of the associated Step). This provides a means of requesting a specific document within the Set.",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "条目的用途说明，用于构建选择列表 【Swagger】Description of this entry. Defaults to the name of this entry if not specified. This value is used, for example, to build a selection list of documents within the set."
+        },
+        {
+          "name": "documentBase",
+          "type": "Integer",
+          "description": "引用的文档基类 → DocumentBase"
+        },
+        {
+          "name": "document",
+          "type": "Navigation",
+          "description": "引用的文档(Document) 【Swagger】引用 Schema: RevisionedObjectRef。"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Document",
+      "toClass": "DocumentBase",
+      "relationName": "HAS_DOCUMENT_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Document.DocumentBaseId"
+    },
+    {
+      "fromClass": "Document",
+      "toClass": "DocumentViewer",
+      "relationName": "HAS_VIEWER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Document.ViewerId"
+    },
+    {
+      "fromClass": "Document",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_ATTACHMENT_HOLDER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Document.AttachmentHolderId"
+    },
+    {
+      "fromClass": "DocumentEntry",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DocumentEntry.DocumentSetId"
+    },
+    {
+      "fromClass": "DocumentEntry",
+      "toClass": "Document",
+      "relationName": "HAS_DOCUMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DocumentEntry.DocumentId"
+    }
+  ]
+}

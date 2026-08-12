@@ -1,0 +1,165 @@
+{
+  "module": "mfg_order_procedure",
+  "classes": [
+    {
+      "className": "MfgOrderProcedure",
+      "chineseName": "工单生产程序",
+      "description": "MfgOrderProcedure — 工单生产程序（版本化实体）。定义制造工单(MfgOrder)的产前/产后电子程序执行模板，包含执行模式、目标完成时间、完成时工单状态和任务列表引用。被 MfgOrder 通过 PreProductionProcedureId 和 PostProductionProcedureId 引用。 【Swagger】Schema: MfgOrderProcedureEntity；来源文件: MfgOrderProcedures.json；API: /api/MfgOrderProcedures。",
+      "properties": [
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号(ECO) 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "completedOrderStatus",
+          "type": "Navigation",
+          "description": "程序完成后工单的目标状态 → OrderStatus 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "targetTime",
+          "type": "Float",
+          "description": "预计完成时间 【Swagger】Estimated time to complete procedure"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "mfgOrderProcedureBase",
+          "type": "Navigation",
+          "description": "物理字段 MfgOrderProcedureBaseId → MfgOrderProcedureBase"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本号 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "displayMode",
+          "type": "Integer",
+          "description": "显示模式 【Swagger】Identifies how the Electronic Procedure is to be displayed on the UI. 1 = DrillDown 2 = Outline"
+        },
+        {
+          "name": "executionMode",
+          "type": "Integer",
+          "description": "执行模式：1=Sequential(顺序), 2=Non-Sequential(非顺序)（必填） 【Swagger】Identifies whether the TaskLists in the Electronic Procedure are to be processed in sequence. 1 = Sequential 2 = Non-Sequential"
+        },
+        {
+          "name": "keepCompletedTasks",
+          "type": "Boolean",
+          "description": "物理字段 KeepCompletedTasks 【Swagger】When true will prevent deleting ContainerCompletedTasks data for the container at the current step"
+        },
+        {
+          "name": "keepCompletedTasksOnOpen",
+          "type": "Boolean",
+          "description": "物理字段 KeepCompletedTasksOnOpen 【Swagger】When true will not delete any completed task history"
+        }
+      ]
+    },
+    {
+      "className": "MfgOrderProcedureDetail",
+      "chineseName": "工单生产程序明细",
+      "description": "MfgOrderProcedureDetail — 工单生产程序明细（MfgOrderProcedure 的子实体）。连接 MfgOrderProcedure 与 MfgOrderTaskList，定义每个任务列表在程序中的执行顺序。 【Swagger】Schema: MfgOrderProcedureDetailChanges；来源文件: MfgOrderProcedures.json；API: /api/MfgOrderProcedures。",
+      "properties": [
+        {
+          "name": "mfgOrderProcedure",
+          "type": "Navigation",
+          "description": "物理字段 MfgOrderProcedureId → MfgOrderProcedure"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "任务列表在程序中的执行顺序号 【Swagger】Sequence in which the TaskList should be displayed and/or processed."
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "明细名称",
+          "required": true
+        },
+        {
+          "name": "mfgOrderTaskListBase",
+          "type": "Integer",
+          "description": "物理字段 MfgOrderTaskListBaseId"
+        },
+        {
+          "name": "mfgOrderTaskList",
+          "type": "Navigation",
+          "description": "物理字段 MfgOrderTaskListId → MfgOrderTaskList"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "MfgOrderProcedure",
+      "toClass": "OrderStatus",
+      "relationName": "HAS_COMPLETED_ORDER_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderProcedure.CompletedOrderStatusId"
+    },
+    {
+      "fromClass": "MfgOrderProcedure",
+      "toClass": "MfgOrderProcedureBase",
+      "relationName": "HAS_MFG_ORDER_PROCEDURE_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderProcedure.MfgOrderProcedureBaseId"
+    },
+    {
+      "fromClass": "MfgOrderProcedureDetail",
+      "toClass": "MfgOrderProcedure",
+      "relationName": "HAS_MFG_ORDER_PROCEDURE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderProcedureDetail.MfgOrderProcedureId"
+    },
+    {
+      "fromClass": "MfgOrderProcedureDetail",
+      "toClass": "MfgOrderTaskList",
+      "relationName": "HAS_MFG_ORDER_TASK_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderProcedureDetail.MfgOrderTaskListId"
+    }
+  ]
+}

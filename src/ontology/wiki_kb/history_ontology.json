@@ -1,0 +1,687 @@
+{
+  "module": "history",
+  "classes": [
+    {
+      "className": "HistoryMainline",
+      "chineseName": "主历史记录",
+      "description": "HistoryMainline — WIP transaction history mainline. 记录所有车间在制品容器的业务交易历史记录（如 Move, Qty, Hold, Start等）。物理上对应 HistoryMainline (CdoId: 3980)。",
+      "properties": [
+        {
+          "name": "cioMessageId",
+          "type": "String",
+          "description": "物理字段 CIOMessageID"
+        },
+        {
+          "name": "cioMessageIdOutbound",
+          "type": "String",
+          "description": "物理字段 CIOMessageIDOutbound"
+        },
+        {
+          "name": "containerTxnSequence",
+          "type": "Integer",
+          "description": "物理字段 ContainerTxnSequence"
+        },
+        {
+          "name": "serverName",
+          "type": "String",
+          "description": "物理字段 ServerName"
+        },
+        {
+          "name": "integrationTxn",
+          "type": "Integer",
+          "description": "物理字段 IntegrationTxnId"
+        },
+        {
+          "name": "containerChangeCount",
+          "type": "Integer",
+          "description": "物理字段 ContainerChangeCount"
+        },
+        {
+          "name": "fromStatus",
+          "type": "Integer",
+          "description": "物理字段 FromStatus"
+        },
+        {
+          "name": "workflowName",
+          "type": "String",
+          "description": "物理字段 WorkflowName"
+        },
+        {
+          "name": "callByCdoName",
+          "type": "String",
+          "description": "物理字段 CallByCDOName"
+        },
+        {
+          "name": "resourceObjectType",
+          "type": "String",
+          "description": "物理字段 ResourceObjectType"
+        },
+        {
+          "name": "processSpec",
+          "type": "Integer",
+          "description": "物理字段 ProcessSpecId"
+        },
+        {
+          "name": "resourceObjectCategory",
+          "type": "String",
+          "description": "物理字段 ResourceObjectCategory"
+        },
+        {
+          "name": "computerName",
+          "type": "String",
+          "description": "物理字段 ComputerName"
+        },
+        {
+          "name": "moveInUsername",
+          "type": "String",
+          "description": "物理字段 MoveInUsername"
+        },
+        {
+          "name": "lastMoveOutTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 LastMoveOutTimestamp"
+        },
+        {
+          "name": "lastMoveOutUsername",
+          "type": "String",
+          "description": "物理字段 LastMoveOutUsername"
+        },
+        {
+          "name": "fromUom2Name",
+          "type": "String",
+          "description": "物理字段 FromUOM2Name"
+        },
+        {
+          "name": "fromWorkflowName",
+          "type": "String",
+          "description": "物理字段 FromWorkflowName"
+        },
+        {
+          "name": "cdoName",
+          "type": "String",
+          "description": "物理字段 CDOName"
+        },
+        {
+          "name": "specName",
+          "type": "String",
+          "description": "物理字段 SpecName"
+        },
+        {
+          "name": "stepLogicName",
+          "type": "String",
+          "description": "物理字段 StepLogicName"
+        },
+        {
+          "name": "username",
+          "type": "String",
+          "description": "物理字段 Username"
+        },
+        {
+          "name": "ownerName",
+          "type": "String",
+          "description": "物理字段 OwnerName"
+        },
+        {
+          "name": "qty",
+          "type": "Float",
+          "description": "物理字段 Qty"
+        },
+        {
+          "name": "qty2",
+          "type": "Float",
+          "description": "物理字段 Qty2"
+        },
+        {
+          "name": "productName",
+          "type": "String",
+          "description": "物理字段 ProductName"
+        },
+        {
+          "name": "moveInQty2",
+          "type": "Float",
+          "description": "物理字段 MoveInQty2"
+        },
+        {
+          "name": "uom2Name",
+          "type": "String",
+          "description": "物理字段 UOM2Name"
+        },
+        {
+          "name": "resourceName",
+          "type": "String",
+          "description": "物理字段 ResourceName"
+        },
+        {
+          "name": "fromSpecName",
+          "type": "String",
+          "description": "物理字段 FromSpecName"
+        },
+        {
+          "name": "moveInTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 MoveInTimestamp"
+        },
+        {
+          "name": "containerName",
+          "type": "String",
+          "description": "物理字段 ContainerName"
+        },
+        {
+          "name": "wipTrackingGroupKey",
+          "type": "Integer",
+          "description": "物理字段 WIPTrackingGroupKeyId"
+        },
+        {
+          "name": "lastLotCarriersSetupHistory",
+          "type": "Integer",
+          "description": "物理字段 LastLotCarriersSetupHistoryId"
+        },
+        {
+          "name": "fromContainer",
+          "type": "Integer",
+          "description": "物理字段 FromContainerId"
+        },
+        {
+          "name": "fromContainerName",
+          "type": "String",
+          "description": "物理字段 FromContainerName"
+        },
+        {
+          "name": "uomName",
+          "type": "String",
+          "description": "物理字段 UOMName"
+        },
+        {
+          "name": "fromUomName",
+          "type": "String",
+          "description": "物理字段 FromUOMName"
+        },
+        {
+          "name": "calendarJulianDay",
+          "type": "String",
+          "description": "物理字段 CalendarJulianDay"
+        },
+        {
+          "name": "calendarMonth",
+          "type": "String",
+          "description": "物理字段 CalendarMonth"
+        },
+        {
+          "name": "moveInQty",
+          "type": "Float",
+          "description": "物理字段 MoveInQty"
+        },
+        {
+          "name": "calendarYear",
+          "type": "String",
+          "description": "物理字段 CalendarYear"
+        },
+        {
+          "name": "fromQty2",
+          "type": "Float",
+          "description": "物理字段 FromQty2"
+        },
+        {
+          "name": "employeeName",
+          "type": "String",
+          "description": "物理字段 EmployeeName"
+        },
+        {
+          "name": "fromSpec",
+          "type": "Navigation",
+          "description": "物理字段 FromSpecId → Spec"
+        },
+        {
+          "name": "carrierName",
+          "type": "String",
+          "description": "物理字段 CarrierName"
+        },
+        {
+          "name": "cdoTxnSequence",
+          "type": "Integer",
+          "description": "物理字段 CDOTxnSequence"
+        },
+        {
+          "name": "specPass",
+          "type": "Integer",
+          "description": "物理字段 SpecPass"
+        },
+        {
+          "name": "historySummary",
+          "type": "Integer",
+          "description": "物理字段 HistorySummaryId"
+        },
+        {
+          "name": "fromSpecPass",
+          "type": "Integer",
+          "description": "物理字段 FromSpecPass"
+        },
+        {
+          "name": "fromQty",
+          "type": "Float",
+          "description": "物理字段 FromQty"
+        },
+        {
+          "name": "calendarWorkWeek",
+          "type": "String",
+          "description": "物理字段 CalendarWorkWeek"
+        },
+        {
+          "name": "scsLastMoveOutTimestampGmt",
+          "type": "DateTime",
+          "description": "物理字段 scsLastMoveOutTimestampGMT"
+        },
+        {
+          "name": "scsMoveInTimestampGmt",
+          "type": "DateTime",
+          "description": "物理字段 scsMoveInTimestampGMT"
+        },
+        {
+          "name": "inRework",
+          "type": "Boolean",
+          "description": "物理字段 InRework"
+        },
+        {
+          "name": "batch",
+          "type": "Navigation",
+          "description": "物理字段 BatchId → Container"
+        },
+        {
+          "name": "shiftName",
+          "type": "String",
+          "description": "物理字段 ShiftName"
+        },
+        {
+          "name": "workflowStep",
+          "type": "Navigation",
+          "description": "物理字段 WorkflowStepId → WorkflowStep"
+        },
+        {
+          "name": "compoundTxnType",
+          "type": "Integer",
+          "description": "物理字段 CompoundTxnType"
+        },
+        {
+          "name": "stepEntryTxn",
+          "type": "Integer",
+          "description": "物理字段 StepEntryTxnId"
+        },
+        {
+          "name": "stepPass",
+          "type": "Integer",
+          "description": "物理字段 StepPass"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "application",
+          "type": "Integer",
+          "description": "物理字段 Application"
+        },
+        {
+          "name": "baseTxnType",
+          "type": "Integer",
+          "description": "物理字段 BaseTxnType"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "物理字段 Status"
+        },
+        {
+          "name": "systemDate",
+          "type": "DateTime",
+          "description": "物理字段 SystemDate"
+        },
+        {
+          "name": "systemDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 SystemDateGMT"
+        },
+        {
+          "name": "txnDate",
+          "type": "DateTime",
+          "description": "交易执行时间戳"
+        },
+        {
+          "name": "txnDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 TxnDateGMT"
+        },
+        {
+          "name": "txn",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        },
+        {
+          "name": "txnType",
+          "type": "Integer",
+          "description": "交易事务类型（如 MoveIn, MoveOut, Hold）"
+        },
+        {
+          "name": "user",
+          "type": "Navigation",
+          "description": "物理字段 UserId → Employee"
+        },
+        {
+          "name": "resource",
+          "type": "Navigation",
+          "description": "物理字段 ResourceId → ResourceDef"
+        },
+        {
+          "name": "history",
+          "type": "Integer",
+          "description": "物理字段 HistoryId"
+        },
+        {
+          "name": "binningIncluded",
+          "type": "Boolean",
+          "description": "物理字段 BinningIncluded"
+        },
+        {
+          "name": "bonusIncluded",
+          "type": "Boolean",
+          "description": "物理字段 BonusIncluded"
+        },
+        {
+          "name": "client",
+          "type": "Integer",
+          "description": "物理字段 Client"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "container",
+          "type": "Navigation",
+          "description": "物理字段 ContainerId → Container"
+        },
+        {
+          "name": "defectIncluded",
+          "type": "Boolean",
+          "description": "物理字段 DefectIncluded"
+        },
+        {
+          "name": "employee",
+          "type": "Navigation",
+          "description": "物理字段 EmployeeId → Employee"
+        },
+        {
+          "name": "calendarShift",
+          "type": "Navigation",
+          "description": "物理字段 CalendarShiftId → CalendarShift"
+        },
+        {
+          "name": "server",
+          "type": "Integer",
+          "description": "物理字段 Server"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "implicit",
+          "type": "Boolean",
+          "description": "物理字段 Implicit"
+        },
+        {
+          "name": "localReworkIncluded",
+          "type": "Boolean",
+          "description": "物理字段 LocalReworkIncluded"
+        },
+        {
+          "name": "login",
+          "type": "Navigation",
+          "description": "物理字段 LoginId → Employee"
+        },
+        {
+          "name": "lossIncluded",
+          "type": "Boolean",
+          "description": "物理字段 LossIncluded"
+        },
+        {
+          "name": "mfgDate",
+          "type": "DateTime",
+          "description": "物理字段 MfgDate"
+        },
+        {
+          "name": "operation",
+          "type": "Navigation",
+          "description": "物理字段 OperationId → Operation"
+        },
+        {
+          "name": "parametricDetail",
+          "type": "Integer",
+          "description": "物理字段 ParametricDetailId"
+        },
+        {
+          "name": "factory",
+          "type": "Navigation",
+          "description": "物理字段 FactoryId → Factory"
+        },
+        {
+          "name": "reversalStatus",
+          "type": "Integer",
+          "description": "物理字段 ReversalStatus"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "computationHistory",
+          "type": "Navigation",
+          "description": "物理字段 ComputationHistoryId → ComputationHistory"
+        },
+        {
+          "name": "eSigRequirement",
+          "type": "Navigation",
+          "description": "物理字段 ESigRequirementId → ESigRequirement"
+        },
+        {
+          "name": "mfgProcessOverrides",
+          "type": "Navigation",
+          "description": "物理字段 MfgProcessOverridesId → BillOfProcess"
+        },
+        {
+          "name": "carrier",
+          "type": "Navigation",
+          "description": "物理字段 CarrierId → ResourceDef"
+        },
+        {
+          "name": "qualityESigConfirmed",
+          "type": "Boolean",
+          "description": "物理字段 QualityESigConfirmed"
+        },
+        {
+          "name": "remainingProcessTime",
+          "type": "Float",
+          "description": "物理字段 RemainingProcessTime"
+        },
+        {
+          "name": "txnServiceName",
+          "type": "String",
+          "description": "物理字段 TxnServiceName"
+        },
+        {
+          "name": "txnServiceSequence",
+          "type": "Integer",
+          "description": "物理字段 TxnServiceSequence"
+        },
+        {
+          "name": "resourceAvailability",
+          "type": "Integer",
+          "description": "物理字段 ResourceAvailability"
+        },
+        {
+          "name": "resourceStatusCode",
+          "type": "Navigation",
+          "description": "物理字段 ResourceStatusCodeId → ResourceStatusCode"
+        },
+        {
+          "name": "resourceStatusReason",
+          "type": "Navigation",
+          "description": "物理字段 ResourceStatusReasonId → ResourceStatusReason"
+        },
+        {
+          "name": "workstation",
+          "type": "Navigation",
+          "description": "物理字段 WorkstationId → ResourceDef"
+        },
+        {
+          "name": "txnId",
+          "type": "Integer",
+          "description": "物理字段 TxnId"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Spec",
+      "relationName": "HAS_FROM_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.FromSpecId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Container",
+      "relationName": "HAS_BATCH",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.BatchId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_WORKFLOW_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.WorkflowStepId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.SpecId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Employee",
+      "relationName": "HAS_USER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.UserId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_RESOURCE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.ResourceId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Container",
+      "relationName": "HAS_CONTAINER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.ContainerId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Employee",
+      "relationName": "HAS_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.EmployeeId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "CalendarShift",
+      "relationName": "HAS_CALENDAR_SHIFT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.CalendarShiftId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Employee",
+      "relationName": "HAS_LOGIN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.LoginId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Operation",
+      "relationName": "HAS_OPERATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.OperationId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Factory",
+      "relationName": "HAS_FACTORY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.FactoryId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.ProductId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.OwnerId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "BillOfProcess",
+      "relationName": "HAS_MFG_PROCESS_OVERRIDES",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.MfgProcessOverridesId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_CARRIER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.CarrierId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "ResourceStatusCode",
+      "relationName": "HAS_RESOURCE_STATUS_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.ResourceStatusCodeId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "ResourceStatusReason",
+      "relationName": "HAS_RESOURCE_STATUS_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.ResourceStatusReasonId"
+    },
+    {
+      "fromClass": "HistoryMainline",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_WORKSTATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HistoryMainline.WorkstationId"
+    }
+  ]
+}

@@ -1,0 +1,212 @@
+{
+  "module": "semiconductor_physical_resource_replacements",
+  "classes": [
+    {
+      "className": "A_PhysicalLocationPosition",
+      "chineseName": "物理位置关联",
+      "description": "物理位置与位置定义之间的顺序关联明细。 物理对应 A_PhysicalLocationPosition (CdoId: 679477479, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "physicalLocation",
+          "type": "Navigation",
+          "description": "物理字段 PhysicalLocationId → A_PhysicalLocation"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "position",
+          "type": "Navigation",
+          "description": "物理字段 PositionId → A_PhysicalPosition"
+        },
+        {
+          "name": "positionSequence",
+          "type": "Integer",
+          "description": "物理字段 PositionSequence"
+        }
+      ]
+    },
+    {
+      "className": "A_PhysicalPosition",
+      "chineseName": "物理位置定义",
+      "description": "定义可用于厂内物理位置配置的位置主数据。 物理对应 A_PhysicalPosition (CdoId: 679477478, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "与该对象相关的备注和注释。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "此实例的唯一名称。",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结；冻结后不允许修改该实例或其修订。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "实体说明；未指定时默认使用实体名称。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "以逗号分隔的筛选标签列表。"
+        }
+      ]
+    },
+    {
+      "className": "A_ResourceBOM",
+      "chineseName": "资源BOM",
+      "description": "资源所需物料清单的版本化定义。 物理对应 A_ResourceBOM (CdoId: 679477481, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "resourceBomBase",
+          "type": "Navigation",
+          "description": "物理字段 ResourceBOMBaseId → A_ResourceBOMBase"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器（WIPMsgDefMgr）。"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "当前状态：1=激活，2=停用。"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版（在基础实体上下文中唯一）。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结；冻结后不允许修改该实例或其修订。"
+        },
+        {
+          "name": "billType",
+          "type": "Navigation",
+          "description": "关联的清单类型。"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "与该对象相关的备注和注释。"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单（ECO）。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "实体说明；未指定时默认使用实体名称。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "以逗号分隔的筛选标签列表。"
+        }
+      ]
+    },
+    {
+      "className": "A_ResourceBOMBase",
+      "chineseName": "资源BOM基础",
+      "description": "资源BOM各修订版本的基础记录。 物理对应 A_ResourceBOMBase (CdoId: 679477480, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → A_ResourceBOM"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ResourceBOMName",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_PhysicalLocationPosition",
+      "toClass": "A_PhysicalLocation",
+      "relationName": "HAS_PHYSICAL_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PhysicalLocationPosition.PhysicalLocationId"
+    },
+    {
+      "fromClass": "A_PhysicalLocationPosition",
+      "toClass": "A_PhysicalPosition",
+      "relationName": "HAS_POSITION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PhysicalLocationPosition.PositionId"
+    },
+    {
+      "fromClass": "A_ResourceBOM",
+      "toClass": "A_ResourceBOMBase",
+      "relationName": "HAS_RESOURCE_BOM_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ResourceBOM.ResourceBOMBaseId"
+    },
+    {
+      "fromClass": "A_ResourceBOM",
+      "toClass": "BillType",
+      "relationName": "HAS_BILL_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ResourceBOM.BillTypeId"
+    },
+    {
+      "fromClass": "A_ResourceBOMBase",
+      "toClass": "A_ResourceBOM",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ResourceBOMBase.RevOfRcdId"
+    }
+  ]
+}

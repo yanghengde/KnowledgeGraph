@@ -1,0 +1,125 @@
+{
+  "profile": "sql_learning",
+  "purpose": "面向IT人员学习Camstar后台业务对象及编写SQL；保留业务表、业务主数据、事务对象、历史表及有业务含义的外键路径，排除访问控制、集成消息、界面配置等技术对象。",
+  "preservationRule": "排除目标类及其图关系，但保留其他业务类上的全部物理字段和Navigation属性，包括指向排除类的物理外键字段。",
+  "categories": [
+    {
+      "id": "integration_cio",
+      "name": "CIO集成与消息编排",
+      "reason": "CIO连接、通道、消息映射、模板和派工属于系统集成传输层，不是制造业务SQL的核心表。",
+      "classes": [
+        "CIOBinding",
+        "CIOBuffer",
+        "CIOCamstarConnection",
+        "CIOChannelAdapter",
+        "CIOChannelSource",
+        "CIODataHandler",
+        "CIODataPointInstance",
+        "CIODataPointType",
+        "CIODetailSection",
+        "CIODispatchRule",
+        "CIOFilter",
+        "CIOFunction",
+        "CIOJournalPersist",
+        "CIOListProcessor",
+        "CIOListProcessorBase",
+        "CIOMapSource",
+        "CIOMessageChannel",
+        "CIOMessageMap",
+        "CIOMessageMapBase",
+        "CIOMessageType",
+        "CIOOutboundDefinition",
+        "CIOOutboundMsgDef",
+        "CIOSettings",
+        "CIOSystemDispatchRule",
+        "CIOTemplate",
+        "CIOTemplateBase",
+        "CIOTestObject",
+        "CIOWorkflow",
+        "CIOWorkflowBase",
+        "MessageNameParameter",
+        "MessageTypeParameter",
+        "RequestIdParameter",
+        "TagDataParameter",
+        "cioQueryPortalPage"
+      ]
+    },
+    {
+      "id": "access_security",
+      "name": "访问控制与权限",
+      "reason": "这些表控制建模对象或系统功能的访问权限，会给大量业务对象制造无助于SQL学习的公共连接。",
+      "classes": [
+        "A_SetupAccess",
+        "ExternalPermission",
+        "PermissionDefinition",
+        "RolePermission",
+        "SystemSecurityGroup"
+      ]
+    },
+    {
+      "id": "audit_status",
+      "name": "建模变更审计状态",
+      "reason": "ChangeStatus是建模发布与变更审计公共表，不代表制造业务关系；业务历史主线HistoryMainline仍保留。",
+      "classes": [
+        "ChangeStatus"
+      ]
+    },
+    {
+      "id": "ui_portal",
+      "name": "界面与门户配置",
+      "reason": "菜单、Portal页面、UI偏好和显示资源只决定界面行为，不构成业务SQL对象关系。",
+      "classes": [
+        "ActionsMenu",
+        "MenuDefinition",
+        "PortalMenuDefinition",
+        "UIPreference",
+        "UIVirtualPage",
+        "UserLabel",
+        "isImage"
+      ]
+    },
+    {
+      "id": "messaging_notification",
+      "name": "消息、邮件与通知配置",
+      "reason": "WIP消息定义、邮件分发、通知变量和实时推送属于通知基础设施，不是生产业务事实。",
+      "classes": [
+        "A_EmailGroup",
+        "EMailDistribution",
+        "EMailMessage",
+        "ErrorMsg",
+        "NotifVar",
+        "NotificationEvent",
+        "NotificationTarget",
+        "SignalRConfiguration",
+        "TextVariable",
+        "WIPMsgConfig",
+        "WIPMsgDefMgr",
+        "WIPMsgDetails",
+        "WIPMsgKey"
+      ]
+    },
+    {
+      "id": "e_signature",
+      "name": "电子签名技术配置",
+      "reason": "签名含义、角色和建模签名要求属于认证审计配置；Approval、Activity等业务审批对象仍保留。",
+      "classes": [
+        "ESigCosignReason",
+        "ESigMeaning",
+        "ESigRequirement",
+        "ESigRoleGroup",
+        "ModelingESigReq"
+      ]
+    },
+    {
+      "id": "generic_admin",
+      "name": "通用后台与查询配置",
+      "reason": "过滤标签、字典、用户查询和汇总展示定义属于平台后台配置，不是制造业务实体。",
+      "classes": [
+        "Dictionary",
+        "FilterTag",
+        "SummaryTableDef",
+        "UserQuery"
+      ]
+    }
+  ]
+}

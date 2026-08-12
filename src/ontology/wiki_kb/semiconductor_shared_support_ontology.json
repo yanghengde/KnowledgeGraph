@@ -1,0 +1,1681 @@
+{
+  "module": "semiconductor_shared_support",
+  "classes": [
+    {
+      "className": "ResourceDef",
+      "chineseName": "资源定义",
+      "description": "半导体套件中的物理资源/设备定义。 物理对应 ResourceDef (CdoId: 293, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "maintenanceFailureStatus",
+          "type": "Navigation",
+          "description": "物理字段 MaintenanceFailureStatusId → ResourceStatusCode"
+        },
+        {
+          "name": "trackMaterialsHistory",
+          "type": "Boolean",
+          "description": "物理字段 TrackMaterialsHistory"
+        },
+        {
+          "name": "lastIntegrationTxn",
+          "type": "Integer",
+          "description": "物理字段 LastIntegrationTxnId"
+        },
+        {
+          "name": "lastCorrelationLotName",
+          "type": "String",
+          "description": "物理字段 LastCorrelationLotName"
+        },
+        {
+          "name": "mask",
+          "type": "Navigation",
+          "description": "物理字段 MaskId → ResourceDef"
+        },
+        {
+          "name": "statusModel",
+          "type": "Navigation",
+          "description": "物理字段 StatusModelId → scsStatusModel"
+        },
+        {
+          "name": "resourceIcon",
+          "type": "Navigation",
+          "description": "物理字段 ResourceIconId → A_ResourceIcon"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "物理字段 DocumentSetId → DocumentSet"
+        },
+        {
+          "name": "objectType",
+          "type": "String",
+          "description": "物理字段 ObjectType"
+        },
+        {
+          "name": "requireMinTimeWindow",
+          "type": "Boolean",
+          "description": "物理字段 RequireMinTimeWindow"
+        },
+        {
+          "name": "trackToolsHistory",
+          "type": "Boolean",
+          "description": "物理字段 TrackToolsHistory"
+        },
+        {
+          "name": "useSpcMatrix",
+          "type": "Boolean",
+          "description": "物理字段 UseSPCMatrix"
+        },
+        {
+          "name": "recipe",
+          "type": "Navigation",
+          "description": "物理字段 RecipeId → Document"
+        },
+        {
+          "name": "packageGroup",
+          "type": "Navigation",
+          "description": "物理字段 PackageGroupId → A_PackageGroup"
+        },
+        {
+          "name": "lotCount",
+          "type": "Integer",
+          "description": "物理字段 LotCount"
+        },
+        {
+          "name": "container",
+          "type": "Navigation",
+          "description": "物理字段 ContainerId → Container"
+        },
+        {
+          "name": "automationPlan",
+          "type": "Navigation",
+          "description": "物理字段 AutomationPlanId → A_AutomationPlan"
+        },
+        {
+          "name": "resourceSequence",
+          "type": "Integer",
+          "description": "物理字段 ResourceSequence"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "objectCategory",
+          "type": "String",
+          "description": "物理字段 ObjectCategory"
+        },
+        {
+          "name": "machineGroup",
+          "type": "Navigation",
+          "description": "物理字段 MachineGroupId → A_MachineGroup"
+        },
+        {
+          "name": "resourceComments",
+          "type": "String",
+          "description": "物理字段 ResourceComments"
+        },
+        {
+          "name": "toolPlan",
+          "type": "Navigation",
+          "description": "物理字段 ToolPlanId → A_ToolPlan"
+        },
+        {
+          "name": "spcSetup",
+          "type": "Navigation",
+          "description": "物理字段 SPCSetupId → A_SPCSetup"
+        },
+        {
+          "name": "carrierSequence",
+          "type": "Integer",
+          "description": "物理字段 CarrierSequence"
+        },
+        {
+          "name": "requireTimeCorrelation",
+          "type": "Boolean",
+          "description": "物理字段 RequireTimeCorrelation"
+        },
+        {
+          "name": "trackSequence",
+          "type": "Integer",
+          "description": "物理字段 TrackSequence"
+        },
+        {
+          "name": "requireShiftCorrelation",
+          "type": "Boolean",
+          "description": "物理字段 RequireShiftCorrelation"
+        },
+        {
+          "name": "timeCorrelationLimit",
+          "type": "Float",
+          "description": "物理字段 TimeCorrelationLimit"
+        },
+        {
+          "name": "timeCorrelationTimeframe",
+          "type": "Float",
+          "description": "物理字段 TimeCorrelationTimeframe"
+        },
+        {
+          "name": "correlationGoodUnits",
+          "type": "Float",
+          "description": "物理字段 CorrelationGoodUnits"
+        },
+        {
+          "name": "correlationRejectUnits",
+          "type": "Float",
+          "description": "物理字段 CorrelationRejectUnits"
+        },
+        {
+          "name": "lastCorrelationDate",
+          "type": "DateTime",
+          "description": "物理字段 LastCorrelationDate"
+        },
+        {
+          "name": "lastCorrelationShift",
+          "type": "String",
+          "description": "物理字段 LastCorrelationShift"
+        },
+        {
+          "name": "lastCorrelationHistory",
+          "type": "Integer",
+          "description": "物理字段 LastCorrelationHistoryId"
+        },
+        {
+          "name": "correlationFlag",
+          "type": "Integer",
+          "description": "物理字段 CorrelationFlag"
+        },
+        {
+          "name": "lastCorrelationLot",
+          "type": "Integer",
+          "description": "物理字段 LastCorrelationLotId"
+        },
+        {
+          "name": "trackParamsHistory",
+          "type": "Boolean",
+          "description": "物理字段 TrackParamsHistory"
+        },
+        {
+          "name": "paramList",
+          "type": "Navigation",
+          "description": "物理字段 ParamListId → A_EquipmentParamList"
+        },
+        {
+          "name": "maxLots",
+          "type": "Integer",
+          "description": "物理字段 MaxLots"
+        },
+        {
+          "name": "maxUnits",
+          "type": "Float",
+          "description": "物理字段 MaxUnits"
+        },
+        {
+          "name": "multiLotsFlag",
+          "type": "Integer",
+          "description": "物理字段 MultiLotsFlag"
+        },
+        {
+          "name": "requireSetupCorrelation",
+          "type": "Boolean",
+          "description": "物理字段 RequireSetupCorrelation"
+        },
+        {
+          "name": "ssReserveEmployee",
+          "type": "Navigation",
+          "description": "物理字段 ss_ReserveEmployeeId → Employee"
+        },
+        {
+          "name": "ssReserveEquipment",
+          "type": "Navigation",
+          "description": "物理字段 ss_ReserveEquipmentId → ResourceDef"
+        },
+        {
+          "name": "ssMountToolAction",
+          "type": "Navigation",
+          "description": "物理字段 ss_MountToolActionId → ss_ToolAction"
+        },
+        {
+          "name": "ssUnMountToolAction",
+          "type": "Navigation",
+          "description": "物理字段 ss_UnMountToolActionId → ss_ToolAction"
+        },
+        {
+          "name": "subEquipmentLogicalId",
+          "type": "String",
+          "description": "物理字段 SubEquipmentLogicalID"
+        },
+        {
+          "name": "equipmentType",
+          "type": "String",
+          "description": "物理字段 EquipmentType"
+        },
+        {
+          "name": "ssRecipeGroup",
+          "type": "Navigation",
+          "description": "物理字段 ss_RecipeGroupId → ss_RecipeGroup"
+        },
+        {
+          "name": "scsPositionAssignLotVerificati",
+          "type": "Integer",
+          "description": "物理字段 scsPositionAssignLotVerificati"
+        },
+        {
+          "name": "scsInqInnerInputCarrierFamil",
+          "type": "Navigation",
+          "description": "物理字段 scsInqInnerInputCarrierFamilId → ResourceFamily"
+        },
+        {
+          "name": "scsInqInnerOutputCarrierFami",
+          "type": "Navigation",
+          "description": "物理字段 scsInqInnerOutputCarrierFamiId → ResourceFamily"
+        },
+        {
+          "name": "scsFieldEnable",
+          "type": "Boolean",
+          "description": "物理字段 scsFieldEnable"
+        },
+        {
+          "name": "scsAllowMultiStepsTrackIn",
+          "type": "Boolean",
+          "description": "物理字段 scsAllowMultiStepsTrackIn"
+        },
+        {
+          "name": "scsBypassMaskVerification",
+          "type": "Boolean",
+          "description": "物理字段 scsBypassMaskVerification"
+        },
+        {
+          "name": "scsAutomated",
+          "type": "Boolean",
+          "description": "物理字段 scsAutomated"
+        },
+        {
+          "name": "scsRecipeRequired",
+          "type": "Boolean",
+          "description": "物理字段 scsRecipeRequired"
+        },
+        {
+          "name": "ssUsageCntProcessed",
+          "type": "Boolean",
+          "description": "物理字段 ss_UsageCntProcessed"
+        },
+        {
+          "name": "ssProcessUsageReq",
+          "type": "Boolean",
+          "description": "物理字段 ss_ProcessUsageReq"
+        },
+        {
+          "name": "ssIsDownViaParent",
+          "type": "Boolean",
+          "description": "物理字段 ss_IsDownViaParent"
+        },
+        {
+          "name": "ssChildStatusCombination",
+          "type": "String",
+          "description": "物理字段 ss_ChildStatusCombination"
+        },
+        {
+          "name": "ssAllowInProcessStatChange",
+          "type": "Boolean",
+          "description": "物理字段 ss_AllowInProcessStatChange"
+        },
+        {
+          "name": "ssFeederSlot",
+          "type": "Navigation",
+          "description": "物理字段 ss_FeederSlotId → ss_FeederSlot"
+        },
+        {
+          "name": "ssFeederContainer",
+          "type": "Navigation",
+          "description": "物理字段 ss_FeederContainerId → Container"
+        },
+        {
+          "name": "ssMaxWafersProcessed",
+          "type": "Float",
+          "description": "物理字段 ss_MaxWafersProcessed"
+        },
+        {
+          "name": "ssLastDummyWaferDataCollTime",
+          "type": "DateTime",
+          "description": "物理字段 ss_LastDummyWaferDataCollTime"
+        },
+        {
+          "name": "ssMaxNoProcessTime",
+          "type": "Float",
+          "description": "物理字段 ss_MaxNoProcessTime"
+        },
+        {
+          "name": "ssMinUnits",
+          "type": "Float",
+          "description": "物理字段 ss_MinUnits"
+        },
+        {
+          "name": "ssMinDummyWafers",
+          "type": "Float",
+          "description": "物理字段 ss_MinDummyWafers"
+        },
+        {
+          "name": "ssLastPassedDummyLot",
+          "type": "Navigation",
+          "description": "物理字段 ss_LastPassedDummyLotId → Container"
+        },
+        {
+          "name": "ssLastDummyWaferDataCollStatu",
+          "type": "String",
+          "description": "物理字段 ss_LastDummyWaferDataCollStatu"
+        },
+        {
+          "name": "lastRevTxn",
+          "type": "Integer",
+          "description": "物理字段 LastRevTxnId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ResourceName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "factory",
+          "type": "Navigation",
+          "description": "物理字段 FactoryId → Factory"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "location",
+          "type": "Navigation",
+          "description": "物理字段 LocationId → Location"
+        },
+        {
+          "name": "parentResource",
+          "type": "Navigation",
+          "description": "物理字段 ParentResourceId → ResourceDef"
+        },
+        {
+          "name": "productionStatus",
+          "type": "Navigation",
+          "description": "物理字段 ProductionStatusId → ProductionStatus"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "物理字段 WIPMsgDefMgrId → WIPMsgDefMgr"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "物理字段 ChangeStatusId → ChangeStatus"
+        },
+        {
+          "name": "trainingReqGroup",
+          "type": "Navigation",
+          "description": "物理字段 TrainingReqGroupId → TrainingRequirementGroup"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "vendorModel",
+          "type": "String",
+          "description": "物理字段 VendorModel"
+        },
+        {
+          "name": "vendorSerialNumber",
+          "type": "String",
+          "description": "物理字段 VendorSerialNumber"
+        },
+        {
+          "name": "vendor",
+          "type": "Navigation",
+          "description": "物理字段 VendorId → Vendor"
+        },
+        {
+          "name": "printQueue",
+          "type": "Navigation",
+          "description": "物理字段 PrintQueueId → PrintQueue"
+        },
+        {
+          "name": "clearanceLevel",
+          "type": "Integer",
+          "description": "物理字段 ClearanceLevel"
+        },
+        {
+          "name": "maintenanceClass",
+          "type": "Navigation",
+          "description": "物理字段 MaintenanceClassId → MaintenanceClass"
+        },
+        {
+          "name": "resourceStatusModel",
+          "type": "Navigation",
+          "description": "物理字段 ResourceStatusModelId → ResourceStatusModel"
+        },
+        {
+          "name": "resourceType",
+          "type": "Navigation",
+          "description": "物理字段 ResourceTypeId → ResourceType"
+        },
+        {
+          "name": "webServiceTransport",
+          "type": "Navigation",
+          "description": "物理字段 WebServiceTransportId → DataTransport"
+        },
+        {
+          "name": "fullyQualifiedName",
+          "type": "String",
+          "description": "物理字段 FullyQualifiedName"
+        },
+        {
+          "name": "decimalScale",
+          "type": "Integer",
+          "description": "物理字段 DecimalScale"
+        },
+        {
+          "name": "workingRangeMax",
+          "type": "Float",
+          "description": "物理字段 WorkingRangeMax"
+        },
+        {
+          "name": "workingRangeMin",
+          "type": "Float",
+          "description": "物理字段 WorkingRangeMin"
+        },
+        {
+          "name": "uom",
+          "type": "Navigation",
+          "description": "物理字段 UOMId → UOM"
+        },
+        {
+          "name": "decimalPrecision",
+          "type": "Integer",
+          "description": "物理字段 DecimalPrecision"
+        },
+        {
+          "name": "resourceFamily",
+          "type": "Navigation",
+          "description": "物理字段 ResourceFamilyId → ResourceFamily"
+        },
+        {
+          "name": "hvSetup",
+          "type": "Navigation",
+          "description": "物理字段 HVSetupId → HVResourceSetupHistory"
+        },
+        {
+          "name": "nickName",
+          "type": "String",
+          "description": "物理字段 NickName"
+        },
+        {
+          "name": "recipePattern",
+          "type": "String",
+          "description": "物理字段 RecipePattern"
+        },
+        {
+          "name": "useHvTraceability",
+          "type": "Boolean",
+          "description": "物理字段 UseHVTraceability"
+        },
+        {
+          "name": "factoryLevelIndex",
+          "type": "Integer",
+          "description": "物理字段 FactoryLevelIndex"
+        },
+        {
+          "name": "factoryLevel",
+          "type": "Integer",
+          "description": "物理字段 FactoryLevel"
+        },
+        {
+          "name": "smartScanRule",
+          "type": "Navigation",
+          "description": "物理字段 SmartScanRuleId → SmartScanRule"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "bom",
+          "type": "Navigation",
+          "description": "物理字段 BOMId → A_ResourceBOM"
+        },
+        {
+          "name": "bomBase",
+          "type": "Integer",
+          "description": "物理字段 BOMBaseId"
+        },
+        {
+          "name": "ssFeederPlan",
+          "type": "Navigation",
+          "description": "物理字段 ss_FeederPlanId → ss_FeederPlan"
+        },
+        {
+          "name": "ssFeederPlanBase",
+          "type": "Integer",
+          "description": "物理字段 ss_FeederPlanBaseId"
+        },
+        {
+          "name": "ldInspectionPlan",
+          "type": "Navigation",
+          "description": "物理字段 ldInspectionPlanId → ldInspectionPlan"
+        }
+      ]
+    },
+    {
+      "className": "TargetSystem",
+      "chineseName": "目标系统",
+      "description": "定义集成或部署目标系统。 物理对应 TargetSystem (CdoId: 1447, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "processingFolder",
+          "type": "String",
+          "description": "物理字段 ProcessingFolder"
+        },
+        {
+          "name": "camstarVersion",
+          "type": "String",
+          "description": "物理字段 CamstarVersion"
+        },
+        {
+          "name": "ipAddress",
+          "type": "String",
+          "description": "物理字段 IPAddress"
+        },
+        {
+          "name": "password",
+          "type": "String",
+          "description": "物理字段 Password"
+        },
+        {
+          "name": "port",
+          "type": "Integer",
+          "description": "物理字段 Port"
+        },
+        {
+          "name": "deliveryOption",
+          "type": "Integer",
+          "description": "物理字段 DeliveryOption"
+        },
+        {
+          "name": "folderLocation",
+          "type": "String",
+          "description": "物理字段 FolderLocation"
+        },
+        {
+          "name": "isSourceSystem",
+          "type": "Boolean",
+          "description": "物理字段 IsSourceSystem"
+        },
+        {
+          "name": "userName",
+          "type": "String",
+          "description": "物理字段 UserName"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 TargetSystemName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "location",
+          "type": "String",
+          "description": "物理字段 Location"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "serverType",
+          "type": "String",
+          "description": "物理字段 ServerType"
+        },
+        {
+          "name": "administrator",
+          "type": "String",
+          "description": "物理字段 Administrator"
+        },
+        {
+          "name": "mdbVersion",
+          "type": "String",
+          "description": "物理字段 MDBVersion"
+        },
+        {
+          "name": "dbHost",
+          "type": "String",
+          "description": "物理字段 DBHost"
+        },
+        {
+          "name": "dbPort",
+          "type": "Integer",
+          "description": "物理字段 DBPort"
+        },
+        {
+          "name": "dbSchema",
+          "type": "String",
+          "description": "物理字段 DBSchema"
+        },
+        {
+          "name": "dbUser",
+          "type": "String",
+          "description": "物理字段 DBUser"
+        },
+        {
+          "name": "dbPassword",
+          "type": "String",
+          "description": "物理字段 DBPassword"
+        },
+        {
+          "name": "dbName",
+          "type": "String",
+          "description": "物理字段 DBName"
+        },
+        {
+          "name": "adDomain",
+          "type": "String",
+          "description": "物理字段 ADDomain"
+        },
+        {
+          "name": "isNotACamstarServer",
+          "type": "Boolean",
+          "description": "物理字段 IsNotACamstarServer"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "BillType",
+      "chineseName": "清单类型",
+      "description": "定义BOM及相关清单类型。 物理对应 BillType (CdoId: 695, Workspace: csi)。 【Swagger】Schema: BillTypeEntity；来源文件: BillTypes.json；API: /api/BillTypes。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 BillTypeName 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "A_EmployeeGroup",
+      "chineseName": "员工组",
+      "description": "定义员工业务分组。 物理对应 A_EmployeeGroup (CdoId: 679477404, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 EmployeeGroupName",
+          "required": true
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "物理字段 EntryType"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ApprovalSheetTemplate",
+      "chineseName": "审批单模板",
+      "description": "定义审批单模板。 物理对应 ApprovalSheetTemplate (CdoId: 1232, Workspace: csi)。 【Swagger】Schema: ApprovalSheetTemplateEntity；来源文件: ApprovalSheetTemplates.json；API: /api/ApprovalSheetTemplates。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ApprovalSheetTemplateName 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "approvalDecisionList",
+          "type": "Navigation",
+          "description": "物理字段 ApprovalDecisionListId → ApprovalDecisionList 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "generalInstructions",
+          "type": "String",
+          "description": "物理字段 GeneralInstructions 【Swagger】Comments"
+        },
+        {
+          "name": "toStage",
+          "type": "Integer",
+          "description": "物理字段 ToStage 【Swagger】A process object progresses through several stages during its processing."
+        },
+        {
+          "name": "approvalRequired",
+          "type": "Boolean",
+          "description": "物理字段 ApprovalRequired 【Swagger】Approval Required"
+        },
+        {
+          "name": "fromStage",
+          "type": "Integer",
+          "description": "物理字段 FromStage 【Swagger】A process object progresses through several stages during its processing."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "DataPointCollection",
+      "chineseName": "数据点集合",
+      "description": "定义可复用数据点集合。 物理对应 DataPointCollection (CdoId: 1325, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → Container"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "instructions",
+          "type": "String",
+          "description": "物理字段 Instructions"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 DataPointCollectionName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "CurrentStatus",
+      "chineseName": "当前状态",
+      "description": "保存可追踪对象当前状态。 物理对应 CurrentStatus (CdoId: 371, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "currentSpecPass",
+          "type": "Integer",
+          "description": "物理字段 CurrentSpecPass"
+        },
+        {
+          "name": "lastSpecPass",
+          "type": "Integer",
+          "description": "物理字段 LastSpecPass"
+        },
+        {
+          "name": "inRework",
+          "type": "Boolean",
+          "description": "物理字段 InRework"
+        },
+        {
+          "name": "reworkLoopCount",
+          "type": "Integer",
+          "description": "物理字段 ReworkLoopCount"
+        },
+        {
+          "name": "reworkTotalCount",
+          "type": "Integer",
+          "description": "物理字段 ReworkTotalCount"
+        },
+        {
+          "name": "carrier",
+          "type": "Navigation",
+          "description": "物理字段 CarrierId → ResourceDef"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "stepEntryTxn",
+          "type": "Integer",
+          "description": "物理字段 StepEntryTxnId"
+        },
+        {
+          "name": "currentStepPass",
+          "type": "Integer",
+          "description": "物理字段 CurrentStepPass"
+        },
+        {
+          "name": "lastMoveDate",
+          "type": "DateTime",
+          "description": "物理字段 LastMoveDate"
+        },
+        {
+          "name": "lastMoveDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastMoveDateGMT"
+        },
+        {
+          "name": "resource",
+          "type": "Navigation",
+          "description": "物理字段 ResourceId → ResourceDef"
+        },
+        {
+          "name": "inProcess",
+          "type": "Boolean",
+          "description": "物理字段 InProcess"
+        },
+        {
+          "name": "workflowStep",
+          "type": "Navigation",
+          "description": "物理字段 WorkflowStepId → WorkflowStep"
+        },
+        {
+          "name": "factory",
+          "type": "Navigation",
+          "description": "物理字段 FactoryId → Factory"
+        },
+        {
+          "name": "lastRevTxn",
+          "type": "Integer",
+          "description": "物理字段 LastRevTxnId"
+        },
+        {
+          "name": "location",
+          "type": "Navigation",
+          "description": "物理字段 LocationId → Location"
+        },
+        {
+          "name": "lastCompletedTask",
+          "type": "Integer",
+          "description": "物理字段 LastCompletedTaskId"
+        },
+        {
+          "name": "initialRecipeList",
+          "type": "Navigation",
+          "description": "物理字段 InitialRecipeListId → RecipeList"
+        },
+        {
+          "name": "loopPass",
+          "type": "Integer",
+          "description": "物理字段 LoopPass"
+        },
+        {
+          "name": "inQueueTime",
+          "type": "Float",
+          "description": "物理字段 InQueueTime"
+        },
+        {
+          "name": "timersCount",
+          "type": "Integer",
+          "description": "物理字段 TimersCount"
+        },
+        {
+          "name": "workstation",
+          "type": "Navigation",
+          "description": "物理字段 WorkstationId → ResourceDef"
+        }
+      ]
+    },
+    {
+      "className": "HoldStatus",
+      "chineseName": "Hold状态",
+      "description": "定义对象Hold状态。 物理对应 HoldStatus (CdoId: 1805, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "holdMessage",
+          "type": "String",
+          "description": "物理字段 HoldMessage"
+        },
+        {
+          "name": "onHold",
+          "type": "Boolean",
+          "description": "物理字段 OnHold"
+        },
+        {
+          "name": "holdReason",
+          "type": "Navigation",
+          "description": "物理字段 HoldReasonId → HoldReason"
+        },
+        {
+          "name": "onHoldDate",
+          "type": "DateTime",
+          "description": "物理字段 OnHoldDate"
+        },
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 HoldStatusName",
+          "required": true
+        },
+        {
+          "name": "lastRevTxn",
+          "type": "Integer",
+          "description": "物理字段 LastRevTxnId"
+        },
+        {
+          "name": "onHoldDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 OnHoldDateGMT"
+        }
+      ]
+    },
+    {
+      "className": "A_JobModel",
+      "chineseName": "作业模型",
+      "description": "定义半导体作业执行模型。 物理对应 A_JobModel (CdoId: 679477402, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "jobType",
+          "type": "Integer",
+          "description": "物理字段 JobType"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "物理字段 DocumentSetId → DocumentSet"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 JobModelName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isSimpleMode",
+          "type": "Boolean",
+          "description": "物理字段 IsSimpleMode"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ResourceStatusCodeGroup",
+      "chineseName": "资源状态代码组",
+      "description": "定义资源状态代码分组。 物理对应 ResourceStatusCodeGroup (CdoId: 1380, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "物理字段 EntryType"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ResourceStatusCodeGroupName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_PhysicalLocation",
+      "chineseName": "物理位置",
+      "description": "定义半导体物理位置。 物理对应 A_PhysicalLocation (CdoId: 679477477, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "此实例的唯一名称。",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结；冻结后不允许修改该实例或其修订。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "实体说明；未指定时默认使用实体名称。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "与该对象相关的备注和注释。"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "scsStorageType",
+          "type": "Integer",
+          "description": "存储类型枚举：1=掩模、2=工具，用于标识存储库。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "以逗号分隔的筛选标签列表。"
+        }
+      ]
+    },
+    {
+      "className": "Location",
+      "chineseName": "位置",
+      "description": "定义通用业务位置。 物理对应 Location (CdoId: 387, Workspace: csi)。 【Swagger】Schema: LocationChanges；来源文件: Factories.json；API: /api/Factories。",
+      "properties": [
+        {
+          "name": "factory",
+          "type": "Navigation",
+          "description": "物理字段 FactoryId → Factory 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId 【Swagger】Identifier for the icon associated with this instance"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "物理字段 Status 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 LocationName 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "物理字段 ChangeStatusId → ChangeStatus 【Swagger】引用 Schema: SubentityRef。"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ResourceStatusCode",
+      "relationName": "HAS_MAINTENANCE_FAILURE_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.MaintenanceFailureStatusId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_MASK",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.MaskId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "scsStatusModel",
+      "relationName": "HAS_STATUS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.StatusModelId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "A_ResourceIcon",
+      "relationName": "HAS_RESOURCE_ICON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ResourceIconId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.DocumentSetId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "Document",
+      "relationName": "HAS_RECIPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.RecipeId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "A_PackageGroup",
+      "relationName": "HAS_PACKAGE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.PackageGroupId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "Container",
+      "relationName": "HAS_CONTAINER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ContainerId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "A_AutomationPlan",
+      "relationName": "HAS_AUTOMATION_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.AutomationPlanId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "A_MachineGroup",
+      "relationName": "HAS_MACHINE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.MachineGroupId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "A_ToolPlan",
+      "relationName": "HAS_TOOL_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ToolPlanId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "A_SPCSetup",
+      "relationName": "HAS_SPC_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.SPCSetupId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "A_EquipmentParamList",
+      "relationName": "HAS_PARAM_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ParamListId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "Employee",
+      "relationName": "HAS_SS_RESERVE_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ss_ReserveEmployeeId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_SS_RESERVE_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ss_ReserveEquipmentId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ss_ToolAction",
+      "relationName": "HAS_SS_MOUNT_TOOL_ACTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ss_MountToolActionId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ss_ToolAction",
+      "relationName": "HAS_SS_UN_MOUNT_TOOL_ACTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ss_UnMountToolActionId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ss_RecipeGroup",
+      "relationName": "HAS_SS_RECIPE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ss_RecipeGroupId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_SCS_INQ_INNER_INPUT_CARRIER_FAMIL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.scsInqInnerInputCarrierFamilId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_SCS_INQ_INNER_OUTPUT_CARRIER_FAMI",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.scsInqInnerOutputCarrierFamiId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ss_FeederSlot",
+      "relationName": "HAS_SS_FEEDER_SLOT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ss_FeederSlotId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "Container",
+      "relationName": "HAS_SS_FEEDER_CONTAINER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ss_FeederContainerId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "Container",
+      "relationName": "HAS_SS_LAST_PASSED_DUMMY_LOT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ss_LastPassedDummyLotId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "Factory",
+      "relationName": "HAS_FACTORY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.FactoryId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "Location",
+      "relationName": "HAS_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.LocationId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_PARENT_RESOURCE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ParentResourceId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "TrainingRequirementGroup",
+      "relationName": "HAS_TRAINING_REQ_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.TrainingReqGroupId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "Vendor",
+      "relationName": "HAS_VENDOR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.VendorId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "PrintQueue",
+      "relationName": "HAS_PRINT_QUEUE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.PrintQueueId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "MaintenanceClass",
+      "relationName": "HAS_MAINTENANCE_CLASS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.MaintenanceClassId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ResourceStatusModel",
+      "relationName": "HAS_RESOURCE_STATUS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ResourceStatusModelId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ResourceType",
+      "relationName": "HAS_RESOURCE_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ResourceTypeId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "DataTransport",
+      "relationName": "HAS_WEB_SERVICE_TRANSPORT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.WebServiceTransportId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.UOMId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_RESOURCE_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ResourceFamilyId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "SmartScanRule",
+      "relationName": "HAS_SMART_SCAN_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.SmartScanRuleId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "A_ResourceBOM",
+      "relationName": "HAS_BOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.BOMId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ss_FeederPlan",
+      "relationName": "HAS_SS_FEEDER_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ss_FeederPlanId"
+    },
+    {
+      "fromClass": "ApprovalSheetTemplate",
+      "toClass": "ApprovalDecisionList",
+      "relationName": "HAS_APPROVAL_DECISION_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ApprovalSheetTemplate.ApprovalDecisionListId"
+    },
+    {
+      "fromClass": "DataPointCollection",
+      "toClass": "Container",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DataPointCollection.ParentId"
+    },
+    {
+      "fromClass": "CurrentStatus",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_CARRIER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CurrentStatus.CarrierId"
+    },
+    {
+      "fromClass": "CurrentStatus",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CurrentStatus.SpecId"
+    },
+    {
+      "fromClass": "CurrentStatus",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_RESOURCE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CurrentStatus.ResourceId"
+    },
+    {
+      "fromClass": "CurrentStatus",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_WORKFLOW_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CurrentStatus.WorkflowStepId"
+    },
+    {
+      "fromClass": "CurrentStatus",
+      "toClass": "Factory",
+      "relationName": "HAS_FACTORY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CurrentStatus.FactoryId"
+    },
+    {
+      "fromClass": "CurrentStatus",
+      "toClass": "Location",
+      "relationName": "HAS_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CurrentStatus.LocationId"
+    },
+    {
+      "fromClass": "CurrentStatus",
+      "toClass": "RecipeList",
+      "relationName": "HAS_INITIAL_RECIPE_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CurrentStatus.InitialRecipeListId"
+    },
+    {
+      "fromClass": "CurrentStatus",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_WORKSTATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CurrentStatus.WorkstationId"
+    },
+    {
+      "fromClass": "HoldStatus",
+      "toClass": "HoldReason",
+      "relationName": "HAS_HOLD_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "HoldStatus.HoldReasonId"
+    },
+    {
+      "fromClass": "A_JobModel",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_JobModel.DocumentSetId"
+    },
+    {
+      "fromClass": "Location",
+      "toClass": "Factory",
+      "relationName": "HAS_FACTORY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Location.FactoryId"
+    },
+    {
+      "fromClass": "ResourceDef",
+      "toClass": "ldInspectionPlan",
+      "relationName": "HAS_LD_INSPECTION_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceDef.ldInspectionPlanId"
+    }
+  ]
+}

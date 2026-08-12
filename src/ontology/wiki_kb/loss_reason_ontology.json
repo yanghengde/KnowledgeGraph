@@ -1,0 +1,117 @@
+{
+  "module": "loss_reason",
+  "classes": [
+    {
+      "className": "LossReason",
+      "chineseName": "损耗原因",
+      "description": "LossReason — 损耗原因代码（命名对象）。用于指定在制品容器(Container)在进行物料损耗(Loss)交易时的具体业务原因，如生产损耗、品质报废、蒸发/挥发、测试消耗等。",
+      "properties": [
+        {
+          "name": "forLotReject",
+          "type": "Boolean",
+          "description": "物理字段 ForLotReject"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "损耗原因唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "ldRequireRework",
+          "type": "Boolean",
+          "description": "物理字段 ldRequireRework"
+        }
+      ]
+    },
+    {
+      "className": "LossReasonGroup",
+      "chineseName": "损耗原因组",
+      "description": "LossReasonGroup — 损耗原因组（命名对象）。对损耗原因代码(LossReason)进行分组管理，在特定操作工序(Operation)上限制可选的损耗原因列表。支持嵌套子组。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "条目类型名称（LossReason）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "损耗原因组唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

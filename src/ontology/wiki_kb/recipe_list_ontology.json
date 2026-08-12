@@ -1,0 +1,214 @@
+{
+  "module": "recipe_list",
+  "classes": [
+    {
+      "className": "RecipeList",
+      "chineseName": "配方任务清单",
+      "description": "Recipe List — 配方任务清单定义实体（CdoId: 1268，版本控制对象）。定义设备配方下发过程中需要执行的任务列表(tasks)，支持顺序(Sequential)或非顺序(Non-Sequential)执行模式(executionMode)，可指定前提任务清单(prerequisiteTaskList)、工作站(workstation/stationGroup)、操作指令(instruction)和报告指令(reportInstruction)。与 ProcessList 共享相同的底层 CDO 类型，用于配方上下文的工序执行。",
+      "properties": [
+        {
+          "name": "recipeListBase",
+          "type": "Navigation",
+          "description": "基础实体引用（版本控制父实体） → RecipeListBase"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置/换线权限配置"
+        },
+        {
+          "name": "reportInstruction",
+          "type": "String",
+          "description": "报告用操作指令（纯文本，不含标记和标签）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "版本号（必填）",
+          "required": true
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP 消息定义管理器 → WIPMsgEntity"
+        },
+        {
+          "name": "executionMode",
+          "type": "Integer",
+          "description": "任务执行模式（必填）：1=Sequential, 2=Non-Sequential",
+          "required": true
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单（ECO）。"
+        },
+        {
+          "name": "workstation",
+          "type": "Navigation",
+          "description": "指定执行该任务清单的工作站 → Workstation"
+        },
+        {
+          "name": "carriers",
+          "type": "Navigation",
+          "description": "指定合法的载具分类/组限制 → ResourceGroup"
+        },
+        {
+          "name": "instruction",
+          "type": "String",
+          "description": "用户操作指令（可含标记和标签）"
+        },
+        {
+          "name": "workstationGroup",
+          "type": "Navigation",
+          "description": "指定执行该任务清单的工作站组 → WorkstationGroup"
+        },
+        {
+          "name": "scales",
+          "type": "Navigation",
+          "description": "指定合法的称重衡器/组限制 → ResourceGroup"
+        },
+        {
+          "name": "targetContainerLevel",
+          "type": "Navigation",
+          "description": "指定目标容器级别控制 → ContainerLevel"
+        },
+        {
+          "name": "targetContainerPlannedQty",
+          "type": "String",
+          "description": "定义目标容器计划数量的表达式。"
+        },
+        {
+          "name": "targetContainerUom",
+          "type": "Navigation",
+          "description": "物理字段 TargetContainerUOMId → UOM"
+        },
+        {
+          "name": "prerequisiteTaskList",
+          "type": "Navigation",
+          "description": "前提任务清单 → RecipeList（必须先完成的前置清单）"
+        },
+        {
+          "name": "isImage",
+          "type": "Navigation",
+          "description": "关联的图示文档 → Document"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "targetContainerProductBase",
+          "type": "Integer",
+          "description": "指定目标容器关联产品版本基线 → ProductBase"
+        },
+        {
+          "name": "targetContainerProduct",
+          "type": "Navigation",
+          "description": "指定目标容器关联产品定义 → Product"
+        },
+        {
+          "name": "variantExpression",
+          "type": "String",
+          "description": "物理字段 VariantExpression"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "RecipeList",
+      "toClass": "RecipeListBase",
+      "relationName": "HAS_RECIPE_LIST_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeList.RecipeListBaseId"
+    },
+    {
+      "fromClass": "RecipeList",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_WORKSTATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeList.WorkstationId"
+    },
+    {
+      "fromClass": "RecipeList",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_CARRIERS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeList.CarriersId"
+    },
+    {
+      "fromClass": "RecipeList",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_WORKSTATION_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeList.WorkstationGroupId"
+    },
+    {
+      "fromClass": "RecipeList",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_SCALES",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeList.ScalesId"
+    },
+    {
+      "fromClass": "RecipeList",
+      "toClass": "ContainerLevel",
+      "relationName": "HAS_TARGET_CONTAINER_LEVEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeList.TargetContainerLevelId"
+    },
+    {
+      "fromClass": "RecipeList",
+      "toClass": "UOM",
+      "relationName": "HAS_TARGET_CONTAINER_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeList.TargetContainerUOMId"
+    },
+    {
+      "fromClass": "RecipeList",
+      "toClass": "RecipeList",
+      "relationName": "HAS_PREREQUISITE_TASK_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeList.PrerequisiteTaskListId"
+    },
+    {
+      "fromClass": "RecipeList",
+      "toClass": "Product",
+      "relationName": "HAS_TARGET_CONTAINER_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeList.TargetContainerProductId"
+    }
+  ]
+}

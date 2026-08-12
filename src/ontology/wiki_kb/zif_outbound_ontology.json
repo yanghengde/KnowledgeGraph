@@ -1,0 +1,69 @@
+{
+  "module": "zif_outbound",
+  "classes": [
+    {
+      "className": "zifOutboundDestination",
+      "chineseName": "ZIF出站目标",
+      "description": "ZIF出站目标。物理对应 zifOutboundDestination (CdoId: 696254466, Workspace: 110)。",
+      "properties": [
+        {
+          "name": "zifUrl",
+          "type": "String",
+          "description": "物理字段 zifURL"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 zifOutboundDestinationName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "zifTimeout",
+          "type": "Integer",
+          "description": "物理字段 zifTimeout"
+        },
+        {
+          "name": "zifTransport",
+          "type": "String",
+          "description": "物理字段 zifTransport"
+        },
+        {
+          "name": "zifServerList",
+          "type": "String",
+          "description": "物理字段 zifServerList"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

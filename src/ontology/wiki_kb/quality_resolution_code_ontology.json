@@ -1,0 +1,54 @@
+{
+  "module": "quality_resolution_code",
+  "classes": [
+    {
+      "className": "QualityResolutionCode",
+      "chineseName": "质量处置代码",
+      "description": "Quality Resolution Code — 质量处置/解决代码定义实体（CdoId: 7709）。定义质量事件和 CAPA 的处置解决方式代码（如退回供应商、让步接收、返工、报废、客户特采等），在质量处理流程中被操作员选择以标注事件的处理结果类别。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "质量处置代码的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

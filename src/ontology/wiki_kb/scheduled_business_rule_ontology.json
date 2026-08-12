@@ -1,0 +1,187 @@
+{
+  "module": "scheduled_business_rule",
+  "classes": [
+    {
+      "className": "ScheduledBusinessRule",
+      "chineseName": "定时业务规则",
+      "description": "Scheduled Business Rule — 定时/计划业务规则定义实体。定义按计划时间表自动执行的业务规则，支持周期性触发、条件判断和自动化处理逻辑，用于定期数据校验、自动通知、批处理等场景。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "定时业务规则的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "isLastDayOfMonth",
+          "type": "Boolean",
+          "description": "是否为当月的最后一天。"
+        },
+        {
+          "name": "executionContext",
+          "type": "Integer",
+          "description": "关联的执行上下文。"
+        },
+        {
+          "name": "dueTime",
+          "type": "DateTime",
+          "description": "到期时间。"
+        },
+        {
+          "name": "dueTimeGmt",
+          "type": "DateTime",
+          "description": "物理字段 DueTimeGMT"
+        },
+        {
+          "name": "recurrencePattern",
+          "type": "Integer",
+          "description": "定义维护计划执行的间隔。"
+        },
+        {
+          "name": "recurrenceFrequency",
+          "type": "Integer",
+          "description": "重复频率。"
+        },
+        {
+          "name": "recurrenceCount",
+          "type": "Integer",
+          "description": "重复次数。"
+        },
+        {
+          "name": "dayOfWeek",
+          "type": "Integer",
+          "description": "星期几。"
+        },
+        {
+          "name": "monthOfYear",
+          "type": "Integer",
+          "description": "月份。"
+        },
+        {
+          "name": "startDate",
+          "type": "DateTime",
+          "description": "开始日期。"
+        },
+        {
+          "name": "startDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 StartDateGMT"
+        },
+        {
+          "name": "endDate",
+          "type": "DateTime",
+          "description": "结束日期。"
+        },
+        {
+          "name": "endDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EndDateGMT"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "计划业务规则状态：1=待处理 2=处理中 3=挂起。"
+        },
+        {
+          "name": "isSystemDefined",
+          "type": "Boolean",
+          "description": "是否为系统定义。"
+        },
+        {
+          "name": "lockGuid",
+          "type": "String",
+          "description": "物理字段 LockGUID"
+        },
+        {
+          "name": "dayOfMonth",
+          "type": "Integer",
+          "description": "月中的第几天。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "onExecute",
+          "type": "Navigation",
+          "description": "关联的业务规则。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "executionContextType",
+          "type": "Integer",
+          "description": "执行上下文类型。"
+        },
+        {
+          "name": "timeZone",
+          "type": "String",
+          "description": "时区。"
+        },
+        {
+          "name": "isAdvancedMode",
+          "type": "Boolean",
+          "description": "指定计划业务规则使用基本选项还是高级选项。"
+        },
+        {
+          "name": "scheduleDaysOfMonth",
+          "type": "String",
+          "description": "刷新此摘要的每月天数，例如1,10,15,20。"
+        },
+        {
+          "name": "scheduleDaysOfWeek",
+          "type": "String",
+          "description": "刷新此摘要的每周天数，例如1,3,5,7。"
+        },
+        {
+          "name": "scheduleMonths",
+          "type": "String",
+          "description": "刷新此摘要的每年月份，例如1,4,8。"
+        },
+        {
+          "name": "scheduleHours",
+          "type": "String",
+          "description": "刷新此摘要的每天小时，例如0,12,23。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ScheduledBusinessRule",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_ON_EXECUTE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ScheduledBusinessRule.OnExecute"
+    }
+  ]
+}

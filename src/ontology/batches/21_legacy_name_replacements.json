@@ -1,0 +1,19 @@
+{
+  "module": "semiconductor_legacy_name_replacements",
+  "titleZh": "半导体旧名称物理替代",
+  "titleEn": "Semiconductor Legacy Name Replacements",
+  "overviewZh": "补齐通过字段语义确认的旧逻辑名称对应物理实体。",
+  "overviewEn": "Adds physical entities confirmed as replacements for legacy logical names through field-level comparison.",
+  "entities": [
+    {
+      "className": "ComponentDefectReason",
+      "chineseName": "组件缺陷原因",
+      "description": "组件缺陷业务原因的物理主数据。"
+    },
+    {
+      "className": "QtyAdjustGroup",
+      "chineseName": "数量调整原因组",
+      "description": "数量调整原因的物理分组实体。"
+    }
+  ]
+}

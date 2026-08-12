@@ -1,0 +1,59 @@
+{
+  "module": "rework_reason_group",
+  "classes": [
+    {
+      "className": "ReworkReasonGroup",
+      "chineseName": "返工原因分组",
+      "description": "Rework Reason Group — 返工原因的分组容器实体。将多个 ReworkReason 条目按业务逻辑分组，支持嵌套子分组（groups），形成层级的返工原因分类树。可配置 defaultForObjectTypes 自动指派。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "条目对象类型名称"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "分组的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

@@ -1,0 +1,149 @@
+{
+  "module": "data_transport",
+  "classes": [
+    {
+      "className": "DataTransport",
+      "chineseName": "数据传输通道",
+      "description": "DataTransport — 数据传输通道配置。定义 Camstar 与外部系统通信的传输通道配置，支持多种传输类型的连接参数（SMTP邮件、FTP文件传输、WebService调用等），包含URL、认证凭据、超时设置、同步/异步模式等完整配置。被 Site、Factory、Organization、ResourceDef 等实体引用，用于各自的对外通信场景。 【Swagger】Schema: DataTransportEntity；来源文件: DataTransports.json；API: /api/DataTransports。",
+      "properties": [
+        {
+          "name": "smtpDomain",
+          "type": "String",
+          "description": "物理字段 SMTPDomain"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "byteOrderMark",
+          "type": "Boolean",
+          "description": "是否在文件编码中添加 BOM 标记"
+        },
+        {
+          "name": "priority",
+          "type": "String",
+          "description": "优先级"
+        },
+        {
+          "name": "labelFormat",
+          "type": "String",
+          "description": "标签格式"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "remoteFileName",
+          "type": "String",
+          "description": "远程目标文件名"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "传输通道唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "transportType",
+          "type": "String",
+          "description": "传输类型（如 SMTP、FTP、WebService、File 等） 【Swagger】Method of sending document (e.g. FTP, HTTP, MQSeries, Socket, etc.)"
+        },
+        {
+          "name": "url",
+          "type": "String",
+          "description": "目标服务端点 URL（最长512字符） 【Swagger】Path to router"
+        },
+        {
+          "name": "userName",
+          "type": "String",
+          "description": "认证用户名 【Swagger】The User Name refers to the User that will be authenticated when the document is sent using this transport. For instance against an FTP site."
+        },
+        {
+          "name": "password",
+          "type": "String",
+          "description": "认证密码（加密存储） 【Swagger】Password"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)."
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "transferType",
+          "type": "String",
+          "description": "传输方式类型"
+        },
+        {
+          "name": "isSynchronous",
+          "type": "Boolean",
+          "description": "是否为同步传输模式 【Swagger】Specifies if the data transport is synchronous or asynchronous. i.e. if the XMLConnectPropogator is supposed to wait till the doc is delivered (delivery confirmation) to update the document's delivery status or not to wait."
+        },
+        {
+          "name": "transportAssembly",
+          "type": "String",
+          "description": "传输实现组件/程序集名称 【Swagger】The name of the assembly responsible for the transport system connection"
+        },
+        {
+          "name": "connectionDocInit",
+          "type": "String",
+          "description": "连接初始化配置文档内容（最长4000字符） 【Swagger】The XML document that specifies the required connection parameters for the transport type."
+        },
+        {
+          "name": "deliveryTimeout",
+          "type": "Integer",
+          "description": "投递超时时间（秒）"
+        },
+        {
+          "name": "connectionTimeout",
+          "type": "Integer",
+          "description": "连接超时时间（秒）"
+        },
+        {
+          "name": "remotePath",
+          "type": "String",
+          "description": "远程目标文件路径"
+        },
+        {
+          "name": "okToTerminateIfFails",
+          "type": "Boolean",
+          "description": "失败时是否允许终止事务 【Swagger】This flag specifies whether to exclude the particular data transport (i.e. destination) if it fails to deliver the document (first time), or should the server keep trying and generating related error message into the event log for next documents with the same destination."
+        },
+        {
+          "name": "useSsl",
+          "type": "Boolean",
+          "description": "物理字段 UseSSL"
+        },
+        {
+          "name": "port",
+          "type": "Integer",
+          "description": "连接端口号"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

@@ -1,0 +1,160 @@
+{
+  "module": "semiconductor_cio_bases",
+  "classes": [
+    {
+      "className": "A_ExperimentPlanBase",
+      "chineseName": "实验计划Base",
+      "description": "管理半导体实验计划修订记录。 物理对应 A_ExperimentPlanBase (CdoId: 679477693, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → A_ExperimentPlan"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ExperimentPlanName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "A_ProcessSpecBase",
+      "chineseName": "工艺规格Base",
+      "description": "管理半导体工艺规格修订记录。 物理对应 A_ProcessSpecBase (CdoId: 679477257, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ProcessSpecName",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → A_ProcessSpec"
+        },
+        {
+          "name": "revOfRcdBase",
+          "type": "Integer",
+          "description": "物理字段 RevOfRcdBaseId"
+        }
+      ]
+    },
+    {
+      "className": "A_ProductBOMBase",
+      "chineseName": "产品BOM Base",
+      "description": "管理半导体产品BOM修订记录。 物理对应 A_ProductBOMBase (CdoId: 679477440, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ProductBOMName",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → A_ProductBOM"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "ss_FeederPlanBase",
+      "chineseName": "供料器计划Base",
+      "description": "管理供料器计划修订记录。 物理对应 ss_FeederPlanBase (CdoId: 681574453, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "ssFeederPlanName",
+          "type": "String",
+          "description": "物理字段 ss_FeederPlanName"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → ss_FeederPlan"
+        }
+      ]
+    },
+    {
+      "className": "ss_SurveillanceBase",
+      "chineseName": "过程监控Base",
+      "description": "管理过程监控修订记录。 物理对应 ss_SurveillanceBase (CdoId: 681574434, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → ss_Surveillance"
+        },
+        {
+          "name": "ssSurveillanceName",
+          "type": "String",
+          "description": "物理字段 ss_SurveillanceName"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_ExperimentPlanBase",
+      "toClass": "A_ExperimentPlan",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExperimentPlanBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "A_ProcessSpecBase",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpecBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "A_ProductBOMBase",
+      "toClass": "A_ProductBOM",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProductBOMBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ss_FeederPlanBase",
+      "toClass": "ss_FeederPlan",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_FeederPlanBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ss_SurveillanceBase",
+      "toClass": "ss_Surveillance",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SurveillanceBase.RevOfRcdId"
+    }
+  ]
+}

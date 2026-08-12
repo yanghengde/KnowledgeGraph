@@ -1,0 +1,1508 @@
+{
+  "module": "semiconductor_scheduling_flow",
+  "classes": [
+    {
+      "className": "A_AreaGroup",
+      "chineseName": "区域组",
+      "description": "定义制造区域分组。 物理对应 A_AreaGroup (CdoId: 679477329, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 AreaGroupName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_AutomationPlan",
+      "chineseName": "自动化计划",
+      "description": "定义自动化执行计划。 物理对应 A_AutomationPlan (CdoId: 679477393, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "trackOutAutomation",
+          "type": "String",
+          "description": "物理字段 TrackOutAutomation"
+        },
+        {
+          "name": "trackInAutomation",
+          "type": "String",
+          "description": "物理字段 TrackInAutomation"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 AutomationPlanName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_Calendar",
+      "chineseName": "半导体日历",
+      "description": "定义班次、工作周和节假日生产日历。 物理对应 A_Calendar (CdoId: 679477269, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "month11Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month11Weeks"
+        },
+        {
+          "name": "month12Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month12Weeks"
+        },
+        {
+          "name": "month03Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month03Weeks"
+        },
+        {
+          "name": "month04Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month04Weeks"
+        },
+        {
+          "name": "month09Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month09Weeks"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 CalendarName",
+          "required": true
+        },
+        {
+          "name": "startShiftHours",
+          "type": "Float",
+          "description": "物理字段 StartShiftHours"
+        },
+        {
+          "name": "startDate",
+          "type": "DateTime",
+          "description": "物理字段 StartDate"
+        },
+        {
+          "name": "endDate",
+          "type": "DateTime",
+          "description": "物理字段 EndDate"
+        },
+        {
+          "name": "startShiftNumber",
+          "type": "Integer",
+          "description": "物理字段 StartShiftNumber"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "month08Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month08Weeks"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "month10Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month10Weeks"
+        },
+        {
+          "name": "totalWeeks",
+          "type": "Integer",
+          "description": "物理字段 TotalWeeks"
+        },
+        {
+          "name": "reportingWeekStartOffset",
+          "type": "Float",
+          "description": "物理字段 ReportingWeekStartOffset"
+        },
+        {
+          "name": "reportingMonthEndOffset",
+          "type": "Float",
+          "description": "物理字段 ReportingMonthEndOffset"
+        },
+        {
+          "name": "month01Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month01Weeks"
+        },
+        {
+          "name": "month02Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month02Weeks"
+        },
+        {
+          "name": "month05Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month05Weeks"
+        },
+        {
+          "name": "month06Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month06Weeks"
+        },
+        {
+          "name": "month07Weeks",
+          "type": "Integer",
+          "description": "物理字段 Month07Weeks"
+        },
+        {
+          "name": "yearEndShiftNumber",
+          "type": "Integer",
+          "description": "物理字段 YearEndShiftNumber"
+        },
+        {
+          "name": "calendarShiftsCycle",
+          "type": "Navigation",
+          "description": "物理字段 CalendarShiftsCycleId → A_CalendarShiftsCycle"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_CalendarHolidays",
+      "chineseName": "日历节假日",
+      "description": "定义生产日历节假日规则。 物理对应 A_CalendarHolidays (CdoId: 679477273, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 CalendarHolidaysName",
+          "required": true
+        },
+        {
+          "name": "startTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 StartTimestamp"
+        },
+        {
+          "name": "endTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 EndTimestamp"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_CalendarShiftsCycle",
+      "chineseName": "日历班次周期",
+      "description": "定义日历班次轮换周期。 物理对应 A_CalendarShiftsCycle (CdoId: 679477290, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 CalendarShiftsCycleName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_CycleTimeHolidays",
+      "chineseName": "周期时间节假日",
+      "description": "定义周期时间计算使用的节假日。 物理对应 A_CycleTimeHolidays (CdoId: 679477324, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 CycleTimeHolidaysName",
+          "required": true
+        },
+        {
+          "name": "holidayDate",
+          "type": "DateTime",
+          "description": "物理字段 HolidayDate"
+        },
+        {
+          "name": "workflowObjectType",
+          "type": "String",
+          "description": "物理字段 WorkflowObjectType"
+        },
+        {
+          "name": "dayFactor",
+          "type": "Float",
+          "description": "物理字段 DayFactor"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_DispatchPlan",
+      "chineseName": "派工计划",
+      "description": "定义半导体派工计划。 物理对应 A_DispatchPlan (CdoId: 679477416, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 DispatchPlanName",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_EqpDispatchQueryMatrix",
+      "chineseName": "设备派工查询矩阵",
+      "description": "按设备、产品和工艺上下文选择派工查询。 物理对应 A_EqpDispatchQueryMatrix (CdoId: 681574422, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "resource",
+          "type": "Navigation",
+          "description": "物理字段 ResourceId → ResourceDef"
+        },
+        {
+          "name": "resourceGroup",
+          "type": "Navigation",
+          "description": "物理字段 ResourceGroupId → ResourceGroup"
+        },
+        {
+          "name": "workCenter",
+          "type": "Navigation",
+          "description": "物理字段 WorkCenterId → WorkCenter"
+        },
+        {
+          "name": "dispatchQuery",
+          "type": "Navigation",
+          "description": "物理字段 DispatchQueryId → UserQuery"
+        },
+        {
+          "name": "equipmentType",
+          "type": "String",
+          "description": "物理字段 EquipmentType"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 EqpDispatchQueryMatrixName",
+          "required": true
+        },
+        {
+          "name": "equipmentFamily",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentFamilyId → ResourceFamily"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ScheduleInstructions",
+      "chineseName": "排程指令",
+      "description": "定义排程使用的作业指令。 物理对应 A_ScheduleInstructions (CdoId: 679477435, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "instructions",
+          "type": "String",
+          "description": "物理字段 Instructions"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ScheduleInstructionsName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "productLine",
+          "type": "Navigation",
+          "description": "物理字段 ProductLineId → A_ProductLine"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_StepCycleTimeSetup",
+      "chineseName": "步骤周期时间配置",
+      "description": "按产品和工艺步骤配置标准周期时间。 物理对应 A_StepCycleTimeSetup (CdoId: 679477325, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 StepCycleTimeSetupName",
+          "required": true
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "stepCycleTime",
+          "type": "Float",
+          "description": "物理字段 StepCycleTime"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "productLine",
+          "type": "Navigation",
+          "description": "物理字段 ProductLineId → A_ProductLine"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_StepLogic",
+      "chineseName": "步骤逻辑",
+      "description": "定义工作流步骤上的半导体控制逻辑。 物理对应 A_StepLogic (CdoId: 679477289, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "verifyTrackOutRule",
+          "type": "Navigation",
+          "description": "物理字段 VerifyTrackOutRuleId → BusinessRule"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 StepLogicName",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "setInsertionDetails",
+          "type": "Boolean",
+          "description": "物理字段 SetInsertionDetails"
+        },
+        {
+          "name": "verifyMoveOutRule",
+          "type": "Navigation",
+          "description": "物理字段 VerifyMoveOutRuleId → BusinessRule"
+        },
+        {
+          "name": "executeDispositionRule",
+          "type": "Navigation",
+          "description": "物理字段 ExecuteDispositionRuleId → BusinessRule"
+        },
+        {
+          "name": "verifyTrackInRule",
+          "type": "Navigation",
+          "description": "物理字段 VerifyTrackInRuleId → BusinessRule"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "verifyWipDataRule",
+          "type": "Navigation",
+          "description": "物理字段 VerifyWIPDataRuleId → BusinessRule"
+        },
+        {
+          "name": "useBusinessRule",
+          "type": "Boolean",
+          "description": "物理字段 UseBusinessRule"
+        },
+        {
+          "name": "setInsertionDetailsRule",
+          "type": "Navigation",
+          "description": "物理字段 SetInsertionDetailsRuleId → BusinessRule"
+        },
+        {
+          "name": "verifyMoveOut",
+          "type": "Boolean",
+          "description": "物理字段 VerifyMoveOut"
+        },
+        {
+          "name": "executeDisposition",
+          "type": "Boolean",
+          "description": "物理字段 ExecuteDisposition"
+        },
+        {
+          "name": "verifyCompleteInsertionRule",
+          "type": "Navigation",
+          "description": "物理字段 VerifyCompleteInsertionRuleId → BusinessRule"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "verifyTrackOut",
+          "type": "Boolean",
+          "description": "物理字段 VerifyTrackOut"
+        },
+        {
+          "name": "verifyTrackIn",
+          "type": "Boolean",
+          "description": "物理字段 VerifyTrackIn"
+        },
+        {
+          "name": "verifyWipData",
+          "type": "Boolean",
+          "description": "物理字段 VerifyWIPData"
+        },
+        {
+          "name": "verifyCompleteInsertion",
+          "type": "Boolean",
+          "description": "物理字段 VerifyCompleteInsertion"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "scsSchedulingMatrix",
+      "chineseName": "排程矩阵",
+      "description": "按产品、设备、规格和步骤选择排程配置。 物理对应 scsSchedulingMatrix (CdoId: 681574484, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "scsHoursPerUnit",
+          "type": "Boolean",
+          "description": "物理字段 scsHoursPerUnit"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "scsProcessType",
+          "type": "Navigation",
+          "description": "物理字段 scsProcessTypeId → A_ProcessType"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "scsProduct",
+          "type": "Navigation",
+          "description": "物理字段 scsProductId → Product"
+        },
+        {
+          "name": "scsSpec",
+          "type": "Navigation",
+          "description": "物理字段 scsSpecId → Spec"
+        },
+        {
+          "name": "scsEquipment",
+          "type": "Navigation",
+          "description": "物理字段 scsEquipmentId → ResourceDef"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsSchedulingMatrixName",
+          "required": true
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "scsSchedulingDetail",
+          "type": "Navigation",
+          "description": "物理字段 scsSchedulingDetailId → scsSchedulingMatrixDetail"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "scsEquipmentGroup",
+          "type": "Navigation",
+          "description": "物理字段 scsEquipmentGroupId → ResourceGroup"
+        },
+        {
+          "name": "scsUnitsPerHour",
+          "type": "Boolean",
+          "description": "物理字段 scsUnitsPerHour"
+        },
+        {
+          "name": "scsProcessSpec",
+          "type": "Navigation",
+          "description": "物理字段 scsProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        }
+      ]
+    },
+    {
+      "className": "ss_MfgLine",
+      "chineseName": "半导体制造线",
+      "description": "定义半导体制造线主数据。 物理对应 ss_MfgLine (CdoId: 681574456, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_MfgLineName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "ss_ProcessTimerMatrix",
+      "chineseName": "工艺计时器矩阵",
+      "description": "按工艺上下文选择过程计时器。 物理对应 ss_ProcessTimerMatrix (CdoId: 681574475, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_ProcessTimerMatrixName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "ssProduct",
+          "type": "Navigation",
+          "description": "物理字段 ss_ProductId → Product"
+        },
+        {
+          "name": "ssSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_SpecId → Spec"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        }
+      ]
+    },
+    {
+      "className": "ss_SendAheadMatrix",
+      "chineseName": "Send Ahead矩阵",
+      "description": "定义批次提前送往后续步骤的控制矩阵。 物理对应 ss_SendAheadMatrix (CdoId: 681574410, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "ssWipDataSetup",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPDataSetupId → A_WIPDataSetup"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_SendAheadMatrixName",
+          "required": true
+        },
+        {
+          "name": "ssProduct",
+          "type": "Navigation",
+          "description": "物理字段 ss_ProductId → Product"
+        },
+        {
+          "name": "ssSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_SpecId → Spec"
+        },
+        {
+          "name": "ssProcessSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "ssBlockSpecBase",
+          "type": "Integer",
+          "description": "物理字段 ss_BlockSpecBaseId"
+        },
+        {
+          "name": "ssValidationSpecBase",
+          "type": "Integer",
+          "description": "物理字段 ss_ValidationSpecBaseId"
+        },
+        {
+          "name": "ssFutureCombineSpecBase",
+          "type": "Integer",
+          "description": "物理字段 ss_FutureCombineSpecBaseId"
+        },
+        {
+          "name": "ssBlockSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_BlockSpecId → Spec"
+        },
+        {
+          "name": "ssFutureCombineSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_FutureCombineSpecId → Spec"
+        },
+        {
+          "name": "ssValidationSpec",
+          "type": "Navigation",
+          "description": "物理字段 ss_ValidationSpecId → Spec"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_Calendar",
+      "toClass": "A_CalendarShiftsCycle",
+      "relationName": "HAS_CALENDAR_SHIFTS_CYCLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_Calendar.CalendarShiftsCycleId"
+    },
+    {
+      "fromClass": "A_EqpDispatchQueryMatrix",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_RESOURCE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EqpDispatchQueryMatrix.ResourceId"
+    },
+    {
+      "fromClass": "A_EqpDispatchQueryMatrix",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_RESOURCE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EqpDispatchQueryMatrix.ResourceGroupId"
+    },
+    {
+      "fromClass": "A_EqpDispatchQueryMatrix",
+      "toClass": "WorkCenter",
+      "relationName": "HAS_WORK_CENTER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EqpDispatchQueryMatrix.WorkCenterId"
+    },
+    {
+      "fromClass": "A_EqpDispatchQueryMatrix",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_EQUIPMENT_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EqpDispatchQueryMatrix.EquipmentFamilyId"
+    },
+    {
+      "fromClass": "A_ScheduleInstructions",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ScheduleInstructions.ProductId"
+    },
+    {
+      "fromClass": "A_ScheduleInstructions",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ScheduleInstructions.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_ScheduleInstructions",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ScheduleInstructions.OwnerId"
+    },
+    {
+      "fromClass": "A_ScheduleInstructions",
+      "toClass": "A_ProductLine",
+      "relationName": "HAS_PRODUCT_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ScheduleInstructions.ProductLineId"
+    },
+    {
+      "fromClass": "A_StepCycleTimeSetup",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepCycleTimeSetup.SpecId"
+    },
+    {
+      "fromClass": "A_StepCycleTimeSetup",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepCycleTimeSetup.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_StepCycleTimeSetup",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepCycleTimeSetup.OwnerId"
+    },
+    {
+      "fromClass": "A_StepCycleTimeSetup",
+      "toClass": "A_ProductLine",
+      "relationName": "HAS_PRODUCT_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepCycleTimeSetup.ProductLineId"
+    },
+    {
+      "fromClass": "A_StepCycleTimeSetup",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepCycleTimeSetup.ProductId"
+    },
+    {
+      "fromClass": "A_StepLogic",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_VERIFY_TRACK_OUT_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepLogic.VerifyTrackOutRuleId"
+    },
+    {
+      "fromClass": "A_StepLogic",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_VERIFY_MOVE_OUT_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepLogic.VerifyMoveOutRuleId"
+    },
+    {
+      "fromClass": "A_StepLogic",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_EXECUTE_DISPOSITION_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepLogic.ExecuteDispositionRuleId"
+    },
+    {
+      "fromClass": "A_StepLogic",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_VERIFY_TRACK_IN_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepLogic.VerifyTrackInRuleId"
+    },
+    {
+      "fromClass": "A_StepLogic",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_VERIFY_WIP_DATA_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepLogic.VerifyWIPDataRuleId"
+    },
+    {
+      "fromClass": "A_StepLogic",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_SET_INSERTION_DETAILS_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepLogic.SetInsertionDetailsRuleId"
+    },
+    {
+      "fromClass": "A_StepLogic",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_VERIFY_COMPLETE_INSERTION_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_StepLogic.VerifyCompleteInsertionRuleId"
+    },
+    {
+      "fromClass": "scsSchedulingMatrix",
+      "toClass": "A_ProcessType",
+      "relationName": "HAS_SCS_PROCESS_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsSchedulingMatrix.scsProcessTypeId"
+    },
+    {
+      "fromClass": "scsSchedulingMatrix",
+      "toClass": "Product",
+      "relationName": "HAS_SCS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsSchedulingMatrix.scsProductId"
+    },
+    {
+      "fromClass": "scsSchedulingMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SCS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsSchedulingMatrix.scsSpecId"
+    },
+    {
+      "fromClass": "scsSchedulingMatrix",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_SCS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsSchedulingMatrix.scsEquipmentId"
+    },
+    {
+      "fromClass": "scsSchedulingMatrix",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsSchedulingMatrix.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "scsSchedulingMatrix",
+      "toClass": "scsSchedulingMatrixDetail",
+      "relationName": "HAS_SCS_SCHEDULING_DETAIL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsSchedulingMatrix.scsSchedulingDetailId"
+    },
+    {
+      "fromClass": "scsSchedulingMatrix",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsSchedulingMatrix.ss_WIPStepId"
+    },
+    {
+      "fromClass": "scsSchedulingMatrix",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_SCS_EQUIPMENT_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsSchedulingMatrix.scsEquipmentGroupId"
+    },
+    {
+      "fromClass": "scsSchedulingMatrix",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_SCS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsSchedulingMatrix.scsProcessSpecId"
+    },
+    {
+      "fromClass": "ss_ProcessTimerMatrix",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_ProcessTimerMatrix.ss_WIPStepId"
+    },
+    {
+      "fromClass": "ss_ProcessTimerMatrix",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_ProcessTimerMatrix.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "ss_ProcessTimerMatrix",
+      "toClass": "Product",
+      "relationName": "HAS_SS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_ProcessTimerMatrix.ss_ProductId"
+    },
+    {
+      "fromClass": "ss_ProcessTimerMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_ProcessTimerMatrix.ss_SpecId"
+    },
+    {
+      "fromClass": "ss_SendAheadMatrix",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SendAheadMatrix.ss_WIPStepId"
+    },
+    {
+      "fromClass": "ss_SendAheadMatrix",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SendAheadMatrix.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "ss_SendAheadMatrix",
+      "toClass": "A_WIPDataSetup",
+      "relationName": "HAS_SS_WIP_DATA_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SendAheadMatrix.ss_WIPDataSetupId"
+    },
+    {
+      "fromClass": "ss_SendAheadMatrix",
+      "toClass": "Product",
+      "relationName": "HAS_SS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SendAheadMatrix.ss_ProductId"
+    },
+    {
+      "fromClass": "ss_SendAheadMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SendAheadMatrix.ss_SpecId"
+    },
+    {
+      "fromClass": "ss_SendAheadMatrix",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_SS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SendAheadMatrix.ss_ProcessSpecId"
+    },
+    {
+      "fromClass": "ss_SendAheadMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SS_BLOCK_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SendAheadMatrix.ss_BlockSpecId"
+    },
+    {
+      "fromClass": "ss_SendAheadMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SS_FUTURE_COMBINE_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SendAheadMatrix.ss_FutureCombineSpecId"
+    },
+    {
+      "fromClass": "ss_SendAheadMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SS_VALIDATION_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SendAheadMatrix.ss_ValidationSpecId"
+    }
+  ]
+}

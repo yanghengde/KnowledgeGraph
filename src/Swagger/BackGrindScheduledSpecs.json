@@ -1,0 +1,3109 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "BackGrindScheduledSpecEntity",
+    "version": "BackGrindScheduledSpecEntity"
+  },
+  "servers": [
+    {
+      "url": "/Modeling"
+    }
+  ],
+  "paths": {
+    "/api/BackGrindScheduledSpecs({key})": {
+      "get": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "GET:api/BackGrindScheduledSpecs({key})",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackGrindScheduledSpecEntity"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "PUT:api/BackGrindScheduledSpecs({key})",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackGrindScheduledSpecEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "DELETE:api/BackGrindScheduledSpecs({key})",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/BackGrindScheduledSpecs/{key}": {
+      "get": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "GET:api/BackGrindScheduledSpecs/{key}",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackGrindScheduledSpecEntity"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "PUT:api/BackGrindScheduledSpecs/{key}",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackGrindScheduledSpecEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "DELETE:api/BackGrindScheduledSpecs/{key}",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/BackGrindScheduledSpecs": {
+      "get": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "GET:api/BackGrindScheduledSpecs",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BackGrindScheduledSpecEntity"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "PATCH:api/BackGrindScheduledSpecs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackGrindScheduledSpecEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "POST:api/BackGrindScheduledSpecs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackGrindScheduledSpecEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/BackGrindScheduledSpecs/$count": {
+      "get": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "GET:api/BackGrindScheduledSpecs/$count",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BackGrindScheduledSpecEntity"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/BackGrindScheduledSpecs/RequestSelectionValues": {
+      "post": {
+        "tags": [
+          "BackGrindScheduledSpecs"
+        ],
+        "operationId": "POST:api/BackGrindScheduledSpecs/RequestSelectionValues",
+        "parameters": [
+          {
+            "name": "selectionValuesExpression",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackGrindScheduledSpecEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AssociateActionTxnMapChanges": {
+        "required": [
+          "specAssociateAction",
+          "txnType"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "closeParent": {
+            "type": "boolean",
+            "description": "CdoId: 8822; FieldId: 26723; Workspace: csi; Flags: None; Annotations: Generic Boolean",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 8822; FieldId: 26720; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "specAssociateAction": {
+            "type": "integer",
+            "description": "CdoId: 8822; FieldId: 26722; Workspace: csi; Flags: Required; Annotations: 1 - Manual Associate\r\n2 - Manual Disassociate\r\n3 - Auto Disassociate",
+            "format": "int32"
+          },
+          "specDisassociateLvl": {
+            "type": "integer",
+            "description": "CdoId: 8822; FieldId: 26724; Workspace: csi; Flags: None; Annotations: 1 - All\r\n2 - Top",
+            "format": "int32",
+            "nullable": true
+          },
+          "txnType": {
+            "type": "integer",
+            "description": "CdoId: 8822; FieldId: 26721; Workspace: csi; Flags: Required; Annotations: Id of the Transaction (CDO Definition Id) to which this entry applies",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AssociateActionTxnMapChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/AssociateActionTxnMapChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AttachDocumentDetails": {
+        "type": "object",
+        "properties": {
+          "cioListTemplate": {
+            "type": "string",
+            "description": "CdoId: 1070; FieldId: 673185793; Workspace: 10; Flags: Exposed, ReadOnly; Annotations: LongString",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cioListTemplateResolved": {
+            "type": "string",
+            "description": "CdoId: 1070; FieldId: 673185792; Workspace: 10; Flags: Exposed, ReadOnly; Annotations: LongString",
+            "nullable": true,
+            "readOnly": true
+          },
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 1200; FieldId: 7992; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 1200; FieldId: 20185; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: Subentity",
+            "nullable": true,
+            "readOnly": true
+          },
+          "historyDetail": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "smartBarcode": {
+            "type": "string",
+            "description": "CdoId: 2350; FieldId: 28249; Workspace: csi; Flags: None; Annotations: Barcode with data to set to fields in this service detail",
+            "nullable": true
+          },
+          "waferMapDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WaferMapDetails"
+            },
+            "description": "CdoId: 2350; FieldId: 679480911; Workspace: 40; Flags: Exposed; Annotations: Details used by some services such as CombineLot and SplitLot to provide additional information when quantity from a wafer is being transfered.",
+            "nullable": true
+          },
+          "waferMapDetailsType": {
+            "type": "integer",
+            "description": "CdoId: 2350; FieldId: 679480910; Workspace: 40; Flags: None; Annotations: Indicate the type of WaferMapDetails. Expected values:\r\ni)\t0 - No verification required for uniqueness\r\nii)\t1 - Verify duplicates for XLocation, YLocation & ZLocation.\r\niii)\t2 - Verify duplicates for FromXLocation, FromYLocation & FromZLocation and duplic",
+            "format": "int32",
+            "nullable": true
+          },
+          "attachAsROR": {
+            "type": "boolean",
+            "description": "CdoId: 8577; FieldId: 23207; Workspace: csi; Flags: None; Annotations: Indicates if the Document to be attached will be set as ROR",
+            "nullable": true
+          },
+          "attachedBy": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23208; Workspace: csi; Flags: ReadOnly; Annotations: Generic String",
+            "nullable": true,
+            "readOnly": true
+          },
+          "attachmentType": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23209; Workspace: csi; Flags: None; Annotations: Enumeration value for Attachment Type",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23210; Workspace: csi; Flags: ReadOnly; Annotations: Generic String",
+            "nullable": true,
+            "readOnly": true
+          },
+          "docTransactionDate": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23211; Workspace: csi; Flags: None; Annotations: Attach Document Transaction date, used to save in history, be able to order transactions and help in reporting",
+            "format": "date-time",
+            "nullable": true
+          },
+          "document": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "documentDisplayName": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23213; Workspace: csi; Flags: None; Annotations: Extracts the Display Name for the Document being retrieved",
+            "nullable": true
+          },
+          "documentInHistory": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "documentInHistoryRevision": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23215; Workspace: csi; Flags: None; Annotations: Revision of Document as it was attached in AttachDocumentHistory",
+            "nullable": true
+          },
+          "documentName": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23216; Workspace: csi; Flags: ReadOnly; Annotations: Generic String",
+            "nullable": true,
+            "readOnly": true
+          },
+          "documentNameRev": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23217; Workspace: csi; Flags: ReadOnly; Annotations: Generic String",
+            "nullable": true,
+            "readOnly": true
+          },
+          "documentRevision": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23218; Workspace: csi; Flags: ReadOnly; Annotations: Generic String",
+            "nullable": true,
+            "readOnly": true
+          },
+          "fileName": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23219; Workspace: csi; Flags: ReadOnly; Annotations: Generic String",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isAttachment": {
+            "type": "boolean",
+            "description": "CdoId: 8577; FieldId: 23220; Workspace: csi; Flags: None; Annotations: Indicates if the Document attached is an Attachment",
+            "nullable": true
+          },
+          "isDetached": {
+            "type": "boolean",
+            "description": "CdoId: 8577; FieldId: 23221; Workspace: csi; Flags: None; Annotations: Field used to map the Is Detached field to History, by default always false",
+            "nullable": true
+          },
+          "objectInstance": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "objectType": {
+            "type": "integer",
+            "description": "CdoId: 8577; FieldId: 23223; Workspace: csi; Flags: None; Annotations: Enumeration used to identify what type of object a document is being attached to",
+            "format": "int32",
+            "nullable": true
+          },
+          "objectTypeId": {
+            "type": "integer",
+            "description": "CdoId: 8577; FieldId: 23224; Workspace: csi; Flags: None; Annotations: The CDO type Id for the object.  List of all NDO, RDO, and Container objects.",
+            "format": "int32",
+            "nullable": true
+          },
+          "objectTypeName": {
+            "type": "string",
+            "description": "CdoId: 8577; FieldId: 23225; Workspace: csi; Flags: None; Annotations: Name of the Object Type selected",
+            "nullable": true
+          },
+          "useROR": {
+            "type": "boolean",
+            "description": "CdoId: 8577; FieldId: 23226; Workspace: csi; Flags: None; Annotations: Indicates if the Document attached will be using the Revision of Record",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AttachDocumentDetailsExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/AttachDocumentDetails"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BPSpecBizRuleTxnMapChanges": {
+        "required": [
+          "businessRule",
+          "event",
+          "txnToUse"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "businessRule": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "event": {
+            "type": "integer",
+            "description": "CdoId: 8782; FieldId: 26138; Workspace: csi; Flags: Required; Annotations: The event which should fire.",
+            "format": "int32"
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 8782; FieldId: 26139; Workspace: csi; Flags: None; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "txnToUse": {
+            "type": "integer",
+            "description": "CdoId: 8782; FieldId: 26137; Workspace: csi; Flags: Required; Annotations: The transaction that will execute the business rule.",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BPSpecBizRuleTxnMapChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/BPSpecBizRuleTxnMapChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BackGrindScheduledSpecEntity": {
+        "required": [
+          "name",
+          "operation"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 1000; FieldId: 6184; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "associatedPackages": {
+            "type": "integer",
+            "description": "CdoId: 3620; FieldId: 24214; Workspace: csi; Flags: None; Annotations: Count of Associated Packages",
+            "format": "int32",
+            "nullable": true
+          },
+          "attachDocumentDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachDocumentDetails"
+            },
+            "description": "CdoId: 3620; FieldId: 23049; Workspace: csi; Flags: ReadOnly; Annotations: The details used to display the attached documents.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "attachDocumentDetails-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachDocumentDetailsExpandedListItem"
+            },
+            "description": "CdoId: 3620; FieldId: 23049; Workspace: csi; Flags: ReadOnly; Annotations: The details used to display the attached documents.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "canChangeRevOfRcd": {
+            "type": "boolean",
+            "description": "CdoId: 3620; FieldId: 4489; Workspace: csi; Flags: None; Annotations: Should be false if the object was RevOfRcd when it was loaded and true if it wasnt. Used by the user interface to decide whether to allow the user to set the IsRevOfRcd flag.",
+            "nullable": true
+          },
+          "changeHistory": {
+            "$ref": "#/components/schemas/ChangeHistoryChanges"
+          },
+          "description": {
+            "type": "string",
+            "description": "CdoId: 3620; FieldId: 3409; Workspace: csi; Flags: None; Annotations: Description of this entity. Defaults to the name of this entity if not specified",
+            "nullable": true
+          },
+          "eco": {
+            "type": "string",
+            "description": "CdoId: 3620; FieldId: 11672; Workspace: 40; Flags: None; Annotations: Engineering Change Order",
+            "nullable": true
+          },
+          "filterTags": {
+            "type": "string",
+            "description": "CdoId: 3620; FieldId: 25605; Workspace: csi; Flags: None; Annotations: FilterTags comma seperated list",
+            "nullable": true
+          },
+          "iconId": {
+            "type": "integer",
+            "description": "CdoId: 3620; FieldId: 3410; Workspace: csi; Flags: None; Annotations: Identifier for the icon associated with this Base Entity",
+            "format": "int32",
+            "nullable": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3620; FieldId: 8047; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceLocked": {
+            "type": "boolean",
+            "description": "CdoId: 3620; FieldId: 24411; Workspace: csi; Flags: None; Annotations: Determines if the instance is locked by Change Management",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 3620; FieldId: 3411; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isRevOfRcd": {
+            "type": "boolean",
+            "description": "CdoId: 3620; FieldId: 3413; Workspace: csi; Flags: None; Annotations: Determines if this instance is the current Revision of Record (by comparing ID to BaseEntity.RevisionOfRecord)",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "description": "CdoId: 3620; FieldId: 9069; Workspace: csi; Flags: None; Annotations: Notations and comments associated with this object.",
+            "nullable": true
+          },
+          "replaceDetails": {
+            "type": "boolean",
+            "description": "CdoId: 3620; FieldId: 28187; Workspace: csi; Flags: None; Annotations: Flag indicating whether to remove existing sub-entities (e.g. Details) before adding new ones.",
+            "nullable": true
+          },
+          "setupAccess": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3620; FieldId: 28188; Workspace: csi; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a sub-entity list.",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "description": "CdoId: 3620; FieldId: 3415; Workspace: csi; Flags: None; Annotations: Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are:\r\n\r\n1 = Active\r\n2 = Inactive",
+            "format": "int32",
+            "nullable": true
+          },
+          "sysForceToUpper": {
+            "type": "boolean",
+            "description": "CdoId: 3620; FieldId: 679477357; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to set the Name, Revision and Description to upper case.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "wipMsgDefMgr": {
+            "$ref": "#/components/schemas/WIPMsgEntity"
+          },
+          "isAttachImage": {
+            "type": "boolean",
+            "description": "CdoId: 3620; FieldId: 702547741; Workspace: csi; Flags: None; Annotations: Flag to indicated that doc attachments are images so use isImage table.",
+            "nullable": true
+          },
+          "bpSpecBizRuleTxnMap": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BPSpecBizRuleTxnMapChanges"
+            },
+            "description": "CdoId: 4649; FieldId: 26152; Workspace: csi; Flags: None; Annotations: Contains a lisf ot business ruiles to fire at this spec.  It also includes the container txn that should do the firing and when in that txn the rule should fire.",
+            "nullable": true
+          },
+          "bpSpecBizRuleTxnMap-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BPSpecBizRuleTxnMapChangesExpandedListItem"
+            },
+            "description": "CdoId: 4649; FieldId: 26152; Workspace: csi; Flags: None; Annotations: Contains a lisf ot business ruiles to fire at this spec.  It also includes the container txn that should do the firing and when in that txn the rule should fire.",
+            "nullable": true
+          },
+          "allowOtherResource": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 28416; Workspace: csi; Flags: None; Annotations: Allow other resource than the resource that performed last movement",
+            "nullable": true
+          },
+          "allowOverrides": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 12168; Workspace: csi; Flags: None; Annotations: Allow Overrides",
+            "nullable": true
+          },
+          "allowReprocess": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 27748; Workspace: csi; Flags: None; Annotations: Allow a Container to be Moved through/into this Spec repeatedly. Commonly used to rerun a Container through automated testing equipment if the previous test was invalid",
+            "nullable": true
+          },
+          "associateActionTxnMap": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssociateActionTxnMapChanges"
+            },
+            "description": "CdoId: 4650; FieldId: 26719; Workspace: csi; Flags: None; Annotations: Transaction Map for Transaction  Associate \\ Disassociate Actions",
+            "nullable": true
+          },
+          "associateActionTxnMap-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssociateActionTxnMapChangesExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 26719; Workspace: csi; Flags: None; Annotations: Transaction Map for Transaction  Associate \\ Disassociate Actions",
+            "nullable": true
+          },
+          "autoFillDataPointHistoryValue": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 28371; Workspace: csi; Flags: None; Annotations: This Boolean is to auto filling data collection values from previous latest record",
+            "nullable": true
+          },
+          "billOfProcessAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RevisionedObjectRef"
+            },
+            "description": "CdoId: 4650; FieldId: 12169; Workspace: csi; Flags: None; Annotations: List of Bill Of Processes assigned to this Spec.; OriginalType: BillOfProcess",
+            "nullable": true
+          },
+          "billOfProcessAssignments-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RevisionedObjectRefExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 12169; Workspace: csi; Flags: None; Annotations: List of Bill Of Processes assigned to this Spec.; OriginalType: BillOfProcess",
+            "nullable": true
+          },
+          "checkPrinting": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 679492433; Workspace: 40; Flags: None; Annotations: Flag indicating whether to check for Printing Automation requirements.",
+            "nullable": true
+          },
+          "checkScanning": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 679492436; Workspace: 40; Flags: None; Annotations: Flag indicating whether to check for Scanning requirements.",
+            "nullable": true
+          },
+          "containerAutoHoldReqTxnMap": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContAutoHoldReqTxnMapChanges"
+            },
+            "description": "CdoId: 4650; FieldId: 28171; Workspace: csi; Flags: None; Annotations: Matches up ContainerAutoHoldReq to an InSite services.",
+            "nullable": true
+          },
+          "containerAutoHoldReqTxnMap-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContAutoHoldReqTxnMapChangesExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 28171; Workspace: csi; Flags: None; Annotations: Matches up ContainerAutoHoldReq to an InSite services.",
+            "nullable": true
+          },
+          "documentSet": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "eS_VerifyToolPlan": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 689968202; Workspace: csi; Flags: None; Annotations: Controls whether a Resource will have the Tool Plan verified against the Container's Tool Plan",
+            "nullable": true
+          },
+          "eSigTxnMap": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContainerESigTxnMapChanges"
+            },
+            "description": "CdoId: 4650; FieldId: 9622; Workspace: csi; Flags: None; Annotations: Matches up ESigRequirements to an InSite services.",
+            "nullable": true
+          },
+          "eSigTxnMap-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContainerESigTxnMapChangesExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 9622; Workspace: csi; Flags: None; Annotations: Matches up ESigRequirements to an InSite services.",
+            "nullable": true
+          },
+          "electronicProcedure": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "endTimerTxnMap": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EndTimerTxnMapChanges"
+            },
+            "description": "CdoId: 4650; FieldId: 24903; Workspace: csi; Flags: None; Annotations: EndTimerTxnMap",
+            "nullable": true
+          },
+          "endTimerTxnMap-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EndTimerTxnMapChangesExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 24903; Workspace: csi; Flags: None; Annotations: EndTimerTxnMap",
+            "nullable": true
+          },
+          "externalInterface": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "holdLocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpecHoldLocationsChanges"
+            },
+            "description": "CdoId: 4650; FieldId: 679492470; Workspace: 40; Flags: None; Annotations: Subentity used to store the valid hold locations for a spec.",
+            "nullable": true
+          },
+          "holdLocations-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpecHoldLocationsChangesExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 679492470; Workspace: 40; Flags: None; Annotations: Subentity used to store the valid hold locations for a spec.",
+            "nullable": true
+          },
+          "isInProcessSplit": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 679492442; Workspace: 40; Flags: ReadOnly; Annotations: Virtual flag indicating whether the spec is a In-Process Split spec by looking at its Step Logic.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isPacking": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 679492446; Workspace: 40; Flags: ReadOnly; Annotations: Virtual flag indicating whether the spec is a Lot Packing spec by looking at its Step Logic.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isSortIQC": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 679492448; Workspace: 40; Flags: ReadOnly; Annotations: Virtual flag indicating whether the spec is a Sort IQC spec by looking at its Step Logic.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isSortSQA": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 679492441; Workspace: 40; Flags: ReadOnly; Annotations: Virtual flag indicating whether the spec is a Sort SQA spec by looking at its Step Logic.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isSorting": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 679492439; Workspace: 40; Flags: ReadOnly; Annotations: Virtual flag indicating whether the spec is a Sorting spec by looking at its Step Logic.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isSubCon": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 679492438; Workspace: 40; Flags: None; Annotations: Flag indicating whether the spec is a sub-con spec.",
+            "nullable": true
+          },
+          "isWaferProcessing": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 679492447; Workspace: 40; Flags: None; Annotations: Flag indicating whether the WIP Spec is tracked using wafers. If this flag is set to true all processing must be done using Container and Wafer Scribe Number.",
+            "nullable": true
+          },
+          "labelTxnMap": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContainerLabelMapChanges"
+            },
+            "description": "CdoId: 4650; FieldId: 10879; Workspace: csi; Flags: None; Annotations: Contains a match between a service and a label definition to be printed.",
+            "nullable": true
+          },
+          "labelTxnMap-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContainerLabelMapChangesExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 10879; Workspace: csi; Flags: None; Annotations: Contains a match between a service and a label definition to be printed.",
+            "nullable": true
+          },
+          "maxQueueTime": {
+            "type": "number",
+            "description": "CdoId: 4650; FieldId: 3956; Workspace: csi; Flags: None; Annotations: This is not implemented in the current version of InSite.\r\n\r\nThis value determines the maximum length of time a Container can remain in an in-queue state at the Step that uses this Spec. The value for MaximumQueueTimeAction determines the action to take if the in-queue time exceeds this value.",
+            "format": "float",
+            "nullable": true
+          },
+          "maxQueueTimeAction": {
+            "type": "integer",
+            "description": "CdoId: 4650; FieldId: 3957; Workspace: csi; Flags: None; Annotations: This is not implemented in the current version of InSite.\r\n\r\nThis value is used to determine the action to take when a Service (transaction) is started for a Container that has been in-queue longer than the allowable queue time (MaxQueueTime). \r\n\r\nThe values for this option are:\r\n0 = No action\r\n1 = Warning to Operator\r\n2 = Warning to Operator requiring a password to continue\r\n3 = Place container on Hold\r\n4 = Do not allow transaction to continue\r\n\r\nThese values and their associated actions are intended to match the values and actions for field validations.\r\n\r\nThis action applies to any service that changes a Container from an In-Queue to an In-Process state.",
+            "format": "int32",
+            "nullable": true
+          },
+          "optional": {
+            "type": "integer",
+            "description": "CdoId: 4650; FieldId: 28723; Workspace: csi; Flags: None; Annotations: Specifies whether the step is considered optional and can be skipped",
+            "format": "int32",
+            "nullable": true
+          },
+          "postProductionAction": {
+            "type": "integer",
+            "description": "CdoId: 4650; FieldId: 27885; Workspace: csi; Flags: None; Annotations: What to do when production completed for an Mfg Order with a configured post-production procedure\r\n\r\n1 - EnableProcedure\r\n2 - RequireProcedure",
+            "format": "int32",
+            "nullable": true
+          },
+          "processCode": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "recipeFile": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "requirePreProductionProcedure": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 27886; Workspace: csi; Flags: None; Annotations: Identifies step at which container movement blocked until Pre-Production Procedure is complete.",
+            "nullable": true
+          },
+          "schedulingDetail": {
+            "$ref": "#/components/schemas/SpecSchedulingDetailChanges"
+          },
+          "setup": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "startTimerTxnMap": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StartTimerTxnMapChanges"
+            },
+            "description": "CdoId: 4650; FieldId: 24905; Workspace: csi; Flags: None; Annotations: StartTimerTxnMap",
+            "nullable": true
+          },
+          "startTimerTxnMap-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StartTimerTxnMapChangesExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 24905; Workspace: csi; Flags: None; Annotations: StartTimerTxnMap",
+            "nullable": true
+          },
+          "trainingReqGroup": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "txnMap": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TxnMapChanges"
+            },
+            "description": "CdoId: 4650; FieldId: 3960; Workspace: csi; Flags: None; Annotations: A TransactionMap entry determines for any given standard transaction what transaction should be used and what data collection definition should be associated with the transaction.",
+            "nullable": true
+          },
+          "txnMap-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TxnMapChangesExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 3960; Workspace: csi; Flags: None; Annotations: A TransactionMap entry determines for any given standard transaction what transaction should be used and what data collection definition should be associated with the transaction.",
+            "nullable": true
+          },
+          "txnMapItem": {
+            "$ref": "#/components/schemas/TxnMapChanges"
+          },
+          "uom": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "uoM2": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "validateActiveMfgOrder": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 28520; Workspace: csi; Flags: None; Annotations: This field enables or disables the validation process for active mfg order assigned to the resource. When enabled, the container's  mfg order will be validated during the process.",
+            "nullable": true
+          },
+          "validateLotSamplingComplete": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 23549; Workspace: csi; Flags: None; Annotations: If True Validates that the Lot Sampling has been completed",
+            "nullable": true
+          },
+          "warningQueueTime": {
+            "type": "number",
+            "description": "CdoId: 4650; FieldId: 3958; Workspace: csi; Flags: None; Annotations: This is not implemented in the current version of InSite.\r\n\r\nThis value specifies the length of time a Container can remain in an in-queue state before a warning is to be triggered.",
+            "format": "float",
+            "nullable": true
+          },
+          "yieldTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpecYieldTypesChanges"
+            },
+            "description": "CdoId: 4650; FieldId: 679492429; Workspace: 40; Flags: None; Annotations: 0, 1 or more Yield Type to calculate for the lot during yield calculation.",
+            "nullable": true
+          },
+          "yieldTypes-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpecYieldTypesChangesExpandedListItem"
+            },
+            "description": "CdoId: 4650; FieldId: 679492429; Workspace: 40; Flags: None; Annotations: 0, 1 or more Yield Type to calculate for the lot during yield calculation.",
+            "nullable": true
+          },
+          "ss_IsSendAheadRequired": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 681575155; Workspace: 40; Flags: None; Annotations: To indicate that Send Ahead Lot processing and validation is to occur at this spec",
+            "nullable": true
+          },
+          "ss_UseWIPDataSetupMatrix": {
+            "type": "boolean",
+            "description": "CdoId: 4650; FieldId: 681575754; Workspace: 40; Flags: None; Annotations: A flag to indicate to resolve WIP Data Setup from Matrix",
+            "nullable": true
+          },
+          "allowCountVariance": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579522; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether Count Variance recording is allowed for the step.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "allowDefectQty": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579524; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether the Defect Qty is allowed to collect.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "allowDummyQty": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579526; Workspace: 40; Flags: ReadOnly; Annotations: i)\tSet whether the collection of dummy quantity during track out and move out is allowed.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "allowMaterialLoading": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579528; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether the lot can be loaded into the equipment at its step.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "allowNumberOfStrips": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579530; Workspace: 40; Flags: ReadOnly; Annotations: i)\tSet whether the collection of number of strips during track out and move out is allowed.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "allowRejectsRecording": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579532; Workspace: 40; Flags: ReadOnly; Annotations: i)\tSet whether the operation allows reject recording.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "allowReworkTo": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579536; Workspace: 40; Flags: None; Annotations: Determines if a Step that references this Spec can be the To-Step for a Rework Transaction.",
+            "nullable": true
+          },
+          "allowReworkableRejectQty": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579534; Workspace: 40; Flags: ReadOnly; Annotations: i)\tSet whether the collection of re-workable rejects during rejects recording is allowed.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "allowSplitUnProcessed": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579538; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to display the Split Un-Processed fields during Track Out.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "allowUnidentifiableRejectQty": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579540; Workspace: 40; Flags: ReadOnly; Annotations: i)\tSet whether the collection of unidentifiable rejects during rejects recording is allowed.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "autoCreateFirstInsertion": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579542; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to automatically create the first insertion right after the lot moves into a WIP step.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "autoMoveOut": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579544; Workspace: 40; Flags: ReadOnly; Annotations: i)\tAuto move out when the current insertion has completed.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "autoRejectsRescreens": {
+            "type": "integer",
+            "description": "CdoId: 4752844; FieldId: 681579546; Workspace: 40; Flags: ReadOnly; Annotations: Field used to specify whether to automatically create a new insertion if there is a reject detected. A value of 3 means rescreen will be automatically created up to the 3rd insertion (i.e. up to 2nd rescreen). For Wafer Processing, only wafers selected to",
+            "format": "int32",
+            "nullable": true,
+            "readOnly": true
+          },
+          "autoRemoveMaterials": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579548; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to remove all the materials from the equipment after the last lot in the equipment tracks out.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "autoSelectTrackOutLots": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579550; Workspace: 40; Flags: ReadOnly; Annotations: i)\tAutomatically select the rest of the lots that were track in together into the equipment when one of them is selected during track out.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "autoSetMoveOutQty": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579552; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to automatically set the move out quantity. If set to false the user is required to enter the move out quantity.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "autoSetTestProgram": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579554; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to automatically set the test program for test steps. If set to true the first record found in TestProgramSetup that matches the Process Spec, ProcessType and Spec will be used.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "autoSetTrackInQty": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579556; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether the Track In Qty will be automatically set.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "autoSetTrackOutQty": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579558; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to automatically set the Track Out Qty for the lot during Track Out.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "binSplitRequired": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579560; Workspace: 40; Flags: ReadOnly; Annotations: i)\tFlag indicating whether to split the bins recorded in the last binning operation.\r\nii)\tThis is to cater for the case where PBI bins are split out at the next PDA calculation operation.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "binType": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "consolidatePreviousBins": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579564; Workspace: 40; Flags: ReadOnly; Annotations: i)\tSet whether previous insertion’s bins are added to the current insertion bins.\r\nii)\tOnly GOOD and NOTREQUIRED bins will be consolidated.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "consolidatePreviousRejects": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579566; Workspace: 40; Flags: ReadOnly; Annotations: i)\tSet whether previous insertion's rejects are added to the current insertion rejects.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "defaultMaterialWIPLocation": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "holdLotIfLimitsNotFound": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579569; Workspace: 40; Flags: ReadOnly; Annotations: i)\tFlag to hold the lot if limits criteria could not be found.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "inputCarrierFamily": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "isTest": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579573; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether the step is a test step.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "maxEquipmentPerLot": {
+            "type": "integer",
+            "description": "CdoId: 4752844; FieldId: 681579575; Workspace: 40; Flags: ReadOnly; Annotations: i)\tDefines the maximum number of equipment the lot is allowed to process in.\r\nii)\tThe default value is 0 meaning unlimited.",
+            "format": "int32",
+            "nullable": true,
+            "readOnly": true
+          },
+          "maxInsertion": {
+            "type": "integer",
+            "description": "CdoId: 4752844; FieldId: 681579577; Workspace: 40; Flags: ReadOnly; Annotations: i)\tThe maximum number of insertions a lot is allowed to go through at the operation.\r\nii)\tThis value will be copied to the lot’s insertion information for possible modification. This is to allow case-by-case basis where the lot is allowed to go beyond thi",
+            "format": "int32",
+            "nullable": true,
+            "readOnly": true
+          },
+          "maxLotsPerUser": {
+            "type": "integer",
+            "description": "CdoId: 4752844; FieldId: 681579579; Workspace: 40; Flags: ReadOnly; Annotations: Max Lots Per User",
+            "format": "int32",
+            "nullable": true,
+            "readOnly": true
+          },
+          "notRequiredBinsLocation": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "outputCarrierFamily": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "pdaLimitsRequired": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579585; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether PDA Limits verification is required.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "removeDateCode": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579511; Workspace: 40; Flags: ReadOnly; Annotations: i)\tThe Remove Date Code step attribute is used to nullify the Date Code when a lot moves to a Die Bank Inventory step during Lot Schedule Cancel\r\nii)\tThis logic is used for all the ASSEMBLY Process Specs only.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "replaceDetailsSubentityListNames": {
+            "type": "string",
+            "description": "CdoId: 4752844; FieldId: 679492427; Workspace: 40; Flags: None; Annotations: Internal field used to identify a list of comma delimited subentities to Delete before any processing takes place. This field will be considered in the Maintenance ValidateChange event if ReplaceDetailsRequired returns true. I.e.\r\n\t<ListName>+[,]",
+            "nullable": true
+          },
+          "requireMaxTimeWindow": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579587; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to check for any Max Time Window to initiate for a lot.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "requireTrackInQty": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579589; Workspace: 40; Flags: ReadOnly; Annotations: i)\tSets whether the track in quantity is required.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "resourceGroup": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "revision": {
+            "type": "string",
+            "description": "CdoId: 4752844; FieldId: 679493900; Workspace: 40; Flags: None; Annotations: Revision (unique within the context of the base entity)",
+            "nullable": true
+          },
+          "runNumberSetup": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "sameParentLot": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579593; Workspace: 40; Flags: ReadOnly; Annotations: Flag used to indicate whether or not lots processing (or to be processed) in the same equipment must belong to the same parent lot",
+            "nullable": true,
+            "readOnly": true
+          },
+          "setQtyFromWafers": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579596; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to set the lot's Qty from the wafers' records. The Good Qty will be used if it is greater than 0. Otherwise the NDPW will be used.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "stepLogic": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "testIQCRequired": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579515; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether Test IQC is required.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "utaPrefix": {
+            "type": "string",
+            "description": "CdoId: 4752844; FieldId: 681579517; Workspace: 40; Flags: ReadOnly; Annotations: UTA Prefix",
+            "nullable": true,
+            "readOnly": true
+          },
+          "useEquipmentMatrix": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579600; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether the Equipment Matrix should be used to pull out available equipment for track in.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "validateMaterialConsumption": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681577937; Workspace: 40; Flags: ReadOnly; Annotations: This flag determines if the material consumption check should be enforced for this spec",
+            "nullable": true,
+            "readOnly": true
+          },
+          "verifyStepCycleTime": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579602; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to check the StepCycleTimeSetup.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "verifyWafersGoodQty": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579604; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to verify the total Good Qty of the wafers against the move out quantity. If different do not allow move out.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "wipDataSetup": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "yieldOffDefects": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579608; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether the defects collected should be yielded off.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "scsFieldEnable": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681594400; Workspace: 40; Flags: None; Annotations: to enable field for semi",
+            "nullable": true
+          },
+          "scsSpecSlotMappingRequired": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579472; Workspace: 40; Flags: ReadOnly; Annotations: Indicate wheter the assign lot is using Spec that need to perform Slot Mapping Requirement",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ss_AutoUnloadFeeders": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579465; Workspace: 40; Flags: ReadOnly; Annotations: Flag indicating whether to remove all the Feeders from the equipment after the last lot in the equipment tracks out.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ss_BypassRecipeVerification": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579466; Workspace: 40; Flags: ReadOnly; Annotations: Flag to indicate whether to bypass recipe verification.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ss_BypassToolPlanVerification": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579467; Workspace: 40; Flags: ReadOnly; Annotations: Flag to indicate whether to bypass tool plan verification.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ss_LabelPlan": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "ss_MfgLine": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "ss_OnlyCalculateYield": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579470; Workspace: 40; Flags: ReadOnly; Annotations: Flag to indicate only calculate yield.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "ss_VerifyMfgLine": {
+            "type": "boolean",
+            "description": "CdoId: 4752844; FieldId: 681579471; Workspace: 40; Flags: ReadOnly; Annotations: Flag used to trigger the Mfg Line verification logic from the Container's current step.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "dispatchPlan": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "setDateCode": {
+            "type": "boolean",
+            "description": "CdoId: 4752847; FieldId: 681579521; Workspace: 40; Flags: None; Annotations: Flag indicating whether to set the date code during Move Lot.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "scsRecipeConfigRequired": {
+            "type": "boolean",
+            "description": "CdoId: 4752847; FieldId: 681579463; Workspace: 40; Flags: ReadOnly; Annotations: This field will be used during Setup and TrackIn to provide additional information related to the status of Recipe Modeling.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "base": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "name": {
+            "type": "string",
+            "description": "CdoId: 4752857; FieldId: 679492617; Workspace: 40; Flags: Required; Annotations: Name for this instance"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "useRor": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BaseObjectRef": {
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "cdoTypeName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChangeHistoryChanges": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "cioMessageID": {
+            "type": "string",
+            "description": "CdoId: 3750; FieldId: 673187497; Workspace: 10; Flags: None; Annotations: Hexadecimal representation of GUID ( e.g. BDE4B634-153E-4A31-A453-EEA85FE80532)",
+            "nullable": true
+          },
+          "control": {
+            "type": "integer",
+            "description": "CdoId: 3750; FieldId: 3516; Workspace: csi; Flags: None; Annotations: Counter, incremented each time a change is completed",
+            "format": "int32",
+            "nullable": true
+          },
+          "creationDate": {
+            "type": "string",
+            "description": "CdoId: 3750; FieldId: 679492966; Workspace: 40; Flags: ReadOnly; Annotations: The date when the record was created.",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true
+          },
+          "creationDateGMT": {
+            "type": "string",
+            "description": "CdoId: 3750; FieldId: 679492968; Workspace: 40; Flags: ReadOnly; Annotations: The GMT date when the record was created.",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true
+          },
+          "creationUsername": {
+            "type": "string",
+            "description": "CdoId: 3750; FieldId: 679492967; Workspace: 40; Flags: ReadOnly; Annotations: The username that created the record.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "currentStatus": {
+            "type": "integer",
+            "description": "CdoId: 3750; FieldId: 3517; Workspace: csi; Flags: None; Annotations: Current status for maintenance of the associated modeling entity.\r\n\r\n0 = Nothing in progress (\"Checked-in\")\r\n1 = Maintenance active (\"Checked-out\")",
+            "format": "int32",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 3750; FieldId: 8391; Workspace: csi; Flags: None; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true
+          },
+          "lastChangeDate": {
+            "type": "string",
+            "description": "CdoId: 3750; FieldId: 3518; Workspace: csi; Flags: ReadOnly; Annotations: Date and time of the last change to this entity.",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true
+          },
+          "lastChangeDateGMT": {
+            "type": "string",
+            "description": "CdoId: 3750; FieldId: 3519; Workspace: csi; Flags: ReadOnly; Annotations: LastChangeDateGMT",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "notes": {
+            "type": "string",
+            "description": "CdoId: 3750; FieldId: 3556; Workspace: csi; Flags: None; Annotations: Notes/Comments",
+            "nullable": true
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parentCDOId": {
+            "type": "integer",
+            "description": "CdoId: 3750; FieldId: 673187844; Workspace: 10; Flags: None; Annotations: CDO Definition Id",
+            "format": "int32",
+            "nullable": true
+          },
+          "user": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContAutoHoldReqTxnMapChanges": {
+        "required": [
+          "containerAutoHoldRequirement",
+          "txnType"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "containerAutoHoldRequirement": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "effectiveFromDate": {
+            "type": "string",
+            "description": "CdoId: 8938; FieldId: 28176; Workspace: csi; Flags: None; Annotations: If specified, this is the starting date and time when this Container Auto Hold Req Txn Map becomes available.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "effectiveFromDateGMT": {
+            "type": "string",
+            "description": "CdoId: 8938; FieldId: 28174; Workspace: csi; Flags: None; Annotations: If specified, this is the starting date and time when this Container Auto Hold Req Txn Map becomes available.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "effectiveThruDate": {
+            "type": "string",
+            "description": "CdoId: 8938; FieldId: 28175; Workspace: csi; Flags: None; Annotations: If specified, this is the ending date and time when this Container Auto Hold Req Txn Map becomes no longer available.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "effectiveThruDateGMT": {
+            "type": "string",
+            "description": "CdoId: 8938; FieldId: 28179; Workspace: csi; Flags: None; Annotations: If specified, this is the ending date and time when this Container Auto Hold Req Txn Map becomes no longer available.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "description": "CdoId: 8938; FieldId: 28172; Workspace: csi; Flags: None; Annotations: Determines, based on Status and Start and End dates whether a CDO should be considered for processing. If a field is not found within the CDO, a positive result is assumed.",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 8938; FieldId: 28177; Workspace: csi; Flags: None; Annotations: IsFrozen",
+            "nullable": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "txnType": {
+            "type": "integer",
+            "description": "CdoId: 8938; FieldId: 28178; Workspace: csi; Flags: Required; Annotations: Id of the Transaction (CDO Definition Id) to which this entry applies",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContAutoHoldReqTxnMapChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/ContAutoHoldReqTxnMapChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContainerESigTxnMapChanges": {
+        "required": [
+          "eSigRequirement"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "allTxns": {
+            "type": "boolean",
+            "description": "CdoId: 7212; FieldId: 10159; Workspace: csi; Flags: None; Annotations: Identifies whether all transactions should use the Requirement identified in this instance.",
+            "nullable": true
+          },
+          "eSigRequirement": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 7212; FieldId: 10765; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "txnId": {
+            "type": "integer",
+            "description": "CdoId: 7214; FieldId: 10169; Workspace: csi; Flags: None; Annotations: The definition id of the TxnToUse.",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContainerESigTxnMapChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/ContainerESigTxnMapChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContainerLabelMapChanges": {
+        "required": [
+          "labelCount",
+          "printerLabelDefinition"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 7296; FieldId: 11748; Workspace: csi; Flags: None; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true
+          },
+          "labelCount": {
+            "type": "string",
+            "description": "CdoId: 7296; FieldId: 10871; Workspace: csi; Flags: Required; Annotations: Number of labels to print."
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "printerLabelDefinition": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "txnType": {
+            "type": "integer",
+            "description": "CdoId: 7298; FieldId: 10873; Workspace: csi; Flags: None; Annotations: Id of the Transaction (CDO Definition Id) to which this entry applies",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContainerLabelMapChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/ContainerLabelMapChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EndTimerTxnMapChanges": {
+        "required": [
+          "processTimer",
+          "txnType"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 8647; FieldId: 24884; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "processTimer": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "txnName": {
+            "type": "string",
+            "description": "CdoId: 8647; FieldId: 24909; Workspace: csi; Flags: None; Annotations: Unique name for this instance",
+            "nullable": true
+          },
+          "txnType": {
+            "type": "integer",
+            "description": "CdoId: 8647; FieldId: 24888; Workspace: csi; Flags: Required; Annotations: End Txn",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EndTimerTxnMapChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/EndTimerTxnMapChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NamedObjectRef": {
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "cdoTypeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NamedObjectRefExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RevisionedObjectRef": {
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "cdoTypeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "revision": {
+            "type": "string",
+            "nullable": true
+          },
+          "useROR": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RevisionedObjectRefExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SpecHoldLocationsChanges": {
+        "required": [
+          "holdLocation"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 4752909; FieldId: 679492982; Workspace: 40; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "scsInputCarrierFamily": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "scsOutputCarrierFamily": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "displaySequence": {
+            "type": "integer",
+            "description": "CdoId: 4752947; FieldId: 679493236; Workspace: 40; Flags: Exposed; Annotations: Display Sequence",
+            "format": "int32",
+            "nullable": true
+          },
+          "holdLocation": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SpecHoldLocationsChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/SpecHoldLocationsChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SpecSchedulingDetailChanges": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "durationPerUnit": {
+            "type": "number",
+            "description": "CdoId: 4670; FieldId: 7130; Workspace: csi; Flags: None; Annotations: This value specifies the amount of time needed to process a single unit. This is used in cycle time and Cost Accounting calculations.",
+            "format": "float",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 4670; FieldId: 8324; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "runRateOption": {
+            "type": "integer",
+            "description": "CdoId: 4670; FieldId: 3971; Workspace: csi; Flags: None; Annotations: This option determines if run rate is specified as hours per unit or units per hour or time per batch. The values and their meanings are:\r\n1 = Hours per unit (RunRateTime)\r\n2 = Unites per hour (RunRateQuantity)                                                                                                                                                       \r\n3 = Time Per Batch (RunRate Time)",
+            "format": "int32",
+            "nullable": true
+          },
+          "setupTime": {
+            "type": "number",
+            "description": "CdoId: 4670; FieldId: 3973; Workspace: csi; Flags: None; Annotations: This value specifies the time required for a Setup at this Operation. This is used in cycle time and Cost Accounting calculations.",
+            "format": "float",
+            "nullable": true
+          },
+          "stdBatchSize": {
+            "type": "number",
+            "description": "CdoId: 4670; FieldId: 3974; Workspace: csi; Flags: None; Annotations: This value specifies the standard size of a batch of material processed using this Spec. This is used in cycle time and Cost Accounting calculations.",
+            "format": "double",
+            "nullable": true
+          },
+          "timePerBatch": {
+            "type": "number",
+            "description": "CdoId: 4670; FieldId: 27388; Workspace: csi; Flags: None; Annotations: This value specified the time needed to process a single Batch.",
+            "format": "float",
+            "nullable": true
+          },
+          "unitsPerHour": {
+            "type": "number",
+            "description": "CdoId: 4670; FieldId: 3972; Workspace: csi; Flags: None; Annotations: This value specifies the number of units processed in an hour. This is used in cycle time and Cost Accounting calculations.",
+            "format": "double",
+            "nullable": true
+          },
+          "unscheduledTime": {
+            "type": "number",
+            "description": "CdoId: 4670; FieldId: 27387; Workspace: csi; Flags: None; Annotations: Process time that is not contained in the UPH,HPU or Batch Time entries.",
+            "format": "float",
+            "nullable": true
+          },
+          "yield": {
+            "type": "number",
+            "description": "CdoId: 4670; FieldId: 3975; Workspace: csi; Flags: None; Annotations: Specifies the standard yield expected for processing with this Spec. This value is used in cycle time and Cost Accounting calculations.",
+            "format": "double",
+            "nullable": true
+          },
+          "fastCycleTime": {
+            "type": "number",
+            "description": "CdoId: 4680; FieldId: 7124; Workspace: csi; Flags: None; Annotations: This is a calculated value that denotes the time required processing a standard size batch of material using this Spec, assuming fast queue time. This is used to determine, for example, how quickly a job can be expedited through the Factory.\r\n\r\nThe calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved.",
+            "format": "float",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "normalCycleTime": {
+            "type": "number",
+            "description": "CdoId: 4680; FieldId: 7123; Workspace: csi; Flags: None; Annotations: This is a calculated value that denotes the time required processing a standard size batch of material using this Spec, assuming normal queue time.\r\n\r\nThe calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved.",
+            "format": "float",
+            "nullable": true,
+            "readOnly": true
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SpecYieldTypesChanges": {
+        "required": [
+          "yieldType"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 4752909; FieldId: 679492982; Workspace: 40; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "scsInputCarrierFamily": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "scsOutputCarrierFamily": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "displaySequence": {
+            "type": "integer",
+            "description": "CdoId: 4752956; FieldId: 679493280; Workspace: 40; Flags: Exposed; Annotations: Display Sequence",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "yieldFailureEmailGroup": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "yieldFailureHeaderLabel": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "yieldFailureLabel": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "yieldFailureSubjectLabel": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "yieldType": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SpecYieldTypesChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/SpecYieldTypesChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StartTimerTxnMapChanges": {
+        "required": [
+          "processTimer",
+          "txnType"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 8649; FieldId: 24897; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "processTimer": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "txnName": {
+            "type": "string",
+            "description": "CdoId: 8649; FieldId: 24907; Workspace: csi; Flags: None; Annotations: TxnName",
+            "nullable": true
+          },
+          "txnType": {
+            "type": "integer",
+            "description": "CdoId: 8649; FieldId: 24901; Workspace: csi; Flags: Required; Annotations: Displays a list of transactions.",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StartTimerTxnMapChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/StartTimerTxnMapChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SubentityRef": {
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "cdoTypeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TxnMapChanges": {
+        "required": [
+          "dataCollectionDef",
+          "txnToUse"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "dataCollectionDef": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 4690; FieldId: 8329; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "CdoId: 4690; FieldId: 3984; Workspace: csi; Flags: None; Annotations: Determines if this transaction must be performed before the Spec is complete (and a Move-out is allowed)",
+            "nullable": true
+          },
+          "sequence": {
+            "type": "integer",
+            "description": "CdoId: 4690; FieldId: 3981; Workspace: csi; Flags: None; Annotations: Relative sequence for performing this transaction.",
+            "format": "int32",
+            "nullable": true
+          },
+          "txnName": {
+            "type": "string",
+            "description": "CdoId: 4690; FieldId: 4397; Workspace: csi; Flags: None; Annotations: Unique name for this instance",
+            "nullable": true
+          },
+          "txnToUse": {
+            "type": "integer",
+            "description": "CdoId: 4690; FieldId: 6000; Workspace: csi; Flags: Required; Annotations: Id of the User Defined Transaction (CDO Definition Id) to be used in place of the standard Transaction (see TxnToUseName).",
+            "format": "int32"
+          },
+          "txnToUseName": {
+            "type": "string",
+            "description": "CdoId: 4690; FieldId: 4398; Workspace: csi; Flags: None; Annotations: Unique name for this instance",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TxnMapChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/TxnMapChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WIPMsgDetailChanges": {
+        "required": [
+          "msgText"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "acknowledgmentRequired": {
+            "type": "boolean",
+            "description": "CdoId: 4730; FieldId: 4000; Workspace: csi; Flags: None; Annotations: General purpose True/False field value.",
+            "nullable": true
+          },
+          "changeStatus": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "contactInfo": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4002; Workspace: csi; Flags: None; Annotations: ContactInfo",
+            "nullable": true
+          },
+          "createDateGMT": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4004; Workspace: csi; Flags: None; Annotations: CreateDateGMT",
+            "format": "date-time",
+            "nullable": true
+          },
+          "creationDate": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4003; Workspace: csi; Flags: None; Annotations: CreationDate",
+            "format": "date-time",
+            "nullable": true
+          },
+          "document": {
+            "$ref": "#/components/schemas/RevisionedObjectRef"
+          },
+          "effectiveFromDate": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4005; Workspace: csi; Flags: None; Annotations: EffectiveFromDate",
+            "format": "date-time",
+            "nullable": true
+          },
+          "effectiveThruDate": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4007; Workspace: csi; Flags: None; Annotations: EffectiveThruDate",
+            "format": "date-time",
+            "nullable": true
+          },
+          "holdReason": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 4730; FieldId: 8332; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "litcListCDO": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "litcListField": {
+            "type": "integer",
+            "description": "CdoId: 4730; FieldId: 4027; Workspace: csi; Flags: None; Annotations: This CDO always resides in one of several lists that originate from the maintenance CDO. This field contains the ID of the field that contains the list that contains this CDO. It is used in conjuction with LITCListCDO to uniquely identify the field.",
+            "format": "int32",
+            "nullable": true
+          },
+          "msgAction": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "msgText": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4009; Workspace: csi; Flags: Required; Annotations: Message text."
+          },
+          "name": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4373; Workspace: csi; Flags: None; Annotations: Unique name for this instance",
+            "nullable": true
+          },
+          "notificationTargets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NamedObjectRef"
+            },
+            "description": "CdoId: 4730; FieldId: 4022; Workspace: csi; Flags: None; Annotations: A Notification Target is used to define the recipient of a message that originates during the processing of a transaction. An e-mail message is a typical example. The Notification Target describes the mechanism for delivering the message (e-mail, page, fax, system alert, etc.) and any additional details that are required for a particular delivery mechanism.; OriginalType: NotificationTarget",
+            "nullable": true
+          },
+          "notificationTargets-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NamedObjectRefExpandedListItem"
+            },
+            "description": "CdoId: 4730; FieldId: 4022; Workspace: csi; Flags: None; Annotations: A Notification Target is used to define the recipient of a message that originates during the processing of a transaction. An e-mail message is a typical example. The Notification Target describes the mechanism for delivering the message (e-mail, page, fax, system alert, etc.) and any additional details that are required for a particular delivery mechanism.; OriginalType: NotificationTarget",
+            "nullable": true
+          },
+          "notificationText": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4010; Workspace: csi; Flags: None; Annotations: NotificationText",
+            "nullable": true
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "passwordRequired": {
+            "type": "boolean",
+            "description": "CdoId: 4730; FieldId: 4011; Workspace: csi; Flags: None; Annotations: General purpose True/False field value.",
+            "nullable": true
+          },
+          "relevantServiceName": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4023; Workspace: csi; Flags: None; Annotations: A service  to which this WIP message applies.  Note this list needs to be at the base service level. (i.e., the user specifies Move, not MyMove.  MyMove is always automatically included if move is specified). This field is not persistence and need to display on the screen.",
+            "nullable": true
+          },
+          "relevantServiceType": {
+            "type": "integer",
+            "description": "CdoId: 4730; FieldId: 5364; Workspace: csi; Flags: None; Annotations: RelevantServiceType. This field is not displayed on the screen",
+            "format": "int32",
+            "nullable": true
+          },
+          "sendNotification": {
+            "type": "boolean",
+            "description": "CdoId: 4730; FieldId: 4012; Workspace: csi; Flags: None; Annotations: General purpose True/False field value.",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "description": "CdoId: 4730; FieldId: 4013; Workspace: csi; Flags: None; Annotations: Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are:\r\n\r\n1 = Active\r\n2 = Inactive",
+            "format": "int32",
+            "nullable": true
+          },
+          "stopProcessing": {
+            "type": "boolean",
+            "description": "CdoId: 4730; FieldId: 4014; Workspace: csi; Flags: None; Annotations: General purpose True/False field value.",
+            "nullable": true
+          },
+          "textVariables": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4015; Workspace: csi; Flags: None; Annotations: TextVariables",
+            "nullable": true
+          },
+          "triggerAction": {
+            "type": "boolean",
+            "description": "CdoId: 4730; FieldId: 4016; Workspace: csi; Flags: None; Annotations: General purpose True/False field value.",
+            "nullable": true
+          },
+          "wipMsg": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "wipMsgPassword": {
+            "type": "string",
+            "description": "CdoId: 4730; FieldId: 4018; Workspace: csi; Flags: Encrypted; Annotations: WIPMsgPassword",
+            "nullable": true
+          },
+          "writeToHistory": {
+            "type": "boolean",
+            "description": "CdoId: 4730; FieldId: 4017; Workspace: csi; Flags: None; Annotations: General purpose True/False field value.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WIPMsgDetailChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/WIPMsgDetailChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WIPMsgEntity": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "allKey": {
+            "$ref": "#/components/schemas/WIPMsgKeyChanges"
+          },
+          "changeHistory": {
+            "$ref": "#/components/schemas/ChangeHistoryChanges"
+          },
+          "description": {
+            "type": "string",
+            "description": "CdoId: 4710; FieldId: 3989; Workspace: csi; Flags: None; Annotations: Description of this entity. Defaults to the name of this entity if not specified",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 4710; FieldId: 8331; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "labelKeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgLabelKeyChanges"
+            },
+            "description": "CdoId: 4710; FieldId: 3993; Workspace: csi; Flags: None; Annotations: LabelKeys",
+            "nullable": true
+          },
+          "labelKeys-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgLabelKeyChangesExpandedListItem"
+            },
+            "description": "CdoId: 4710; FieldId: 3993; Workspace: csi; Flags: None; Annotations: LabelKeys",
+            "nullable": true
+          },
+          "maintCDOType": {
+            "type": "string",
+            "description": "CdoId: 4710; FieldId: 3990; Workspace: csi; Flags: None; Annotations: Name of the CDO Definition for this instance",
+            "nullable": true
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "operationKeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgOperationKeyChanges"
+            },
+            "description": "CdoId: 4710; FieldId: 3994; Workspace: csi; Flags: None; Annotations: OperationKeys",
+            "nullable": true
+          },
+          "operationKeys-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgOperationKeyChangesExpandedListItem"
+            },
+            "description": "CdoId: 4710; FieldId: 3994; Workspace: csi; Flags: None; Annotations: OperationKeys",
+            "nullable": true
+          },
+          "wipMsgDetailBuf": {
+            "type": "string",
+            "description": "CdoId: 4710; FieldId: 4058; Workspace: csi; Flags: None; Annotations: WIPMsgDetailBuf",
+            "nullable": true
+          },
+          "wipMsgDetailItem": {
+            "$ref": "#/components/schemas/WIPMsgDetailChanges"
+          },
+          "wipMsgEntity": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "wipMsgKeyItem": {
+            "$ref": "#/components/schemas/WIPMsgKeyChanges"
+          },
+          "wipMsgType": {
+            "type": "integer",
+            "description": "CdoId: 4710; FieldId: 3992; Workspace: csi; Flags: None; Annotations: WIPMsgType",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WIPMsgKeyChanges": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 4720; FieldId: 8333; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "wipMsgDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgDetailChanges"
+            },
+            "description": "CdoId: 4720; FieldId: 4028; Workspace: csi; Flags: None; Annotations: WIPMsgDetails",
+            "nullable": true
+          },
+          "wipMsgDetails-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgDetailChangesExpandedListItem"
+            },
+            "description": "CdoId: 4720; FieldId: 4028; Workspace: csi; Flags: None; Annotations: WIPMsgDetails",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WIPMsgLabelKeyChanges": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 4720; FieldId: 8333; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "label": {
+            "type": "string",
+            "description": "CdoId: 5130; FieldId: 4357; Workspace: csi; Flags: None; Annotations: Identifier for relating a WIP Message to one or more Steps. WIP Messages defined for all Modeling Entities except a Step or Operation can be qualified with a WIP Message Label. This allows the same message to be associated with multiple Steps.",
+            "nullable": true
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "wipMsgDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgDetailChanges"
+            },
+            "description": "CdoId: 5130; FieldId: 4360; Workspace: csi; Flags: None; Annotations: WIPMsgDetails",
+            "nullable": true
+          },
+          "wipMsgDetails-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgDetailChangesExpandedListItem"
+            },
+            "description": "CdoId: 5130; FieldId: 4360; Workspace: csi; Flags: None; Annotations: WIPMsgDetails",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WIPMsgLabelKeyChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/WIPMsgLabelKeyChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WIPMsgOperationKeyChanges": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 7291; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 3730; FieldId: 15194; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: BaseObject",
+            "nullable": true,
+            "readOnly": true
+          },
+          "listItemToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "skipSubentityListsToSequence": {
+            "type": "boolean",
+            "description": "CdoId: 3730; FieldId: 681578159; Workspace: 40; Flags: None; Annotations: Flag indicating whether to skip the automated logic to set the sequence of a subentity list.",
+            "nullable": true
+          },
+          "isFrozen": {
+            "type": "boolean",
+            "description": "CdoId: 4720; FieldId: 8333; Workspace: csi; Flags: ReadOnly; Annotations: Determines if changes are allowed to this instance (or any of its revisions)",
+            "nullable": true,
+            "readOnly": true
+          },
+          "wipMsgDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgDetailChanges"
+            },
+            "description": "CdoId: 4720; FieldId: 4028; Workspace: csi; Flags: None; Annotations: WIPMsgDetails",
+            "nullable": true
+          },
+          "wipMsgDetails-Expanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WIPMsgDetailChangesExpandedListItem"
+            },
+            "description": "CdoId: 4720; FieldId: 4028; Workspace: csi; Flags: None; Annotations: WIPMsgDetails",
+            "nullable": true
+          },
+          "objectToChange": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WIPMsgOperationKeyChangesExpandedListItem": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "listItemAction": {
+            "type": "string",
+            "nullable": true
+          },
+          "key": {
+            "$ref": "#/components/schemas/NamedObjectRef"
+          },
+          "value": {
+            "$ref": "#/components/schemas/WIPMsgOperationKeyChanges"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WaferMapDetails": {
+        "type": "object",
+        "properties": {
+          "cioListTemplate": {
+            "type": "string",
+            "description": "CdoId: 1070; FieldId: 673185793; Workspace: 10; Flags: Exposed, ReadOnly; Annotations: LongString",
+            "nullable": true,
+            "readOnly": true
+          },
+          "cioListTemplateResolved": {
+            "type": "string",
+            "description": "CdoId: 1070; FieldId: 673185792; Workspace: 10; Flags: Exposed, ReadOnly; Annotations: LongString",
+            "nullable": true,
+            "readOnly": true
+          },
+          "displayName": {
+            "type": "string",
+            "description": "CdoId: 1200; FieldId: 7992; Workspace: csi; Flags: ReadOnly; Annotations: DisplayName is the field generally used to represent an object in a user interface, especially when the user interface needs to represent an object with just one data element.  For example, to represent a revisioned object one would ordinarily need to show both the name and the revision of the object.   The display name will include enough necessary elements to represent the object--in the example of a revisioned object it will include both the name and the revision, with a separator character.   This is especially useful when viewing objects in combo boxes and other one-column lists, the display name should be used.  DisplayName is usually a non-persistent field.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "instanceID": {
+            "type": "string",
+            "description": "CdoId: 1200; FieldId: 20185; Workspace: csi; Flags: ReadOnly; Annotations: Unique ID for an instance of this object, generated by the system.; OriginalType: Subentity",
+            "nullable": true,
+            "readOnly": true
+          },
+          "smartBarcode": {
+            "type": "string",
+            "description": "CdoId: 2350; FieldId: 28249; Workspace: csi; Flags: None; Annotations: Barcode with data to set to fields in this service detail",
+            "nullable": true
+          },
+          "waferMapDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WaferMapDetails"
+            },
+            "description": "CdoId: 2350; FieldId: 679480911; Workspace: 40; Flags: Exposed; Annotations: Details used by some services such as CombineLot and SplitLot to provide additional information when quantity from a wafer is being transfered.",
+            "nullable": true
+          },
+          "historyDetail": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "lotWafersItem": {
+            "$ref": "#/components/schemas/SubentityRef"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/BaseObjectRef"
+          },
+          "waferMapDetailsType": {
+            "type": "integer",
+            "description": "CdoId: 4751706; FieldId: 679480944; Workspace: 40; Flags: None; Annotations: Indicate the type of WaferMapDetails. Expected values:\r\ni)\t0 - No verification required for uniqueness\r\nii)\t1 - Verify duplicates for XLocation, YLocation & ZLocation.\r\niii)\t2 - Verify duplicates for FromXLocation, FromYLocation & FromZLocation and duplic",
+            "format": "int32",
+            "nullable": true
+          },
+          "fromXLocation": {
+            "type": "integer",
+            "description": "CdoId: 4751760; FieldId: 679481715; Workspace: 40; Flags: Exposed; Annotations: From X Location",
+            "format": "int32",
+            "nullable": true
+          },
+          "fromYLocation": {
+            "type": "integer",
+            "description": "CdoId: 4751760; FieldId: 679481722; Workspace: 40; Flags: Exposed; Annotations: From Y Location",
+            "format": "int32",
+            "nullable": true
+          },
+          "fromZLocation": {
+            "type": "integer",
+            "description": "CdoId: 4751760; FieldId: 679481716; Workspace: 40; Flags: Exposed; Annotations: From Z Location",
+            "format": "int32",
+            "nullable": true
+          },
+          "toXLocation": {
+            "type": "integer",
+            "description": "CdoId: 4751760; FieldId: 679481714; Workspace: 40; Flags: Exposed; Annotations: To X Location",
+            "format": "int32",
+            "nullable": true
+          },
+          "toYLocation": {
+            "type": "integer",
+            "description": "CdoId: 4751760; FieldId: 679481717; Workspace: 40; Flags: Exposed; Annotations: To Y Location",
+            "format": "int32",
+            "nullable": true
+          },
+          "toZLocation": {
+            "type": "integer",
+            "description": "CdoId: 4751760; FieldId: 679481718; Workspace: 40; Flags: Exposed; Annotations: To Z Location",
+            "format": "int32",
+            "nullable": true
+          },
+          "xLocation": {
+            "type": "integer",
+            "description": "CdoId: 4751760; FieldId: 679481719; Workspace: 40; Flags: Exposed; Annotations: X Location",
+            "format": "int32",
+            "nullable": true
+          },
+          "yLocation": {
+            "type": "integer",
+            "description": "CdoId: 4751760; FieldId: 679481720; Workspace: 40; Flags: Exposed; Annotations: Y Location",
+            "format": "int32",
+            "nullable": true
+          },
+          "zLocation": {
+            "type": "integer",
+            "description": "CdoId: 4751760; FieldId: 679481721; Workspace: 40; Flags: Exposed; Annotations: Z Location",
+            "format": "int32",
+            "nullable": true
+          },
+          "ldDBCID": {
+            "type": "string",
+            "description": "CdoId: 4751760; FieldId: 671088692; Workspace: 200; Flags: None; Annotations: DBC ID",
+            "nullable": true
+          },
+          "ldFromWaferScribeNumber": {
+            "type": "string",
+            "description": "CdoId: 4751760; FieldId: 671088693; Workspace: 200; Flags: None; Annotations: Store the source wafer/item.",
+            "nullable": true
+          },
+          "ldToWaferScribeNumber": {
+            "type": "string",
+            "description": "CdoId: 4751760; FieldId: 671088694; Workspace: 200; Flags: None; Annotations: Stores the target wafer.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "description": "Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}

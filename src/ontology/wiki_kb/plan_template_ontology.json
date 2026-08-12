@@ -1,0 +1,153 @@
+{
+  "module": "plan_template",
+  "classes": [
+    {
+      "className": "PlanTemplate",
+      "chineseName": "行动计划模板",
+      "description": "Plan Template — 行动计划流程模板定义实体（CdoId: 7672）。定义质量行动计划（如纠正措施、预防措施）的完整流程配置，包括指派人策略(assignee/assigneeOption/assigneeRole)、自动启动/自动完成(autoStart/autoComplete)、审批表(approvalSheets)、检查清单(checklist)、业务规则(onStartRules/onCompleteRules)、文档集(documentSet)、完成时限(completeWithinQty/completeWithinUOM)和适用组织(organizations)。PlanTemplateDisposition 是其处置专用子类型。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "autoComplete",
+          "type": "Boolean",
+          "description": "是否自动从 Completed 转到 Closed"
+        },
+        {
+          "name": "assigneeRole",
+          "type": "Navigation",
+          "description": "指派人角色 → Role"
+        },
+        {
+          "name": "assignee",
+          "type": "Navigation",
+          "description": "默认指派人 → Employee"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "approvalRequired",
+          "type": "Boolean",
+          "description": "处理前是否需要审批"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "isRequired",
+          "type": "Boolean",
+          "description": "是否不可从流程中移除"
+        },
+        {
+          "name": "autoStart",
+          "type": "Boolean",
+          "description": "路由/审批后是否自动启动"
+        },
+        {
+          "name": "allowReassignment",
+          "type": "Integer",
+          "description": "重指派策略：1=指定角色内, 2=任意用户, 3=不允许"
+        },
+        {
+          "name": "completeWithinUom",
+          "type": "Float",
+          "description": "物理字段 CompleteWithinUOM"
+        },
+        {
+          "name": "completeWithinQty",
+          "type": "Integer",
+          "description": "完成时限数量"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "行动计划模板的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "assigneeOption",
+          "type": "Integer",
+          "description": "指派人选项：1=Assignee, 2=Owner, 3=Collaborator"
+        },
+        {
+          "name": "defaultAssigneeInfo",
+          "type": "Boolean",
+          "description": "是否从父级继承指派人信息"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "关联的文档集 → DocumentSet"
+        },
+        {
+          "name": "checklist",
+          "type": "Navigation",
+          "description": "关联的检查清单 → ChecklistTemplate"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "PlanTemplate",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ASSIGNEE_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PlanTemplate.AssigneeRoleId"
+    },
+    {
+      "fromClass": "PlanTemplate",
+      "toClass": "Employee",
+      "relationName": "HAS_ASSIGNEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PlanTemplate.AssigneeId"
+    },
+    {
+      "fromClass": "PlanTemplate",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PlanTemplate.DocumentSetId"
+    },
+    {
+      "fromClass": "PlanTemplate",
+      "toClass": "Checklist",
+      "relationName": "HAS_CHECKLIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PlanTemplate.ChecklistId"
+    }
+  ]
+}

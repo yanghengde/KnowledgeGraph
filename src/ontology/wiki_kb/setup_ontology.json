@@ -1,0 +1,115 @@
+{
+  "module": "setup",
+  "classes": [
+    {
+      "className": "Setup",
+      "chineseName": "换线定义",
+      "description": "Setup — 换线/设置定义实体。定义生产设备从一种产品/工艺切换到另一种时所需的物理配置变更规则，包括模具要求、轨道宽度、工装夹具等配置项。Part 通过 currentSetup 字段引用当前 Setup 状态。 【Swagger】Schema: SetupEntity；来源文件: Setups.json；API: /api/Setups。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "关联的换线指导文档集 → DocumentSet 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "stdSetupLaborTime",
+          "type": "Float",
+          "description": "执行此设置所需的总工时，用于绩效对标报告。 【Swagger】Total time (labor hours) required to perform this Setup. This will be different than elapsed time if more than one person is required. This value is available for performance-to-standard reporting."
+        },
+        {
+          "name": "resourceGroup",
+          "type": "Navigation",
+          "description": "换线适用的设备组 → ResourceGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "当前状态：1=活动，2=非活动。 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版（基础实体上下文内唯一）。 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "setupBase",
+          "type": "Navigation",
+          "description": "物理字段 SetupBaseId → SetupBase"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器（WIPMsgDefMgr）。 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "stdSetupTime",
+          "type": "Float",
+          "description": "执行此设置的经过时间，用于周期时间计算。 【Swagger】Elapsed time required to perform this Setup. This is the standard (estimate) used for cycle time calculations."
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单（ECO）。 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Setup",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Setup.DocumentSetId"
+    },
+    {
+      "fromClass": "Setup",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_RESOURCE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Setup.ResourceGroupId"
+    },
+    {
+      "fromClass": "Setup",
+      "toClass": "SetupBase",
+      "relationName": "HAS_SETUP_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Setup.SetupBaseId"
+    }
+  ]
+}

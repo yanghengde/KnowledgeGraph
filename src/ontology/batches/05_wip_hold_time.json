@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_wip_control",
+  "titleZh": "半导体WIP、Hold与时间窗口建模",
+  "titleEn": "Semiconductor WIP, Hold, and Time-Window Modeling",
+  "overviewZh": "本批次覆盖WIP数据定义、Hold位置与未来Hold、最小/最大时间窗口、WIP指令，以及跨批次复用的邮件组、排程和失败处理配置。",
+  "overviewEn": "This batch covers WIP data definitions, hold locations and future holds, minimum and maximum time windows, WIP instructions, and shared email, scheduling, and failure-handling configurations.",
+  "entities": [
+    {"className": "A_EmailGroup", "chineseName": "邮件组", "description": "定义半导体业务通知使用的邮件接收组。"},
+    {"className": "A_WIPDataSetup", "chineseName": "WIP数据配置", "description": "定义WIP数据采集、显示、验证和失败处理规则。"},
+    {"className": "A_WIPDataName", "chineseName": "WIP数据名称", "description": "定义WIP数据项目录及其属性配置。"},
+    {"className": "A_WIPDataDisplayFilter", "chineseName": "WIP数据显示过滤器", "description": "定义WIP数据的显示过滤配置。"},
+    {"className": "A_AdHocWIPDataSetup", "chineseName": "临时WIP数据配置", "description": "定义临时WIP数据采集配置。"},
+    {"className": "A_FutureHoldSetup", "chineseName": "未来Hold配置", "description": "定义未来工步触发Hold的位置、原因、规格和通知规则。"},
+    {"className": "A_HoldLocation", "chineseName": "Hold位置", "description": "定义半导体在制品Hold位置目录。"},
+    {"className": "A_MinTimeWindowSetup", "chineseName": "最小时间窗口配置", "description": "定义工艺步骤间最小等待时间及失败处理规则。"},
+    {"className": "A_MaxTimeWindowSetup", "chineseName": "最大时间窗口配置", "description": "定义工艺步骤间最大等待时间及失败处理规则。"},
+    {"className": "A_RunNumberSetup", "chineseName": "运行号配置", "description": "定义WIP运行号生成与管理规则。"},
+    {"className": "A_WIPInstructions", "chineseName": "WIP指令", "description": "按产品、工艺规格、标准规格和工作流步骤配置WIP作业指令。"},
+    {"className": "ss_WIPDataSetupMatrix", "chineseName": "WIP数据配置矩阵", "description": "按产品、设备、规格和工作流步骤选择WIP数据配置。"},
+    {"className": "ss_FailureFutureHoldSetup", "chineseName": "失败未来Hold配置", "description": "定义失败后使用的未来Hold配置。"},
+    {"className": "ss_FailureNCRSetup", "chineseName": "失败NCR配置", "description": "定义失败时创建NCR的规则和分类。"},
+    {"className": "A_ScheduleSSPlan", "chineseName": "半导体排程计划", "description": "定义半导体特殊排程计划目录。"}
+  ]
+}

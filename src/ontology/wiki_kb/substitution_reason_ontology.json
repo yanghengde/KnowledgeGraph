@@ -1,0 +1,54 @@
+{
+  "module": "substitution_reason",
+  "classes": [
+    {
+      "className": "SubstitutionReason",
+      "chineseName": "替代原因",
+      "description": "Substitution Reason — 物料替代原因代码定义实体（CdoId: 6490）。定义制造过程中物料/组件替代的原因分类（如原物料短缺、成本优化、工艺改进、临时替代等），在车间事务中被操作员选择以标注物料替代的具体理由。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "替代原因的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

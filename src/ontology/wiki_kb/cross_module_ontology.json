@@ -1,0 +1,818 @@
+{
+  "classes": [
+    {
+      "className": "StepSchedulingDetail",
+      "chineseName": "工步排程明细",
+      "description": "工艺路线步骤的生产排程和效率控制明细。物理上对应 StepSchedulingDetail (CdoId: 531)。 【Swagger】Schema: StepSchedulingDetailChanges；来源文件: AssemblyWorkflows.json；API: /api/AssemblyWorkflows。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "durationPerUnit",
+          "type": "Float",
+          "description": "物理字段 DurationPerUnit 【Swagger】This value specifies the amount of time needed to process a single unit. This is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "normalCycleTime",
+          "type": "Float",
+          "description": "标准生产周期 【Swagger】This is a calculated value that denotes the time required processing a standard size batch of material using this Spec, assuming normal queue time. The calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved."
+        },
+        {
+          "name": "fastCycleTime",
+          "type": "Float",
+          "description": "快速周期时长 【Swagger】This is a calculated value that denotes the time required processing a standard size batch of material using this Spec, assuming fast queue time. This is used to determine, for example, how quickly a job can be expedited through the Factory. The calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved."
+        },
+        {
+          "name": "runRateOption",
+          "type": "Integer",
+          "description": "物理字段 RunRateOption 【Swagger】This option determines if run rate is specified as hours per unit or units per hour or time per batch. The values and their meanings are: 1 = Hours per unit (RunRateTime) 2 = Unites per hour (RunRateQuantity) 3 = Time Per Batch (RunRate Time)"
+        },
+        {
+          "name": "stdBatchSize",
+          "type": "Float",
+          "description": "标准批次数量 【Swagger】This value specifies the standard size of a batch of material processed using this Spec. This is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "unitsPerHour",
+          "type": "Float",
+          "description": "每小时标准产能 【Swagger】This value specifies the number of units processed in an hour. This is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "yield",
+          "type": "Float",
+          "description": "计划良率 【Swagger】Specifies the standard yield expected for processing with this Spec. This value is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "forwardCycleTime",
+          "type": "Float",
+          "description": "物理字段 ForwardCycleTime 【Swagger】This is the sum of all NormalCycleTime from this step through the end of the Workflow (following defaults Paths from this Step forward). The calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved."
+        },
+        {
+          "name": "forwardYield",
+          "type": "Float",
+          "description": "物理字段 ForwardYield 【Swagger】Standard (cumulative) yield from this step through the end of the Workflow (following defaults Paths from this Step forward). The calculation for this value uses attributes of other CDOs. This means that changing a Work Center value, for example, can effect this value. This means that this value should be calculated each time that it is needed. The value that is persisted will only be valid as of the point in time that this Spec was saved."
+        },
+        {
+          "name": "step",
+          "type": "Navigation",
+          "description": "物理字段 StepId → WorkflowStep"
+        },
+        {
+          "name": "setupTime",
+          "type": "Float",
+          "description": "准备换线时间 【Swagger】This value specifies the time required for a Setup at this Operation. This is used in cycle time and Cost Accounting calculations."
+        },
+        {
+          "name": "timePerBatch",
+          "type": "Float",
+          "description": "物理字段 TimePerBatch 【Swagger】This value specified the time needed to process a single Batch."
+        },
+        {
+          "name": "unscheduledTime",
+          "type": "Float",
+          "description": "物理字段 UnscheduledTime 【Swagger】Process time that is not contained in the UPH,HPU or Batch Time entries."
+        }
+      ]
+    },
+    {
+      "className": "TxnDetails",
+      "chineseName": "交易属性明细",
+      "description": "定义流程跳转或操作触发时伴随的详细事务字段及逻辑行为。物理上对应 TxnDetails (CdoId: 679477423)。 【Swagger】Schema: TxnDetailsChanges；来源文件: AssemblyWorkflows.json；API: /api/AssemblyWorkflows。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否冻结 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "path",
+          "type": "Integer",
+          "description": "对应的工艺路径 → Path"
+        },
+        {
+          "name": "txnType",
+          "type": "Integer",
+          "description": "事务操作类型编码 【Swagger】Type of transaction to use: 1 = Move to the To-Step 2 = Rework to the To-Step 3 = Combine to another Container at the To-Step"
+        },
+        {
+          "name": "reworkReason",
+          "type": "Navigation",
+          "description": "物理字段 ReworkReasonId → ReworkReason 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "toContainerOption",
+          "type": "Integer",
+          "description": "物理字段 ToContainerOption 【Swagger】If the Transaction Type is Combine then this option is used to determine specifics of the Combine: 1 = Create the To-Container (using auto-naming if configured) 2 = Combine to a Specific Container (and create it if it does not exist)"
+        },
+        {
+          "name": "newOwner",
+          "type": "Navigation",
+          "description": "物理字段 NewOwnerId → Owner 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "toContainerLevel",
+          "type": "Navigation",
+          "description": "物理字段 ToContainerLevelId → ContainerLevel 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "toContainerName",
+          "type": "String",
+          "description": "物理字段 ToContainerName 【Swagger】Unique name for this instance"
+        }
+      ]
+    },
+    {
+      "className": "WorkflowBase",
+      "chineseName": "工作流基线",
+      "description": "Workflow 的基线版本，用于支持工作流的修订版本控制机制。物理上对应 WorkflowBase (CdoId: 315)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 WorkflowName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前生效的修订版本 → Workflow"
+        }
+      ]
+    },
+    {
+      "className": "ERPRouteBase",
+      "chineseName": "ERP工艺路线基线",
+      "description": "ERPRoute 的基线版本，用于 ERP 工艺路线的修订版本控制。物理上对应 ERPRouteBase (CdoId: 317)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ERPRouteName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前生效的修订版本 → ERPRoute"
+        }
+      ]
+    },
+    {
+      "className": "ProductBase",
+      "chineseName": "产品基线",
+      "description": "Product 的基线版本，用于产品物料的修订版本控制。物理上对应 ProductBase (CdoId: 310)。",
+      "properties": [
+        {
+          "name": "objectCategory",
+          "type": "String",
+          "description": "物理字段 ObjectCategory"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前生效的修订版本 → Product"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ProductName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "BillOfProcessBase",
+      "chineseName": "BOP基线",
+      "description": "BillOfProcess 的基线版本，用于 BOP 的修订版本控制。物理上对应 BillOfProcessBase (CdoId: 307)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 BillOfProcessName",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前生效的修订版本 → BillOfProcess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "SpecBase",
+      "chineseName": "规格基线",
+      "description": "Spec 的基线版本，用于规格的修订版本控制机制。物理上对应 SpecBase (CdoId: 316)。",
+      "properties": [
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前生效的修订版本 → Spec"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SpecName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "SamplingPlanBase",
+      "chineseName": "质量抽样计划基线",
+      "description": "SamplingPlan 的基线版本，用于抽样计划的修订版本控制。物理上对应 SamplingPlanBase (CdoId: 1435)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SamplingPlanName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前生效的修订版本 → SamplingPlan"
+        }
+      ]
+    },
+    {
+      "className": "SmartScanRule",
+      "chineseName": "智能扫描规则",
+      "description": "车间条码扫描解析规则配置。物理上对应 SmartScanRule (CdoId: 1737)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "规则名称",
+          "required": true
+        },
+        {
+          "name": "preamble",
+          "type": "String",
+          "description": "物理字段 Preamble"
+        },
+        {
+          "name": "terminator",
+          "type": "String",
+          "description": "物理字段 Terminator"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否冻结"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史 → ChangeStatus"
+        }
+      ]
+    },
+    {
+      "className": "ShopFloorSettings",
+      "chineseName": "车间管理设置",
+      "description": "生产车间级功能参数控制。物理上对应 ShopFloorSettings (CdoId: 1760)。",
+      "properties": [
+        {
+          "name": "aiServerHost",
+          "type": "String",
+          "description": "物理字段 AIServerHost"
+        },
+        {
+          "name": "aiServerPort",
+          "type": "Integer",
+          "description": "物理字段 AIServerPort"
+        },
+        {
+          "name": "aiServerToken",
+          "type": "String",
+          "description": "物理字段 AIServerToken"
+        },
+        {
+          "name": "aiTrainingServerConfig",
+          "type": "Navigation",
+          "description": "物理字段 AITrainingServerConfigId → TargetSystem"
+        },
+        {
+          "name": "aiInferenceServerConfig",
+          "type": "Navigation",
+          "description": "物理字段 AIInferenceServerConfigId → TargetSystem"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史 → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否冻结"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "设置名称",
+          "required": true
+        },
+        {
+          "name": "level",
+          "type": "Navigation",
+          "description": "物理字段 LevelId → ContainerLevel"
+        },
+        {
+          "name": "mmapiConnection",
+          "type": "String",
+          "description": "物理字段 MMAPIConnection"
+        },
+        {
+          "name": "startReason",
+          "type": "Navigation",
+          "description": "物理字段 StartReasonId → StartReason"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "workflow",
+          "type": "Navigation",
+          "description": "物理字段 WorkflowId → Workflow"
+        },
+        {
+          "name": "srcapiConnection",
+          "type": "String",
+          "description": "物理字段 SRCAPIConnection"
+        },
+        {
+          "name": "productType",
+          "type": "Navigation",
+          "description": "物理字段 ProductTypeId → ProductType"
+        }
+      ]
+    },
+    {
+      "className": "PrinterLabelDefinitionBase",
+      "chineseName": "打印机标签定义基类",
+      "description": "打印机标签定义的版本控制基类。物理上对应 PrinterLabelDefinitionBase (CdoId: 1003)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → PrinterLabelDefinition"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "基类名称",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "DocumentBase",
+      "chineseName": "文档基类",
+      "description": "文档的版本控制基类。物理上对应 DocumentBase (CdoId: 301)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "基类名称",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前活动修订记录 → Document"
+        }
+      ]
+    },
+    {
+      "className": "ElectronicProcedureBase",
+      "chineseName": "电子程序基类",
+      "description": "电子程序的版本控制基类。物理上对应 ElectronicProcedureBase (CdoId: 982)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "基类名称",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前活动修订记录 → ElectronicProcedure"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "TaskListBase",
+      "chineseName": "任务列表基类",
+      "description": "任务列表的版本控制基类。物理上对应 TaskListBase (CdoId: 984)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前活动修订记录 → TaskList"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "基类名称",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "RecipeListBase",
+      "chineseName": "配方列表基类",
+      "description": "配方列表的版本控制基类。物理上对应 RecipeListBase (CdoId: 1267)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前活动修订记录 → RecipeList"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "基类名称",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "SampleTestBase",
+      "chineseName": "抽样检验定义基线",
+      "description": "SampleTest 的基线版本，用于抽样检验定义的修订版本控制。物理上对应 SampleTestBase (CdoId: 1430)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "基线名称",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前活动修订记录 → SampleTest"
+        }
+      ]
+    },
+    {
+      "className": "SampleDataPointBase",
+      "chineseName": "抽样数据点基线",
+      "description": "SampleDataPoint 的基线版本，用于抽样数据点的修订版本控制。物理上对应 SampleDataPointBase (CdoId: 1428)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "基线名称",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前活动修订记录 → SampleDataPoint"
+        }
+      ]
+    },
+    {
+      "className": "SwitchingRuleBase",
+      "chineseName": "切换规则基线",
+      "description": "SwitchingRule 的基线版本，用于切换规则的修订版本控制。物理上对应 SwitchingRuleBase (CdoId: 1436)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "基线名称",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前活动修订记录 → SwitchingRule"
+        }
+      ]
+    },
+    {
+      "className": "TrainingRequirementBase",
+      "chineseName": "培训要求基线",
+      "description": "TrainingRequirement 的基线版本，用于培训要求的修订版本控制。物理上对应 TrainingRequirementBase (CdoId: 965)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "培训要求基线名称",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "当前活动修订记录 → TrainingRequirement"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "StepSchedulingDetail",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "StepSchedulingDetail.StepId"
+    },
+    {
+      "fromClass": "TxnDetails",
+      "toClass": "ReworkReason",
+      "relationName": "HAS_REWORK_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TxnDetails.ReworkReasonId"
+    },
+    {
+      "fromClass": "TxnDetails",
+      "toClass": "Owner",
+      "relationName": "HAS_NEW_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TxnDetails.NewOwnerId"
+    },
+    {
+      "fromClass": "TxnDetails",
+      "toClass": "ContainerLevel",
+      "relationName": "HAS_TO_CONTAINER_LEVEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TxnDetails.ToContainerLevelId"
+    },
+    {
+      "fromClass": "WorkflowBase",
+      "toClass": "Workflow",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "WorkflowBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ERPRouteBase",
+      "toClass": "ERPRoute",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ERPRouteBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ProductBase",
+      "toClass": "Product",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProductBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "BillOfProcessBase",
+      "toClass": "BillOfProcess",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcessBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "SpecBase",
+      "toClass": "Spec",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SpecBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "SamplingPlanBase",
+      "toClass": "SamplingPlan",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SamplingPlanBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ShopFloorSettings",
+      "toClass": "TargetSystem",
+      "relationName": "HAS_AI_TRAINING_SERVER_CONFIG",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShopFloorSettings.AITrainingServerConfigId"
+    },
+    {
+      "fromClass": "ShopFloorSettings",
+      "toClass": "TargetSystem",
+      "relationName": "HAS_AI_INFERENCE_SERVER_CONFIG",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShopFloorSettings.AIInferenceServerConfigId"
+    },
+    {
+      "fromClass": "ShopFloorSettings",
+      "toClass": "ContainerLevel",
+      "relationName": "HAS_LEVEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShopFloorSettings.LevelId"
+    },
+    {
+      "fromClass": "ShopFloorSettings",
+      "toClass": "StartReason",
+      "relationName": "HAS_START_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShopFloorSettings.StartReasonId"
+    },
+    {
+      "fromClass": "ShopFloorSettings",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShopFloorSettings.OwnerId"
+    },
+    {
+      "fromClass": "ShopFloorSettings",
+      "toClass": "Workflow",
+      "relationName": "HAS_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShopFloorSettings.WorkflowId"
+    },
+    {
+      "fromClass": "ShopFloorSettings",
+      "toClass": "ProductType",
+      "relationName": "HAS_PRODUCT_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ShopFloorSettings.ProductTypeId"
+    },
+    {
+      "fromClass": "PrinterLabelDefinitionBase",
+      "toClass": "PrinterLabelDefinition",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PrinterLabelDefinitionBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "DocumentBase",
+      "toClass": "Document",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DocumentBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ElectronicProcedureBase",
+      "toClass": "ElectronicProcedure",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ElectronicProcedureBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "TaskListBase",
+      "toClass": "TaskList",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskListBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "RecipeListBase",
+      "toClass": "RecipeList",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RecipeListBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "SampleTestBase",
+      "toClass": "SampleTest",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SampleTestBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "SampleDataPointBase",
+      "toClass": "SampleDataPoint",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SampleDataPointBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "SwitchingRuleBase",
+      "toClass": "SwitchingRule",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SwitchingRuleBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "TrainingRequirementBase",
+      "toClass": "TrainingRequirement",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TrainingRequirementBase.RevOfRcdId"
+    }
+  ]
+}

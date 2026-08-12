@@ -1,0 +1,450 @@
+{
+  "module": "electronic_procedure",
+  "classes": [
+    {
+      "className": "ElectronicProcedure",
+      "chineseName": "电子程序",
+      "description": "ElectronicProcedure — 电子程序（版本化实体）。分配给规范(Spec)执行的结构化操作引导程序。通过 EProcedureDetail 连接实体按顺序关联多个任务列表(TaskList)，每个任务列表包含多个任务(TaskItem)。任务类型包括 Instruction(操作指导)、MaterialIssue(物料发行)、DataCollection(数据采集)、Computation(计算)等。",
+      "properties": [
+        {
+          "name": "electronicProcedureBase",
+          "type": "Navigation",
+          "description": "关联的电子程序基准版本 → ElectronicProcedureBase"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "安全配置访问控制"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本号（必填）"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号(ECO)"
+        },
+        {
+          "name": "displayMode",
+          "type": "Integer",
+          "description": "显示模式：1=DrillDown(下钻), 2=Outline(大纲)"
+        },
+        {
+          "name": "executionMode",
+          "type": "Integer",
+          "description": "执行模式：1=Sequential(顺序), 2=NonSequential(非顺序)（必填）"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "keepCompletedTasks",
+          "type": "Boolean",
+          "description": "物理字段 KeepCompletedTasks"
+        },
+        {
+          "name": "keepCompletedTasksOnOpen",
+          "type": "Boolean",
+          "description": "物理字段 KeepCompletedTasksOnOpen"
+        }
+      ]
+    },
+    {
+      "className": "EProcedureDetail",
+      "chineseName": "电子程序明细",
+      "description": "EProcedureDetail — 电子程序明细（ElectronicProcedure 的子实体）。连接 ElectronicProcedure 与 TaskList，并定义该任务列表在电子程序中的执行顺序(sequence)。一个 TaskList 可被多个 EP 以不同顺序引用。",
+      "properties": [
+        {
+          "name": "electronicProcedure",
+          "type": "Navigation",
+          "description": "关联的母电子程序流程 → ElectronicProcedure"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "任务列表在电子程序中的执行顺序号（必填）"
+        },
+        {
+          "name": "taskListBase",
+          "type": "Integer",
+          "description": "关联的任务列表基准版本 → TaskListBase"
+        },
+        {
+          "name": "taskList",
+          "type": "Navigation",
+          "description": "引用的任务列表(TaskList)（必填）"
+        }
+      ]
+    },
+    {
+      "className": "TaskList",
+      "chineseName": "任务列表",
+      "description": "TaskList — 任务列表（版本化实体）。操作员在特定工序必须执行的任务集合，支持 Sequential(顺序执行) 和 AnyOrder(任意顺序) 两种执行模式。可指定前置任务列表(PrerequisiteTaskList)、工位(Workstation/WorkstationGroup)，以及通用指导说明(Instruction/ReportInstruction)。 【Swagger】Schema: TaskListEntity；来源文件: TaskLists.json；API: /api/TaskLists。",
+      "properties": [
+        {
+          "name": "taskListBase",
+          "type": "Navigation",
+          "description": "关联的任务列表基准版本 → TaskListBase"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "安全配置访问控制 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "prerequisiteTaskList",
+          "type": "Navigation",
+          "description": "前置任务列表（自引用FK：PrerequisiteTaskListId → TaskList） 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "instruction",
+          "type": "String",
+          "description": "通用操作指导说明文本（最长4000字符） 【Swagger】Instructions for the user on how to execute the Tasks in the TaskList."
+        },
+        {
+          "name": "executionMode",
+          "type": "Integer",
+          "description": "执行模式：0=Sequential(顺序), 1=AnyOrder(任意) 【Swagger】Identifies whether the Tasks are to be performed in sequence. 1 = Sequential 2 = Non-Sequential"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本号 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "workstation",
+          "type": "Navigation",
+          "description": "指定工位资源(WorkstationId → ResourceDef) 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号(ECO) 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "workstationGroup",
+          "type": "Navigation",
+          "description": "指定工位资源组(WorkstationGroupId → ResourceGroup) 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "reportInstruction",
+          "type": "String",
+          "description": "报表专用指导说明文本（最长4000字符） 【Swagger】Instructions for the user on how to execute the Tasks in the TaskList without any display format applied. Used primarly for reporting purposes where markup and tags are not supported."
+        },
+        {
+          "name": "isImage",
+          "type": "Navigation",
+          "description": "关联的图示指示文档 → isImage 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "variantExpression",
+          "type": "String",
+          "description": "物理字段 VariantExpression 【Swagger】Variant expression to be resolved to allow for filtering out configurable activities."
+        }
+      ]
+    },
+    {
+      "className": "TaskItem",
+      "chineseName": "任务项",
+      "description": "TaskItem — 任务项（TaskList 的子实体）。操作员必须执行的单一动作。根据 taskType 决定关联的目标实体：Instruction(显示富文本指导)、MaterialIssue(物料发行)、DataCollection(数据采集)、Computation(公式计算)等。支持循环执行(minIterations/maxIterations)、自动推进(advanceToNextTask)、电子签名(eSigRequirement)、培训要求(trainingReqGroup)、前置任务(PrerequisiteTasks)等。 【Swagger】Schema: TaskItemChanges；来源文件: MfgOrderTaskLists.json；API: /api/MfgOrderTaskLists。",
+      "properties": [
+        {
+          "name": "taskList",
+          "type": "Navigation",
+          "description": "关联的母任务列表 → TaskList"
+        },
+        {
+          "name": "computation",
+          "type": "Navigation",
+          "description": "关联的计算公式(Computation)"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "任务项名称 【Swagger】Unique name for the name subentity.",
+          "required": true
+        },
+        {
+          "name": "taskType",
+          "type": "Integer",
+          "description": "任务类型编码：Instruction/MaterialIssue/DataCollection/Computation/Transaction/Checklist 【Swagger】Identifies whether this is a Start Process Task, an End Process Task, or a Regular Task. This identifies when the Container is assigned to the Workstation or WorkCell for line clearance purposes."
+        },
+        {
+          "name": "eSigRequirement",
+          "type": "Navigation",
+          "description": "电子签名要求 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "trainingReqGroup",
+          "type": "Navigation",
+          "description": "培训要求组 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "任务在列表中的序号 【Swagger】Identifies the order in which the Task displayed and/or processed within the context of the other Tasks in its parent TaskList."
+        },
+        {
+          "name": "minIterations",
+          "type": "Integer",
+          "description": "任务最小执行次数 【Swagger】The minimum number of times a task must be executed."
+        },
+        {
+          "name": "maxIterations",
+          "type": "Integer",
+          "description": "任务最大执行次数 【Swagger】The maximum number of times that the Task may be executed."
+        },
+        {
+          "name": "instruction",
+          "type": "String",
+          "description": "富文本操作指导说明（最长4000字符） 【Swagger】Instructions for the user on how to execute the Task."
+        },
+        {
+          "name": "instructionType",
+          "type": "Integer",
+          "description": "指导说明格式类型编码 【Swagger】Enumeration for the InstructionType. 1 = Pass/Fail 2 = Data Collection 3 = Acknowledgement 4 = Computation"
+        },
+        {
+          "name": "reportInstruction",
+          "type": "String",
+          "description": "报表专用指导说明文本 【Swagger】Instructions for the user on how to execute the Task. Used primarly for reporting purposes where markup and tags are not supported."
+        },
+        {
+          "name": "taskUsage",
+          "type": "Integer",
+          "description": "任务使用上下文编码 【Swagger】Task Usage"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "关联的文档集(DocumentSet) 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "advanceToNextTask",
+          "type": "Boolean",
+          "description": "是否自动推进到下一任务 【Swagger】This field is used during the execution time to define whether the system should begin the next task automatically after the minimum number of iterations for the current task have been completed."
+        },
+        {
+          "name": "transactionPage",
+          "type": "Navigation",
+          "description": "自定义交易页面(UIVirtualPage)"
+        },
+        {
+          "name": "allocatedTime",
+          "type": "Float",
+          "description": "物理字段 AllocatedTime 【Swagger】Time as a duration allocated for the task"
+        },
+        {
+          "name": "valueAdd",
+          "type": "Boolean",
+          "description": "物理字段 ValueAdd 【Swagger】Indicates it is a value add task; used for reporting"
+        },
+        {
+          "name": "dataCollectionDefBase",
+          "type": "Integer",
+          "description": "关联的数据采集基线版本 → DataCollectionDef"
+        },
+        {
+          "name": "dataCollection",
+          "type": "Navigation",
+          "description": "关联的数据采集定义(DataCollectionDef)"
+        },
+        {
+          "name": "maxIterationsExpression",
+          "type": "String",
+          "description": "物理字段 MaxIterationsExpression 【Swagger】InSite Unified Expression"
+        },
+        {
+          "name": "minIterationsExpression",
+          "type": "String",
+          "description": "物理字段 MinIterationsExpression 【Swagger】InSite Unified Expression"
+        },
+        {
+          "name": "variantExpression",
+          "type": "String",
+          "description": "物理字段 VariantExpression 【Swagger】Variant expression to be resolved to allow for filtering out configurable activities."
+        },
+        {
+          "name": "requirePassFail",
+          "type": "Boolean",
+          "description": "物理字段 RequirePassFail 【Swagger】Require Pass/Fail"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ElectronicProcedure",
+      "toClass": "ElectronicProcedureBase",
+      "relationName": "HAS_ELECTRONIC_PROCEDURE_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ElectronicProcedure.ElectronicProcedureBaseId"
+    },
+    {
+      "fromClass": "EProcedureDetail",
+      "toClass": "ElectronicProcedure",
+      "relationName": "HAS_ELECTRONIC_PROCEDURE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EProcedureDetail.ElectronicProcedureId"
+    },
+    {
+      "fromClass": "EProcedureDetail",
+      "toClass": "TaskList",
+      "relationName": "HAS_TASK_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EProcedureDetail.TaskListId"
+    },
+    {
+      "fromClass": "TaskList",
+      "toClass": "TaskListBase",
+      "relationName": "HAS_TASK_LIST_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskList.TaskListBaseId"
+    },
+    {
+      "fromClass": "TaskList",
+      "toClass": "TaskList",
+      "relationName": "HAS_PREREQUISITE_TASK_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskList.PrerequisiteTaskListId"
+    },
+    {
+      "fromClass": "TaskList",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_WORKSTATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskList.WorkstationId"
+    },
+    {
+      "fromClass": "TaskList",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_WORKSTATION_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskList.WorkstationGroupId"
+    },
+    {
+      "fromClass": "TaskItem",
+      "toClass": "TaskList",
+      "relationName": "HAS_TASK_LIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskItem.TaskListId"
+    },
+    {
+      "fromClass": "TaskItem",
+      "toClass": "Computation",
+      "relationName": "HAS_COMPUTATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskItem.ComputationId"
+    },
+    {
+      "fromClass": "TaskItem",
+      "toClass": "TrainingRequirementGroup",
+      "relationName": "HAS_TRAINING_REQ_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskItem.TrainingReqGroupId"
+    },
+    {
+      "fromClass": "TaskItem",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskItem.DocumentSetId"
+    },
+    {
+      "fromClass": "TaskItem",
+      "toClass": "DataCollectionDef",
+      "relationName": "HAS_DATA_COLLECTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TaskItem.DataCollectionDefId"
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "module": "business_process",
+  "classes": [
+    {
+      "className": "BusinessProcessWorkflow",
+      "chineseName": "业务流程工作流",
+      "description": "Business Process Workflow — 业务流程工作流。定义业务流程（如变更管理审批流）的审批流转工作流及各控制步骤，包含首个控制步骤(firstStep)。 【Swagger】Schema: BusinessProcessWorkflowEntity；来源文件: BusinessProcessWorkflows.json；API: /api/BusinessProcessWorkflows。",
+      "properties": [
+        {
+          "name": "businessProcessWorkflowBase",
+          "type": "Navigation",
+          "description": "物理字段 BusinessProcessWorkflowBaseId → BusinessProcessWorkflowBase"
+        },
+        {
+          "name": "firstStep",
+          "type": "Navigation",
+          "description": "关联的第一步工作流步骤。 【Swagger】引用 Schema: NamedSubentityRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "版本号（必填） 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器（WIPMsgDefMgr）。 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "实例的当前状态 (Active=1, Inactive=2)。 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "BusinessProcessSpec",
+      "chineseName": "业务流程规范",
+      "description": "Business Process Specification — 业务流程规范。定义具体业务流程（如协作、审批、发布）的控制要求和状态转变机制，包含业务规则映射(bpSpecBizRuleTxnMap)。 【Swagger】Schema: BusinessProcessSpecEntity；来源文件: BusinessProcessSpecs.json；API: /api/BusinessProcessSpecs。",
+      "properties": [
+        {
+          "name": "businessProcessSpecBase",
+          "type": "Navigation",
+          "description": "物理字段 BusinessProcessSpecBaseId → BusinessProcessSpecBase"
+        },
+        {
+          "name": "stepIcon",
+          "type": "String",
+          "description": "物理字段 StepIcon"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "实例的当前状态 (Active=1, Inactive=2)。 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "关联的变更历史记录（ChangeStatus）。 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "版本号（必填） 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器（WIPMsgDefMgr）。 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "moveStdValidation",
+          "type": "Navigation",
+          "description": "物理字段 MoveStdValidationId → BusinessRule"
+        },
+        {
+          "name": "requiresApproval",
+          "type": "Boolean",
+          "description": "是否需要审批"
+        },
+        {
+          "name": "packageStatus",
+          "type": "Integer",
+          "description": "物理字段 PackageStatus"
+        },
+        {
+          "name": "resetApprovals",
+          "type": "Boolean",
+          "description": "修改后是否重置审批"
+        },
+        {
+          "name": "assignApprovers",
+          "type": "Boolean",
+          "description": "物理字段 AssignApprovers"
+        },
+        {
+          "name": "lockInstances",
+          "type": "Boolean",
+          "description": "物理字段 LockInstances"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "BusinessProcessWorkflow",
+      "toClass": "BusinessProcessWorkflowBase",
+      "relationName": "HAS_BUSINESS_PROCESS_WORKFLOW_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessProcessWorkflow.BusinessProcessWorkflowBaseId"
+    },
+    {
+      "fromClass": "BusinessProcessWorkflow",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_FIRST_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessProcessWorkflow.FirstStepId"
+    },
+    {
+      "fromClass": "BusinessProcessSpec",
+      "toClass": "BusinessProcessSpecBase",
+      "relationName": "HAS_BUSINESS_PROCESS_SPEC_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessProcessSpec.BusinessProcessSpecBaseId"
+    },
+    {
+      "fromClass": "BusinessProcessSpec",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_MOVE_STD_VALIDATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessProcessSpec.MoveStdValidationId"
+    }
+  ]
+}

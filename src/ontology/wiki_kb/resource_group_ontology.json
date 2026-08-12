@@ -1,0 +1,79 @@
+{
+  "module": "resource_group",
+  "classes": [
+    {
+      "className": "ResourceGroup",
+      "chineseName": "资源组",
+      "description": "Resource Group — 资源组/排程组定义实体。将多个 Resource 按排程或统计需求分组管理。支持嵌套子分组(groups)和包含条目(entries)，可配置 defaultForObjectTypes 自动指派。 【Swagger】Schema: ResourceGroupEntity；来源文件: ResourceGroups.json；API: /api/ResourceGroups。",
+      "properties": [
+        {
+          "name": "objectType",
+          "type": "String",
+          "description": "物理字段 ObjectType"
+        },
+        {
+          "name": "objectCategory",
+          "type": "String",
+          "description": "物理字段 ObjectCategory"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置/换线权限配置 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "scsAllowMultiStepsTrackIn",
+          "type": "Boolean",
+          "description": "物理字段 scsAllowMultiStepsTrackIn 【Swagger】Flag to indicate allow multi steps track in if requirements are same."
+        },
+        {
+          "name": "ssAllowInProcessStatChange",
+          "type": "Boolean",
+          "description": "物理字段 ss_AllowInProcessStatChange"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "资源组的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "条目对象类型名称（CDO Definition Name） 【Swagger】Name of the type of objects (CDO Definition Name) contained in this ObjectGroup. There is no business logic support for this field and it will be eventually removed."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

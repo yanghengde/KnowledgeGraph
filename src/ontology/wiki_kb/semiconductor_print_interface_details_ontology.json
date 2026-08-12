@@ -1,0 +1,971 @@
+{
+  "module": "semiconductor_print_interface_details",
+  "classes": [
+    {
+      "className": "A_PrintDataItem",
+      "chineseName": "打印数据项",
+      "description": "定义打印数据项目。 物理对应 A_PrintDataItem (CdoId: 679477542, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "callByCdoName",
+          "type": "String",
+          "description": "物理字段 CallByCDOName"
+        },
+        {
+          "name": "itemSequence",
+          "type": "Integer",
+          "description": "物理字段 ItemSequence"
+        },
+        {
+          "name": "printData",
+          "type": "Navigation",
+          "description": "物理字段 PrintDataId → A_PrintData"
+        },
+        {
+          "name": "printingSetup",
+          "type": "Navigation",
+          "description": "物理字段 PrintingSetupId → A_PrintingSetup"
+        },
+        {
+          "name": "printStatus",
+          "type": "String",
+          "description": "物理字段 PrintStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "printer",
+          "type": "Navigation",
+          "description": "物理字段 PrinterId → A_Printer"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "fromSpec",
+          "type": "Navigation",
+          "description": "物理字段 FromSpecId → Spec"
+        },
+        {
+          "name": "cdoTxnSequence",
+          "type": "Integer",
+          "description": "物理字段 CDOTxnSequence"
+        },
+        {
+          "name": "numberOfCopies",
+          "type": "Integer",
+          "description": "物理字段 NumberOfCopies"
+        },
+        {
+          "name": "printerName",
+          "type": "String",
+          "description": "物理字段 PrinterName"
+        },
+        {
+          "name": "historyMainline",
+          "type": "Navigation",
+          "description": "物理字段 HistoryMainlineId → HistoryMainline"
+        },
+        {
+          "name": "container",
+          "type": "Navigation",
+          "description": "物理字段 ContainerId → Container"
+        },
+        {
+          "name": "specName",
+          "type": "String",
+          "description": "物理字段 SpecName"
+        },
+        {
+          "name": "cdoName",
+          "type": "String",
+          "description": "物理字段 CDOName"
+        },
+        {
+          "name": "packingType",
+          "type": "Navigation",
+          "description": "物理字段 PackingTypeId → A_PackingType"
+        },
+        {
+          "name": "printingRequired",
+          "type": "Boolean",
+          "description": "物理字段 PrintingRequired"
+        },
+        {
+          "name": "packingTypeName",
+          "type": "String",
+          "description": "物理字段 PackingTypeName"
+        },
+        {
+          "name": "mainQty",
+          "type": "Float",
+          "description": "物理字段 MainQty"
+        },
+        {
+          "name": "qty2",
+          "type": "Float",
+          "description": "物理字段 Qty2"
+        },
+        {
+          "name": "qty",
+          "type": "Float",
+          "description": "物理字段 Qty"
+        },
+        {
+          "name": "printingSetupName",
+          "type": "String",
+          "description": "物理字段 PrintingSetupName"
+        },
+        {
+          "name": "fromSpecRevision",
+          "type": "String",
+          "description": "物理字段 FromSpecRevision"
+        },
+        {
+          "name": "fromSpecName",
+          "type": "String",
+          "description": "物理字段 FromSpecName"
+        },
+        {
+          "name": "containerName",
+          "type": "String",
+          "description": "物理字段 ContainerName"
+        },
+        {
+          "name": "specRevision",
+          "type": "String",
+          "description": "物理字段 SpecRevision"
+        }
+      ]
+    },
+    {
+      "className": "A_PrintDataItemParams",
+      "chineseName": "打印数据项参数",
+      "description": "定义打印数据项参数。 物理对应 A_PrintDataItemParams (CdoId: 679477543, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "printDataItem",
+          "type": "Navigation",
+          "description": "物理字段 PrintDataItemId → A_PrintDataItem"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "paramSequence",
+          "type": "Integer",
+          "description": "物理字段 ParamSequence"
+        },
+        {
+          "name": "paramValue",
+          "type": "String",
+          "description": "物理字段 ParamValue"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        }
+      ]
+    },
+    {
+      "className": "A_PrintingSetupParameters",
+      "chineseName": "打印配置参数",
+      "description": "定义打印配置参数。 物理对应 A_PrintingSetupParameters (CdoId: 679477303, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "printingSetup",
+          "type": "Navigation",
+          "description": "物理字段 PrintingSetupId → A_PrintingSetup"
+        },
+        {
+          "name": "paramType",
+          "type": "String",
+          "description": "物理字段 ParamType"
+        },
+        {
+          "name": "formulaParam03",
+          "type": "String",
+          "description": "物理字段 FormulaParam03"
+        },
+        {
+          "name": "formulaParam02",
+          "type": "String",
+          "description": "物理字段 FormulaParam02"
+        },
+        {
+          "name": "formulaParam01",
+          "type": "String",
+          "description": "物理字段 FormulaParam01"
+        },
+        {
+          "name": "formulaCode",
+          "type": "String",
+          "description": "物理字段 FormulaCode"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "defaultValueIsDynamic",
+          "type": "Boolean",
+          "description": "物理字段 DefaultValueIsDynamic"
+        },
+        {
+          "name": "paramSequence",
+          "type": "Integer",
+          "description": "物理字段 ParamSequence"
+        },
+        {
+          "name": "defaultValue",
+          "type": "String",
+          "description": "物理字段 DefaultValue"
+        },
+        {
+          "name": "displayText",
+          "type": "String",
+          "description": "物理字段 DisplayText"
+        },
+        {
+          "name": "sendToPrinter",
+          "type": "Boolean",
+          "description": "物理字段 SendToPrinter"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        }
+      ]
+    },
+    {
+      "className": "A_ExternalInterfaceDetail",
+      "chineseName": "外部接口明细",
+      "description": "定义外部接口动作明细。 物理对应 A_ExternalInterfaceDetail (CdoId: 679477444, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "serviceName",
+          "type": "String",
+          "description": "物理字段 ServiceName"
+        },
+        {
+          "name": "className",
+          "type": "String",
+          "description": "物理字段 ClassName"
+        },
+        {
+          "name": "enablePreValidateEvent",
+          "type": "Boolean",
+          "description": "物理字段 EnablePreValidateEvent"
+        },
+        {
+          "name": "enablePreExecuteEvent",
+          "type": "Boolean",
+          "description": "物理字段 EnablePreExecuteEvent"
+        },
+        {
+          "name": "enablePostValidateEvent",
+          "type": "Boolean",
+          "description": "物理字段 EnablePostValidateEvent"
+        },
+        {
+          "name": "enablePostExecuteEvent",
+          "type": "Boolean",
+          "description": "物理字段 EnablePostExecuteEvent"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "externalInterface",
+          "type": "Navigation",
+          "description": "物理字段 ExternalInterfaceId → A_ExternalInterface"
+        },
+        {
+          "name": "enableAfterCommitEvent",
+          "type": "Boolean",
+          "description": "物理字段 EnableAfterCommitEvent"
+        }
+      ]
+    },
+    {
+      "className": "A_ExternalInterfaceDetailParam",
+      "chineseName": "外部接口明细参数",
+      "description": "定义外部接口明细参数。 物理对应 A_ExternalInterfaceDetailParam (CdoId: 679477445, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "paramValue",
+          "type": "String",
+          "description": "物理字段 ParamValue"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "externalInterfaceDetail",
+          "type": "Navigation",
+          "description": "物理字段 ExternalInterfaceDetailId → A_ExternalInterfaceDetail"
+        }
+      ]
+    },
+    {
+      "className": "A_ExternalInterfaceDetailRule",
+      "chineseName": "外部接口明细规则",
+      "description": "定义外部接口明细规则。 物理对应 A_ExternalInterfaceDetailRule (CdoId: 679477454, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "externalInterfaceDetail",
+          "type": "Navigation",
+          "description": "物理字段 ExternalInterfaceDetailId → A_ExternalInterfaceDetail"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "ruleSequence",
+          "type": "Integer",
+          "description": "物理字段 RuleSequence"
+        },
+        {
+          "name": "eventName",
+          "type": "String",
+          "description": "物理字段 EventName"
+        },
+        {
+          "name": "businessRule",
+          "type": "Navigation",
+          "description": "物理字段 BusinessRuleId → BusinessRule"
+        }
+      ]
+    },
+    {
+      "className": "A_RunNumberSetupData",
+      "chineseName": "运行号配置数据",
+      "description": "定义运行号配置数据项。 物理对应 A_RunNumberSetupData (CdoId: 679477453, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "runNumberSetup",
+          "type": "Navigation",
+          "description": "物理字段 RunNumberSetupId → A_RunNumberSetup"
+        },
+        {
+          "name": "containerName",
+          "type": "String",
+          "description": "物理字段 ContainerName"
+        },
+        {
+          "name": "processType",
+          "type": "Navigation",
+          "description": "物理字段 ProcessTypeId → A_ProcessType"
+        },
+        {
+          "name": "serviceName",
+          "type": "String",
+          "description": "物理字段 ServiceName"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "wipDataCount",
+          "type": "Integer",
+          "description": "物理字段 WIPDataCount"
+        },
+        {
+          "name": "waferScribeNumber",
+          "type": "String",
+          "description": "物理字段 WaferScribeNumber"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "wipDataValue",
+          "type": "String",
+          "description": "物理字段 WIPDataValue"
+        },
+        {
+          "name": "wipDataName",
+          "type": "Navigation",
+          "description": "物理字段 WIPDataNameId → A_WIPDataName"
+        },
+        {
+          "name": "runNumber",
+          "type": "String",
+          "description": "物理字段 RunNumber"
+        }
+      ]
+    },
+    {
+      "className": "A_ServiceRulesValidations",
+      "chineseName": "服务规则验证",
+      "description": "定义服务规则验证项。 物理对应 A_ServiceRulesValidations (CdoId: 679477432, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "serviceRules",
+          "type": "Navigation",
+          "description": "物理字段 ServiceRulesId → A_ServiceRules"
+        },
+        {
+          "name": "failureLabelParam1",
+          "type": "String",
+          "description": "物理字段 FailureLabelParam1"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "failureLabelParam5",
+          "type": "String",
+          "description": "物理字段 FailureLabelParam5"
+        },
+        {
+          "name": "failureLabelParam4",
+          "type": "String",
+          "description": "物理字段 FailureLabelParam4"
+        },
+        {
+          "name": "failureLabelParam2",
+          "type": "String",
+          "description": "物理字段 FailureLabelParam2"
+        },
+        {
+          "name": "failureLabelName",
+          "type": "String",
+          "description": "物理字段 FailureLabelName"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "failureExpression",
+          "type": "String",
+          "description": "物理字段 FailureExpression"
+        },
+        {
+          "name": "failureLabelParam3",
+          "type": "String",
+          "description": "物理字段 FailureLabelParam3"
+        }
+      ]
+    },
+    {
+      "className": "A_ServiceSetupBusinessRules",
+      "chineseName": "服务业务规则",
+      "description": "定义服务配置关联业务规则。 物理对应 A_ServiceSetupBusinessRules (CdoId: 679477457, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "serviceSetup",
+          "type": "Navigation",
+          "description": "物理字段 ServiceSetupId → A_ServiceSetup"
+        },
+        {
+          "name": "eventName",
+          "type": "String",
+          "description": "物理字段 EventName"
+        },
+        {
+          "name": "ruleSequence",
+          "type": "Integer",
+          "description": "物理字段 RuleSequence"
+        },
+        {
+          "name": "businessRule",
+          "type": "Navigation",
+          "description": "物理字段 BusinessRuleId → BusinessRule"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        }
+      ]
+    },
+    {
+      "className": "ss_LabelPlanDetails",
+      "chineseName": "标签计划明细",
+      "description": "定义标签计划步骤明细。 物理对应 ss_LabelPlanDetails (CdoId: 681574462, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "generateAt",
+          "type": "Integer",
+          "description": "物理字段 GenerateAt"
+        },
+        {
+          "name": "labelStatus",
+          "type": "Integer",
+          "description": "物理字段 LabelStatus"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_LabelPlanDetailsName",
+          "required": true
+        },
+        {
+          "name": "skipPrintout",
+          "type": "Boolean",
+          "description": "物理字段 SkipPrintout"
+        },
+        {
+          "name": "qtyPerLabel",
+          "type": "Integer",
+          "description": "物理字段 QtyPerLabel"
+        },
+        {
+          "name": "sourceLevelId",
+          "type": "Integer",
+          "description": "物理字段 SourceLevelID"
+        },
+        {
+          "name": "ssLabelSetup",
+          "type": "Navigation",
+          "description": "物理字段 ss_LabelSetupId → ss_LabelSetup"
+        },
+        {
+          "name": "levelId",
+          "type": "Integer",
+          "description": "物理字段 LevelID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → ss_LabelPlan"
+        },
+        {
+          "name": "usePackingQtyMatrix",
+          "type": "Boolean",
+          "description": "物理字段 UsePackingQtyMatrix"
+        }
+      ]
+    },
+    {
+      "className": "ss_LabelSourceInput",
+      "chineseName": "标签源输入",
+      "description": "定义标签数据源输入。 物理对应 ss_LabelSourceInput (CdoId: 681574470, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "qtyRemaining",
+          "type": "Float",
+          "description": "物理字段 QtyRemaining"
+        },
+        {
+          "name": "sourceQty",
+          "type": "Float",
+          "description": "物理字段 SourceQty"
+        },
+        {
+          "name": "sourceId",
+          "type": "String",
+          "description": "物理字段 SourceID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_LabelSourceInputName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "ss_TrackLabelDetails",
+      "chineseName": "追踪标签明细",
+      "description": "定义追踪标签明细。 物理对应 ss_TrackLabelDetails (CdoId: 681574466, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "packedIntoId",
+          "type": "String",
+          "description": "物理字段 PackedIntoID"
+        },
+        {
+          "name": "labelStatus",
+          "type": "String",
+          "description": "物理字段 LabelStatus"
+        },
+        {
+          "name": "qty",
+          "type": "Float",
+          "description": "物理字段 Qty"
+        },
+        {
+          "name": "labelSequence",
+          "type": "Integer",
+          "description": "物理字段 LabelSequence"
+        },
+        {
+          "name": "labelId",
+          "type": "String",
+          "description": "物理字段 LabelID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → ss_TrackLabel"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_TrackLabelDetailsName",
+          "required": true
+        },
+        {
+          "name": "linkId",
+          "type": "String",
+          "description": "物理字段 LinkID"
+        }
+      ]
+    },
+    {
+      "className": "ss_TrackLabelDetailsSource",
+      "chineseName": "追踪标签明细来源",
+      "description": "定义追踪标签明细数据源。 物理对应 ss_TrackLabelDetailsSource (CdoId: 681574467, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "qty",
+          "type": "Float",
+          "description": "物理字段 Qty"
+        },
+        {
+          "name": "sourceId",
+          "type": "String",
+          "description": "物理字段 SourceID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → ss_TrackLabelDetails"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_TrackLabelDetailsSourceName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "ss_TrackLabelSource",
+      "chineseName": "追踪标签来源",
+      "description": "定义追踪标签数据源。 物理对应 ss_TrackLabelSource (CdoId: 681574464, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "sourceId",
+          "type": "String",
+          "description": "物理字段 SourceID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → ss_TrackLabel"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_TrackLabelSourceName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "ss_SlotWaferInstruction",
+      "chineseName": "槽位晶圆指令",
+      "description": "定义槽位和晶圆作业指令。 物理对应 ss_SlotWaferInstruction (CdoId: 681574428, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "experimentPlanDetails",
+          "type": "Navigation",
+          "description": "物理字段 ExperimentPlanDetailsId → A_ExperimentPlanDetails"
+        },
+        {
+          "name": "ssExpSpecialInstructions",
+          "type": "Navigation",
+          "description": "物理字段 ss_ExpSpecialInstructionsId → A_ExpSpecialInstructions"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_SlotWaferInstructionName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "ssSlotWaferNumber",
+          "type": "String",
+          "description": "物理字段 ss_SlotWaferNumber"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_PrintDataItem",
+      "toClass": "A_PrintData",
+      "relationName": "HAS_PRINT_DATA",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintDataItem.PrintDataId"
+    },
+    {
+      "fromClass": "A_PrintDataItem",
+      "toClass": "A_PrintingSetup",
+      "relationName": "HAS_PRINTING_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintDataItem.PrintingSetupId"
+    },
+    {
+      "fromClass": "A_PrintDataItem",
+      "toClass": "A_Printer",
+      "relationName": "HAS_PRINTER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintDataItem.PrinterId"
+    },
+    {
+      "fromClass": "A_PrintDataItem",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintDataItem.SpecId"
+    },
+    {
+      "fromClass": "A_PrintDataItem",
+      "toClass": "Spec",
+      "relationName": "HAS_FROM_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintDataItem.FromSpecId"
+    },
+    {
+      "fromClass": "A_PrintDataItem",
+      "toClass": "HistoryMainline",
+      "relationName": "HAS_HISTORY_MAINLINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintDataItem.HistoryMainlineId"
+    },
+    {
+      "fromClass": "A_PrintDataItem",
+      "toClass": "Container",
+      "relationName": "HAS_CONTAINER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintDataItem.ContainerId"
+    },
+    {
+      "fromClass": "A_PrintDataItem",
+      "toClass": "A_PackingType",
+      "relationName": "HAS_PACKING_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintDataItem.PackingTypeId"
+    },
+    {
+      "fromClass": "A_PrintDataItemParams",
+      "toClass": "A_PrintDataItem",
+      "relationName": "HAS_PRINT_DATA_ITEM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintDataItemParams.PrintDataItemId"
+    },
+    {
+      "fromClass": "A_PrintingSetupParameters",
+      "toClass": "A_PrintingSetup",
+      "relationName": "HAS_PRINTING_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_PrintingSetupParameters.PrintingSetupId"
+    },
+    {
+      "fromClass": "A_ExternalInterfaceDetail",
+      "toClass": "A_ExternalInterface",
+      "relationName": "HAS_EXTERNAL_INTERFACE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExternalInterfaceDetail.ExternalInterfaceId"
+    },
+    {
+      "fromClass": "A_ExternalInterfaceDetailParam",
+      "toClass": "A_ExternalInterfaceDetail",
+      "relationName": "HAS_EXTERNAL_INTERFACE_DETAIL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExternalInterfaceDetailParam.ExternalInterfaceDetailId"
+    },
+    {
+      "fromClass": "A_ExternalInterfaceDetailRule",
+      "toClass": "A_ExternalInterfaceDetail",
+      "relationName": "HAS_EXTERNAL_INTERFACE_DETAIL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExternalInterfaceDetailRule.ExternalInterfaceDetailId"
+    },
+    {
+      "fromClass": "A_ExternalInterfaceDetailRule",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_BUSINESS_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ExternalInterfaceDetailRule.BusinessRuleId"
+    },
+    {
+      "fromClass": "A_RunNumberSetupData",
+      "toClass": "A_RunNumberSetup",
+      "relationName": "HAS_RUN_NUMBER_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RunNumberSetupData.RunNumberSetupId"
+    },
+    {
+      "fromClass": "A_RunNumberSetupData",
+      "toClass": "A_ProcessType",
+      "relationName": "HAS_PROCESS_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RunNumberSetupData.ProcessTypeId"
+    },
+    {
+      "fromClass": "A_RunNumberSetupData",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RunNumberSetupData.SpecId"
+    },
+    {
+      "fromClass": "A_RunNumberSetupData",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RunNumberSetupData.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_RunNumberSetupData",
+      "toClass": "A_WIPDataName",
+      "relationName": "HAS_WIP_DATA_NAME",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RunNumberSetupData.WIPDataNameId"
+    },
+    {
+      "fromClass": "A_ServiceRulesValidations",
+      "toClass": "A_ServiceRules",
+      "relationName": "HAS_SERVICE_RULES",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ServiceRulesValidations.ServiceRulesId"
+    },
+    {
+      "fromClass": "A_ServiceSetupBusinessRules",
+      "toClass": "A_ServiceSetup",
+      "relationName": "HAS_SERVICE_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ServiceSetupBusinessRules.ServiceSetupId"
+    },
+    {
+      "fromClass": "A_ServiceSetupBusinessRules",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_BUSINESS_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ServiceSetupBusinessRules.BusinessRuleId"
+    },
+    {
+      "fromClass": "ss_LabelPlanDetails",
+      "toClass": "ss_LabelSetup",
+      "relationName": "HAS_SS_LABEL_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_LabelPlanDetails.ss_LabelSetupId"
+    },
+    {
+      "fromClass": "ss_LabelPlanDetails",
+      "toClass": "ss_LabelPlan",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_LabelPlanDetails.ParentId"
+    },
+    {
+      "fromClass": "ss_TrackLabelDetails",
+      "toClass": "ss_TrackLabel",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_TrackLabelDetails.ParentId"
+    },
+    {
+      "fromClass": "ss_TrackLabelDetailsSource",
+      "toClass": "ss_TrackLabelDetails",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_TrackLabelDetailsSource.ParentId"
+    },
+    {
+      "fromClass": "ss_TrackLabelSource",
+      "toClass": "ss_TrackLabel",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_TrackLabelSource.ParentId"
+    },
+    {
+      "fromClass": "ss_SlotWaferInstruction",
+      "toClass": "A_ExperimentPlanDetails",
+      "relationName": "HAS_EXPERIMENT_PLAN_DETAILS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SlotWaferInstruction.ExperimentPlanDetailsId"
+    },
+    {
+      "fromClass": "ss_SlotWaferInstruction",
+      "toClass": "A_ExpSpecialInstructions",
+      "relationName": "HAS_SS_EXP_SPECIAL_INSTRUCTIONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_SlotWaferInstruction.ss_ExpSpecialInstructionsId"
+    }
+  ]
+}

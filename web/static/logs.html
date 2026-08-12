@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opcenter 问答日志 | Chat Logs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .app-icon { display: inline-block; flex: 0 0 auto; vertical-align: -0.15em; }
+        .icon-label { display: inline-flex; align-items: center; gap: 5px; }
+        .app-icon-spin { animation: iconSpin 0.8s linear infinite; }
+        @keyframes iconSpin { to { transform: rotate(360deg); } }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0F172A;
+            color: #E2E8F0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 240px;
+            min-width: 240px;
+            background: #1E293B;
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+        .sidebar-header h2 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #F1F5F9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sidebar-header .dot { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; }
+        .sidebar-nav { padding: 8px; }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #94A3B8;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .sidebar-nav a:hover { background: #334155; color: #F1F5F9; }
+        .sidebar-nav a.active { background: #312E81; color: #C7D2FE; }
+        .date-list { flex: 1; overflow-y: auto; padding: 4px 8px; }
+        .date-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #94A3B8;
+            transition: all 0.15s;
+        }
+        .date-item:hover { background: #334155; }
+        .date-item.selected { background: #312E81; color: #C7D2FE; }
+        .date-item .count { font-size: 11px; color: #64748B; background: #1E293B; padding: 2px 6px; border-radius: 10px; }
+
+        /* ── Main ── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            border-bottom: 1px solid #334155;
+            background: #1E293B;
+        }
+        .topbar .brand { font-weight: 600; font-size: 14px; color: #22C55E; white-space: nowrap; }
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            background: #0F172A;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 8px 36px 8px 14px;
+            color: #F1F5F9;
+            font-size: 13px;
+            outline: none;
+        }
+        .search-box input:focus { border-color: #6366F1; }
+        .search-box svg { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748B; }
+        .btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #1E293B;
+            color: #E2E8F0;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+        .btn:hover { background: #334155; }
+        .btn-danger { border-color: #7F1D1D; color: #FCA5A5; }
+        .btn-danger:hover { background: #7F1D1D; }
+        .btn-primary { border-color: #4338CA; background: #4338CA; }
+        .btn-primary:hover { background: #4F46E5; }
+
+        /* ── Split pane ── */
+        .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .log-list-pane { flex: 1; overflow-y: auto; padding: 12px; }
+        .log-detail-pane {
+            height: 45%;
+            border-top: 2px solid #334155;
+            background: #0C1222;
+            overflow-y: auto;
+            padding: 16px 20px;
+            display: none;
+        }
+        .log-detail-pane.open { display: block; }
+
+        /* ── Log list item ── */
+        .log-item {
+            background: #1E293B;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .log-item:hover { border-color: #6366F1; }
+        .log-item.selected { border-color: #818CF8; background: #1E1B4B; }
+        .log-item .status-icon {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .log-item .status-icon.success { background: rgba(34,197,94,0.15); color: #22C55E; }
+        .log-item .status-icon.error { background: rgba(239,68,68,0.15); color: #EF4444; }
+        .log-item .log-body { flex: 1; min-width: 0; }
+        .log-item .log-question {
+            font-size: 13px; font-weight: 500; color: #F1F5F9;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 6px;
+        }
+        .log-item .log-meta {
+            display: flex; gap: 16px; font-size: 11px; color: #64748B;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .log-item .log-meta .tag {
+            background: rgba(99,102,241,0.12);
+            color: #A5B4FC;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        /* ── Detail panel ── */
+        .detail-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .detail-header h3 { font-size: 14px; }
+        .trace-steps { }
+        .trace-step {
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(71,85,105,0.3);
+        }
+        .trace-step:last-child { border-bottom: none; }
+        .trace-step .step-icon {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .trace-step .step-icon.success { background: rgba(34,197,94,0.12); color: #22C55E; }
+        .trace-step .step-icon.error { background: rgba(239,68,68,0.12); color: #EF4444; }
+        .trace-step .step-info { flex: 1; min-width: 0; }
+        .trace-step .step-name { font-size: 13px; font-weight: 500; }
+        .trace-step .step-detail { font-size: 11px; color: #64748B; margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+        .trace-step .step-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px; color: #A5B4FC;
+            white-space: nowrap;
+        }
+        .detail-question {
+            background: #1E293B;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #E2E8F0;
+            border-left: 3px solid #6366F1;
+        }
+        .detail-answer {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            font-size: 12px;
+            line-height: 1.7;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #94A3B8;
+        }
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%;
+            color: #475569;
+            font-size: 13px;
+            gap: 8px;
+        }
+        .empty-state svg { opacity: 0.3; }
+        .stats-bar { display: flex; gap: 20px; padding: 8px 16px; border-bottom: 1px solid #1E293B; font-size: 12px; color: #64748B; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 20px; right: 20px;
+            padding: 12px 20px; border-radius: 8px;
+            color: #fff; font-size: 13px;
+            z-index: 999;
+            animation: fadeIn 0.2s;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } }
+        .toast.success { background: #166534; border: 1px solid #22C55E; }
+        .toast.error { background: #7F1D1D; border: 1px solid #EF4444; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 180px; min-width: 180px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><span class="dot" id="statusDot"></span> 问答日志</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="/">&larr; 返回本体图谱</a>
+        </div>
+        <div style="padding:8px 12px; font-size:11px; color:#64748B; text-transform:uppercase; letter-spacing:1px;">日志日期</div>
+        <div class="date-list" id="dateList">
+            <div style="padding:20px;color:#475569;font-size:12px;text-align:center;">加载中...</div>
+        </div>
+    </aside>
+
+    <!-- ── Main ── -->
+    <div class="main">
+        <div class="topbar">
+            <span class="brand">Trace Logs</span>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索问题或回答..." />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </div>
+            <button class="btn" id="btnRefresh" title="刷新">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
+            </button>
+            <button class="btn btn-danger" id="btnClear" title="清除今日日志">清除</button>
+        </div>
+        <div class="stats-bar" id="statsBar">共 0 条日志</div>
+        <div class="content">
+            <div class="log-list-pane" id="logList">
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    <span>暂无日志记录</span>
+                    <span style="font-size:11px;">开始一次问答后，日志将出现在这里</span>
+                </div>
+            </div>
+            <div class="log-detail-pane" id="logDetail">
+                <!-- Detail content rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Toast Container ── -->
+    <div id="toastContainer"></div>
+
+    <script src="/static/icons.js?v=20260728-professional-icons"></script>
+    <script>
+        (() => {
+            "use strict";
+
+            const API = "";
+            let currentDate = null;
+            let currentTraceId = null;
+            let searchTimer = null;
+
+            // ── DOM Refs ──
+            const $dateList = document.getElementById("dateList");
+            const $logList = document.getElementById("logList");
+            const $logDetail = document.getElementById("logDetail");
+            const $statsBar = document.getElementById("statsBar");
+            const $searchInput = document.getElementById("searchInput");
+            const $statusDot = document.getElementById("statusDot");
+
+            // ── Toast ──
+            function toast(msg, type = "success") {
+                const el = document.createElement("div");
+                el.className = `toast ${type}`;
+                el.textContent = msg;
+                document.getElementById("toastContainer").appendChild(el);
+                setTimeout(() => el.remove(), 2500);
+            }
+
+            // ── Load Dates ──
+            async function loadDates() {
+                try {
+                    const res = await fetch(`${API}/api/logs/dates`);
+                    const data = await res.json();
+                    $statusDot.style.background = data.enabled ? "#22C55E" : "#EF4444";
+                    renderDates(data.dates || []);
+                } catch (e) {
+                    $statusDot.style.background = "#EF4444";
+                    $dateList.innerHTML = '<div style="padding:20px;color:#EF4444;font-size:12px;">日志服务不可用</div>';
+                }
+            }
+
+            function renderDates(dates) {
+                if (dates.length === 0) {
+                    $dateList.innerHTML = '<div style="padding:20px;color:#475569;font-size:12px;text-align:center;">暂无日志</div>';
+                    return;
+                }
+                // Default to today if no selection
+                if (!currentDate && dates.length > 0) {
+                    currentDate = dates[0];
+                }
+                $dateList.innerHTML = dates.map(d => `
+                    <div class="date-item${d === currentDate ? ' selected' : ''}" data-date="${d}">
+                        <span>${d}</span>
+                    </div>
+                `).join("");
+                // Click handlers
+                $dateList.querySelectorAll(".date-item").forEach(el => {
+                    el.addEventListener("click", () => {
+                        currentDate = el.dataset.date;
+                        currentTraceId = null;
+                        $logDetail.classList.remove("open");
+                        renderDates(dates);
+                        loadLogs();
+                    });
+                });
+            }
+
+            // ── Load Logs ──
+            async function loadLogs(keyword = "") {
+                if (!currentDate) {
+                    $logList.innerHTML = '<div class="empty-state"><span>请选择日期</span></div>';
+                    return;
+                }
+                $logList.innerHTML = '<div style="padding:40px;text-align:center;color:#475569;">加载中...</div>';
+                try {
+                    const params = new URLSearchParams({ date: currentDate, limit: 100 });
+                    if (keyword) params.set("keyword", keyword);
+                    const res = await fetch(`${API}/api/logs?${params}`);
+                    const data = await res.json();
+                    renderLogs(data.items || []);
+                    $statsBar.textContent = `共 ${data.total || 0} 条日志` + (keyword ? ` (搜索: "${keyword}")` : "");
+                } catch (e) {
+                    $logList.innerHTML = '<div class="empty-state"><span style="color:#EF4444;">加载失败</span></div>';
+                }
+            }
+
+            function renderLogs(items) {
+                if (items.length === 0) {
+                    $logList.innerHTML = '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>没有匹配的日志</span></div>';
+                    return;
+                }
+                $logList.innerHTML = items.map(item => `
+                    <div class="log-item${item.trace_id === currentTraceId ? ' selected' : ''}" data-trace="${item.trace_id}">
+                        <div class="status-icon ${item.has_error ? 'error' : 'success'}">
+                            ${AppIcons.svg(item.has_error ? "xCircle" : "check", { size: 17 })}
+                        </div>
+                        <div class="log-body">
+                            <div class="log-question">${escapeHtml(item.question || '(空问题)')}</div>
+                            <div class="log-meta">
+                                <span class="icon-label">${AppIcons.svg("clock", { size: 12 })}${item.total_elapsed_ms ?? '?'}ms</span>
+                                <span class="icon-label">${AppIcons.svg("clipboard", { size: 12 })}${item.step_count || 0} 步骤</span>
+                                <span class="tag">${item.trace_id?.substring(0, 8) || ''}</span>
+                                <span>${formatTime(item.timestamp)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join("");
+
+                // Click handlers
+                $logList.querySelectorAll(".log-item").forEach(el => {
+                    el.addEventListener("click", () => {
+                        currentTraceId = el.dataset.trace;
+                        loadDetail(el.dataset.trace);
+                        $logList.querySelectorAll(".log-item").forEach(e => e.classList.remove("selected"));
+                        el.classList.add("selected");
+                    });
+                });
+            }
+
+            // ── Load Detail ──
+            async function loadDetail(traceId) {
+                $logDetail.classList.add("open");
+                $logDetail.innerHTML = '<div style="padding:20px;color:#475569;text-align:center;">加载中...</div>';
+                try {
+                    const res = await fetch(`${API}/api/logs/${traceId}?date=${currentDate}`);
+                    if (!res.ok) throw new Error("Not found");
+                    const rec = await res.json();
+                    renderDetail(rec);
+                } catch (e) {
+                    $logDetail.innerHTML = '<div style="padding:20px;color:#EF4444;text-align:center;">加载详情失败</div>';
+                }
+            }
+
+            function renderDetail(rec) {
+                const steps = rec.steps || [];
+                const totalMs = rec.total_elapsed_ms || 0;
+
+                // Build a step tree like Dify
+                let stepsHtml = steps.map((s, i) => {
+                    const iconName = s.status === "error" ? "xCircle" : s.status === "running" ? "loader" : "check";
+                    const iconClass = s.status === "error" ? "error" : "success";
+                    let detail = "";
+                    if (s.output && typeof s.output === "object") {
+                        detail = Object.entries(s.output).map(([k, v]) => {
+                            const displayVal = Array.isArray(v) ? `[${v.length} items]` : String(v);
+                            return `${k}: ${displayVal}`;
+                        }).join(", ");
+                    }
+                    const pct = totalMs > 0 ? ((s.elapsed_ms / totalMs) * 100).toFixed(0) : 0;
+                    return `
+                        <div class="trace-step">
+                            <div class="step-icon ${iconClass}">${AppIcons.svg(iconName, {
+                                size: 15,
+                                className: s.status === "running" ? "app-icon-spin" : "",
+                            })}</div>
+                            <div class="step-info">
+                                <div class="step-name">${escapeHtml(s.name)}</div>
+                                ${detail ? `<div class="step-detail">${escapeHtml(detail)}</div>` : ""}
+                            </div>
+                            <div class="step-time">
+                                ${s.elapsed_ms}ms
+                                <span style="color:#64748B;font-size:10px;margin-left:4px;">(${pct}%)</span>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+
+                // Total bar
+                const barHtml = steps.map(s => {
+                    const pct = totalMs > 0 ? Math.max((s.elapsed_ms / totalMs) * 100, 2) : 0;
+                    const color = s.status === "error" ? "#EF4444" : "#22C55E";
+                    return `<div style="width:${pct}%;height:100%;background:${color};border-radius:2px;" title="${s.name}: ${s.elapsed_ms}ms"></div>`;
+                }).join("");
+
+                $logDetail.innerHTML = `
+                    <div class="detail-header">
+                        <h3 class="icon-label">${AppIcons.svg("clipboard", { size: 16 })}<span>Trace ${rec.trace_id?.substring(0, 8)}</span></h3>
+                        <span style="font-family:JetBrains Mono,monospace;font-size:14px;color:#A5B4FC;">${totalMs}ms</span>
+                    </div>
+                    <div class="detail-question"><span class="icon-label">${AppIcons.svg("message", { size: 15 })}<span>${escapeHtml(rec.question || "")}</span></span></div>
+
+                    <div style="height:6px;background:#1E293B;border-radius:3px;display:flex;gap:1px;margin-bottom:16px;">${barHtml}</div>
+
+                    <div class="trace-steps">${stepsHtml}</div>
+
+                    ${rec.answer ? `<div class="detail-answer"><div class="icon-label" style="color:#64748B;font-size:11px;margin-bottom:6px;">${AppIcons.svg("fileText", { size: 13 })}<span>回答</span></div>${escapeHtml(rec.answer)}</div>` : ""}
+                    ${rec.error ? `<div class="detail-answer" style="border-left:3px solid #EF4444;"><div class="icon-label" style="color:#EF4444;font-size:11px;margin-bottom:6px;">${AppIcons.svg("xCircle", { size: 13 })}<span>错误</span></div>${escapeHtml(rec.error)}</div>` : ""}
+                `;
+            }
+
+            // ── Helpers ──
+            function escapeHtml(str) {
+                const div = document.createElement("div");
+                div.textContent = str || "";
+                return div.innerHTML;
+            }
+
+            function formatTime(ts) {
+                if (!ts) return "";
+                try {
+                    const d = new Date(ts);
+                    return d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                } catch { return ""; }
+            }
+
+            // ── Search (debounced) ──
+            $searchInput.addEventListener("input", () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => loadLogs($searchInput.value.trim()), 300);
+            });
+
+            // ── Refresh ──
+            document.getElementById("btnRefresh").addEventListener("click", () => {
+                loadLogs($searchInput.value.trim());
+                toast("已刷新");
+            });
+
+            // ── Clear ──
+            document.getElementById("btnClear").addEventListener("click", async () => {
+                if (!confirm("确认清除今日所有日志？此操作不可恢复。")) return;
+                try {
+                    const res = await fetch(`${API}/api/logs?date=${currentDate}`, { method: "DELETE" });
+                    const data = await res.json();
+                    toast(data.message || "已清除");
+                    currentTraceId = null;
+                    $logDetail.classList.remove("open");
+                    loadLogs();
+                    loadDates();
+                } catch (e) {
+                    toast("清除失败", "error");
+                }
+            });
+
+            // ── Init ──
+            async function init() {
+                await loadDates();
+                if (currentDate) {
+                    await loadLogs();
+                }
+            }
+            init();
+
+            // ── Auto-refresh every 10s ──
+            setInterval(() => {
+                if (currentDate) loadLogs($searchInput.value.trim());
+            }, 10000);
+        })();
+    </script>
+</body>
+</html>

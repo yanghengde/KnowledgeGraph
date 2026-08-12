@@ -1,0 +1,104 @@
+{
+  "module": "dispatch",
+  "classes": [
+    {
+      "className": "DispatchRule",
+      "chineseName": "调度/派工规则",
+      "description": "DispatchRule — 调度/派工规则。定义工作中心(WorkCenter)派工列表中在制品容器(Container)的优先级排序逻辑。通过 QueryType 选择查询类型，利用 DispatchDetail 子实体为不同交易类型（Move-In移入、Move-Out移出、Start建容器）分别定义查询和优先策略。由 Operation、WorkCenter、Factory 分别引用，可在不同层级指定默认派工规则。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "派工规则唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "queryType",
+          "type": "Integer",
+          "description": "查询类型编码"
+        },
+        {
+          "name": "enforcementRange",
+          "type": "Integer",
+          "description": "强制派工范围：列表中前 N 个容器不允许跳过"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "DispatchDetail",
+      "chineseName": "派工明细",
+      "description": "DispatchDetail — 派工明细（DispatchRule 的子实体）。针对特定交易类型（如 Move-In、Move-Out、Starting 建容器）定义用于生成优先级工作列表的查询名称(QueryName)，可选择是否强制按派工顺序执行(EnforceDispatch)。",
+      "properties": [
+        {
+          "name": "dispatchRule",
+          "type": "Navigation",
+          "description": "物理字段 DispatchRuleId → DispatchRule"
+        },
+        {
+          "name": "queryName",
+          "type": "String",
+          "description": "查询定义名称，用于生成优先级排序的工作列表"
+        },
+        {
+          "name": "enforceDispatch",
+          "type": "Boolean",
+          "description": "是否强制按派工顺序执行，不允许跳过"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "dispatchType",
+          "type": "Integer",
+          "description": "交易类型编码：Move-In(移入)、Move-Out(移出)、Starting(建容器)"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "DispatchDetail",
+      "toClass": "DispatchRule",
+      "relationName": "HAS_DISPATCH_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DispatchDetail.DispatchRuleId"
+    }
+  ]
+}

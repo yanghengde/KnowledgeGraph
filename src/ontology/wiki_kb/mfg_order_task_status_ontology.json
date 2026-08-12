@@ -1,0 +1,59 @@
+{
+  "module": "mfg_order_task_status",
+  "classes": [
+    {
+      "className": "MfgOrderTaskStatus",
+      "chineseName": "制造工单任务状态",
+      "description": "MfgOrder Task Status — 制造工单任务执行状态代码定义实体。定义工单任务在生命周期中的状态（如待执行、执行中、已完成、已跳过等），用于追踪和报告工单任务进度。 【Swagger】Schema: MfgOrderTaskStatusEntity；来源文件: MfgOrderTaskStatuses.json；API: /api/MfgOrderTaskStatuses。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "任务状态的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "taskComplete",
+          "type": "Boolean",
+          "description": "指示具有此状态的任务将被视为完成。 【Swagger】Indicates that a task with this status will be considered complete."
+        },
+        {
+          "name": "taskFailed",
+          "type": "Boolean",
+          "description": "指示具有此状态的Mfg Order Task处于失败状态。 【Swagger】Indicates that an Mfg Order Task with this status is in a failed state."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

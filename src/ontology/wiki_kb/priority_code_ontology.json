@@ -1,0 +1,64 @@
+{
+  "module": "priority_code",
+  "classes": [
+    {
+      "className": "PriorityCode",
+      "chineseName": "优先级代码",
+      "description": "Priority Code — 优先级代码定义实体（CdoId: 4280）。定义系统中可用的优先级代码（如 P1-Critical, P2-High, P3-Normal 等），用于变更包（Change Package）等业务对象的优先级分配。通过 PackageCreationTemplate 的 packagePriorityCode 字段引用，还可关联 WIP 消息定义管理器（wipMsgDefMgr）配置车间事务中的优先级提示消息。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "优先级代码的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "物理字段 ChangeStatusId → ChangeStatus"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP 消息定义管理器 → WIPMsgEntity"
+        },
+        {
+          "name": "relativePriority",
+          "type": "Integer",
+          "description": "允许用户自定义排序的数值，用于提供派工列表（下一步处理的容器）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

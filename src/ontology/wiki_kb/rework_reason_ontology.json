@@ -1,0 +1,69 @@
+{
+  "module": "rework_reason",
+  "classes": [
+    {
+      "className": "ReworkReason",
+      "chineseName": "返工原因",
+      "description": "Rework Reason — 返工原因代码定义实体。定义制造过程中产品需要返工的原因分类（如工艺偏差、来料不良、设备故障、操作失误等），是 ReworkReasonGroup 分组的成员条目。 【Swagger】Schema: ReworkReasonEntity；来源文件: ReworkReasons.json；API: /api/ReworkReasons。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "返工原因的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器（WIPMsgDefMgr）。 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "ldMaxReworkCount",
+          "type": "Integer",
+          "description": "物理字段 ldMaxReworkCount"
+        },
+        {
+          "name": "ldReworkType",
+          "type": "String",
+          "description": "物理字段 ldReworkType"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

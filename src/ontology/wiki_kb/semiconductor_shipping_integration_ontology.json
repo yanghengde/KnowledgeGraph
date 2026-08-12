@@ -1,0 +1,1406 @@
+{
+  "module": "semiconductor_shipping_integration",
+  "classes": [
+    {
+      "className": "A_ShipErrors",
+      "chineseName": "出货错误配置",
+      "description": "定义出货校验错误和消息。 物理对应 A_ShipErrors (CdoId: 679477504, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "物理字段 Comments"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "containerName",
+          "type": "String",
+          "description": "物理字段 ContainerName"
+        },
+        {
+          "name": "errorMessage",
+          "type": "String",
+          "description": "物理字段 ErrorMessage"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "removeTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 RemoveTimestamp"
+        },
+        {
+          "name": "reuseLot",
+          "type": "Boolean",
+          "description": "物理字段 ReuseLot"
+        },
+        {
+          "name": "removeService",
+          "type": "String",
+          "description": "物理字段 RemoveService"
+        },
+        {
+          "name": "removeUsername",
+          "type": "String",
+          "description": "物理字段 RemoveUsername"
+        },
+        {
+          "name": "errorTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 ErrorTimestamp"
+        },
+        {
+          "name": "documentNumber",
+          "type": "String",
+          "description": "物理字段 DocumentNumber"
+        },
+        {
+          "name": "newContainerName",
+          "type": "String",
+          "description": "物理字段 NewContainerName"
+        },
+        {
+          "name": "username",
+          "type": "String",
+          "description": "物理字段 Username"
+        },
+        {
+          "name": "errorService",
+          "type": "String",
+          "description": "物理字段 ErrorService"
+        },
+        {
+          "name": "errorStatus",
+          "type": "String",
+          "description": "物理字段 ErrorStatus"
+        },
+        {
+          "name": "shipFromFactory",
+          "type": "String",
+          "description": "物理字段 ShipFromFactory"
+        },
+        {
+          "name": "shipmentNumber",
+          "type": "String",
+          "description": "物理字段 ShipmentNumber"
+        },
+        {
+          "name": "shipToFactory",
+          "type": "String",
+          "description": "物理字段 ShipToFactory"
+        },
+        {
+          "name": "shipToProcess",
+          "type": "String",
+          "description": "物理字段 ShipToProcess"
+        },
+        {
+          "name": "txnDate",
+          "type": "DateTime",
+          "description": "物理字段 TxnDate"
+        },
+        {
+          "name": "correctiveAction",
+          "type": "String",
+          "description": "物理字段 CorrectiveAction"
+        },
+        {
+          "name": "errorUsername",
+          "type": "String",
+          "description": "物理字段 ErrorUsername"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ShipFromFactory",
+      "chineseName": "发货工厂",
+      "description": "定义发货来源工厂。 物理对应 A_ShipFromFactory (CdoId: 679477284, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ShipFromFactoryName",
+          "required": true
+        },
+        {
+          "name": "emailGroup",
+          "type": "Navigation",
+          "description": "物理字段 EmailGroupId → A_EmailGroup"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ShipPlantCode",
+      "chineseName": "出货工厂代码",
+      "description": "定义出货Plant代码。 物理对应 A_ShipPlantCode (CdoId: 679477313, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ShipPlantCodeName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_ShipToFactory",
+      "chineseName": "收货工厂",
+      "description": "定义出货目标工厂。 物理对应 A_ShipToFactory (CdoId: 679477275, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "emailGroup",
+          "type": "Navigation",
+          "description": "物理字段 EmailGroupId → A_EmailGroup"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "address",
+          "type": "String",
+          "description": "物理字段 Address"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ShipToFactoryName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "A_ShipToProcess",
+      "chineseName": "出货目标工序",
+      "description": "定义出货后的目标工序。 物理对应 A_ShipToProcess (CdoId: 679477274, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ShipToProcessName",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "I_IntegrationMap",
+      "chineseName": "集成映射",
+      "description": "定义外部集成对象和字段映射。 物理对应 I_IntegrationMap (CdoId: 679477674, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "stepLogicName",
+          "type": "String",
+          "description": "物理字段 StepLogicName"
+        },
+        {
+          "name": "cdoName",
+          "type": "String",
+          "description": "物理字段 CDOName"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "specName",
+          "type": "String",
+          "description": "物理字段 SpecName"
+        },
+        {
+          "name": "fromSpecName",
+          "type": "String",
+          "description": "物理字段 FromSpecName"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "integrationMapName",
+          "type": "String",
+          "description": "物理字段 IntegrationMapName"
+        },
+        {
+          "name": "callByCdoName",
+          "type": "String",
+          "description": "物理字段 CallByCDOName"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "I_IntegrationPoint",
+      "chineseName": "集成点",
+      "description": "定义系统集成端点。 物理对应 I_IntegrationPoint (CdoId: 679477675, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "integrationPointName",
+          "type": "String",
+          "description": "物理字段 IntegrationPointName"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "scsMapData",
+      "chineseName": "半导体Map数据",
+      "description": "定义Map数据配置。 物理对应 scsMapData (CdoId: 681574486, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsMapDataName",
+          "required": true
+        },
+        {
+          "name": "uploadDate",
+          "type": "DateTime",
+          "description": "物理字段 UploadDate"
+        }
+      ]
+    },
+    {
+      "className": "scsQuantixMatrix",
+      "chineseName": "Quantix矩阵",
+      "description": "按工艺上下文选择Quantix配置。 物理对应 scsQuantixMatrix (CdoId: 681574505, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsQuantixMatrixName",
+          "required": true
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "scsProcessType",
+          "type": "Navigation",
+          "description": "物理字段 scsProcessTypeId → A_ProcessType"
+        },
+        {
+          "name": "processCapability",
+          "type": "Navigation",
+          "description": "物理字段 ProcessCapabilityId → A_ProcessCapability"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "equipment",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentId → ResourceDef"
+        },
+        {
+          "name": "scsQbinProgram",
+          "type": "Boolean",
+          "description": "物理字段 scsQBINProgram"
+        },
+        {
+          "name": "toolPlan",
+          "type": "Navigation",
+          "description": "物理字段 ToolPlanId → A_ToolPlan"
+        },
+        {
+          "name": "equipmentFamily",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentFamilyId → ResourceFamily"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "scsQspmRecipe",
+          "type": "Navigation",
+          "description": "物理字段 scsQSPMRecipeId → scsQuantixRecipe"
+        },
+        {
+          "name": "scsQsyaRecipe",
+          "type": "Navigation",
+          "description": "物理字段 scsQSYARecipeId → scsQuantixRecipe"
+        },
+        {
+          "name": "scsQpatRecipe",
+          "type": "Navigation",
+          "description": "物理字段 scsQPATRecipeId → scsQuantixRecipe"
+        },
+        {
+          "name": "scsQoeeEnabled",
+          "type": "Boolean",
+          "description": "物理字段 scsQOEEEnabled"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "processSpecBase",
+          "type": "Integer",
+          "description": "物理字段 ProcessSpecBaseId"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "productBase",
+          "type": "Integer",
+          "description": "物理字段 ProductBaseId"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "specBase",
+          "type": "Integer",
+          "description": "物理字段 SpecBaseId"
+        }
+      ]
+    },
+    {
+      "className": "scsQuantixRecipe",
+      "chineseName": "Quantix配方",
+      "description": "定义Quantix配方和关联参数。 物理对应 scsQuantixRecipe (CdoId: 681574503, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "scsSyaFailureHoldSetup",
+          "type": "Navigation",
+          "description": "物理字段 scsSYAFailureHoldSetupId → scsFailureHoldSetup"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "scsSpmFailureHoldSetup",
+          "type": "Navigation",
+          "description": "物理字段 scsSPMFailureHoldSetupId → scsFailureHoldSetup"
+        },
+        {
+          "name": "scsSpmFailureNcrSetup",
+          "type": "Navigation",
+          "description": "物理字段 scsSPMFailureNCRSetupId → ss_FailureNCRSetup"
+        },
+        {
+          "name": "scsSpmFailureFutureHoldSetup",
+          "type": "Navigation",
+          "description": "物理字段 scsSPMFailureFutureHoldSetupId → ss_FailureFutureHoldSetup"
+        },
+        {
+          "name": "scsSblFailureHoldSetup",
+          "type": "Navigation",
+          "description": "物理字段 scsSBLFailureHoldSetupId → scsFailureHoldSetup"
+        },
+        {
+          "name": "scsSblFailureFutureHoldSetup",
+          "type": "Navigation",
+          "description": "物理字段 scsSBLFailureFutureHoldSetupId → ss_FailureFutureHoldSetup"
+        },
+        {
+          "name": "scsSyaFailureNcrSetup",
+          "type": "Navigation",
+          "description": "物理字段 scsSYAFailureNCRSetupId → ss_FailureNCRSetup"
+        },
+        {
+          "name": "scsSyaFailureFutureHoldSetup",
+          "type": "Navigation",
+          "description": "物理字段 scsSYAFailureFutureHoldSetupId → ss_FailureFutureHoldSetup"
+        },
+        {
+          "name": "scsSblFailureNcrSetup",
+          "type": "Navigation",
+          "description": "物理字段 scsSBLFailureNCRSetupId → ss_FailureNCRSetup"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsQuantixRecipeName",
+          "required": true
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        }
+      ]
+    },
+    {
+      "className": "scsStatusModel",
+      "chineseName": "半导体状态模型",
+      "description": "定义半导体专用状态模型。 物理对应 scsStatusModel (CdoId: 679477466, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "statusModelName",
+          "type": "String",
+          "description": "物理字段 StatusModelName"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "ss_Surveillance",
+      "chineseName": "过程监控",
+      "description": "定义半导体过程监控和告警规则。 物理对应 ss_Surveillance (CdoId: 681574435, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "物理字段 ECO"
+        },
+        {
+          "name": "ssSeedDate",
+          "type": "DateTime",
+          "description": "物理字段 ss_SeedDate"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "物理字段 WIPMsgDefMgrId → WIPMsgDefMgr"
+        },
+        {
+          "name": "ssRecurringDateType",
+          "type": "Integer",
+          "description": "物理字段 ss_RecurringDateType"
+        },
+        {
+          "name": "ssWarningCount",
+          "type": "Float",
+          "description": "物理字段 ss_WarningCount"
+        },
+        {
+          "name": "ssToleranceCount",
+          "type": "Float",
+          "description": "物理字段 ss_ToleranceCount"
+        },
+        {
+          "name": "ssCount",
+          "type": "Float",
+          "description": "物理字段 ss_Count"
+        },
+        {
+          "name": "ssWarningPeriod",
+          "type": "Float",
+          "description": "物理字段 ss_WarningPeriod"
+        },
+        {
+          "name": "ssFirstSurvDateDueGmt",
+          "type": "DateTime",
+          "description": "物理字段 ss_FirstSurvDateDueGMT"
+        },
+        {
+          "name": "ssCalculatedEndDate",
+          "type": "DateTime",
+          "description": "物理字段 ss_CalculatedEndDate"
+        },
+        {
+          "name": "ssCalculatedEndDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ss_CalculatedEndDateGMT"
+        },
+        {
+          "name": "ssEndDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ss_EndDateGMT"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "物理字段 Revision"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "物理字段 Status"
+        },
+        {
+          "name": "ssSurveillanceReason",
+          "type": "Navigation",
+          "description": "物理字段 ss_SurveillanceReasonId → ss_SurveillanceReason"
+        },
+        {
+          "name": "ssPendingEmailText",
+          "type": "String",
+          "description": "物理字段 ss_PendingEmailText"
+        },
+        {
+          "name": "ssEndDate",
+          "type": "DateTime",
+          "description": "物理字段 ss_EndDate"
+        },
+        {
+          "name": "ssSurveillanceBase",
+          "type": "Navigation",
+          "description": "物理字段 ss_SurveillanceBaseId → ss_SurveillanceBase"
+        },
+        {
+          "name": "ssSeedDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ss_SeedDateGMT"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "ssTolerancePeriod",
+          "type": "Float",
+          "description": "物理字段 ss_TolerancePeriod"
+        },
+        {
+          "name": "ssFirstSurvDateDue",
+          "type": "DateTime",
+          "description": "物理字段 ss_FirstSurvDateDue"
+        },
+        {
+          "name": "ssDayOfWeek",
+          "type": "Integer",
+          "description": "物理字段 ss_DayOfWeek"
+        },
+        {
+          "name": "ssDataCollection",
+          "type": "Navigation",
+          "description": "物理字段 ss_DataCollectionDefId → DataCollectionDef"
+        },
+        {
+          "name": "ssFrequency",
+          "type": "Integer",
+          "description": "物理字段 ss_Frequency"
+        },
+        {
+          "name": "ssDueEmailText",
+          "type": "String",
+          "description": "物理字段 ss_DueEmailText"
+        },
+        {
+          "name": "ssPastDueEmailText",
+          "type": "String",
+          "description": "物理字段 ss_PastDueEmailText"
+        },
+        {
+          "name": "ssDayOfMonth",
+          "type": "Integer",
+          "description": "物理字段 ss_DayOfMonth"
+        },
+        {
+          "name": "ssRecurringDatePattern",
+          "type": "Integer",
+          "description": "物理字段 ss_RecurringDatePattern"
+        },
+        {
+          "name": "ssOccurrences",
+          "type": "Integer",
+          "description": "物理字段 ss_Occurrences"
+        },
+        {
+          "name": "ssMonthOfYear",
+          "type": "Integer",
+          "description": "物理字段 ss_MonthOfYear"
+        }
+      ]
+    },
+    {
+      "className": "ss_SurveillanceReason",
+      "chineseName": "监控原因",
+      "description": "定义过程监控原因目录。 物理对应 ss_SurveillanceReason (CdoId: 681574436, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "instanceLocked",
+          "type": "Boolean",
+          "description": "物理字段 InstanceLocked"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "associatedPackages",
+          "type": "Integer",
+          "description": "物理字段 AssociatedPackages"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_SurveillanceReasonName",
+          "required": true
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        }
+      ]
+    },
+    {
+      "className": "ss_TrackLabel",
+      "chineseName": "追踪标签",
+      "description": "定义WIP和设备追踪标签配置。 物理对应 ss_TrackLabel (CdoId: 681574458, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "lastTxnTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 LastTxnTimestamp"
+        },
+        {
+          "name": "generateAt",
+          "type": "Integer",
+          "description": "物理字段 GenerateAt"
+        },
+        {
+          "name": "printingSetup",
+          "type": "Navigation",
+          "description": "物理字段 PrintingSetupId → A_PrintingSetup"
+        },
+        {
+          "name": "parentId",
+          "type": "String",
+          "description": "物理字段 ParentID"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "numberOfLabels",
+          "type": "Integer",
+          "description": "物理字段 NumberOfLabels"
+        },
+        {
+          "name": "ssLabelSetup",
+          "type": "Navigation",
+          "description": "物理字段 ss_LabelSetupId → ss_LabelSetup"
+        },
+        {
+          "name": "ssLabelPlan",
+          "type": "Navigation",
+          "description": "物理字段 ss_LabelPlanId → ss_LabelPlan"
+        },
+        {
+          "name": "trackLabelId",
+          "type": "String",
+          "description": "物理字段 TrackLabelID"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_TrackLabelName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "ssLabelType",
+          "type": "Navigation",
+          "description": "物理字段 ss_LabelTypeId → ss_LabelType"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "levelId",
+          "type": "Integer",
+          "description": "物理字段 LevelID"
+        },
+        {
+          "name": "totalQtyGenerated",
+          "type": "Float",
+          "description": "物理字段 TotalQtyGenerated"
+        },
+        {
+          "name": "ssTrackLabelStatus",
+          "type": "Integer",
+          "description": "物理字段 ss_TrackLabelStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.ss_WIPStepId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "A_ProcessType",
+      "relationName": "HAS_SCS_PROCESS_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.scsProcessTypeId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "A_ProcessCapability",
+      "relationName": "HAS_PROCESS_CAPABILITY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.ProcessCapabilityId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.OwnerId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.EquipmentId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "A_ToolPlan",
+      "relationName": "HAS_TOOL_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.ToolPlanId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_EQUIPMENT_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.EquipmentFamilyId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "scsQuantixRecipe",
+      "relationName": "HAS_SCS_QSPM_RECIPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.scsQSPMRecipeId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "scsQuantixRecipe",
+      "relationName": "HAS_SCS_QSYA_RECIPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.scsQSYARecipeId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "scsQuantixRecipe",
+      "relationName": "HAS_SCS_QPAT_RECIPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.scsQPATRecipeId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.ProcessSpecId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.ProductId"
+    },
+    {
+      "fromClass": "scsQuantixMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixMatrix.SpecId"
+    },
+    {
+      "fromClass": "scsQuantixRecipe",
+      "toClass": "scsFailureHoldSetup",
+      "relationName": "HAS_SCS_SYA_FAILURE_HOLD_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixRecipe.scsSYAFailureHoldSetupId"
+    },
+    {
+      "fromClass": "scsQuantixRecipe",
+      "toClass": "scsFailureHoldSetup",
+      "relationName": "HAS_SCS_SPM_FAILURE_HOLD_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixRecipe.scsSPMFailureHoldSetupId"
+    },
+    {
+      "fromClass": "scsQuantixRecipe",
+      "toClass": "ss_FailureNCRSetup",
+      "relationName": "HAS_SCS_SPM_FAILURE_NCR_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixRecipe.scsSPMFailureNCRSetupId"
+    },
+    {
+      "fromClass": "scsQuantixRecipe",
+      "toClass": "ss_FailureFutureHoldSetup",
+      "relationName": "HAS_SCS_SPM_FAILURE_FUTURE_HOLD_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixRecipe.scsSPMFailureFutureHoldSetupId"
+    },
+    {
+      "fromClass": "scsQuantixRecipe",
+      "toClass": "scsFailureHoldSetup",
+      "relationName": "HAS_SCS_SBL_FAILURE_HOLD_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixRecipe.scsSBLFailureHoldSetupId"
+    },
+    {
+      "fromClass": "scsQuantixRecipe",
+      "toClass": "ss_FailureFutureHoldSetup",
+      "relationName": "HAS_SCS_SBL_FAILURE_FUTURE_HOLD_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixRecipe.scsSBLFailureFutureHoldSetupId"
+    },
+    {
+      "fromClass": "scsQuantixRecipe",
+      "toClass": "ss_FailureNCRSetup",
+      "relationName": "HAS_SCS_SYA_FAILURE_NCR_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixRecipe.scsSYAFailureNCRSetupId"
+    },
+    {
+      "fromClass": "scsQuantixRecipe",
+      "toClass": "ss_FailureFutureHoldSetup",
+      "relationName": "HAS_SCS_SYA_FAILURE_FUTURE_HOLD_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixRecipe.scsSYAFailureFutureHoldSetupId"
+    },
+    {
+      "fromClass": "scsQuantixRecipe",
+      "toClass": "ss_FailureNCRSetup",
+      "relationName": "HAS_SCS_SBL_FAILURE_NCR_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsQuantixRecipe.scsSBLFailureNCRSetupId"
+    },
+    {
+      "fromClass": "ss_Surveillance",
+      "toClass": "ss_SurveillanceReason",
+      "relationName": "HAS_SS_SURVEILLANCE_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_Surveillance.ss_SurveillanceReasonId"
+    },
+    {
+      "fromClass": "ss_Surveillance",
+      "toClass": "ss_SurveillanceBase",
+      "relationName": "HAS_SS_SURVEILLANCE_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_Surveillance.ss_SurveillanceBaseId"
+    },
+    {
+      "fromClass": "ss_Surveillance",
+      "toClass": "DataCollectionDef",
+      "relationName": "HAS_SS_DATA_COLLECTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_Surveillance.ss_DataCollectionDefId"
+    },
+    {
+      "fromClass": "ss_TrackLabel",
+      "toClass": "A_PrintingSetup",
+      "relationName": "HAS_PRINTING_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_TrackLabel.PrintingSetupId"
+    },
+    {
+      "fromClass": "ss_TrackLabel",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_TrackLabel.SpecId"
+    },
+    {
+      "fromClass": "ss_TrackLabel",
+      "toClass": "ss_LabelSetup",
+      "relationName": "HAS_SS_LABEL_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_TrackLabel.ss_LabelSetupId"
+    },
+    {
+      "fromClass": "ss_TrackLabel",
+      "toClass": "ss_LabelPlan",
+      "relationName": "HAS_SS_LABEL_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_TrackLabel.ss_LabelPlanId"
+    },
+    {
+      "fromClass": "ss_TrackLabel",
+      "toClass": "ss_LabelType",
+      "relationName": "HAS_SS_LABEL_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_TrackLabel.ss_LabelTypeId"
+    }
+  ]
+}

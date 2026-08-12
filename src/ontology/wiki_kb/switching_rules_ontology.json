@@ -1,0 +1,174 @@
+{
+  "module": "switching_rules",
+  "classes": [
+    {
+      "className": "SwitchingRule",
+      "chineseName": "AQL检验切换规则",
+      "description": "Switching Rule — 定义 AQL 抽样检验的切换规则（例如从正常检验自动切换到加严或放宽检验）。包含切换规则明细、邮件分发、邮件模板等配置。支持版本化管理（name+revision）。",
+      "properties": [
+        {
+          "name": "switchingRuleBase",
+          "type": "Navigation",
+          "description": "切换规则基线版本 → SwitchingRuleBase (SwitchingRuleBaseId)"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "版本号（必填）"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus (ChangeHistoryId)"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "eMailMessage",
+          "type": "Navigation",
+          "description": "关联的默认邮件消息模板 → EMailMessage (EMailMessageId)"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器 → WIPMsgDefMgr (WIPMsgDefMgrId)"
+        },
+        {
+          "name": "eMailDistribution",
+          "type": "Navigation",
+          "description": "关联的默认邮件分发组 → EMailDistribution (EMailDistributionId)"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "SwitchingRuleDetails",
+      "chineseName": "切换规则明细",
+      "description": "Switching Rule Details — 具体的切换规则明细。定义在何种抽样测试类型下（如连续X批合格/不合格），从原检验等级（fromInspectionLevel）切换到目标检验等级（toInspectionLevel）。支持自动切换或邮件通知。",
+      "properties": [
+        {
+          "name": "switchingRuleType",
+          "type": "Integer",
+          "description": "切换规则测试类型：1=Passed (合格数), 2=Failed (不合格数)"
+        },
+        {
+          "name": "allowAutomaticSwitching",
+          "type": "Boolean",
+          "description": "是否允许规则自动切换"
+        },
+        {
+          "name": "eMailDistribution",
+          "type": "Navigation",
+          "description": "触发通知时关联的邮件分发组 → EMailDistribution (EMailDistributionId)"
+        },
+        {
+          "name": "lastContainerSetCount",
+          "type": "Integer",
+          "description": "回溯检查 of 批/容器总数限制 (Y值)"
+        },
+        {
+          "name": "expression",
+          "type": "String",
+          "description": "统一的条件判定表达式，返回布尔值"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "toInspectionLevel",
+          "type": "Navigation",
+          "description": "目标检验等级/AQL等级 → InspectionLevel (ToInspectionLevelId)"
+        },
+        {
+          "name": "passOrFailContainerCount",
+          "type": "Integer",
+          "description": "合格或不合格的批/容器数量限制 (X值)"
+        },
+        {
+          "name": "switchingRule",
+          "type": "Navigation",
+          "description": "所属的切换规则（必填） → SwitchingRule (SwitchingRuleId)"
+        },
+        {
+          "name": "fromInspectionLevel",
+          "type": "Navigation",
+          "description": "起始检验等级/AQL等级 → InspectionLevel (FromInspectionLevelId)"
+        },
+        {
+          "name": "requireNotification",
+          "type": "Boolean",
+          "description": "可切换时是否触发邮件通知"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "SwitchingRule",
+      "toClass": "SwitchingRuleBase",
+      "relationName": "HAS_SWITCHING_RULE_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SwitchingRule.SwitchingRuleBaseId"
+    },
+    {
+      "fromClass": "SwitchingRuleDetails",
+      "toClass": "InspectionLevel",
+      "relationName": "HAS_TO_INSPECTION_LEVEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SwitchingRuleDetails.ToInspectionLevelId"
+    },
+    {
+      "fromClass": "SwitchingRuleDetails",
+      "toClass": "SwitchingRule",
+      "relationName": "HAS_SWITCHING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SwitchingRuleDetails.SwitchingRuleId"
+    },
+    {
+      "fromClass": "SwitchingRuleDetails",
+      "toClass": "InspectionLevel",
+      "relationName": "HAS_FROM_INSPECTION_LEVEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SwitchingRuleDetails.FromInspectionLevelId"
+    }
+  ]
+}

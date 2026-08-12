@@ -1,0 +1,173 @@
+{
+  "module": "package_creation_template",
+  "classes": [
+    {
+      "className": "PackageCreationTemplate",
+      "chineseName": "包创建模板",
+      "description": "Package Creation Template — 变更管理中的包创建模板。用于预定义变更包（Change Package）的创建规则，包括包类型（PackageType）、审批模板（ApprovalTemplate）、协作模板（CollaboratorTemplate）、工作流（Workflow）、源系统（SourceSystem）和目标系统（TargetSystem）等配置。通过模板化包创建流程，确保变更管理的一致性和可追溯性。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明，默认与名称相同"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "approvalTemplate",
+          "type": "Navigation",
+          "description": "关联的审批模板 → ApprovalSheetTemplate"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "模板唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "packageOwner",
+          "type": "Navigation",
+          "description": "包 Owner 责任人 → Owner"
+        },
+        {
+          "name": "ownerRole",
+          "type": "Navigation",
+          "description": "包 Owner 角色 → Role"
+        },
+        {
+          "name": "packagePriorityCode",
+          "type": "Navigation",
+          "description": "包优先级代码 → PackagePriorityCode"
+        },
+        {
+          "name": "packageCreationReason",
+          "type": "Navigation",
+          "description": "包创建原因代码 → PackageCreationReason"
+        },
+        {
+          "name": "ecoecn",
+          "type": "String",
+          "description": "工程变更单号（ECO/ECN）"
+        },
+        {
+          "name": "packageDescription",
+          "type": "String",
+          "description": "包描述信息"
+        },
+        {
+          "name": "useContentCollaborators",
+          "type": "Boolean",
+          "description": "是否使用内容协作者参与审批"
+        },
+        {
+          "name": "collaboratorTemplate",
+          "type": "Navigation",
+          "description": "协作模板（预定义协同评审/会签人员与角色）→ CollaboratorTemplate"
+        },
+        {
+          "name": "sourceSystem",
+          "type": "Navigation",
+          "description": "源系统定义 → SourceSystem"
+        },
+        {
+          "name": "workflow",
+          "type": "Navigation",
+          "description": "关联的变更管理工作流 → Workflow"
+        },
+        {
+          "name": "packageType",
+          "type": "Navigation",
+          "description": "包类型定义 → PackageType"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签，逗号分隔"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "PackageCreationTemplate",
+      "toClass": "ApprovalSheetTemplate",
+      "relationName": "HAS_APPROVAL_TEMPLATE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PackageCreationTemplate.ApprovalTemplateId"
+    },
+    {
+      "fromClass": "PackageCreationTemplate",
+      "toClass": "Employee",
+      "relationName": "HAS_PACKAGE_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PackageCreationTemplate.PackageOwnerId"
+    },
+    {
+      "fromClass": "PackageCreationTemplate",
+      "toClass": "RoleDef",
+      "relationName": "HAS_OWNER_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PackageCreationTemplate.OwnerRoleId"
+    },
+    {
+      "fromClass": "PackageCreationTemplate",
+      "toClass": "ChangePackagePriority",
+      "relationName": "HAS_PACKAGE_PRIORITY_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PackageCreationTemplate.PackagePriorityCodeId"
+    },
+    {
+      "fromClass": "PackageCreationTemplate",
+      "toClass": "ChangePackageReason",
+      "relationName": "HAS_PACKAGE_CREATION_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PackageCreationTemplate.PackageCreationReasonId"
+    },
+    {
+      "fromClass": "PackageCreationTemplate",
+      "toClass": "CollaboratorTemplate",
+      "relationName": "HAS_COLLABORATOR_TEMPLATE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PackageCreationTemplate.CollaboratorTemplateId"
+    },
+    {
+      "fromClass": "PackageCreationTemplate",
+      "toClass": "TargetSystem",
+      "relationName": "HAS_SOURCE_SYSTEM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PackageCreationTemplate.SourceSystemId"
+    },
+    {
+      "fromClass": "PackageCreationTemplate",
+      "toClass": "BusinessProcessWorkflow",
+      "relationName": "HAS_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PackageCreationTemplate.WorkflowId"
+    },
+    {
+      "fromClass": "PackageCreationTemplate",
+      "toClass": "PackageType",
+      "relationName": "HAS_PACKAGE_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PackageCreationTemplate.PackageTypeId"
+    }
+  ]
+}

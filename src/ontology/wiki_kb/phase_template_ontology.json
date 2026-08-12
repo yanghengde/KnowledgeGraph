@@ -1,0 +1,153 @@
+{
+  "module": "phase_template",
+  "classes": [
+    {
+      "className": "PhaseTemplate",
+      "chineseName": "阶段模板",
+      "description": "Phase Template — 工作流阶段/步骤的模板定义实体（CdoId: 7671）。定义流程阶段的所有配置项，包括指派人策略(assignee/assigneeOption/assigneeRole)、自动启动/自动完成(autoStart/autoComplete)、审批表(approvalSheets)、检查清单(checklist)、业务规则(onStartRules/onCompleteRules)、文档集(documentSet)、完成时限(completeWithinQty/completeWithinUOM)和适用组织(organizations)。PhaseTemplateDisposition 是其处置专用子类型。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "assignee",
+          "type": "Navigation",
+          "description": "默认指派人 → Employee"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明，默认与名称相同"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "approvalRequired",
+          "type": "Boolean",
+          "description": "处理前是否需要审批"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active（启用）, 2=Inactive（禁用）"
+        },
+        {
+          "name": "isRequired",
+          "type": "Boolean",
+          "description": "阶段是否不可从流程中移除（必选）"
+        },
+        {
+          "name": "autoStart",
+          "type": "Boolean",
+          "description": "路由/审批后是否自动启动"
+        },
+        {
+          "name": "allowReassignment",
+          "type": "Integer",
+          "description": "重指派策略：1=仅限指定角色内用户, 2=任意用户, 3=不允许重指派"
+        },
+        {
+          "name": "completeWithinUom",
+          "type": "Float",
+          "description": "物理字段 CompleteWithinUOM"
+        },
+        {
+          "name": "completeWithinQty",
+          "type": "Integer",
+          "description": "完成时限数量（配合 completeWithinUOM 使用）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "阶段模板的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "autoComplete",
+          "type": "Boolean",
+          "description": "是否自动从 Completed 转到 Closed"
+        },
+        {
+          "name": "assigneeRole",
+          "type": "Navigation",
+          "description": "指派人角色 → Role"
+        },
+        {
+          "name": "assigneeOption",
+          "type": "Integer",
+          "description": "指派人选项：1=Assignee, 2=Owner, 3=Collaborator"
+        },
+        {
+          "name": "defaultAssigneeInfo",
+          "type": "Boolean",
+          "description": "是否从父级继承默认指派人信息"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "关联的文档集 → DocumentSet"
+        },
+        {
+          "name": "checklist",
+          "type": "Navigation",
+          "description": "关联的检查清单 → ChecklistTemplate"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签，逗号分隔"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "PhaseTemplate",
+      "toClass": "Employee",
+      "relationName": "HAS_ASSIGNEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PhaseTemplate.AssigneeId"
+    },
+    {
+      "fromClass": "PhaseTemplate",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ASSIGNEE_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PhaseTemplate.AssigneeRoleId"
+    },
+    {
+      "fromClass": "PhaseTemplate",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PhaseTemplate.DocumentSetId"
+    },
+    {
+      "fromClass": "PhaseTemplate",
+      "toClass": "Checklist",
+      "relationName": "HAS_CHECKLIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "PhaseTemplate.ChecklistId"
+    }
+  ]
+}

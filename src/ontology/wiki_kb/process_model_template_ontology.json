@@ -1,0 +1,147 @@
+{
+  "module": "process_model_template",
+  "classes": [
+    {
+      "className": "ProcessModelTemplate",
+      "chineseName": "流程模型模板",
+      "description": "Process Model Template — 流程模型模板定义实体（CdoId: 7700）。定义完整的流程模型配置，是最高层级的流程模板，包含 PhaseTemplate 和 PlanTemplate 的所有通用字段（指派策略、审批、业务规则、时限、检查清单等），额外支持 phantomBOM 查询设置(queryName/queryName1)和物料清单项类型(typeName)等物料相关配置，作为整个流程模型的顶层模板容器。",
+      "properties": [
+        {
+          "name": "processModelTemplateBase",
+          "type": "Navigation",
+          "description": "物理字段 ProcessModelTemplateBaseId → ProcessModelTemplateBase"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "版本（基础实体范围内唯一）。"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "effectiveFromDate",
+          "type": "DateTime",
+          "description": "生效起始日期。"
+        },
+        {
+          "name": "effectiveFromDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveFromDateGMT"
+        },
+        {
+          "name": "effectiveThruDate",
+          "type": "DateTime",
+          "description": "生效截止日期。"
+        },
+        {
+          "name": "effectiveThruDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveThruDateGMT"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "autoComplete",
+          "type": "Boolean",
+          "description": "是否自动完成"
+        },
+        {
+          "name": "assignee",
+          "type": "Navigation",
+          "description": "默认指派人 → Employee"
+        },
+        {
+          "name": "assigneeRole",
+          "type": "Navigation",
+          "description": "指派人角色 → Role"
+        },
+        {
+          "name": "allowReassignment",
+          "type": "Integer",
+          "description": "重指派策略：1=指定角色内, 2=任意用户, 3=不允许"
+        },
+        {
+          "name": "assigneeOption",
+          "type": "Integer",
+          "description": "指派人选项：1=Assignee, 2=Owner, 3=Collaborator"
+        },
+        {
+          "name": "defaultAssigneeInfo",
+          "type": "Boolean",
+          "description": "是否从父级继承指派人信息"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "关联的文档集 → DocumentSet"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ProcessModelTemplate",
+      "toClass": "ProcessModelTemplateBase",
+      "relationName": "HAS_PROCESS_MODEL_TEMPLATE_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModelTemplate.ProcessModelTemplateBaseId"
+    },
+    {
+      "fromClass": "ProcessModelTemplate",
+      "toClass": "Employee",
+      "relationName": "HAS_ASSIGNEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModelTemplate.AssigneeId"
+    },
+    {
+      "fromClass": "ProcessModelTemplate",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ASSIGNEE_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModelTemplate.AssigneeRoleId"
+    },
+    {
+      "fromClass": "ProcessModelTemplate",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModelTemplate.DocumentSetId"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "module": "regulatory_report_type",
+  "classes": [
+    {
+      "className": "RegulatoryReportType",
+      "chineseName": "监管报告类型",
+      "description": "Regulatory Report Type — 监管报告类型定义实体（CdoId: 7880）。定义需要提交给监管机构的报告类型（如批次报告、偏差报告、变更报告等），用于在合规管理中分类和触发相应的监管提交流程。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "监管报告类型的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

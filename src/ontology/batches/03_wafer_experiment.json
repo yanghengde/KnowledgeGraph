@@ -1,0 +1,74 @@
+{
+  "module": "semiconductor_wafer_experiment",
+  "titleZh": "半导体晶圆与实验配置建模",
+  "titleEn": "Semiconductor Wafer and Experiment Configuration Modeling",
+  "overviewZh": "本批次覆盖晶圆属性、物料分类、实验计划及其实验自动动作配置，仅纳入具备独立建模生命周期的主实体。",
+  "overviewEn": "This batch covers wafer attributes, item classification, experiment plans, and experiment automation configurations that have independent modeling lifecycles.",
+  "entities": [
+    {
+      "className": "A_AttributeType",
+      "chineseName": "属性类型",
+      "description": "定义半导体对象可配置属性的类型目录。"
+    },
+    {
+      "className": "A_BinType",
+      "chineseName": "Bin类型",
+      "description": "定义晶圆或产品Bin分类及其关联属性。"
+    },
+    {
+      "className": "A_ItemCategory",
+      "chineseName": "物项类别",
+      "description": "定义半导体物项的类别主数据。"
+    },
+    {
+      "className": "A_ItemType",
+      "chineseName": "物项类型",
+      "description": "定义物项类型、保管期限、序列化和数量控制规则。"
+    },
+    {
+      "className": "A_WaferAttributeSetup",
+      "chineseName": "晶圆属性配置",
+      "description": "定义晶圆属性的配置主数据。"
+    },
+    {
+      "className": "scsWaferDataSampling",
+      "chineseName": "晶圆数据抽样",
+      "description": "定义晶圆数据抽样及数量选择规则。"
+    },
+    {
+      "className": "A_ExperimentPlan",
+      "chineseName": "实验计划",
+      "description": "定义可版本控制的半导体实验计划及审批组、工艺规格和消息配置。"
+    },
+    {
+      "className": "A_ExpAutoHold",
+      "chineseName": "实验自动Hold",
+      "description": "定义实验过程自动Hold的位置、原因和通知规则。"
+    },
+    {
+      "className": "A_ExpAutoSS",
+      "chineseName": "实验自动排程计划",
+      "description": "定义实验过程自动应用的排程计划。"
+    },
+    {
+      "className": "A_ExpAutoSplit",
+      "chineseName": "实验自动拆分",
+      "description": "定义实验批次自动拆分和后续合并规则。"
+    },
+    {
+      "className": "A_ExpSpecialCheckSheet",
+      "chineseName": "实验特殊检查表",
+      "description": "定义实验使用的特殊检查表配置。"
+    },
+    {
+      "className": "A_ExpSpecialInstructions",
+      "chineseName": "实验特殊指令",
+      "description": "定义实验过程的特殊作业指令。"
+    },
+    {
+      "className": "ss_BlanketExperiments",
+      "chineseName": "批量实验配置",
+      "description": "按工单、产品、设备、规格和工作流步骤配置批量实验。"
+    }
+  ]
+}

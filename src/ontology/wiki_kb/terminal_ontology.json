@@ -1,0 +1,135 @@
+{
+  "module": "terminal",
+  "classes": [
+    {
+      "className": "Terminal",
+      "chineseName": "车间终端",
+      "description": "Terminal — 车间现场终端/工作站，是操作员在产线上与 MES 交互的物理设备。每个 Terminal 绑定 IP 地址，可关联到特定的 WorkCenter、Operation、Resource、Spec 和 UI 配置（Portal 菜单、Portal Profile）。Terminal 决定了操作员登录后看到的界面布局和可执行的操作。 【Swagger】Schema: TerminalEntity；来源文件: Terminals.json；API: /api/Terminals。",
+      "properties": [
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "终端执行的默认规格 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "终端的描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "终端的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "ipAddress",
+          "type": "String",
+          "description": "终端 IP 地址（必填） 【Swagger】IP Address"
+        },
+        {
+          "name": "uiPortalProfile",
+          "type": "Navigation",
+          "description": "Portal UI 配置文件 【Swagger】引用 Schema: UIPortalProfileChanges。"
+        },
+        {
+          "name": "resource",
+          "type": "Navigation",
+          "description": "关联的设备/资源 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "workCenter",
+          "type": "Navigation",
+          "description": "关联的工作中心 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "operation",
+          "type": "Navigation",
+          "description": "终端默认承载的工序 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "workstation",
+          "type": "Navigation",
+          "description": "物理工位引用 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "portalV8MenuDefinition",
+          "type": "Navigation",
+          "description": "Portal V8 菜单定义 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "portalMobileMenuDefinition",
+          "type": "Navigation",
+          "description": "Portal Mobile 菜单定义 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "portalMenuDefinition",
+          "type": "Navigation",
+          "description": "Portal 菜单定义 【Swagger】引用 Schema: NamedObjectRef。"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Terminal",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Terminal.SpecId"
+    },
+    {
+      "fromClass": "Terminal",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_RESOURCE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Terminal.ResourceId"
+    },
+    {
+      "fromClass": "Terminal",
+      "toClass": "WorkCenter",
+      "relationName": "HAS_WORK_CENTER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Terminal.WorkCenterId"
+    },
+    {
+      "fromClass": "Terminal",
+      "toClass": "Operation",
+      "relationName": "HAS_OPERATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Terminal.OperationId"
+    },
+    {
+      "fromClass": "Terminal",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_WORKSTATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Terminal.WorkstationId"
+    }
+  ]
+}

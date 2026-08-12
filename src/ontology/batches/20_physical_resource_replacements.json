@@ -1,0 +1,29 @@
+{
+  "module": "semiconductor_physical_resource_replacements",
+  "titleZh": "半导体物理位置与资源BOM",
+  "titleEn": "Semiconductor Physical Position and Resource BOM",
+  "overviewZh": "补齐旧逻辑类在半导体套件中的明确物理替代实体，采用真实CDOName。",
+  "overviewEn": "Adds verified semiconductor physical replacements for legacy logical position and resource BOM classes.",
+  "entities": [
+    {
+      "className": "A_PhysicalLocationPosition",
+      "chineseName": "物理位置关联",
+      "description": "物理位置与位置定义之间的顺序关联明细。"
+    },
+    {
+      "className": "A_PhysicalPosition",
+      "chineseName": "物理位置定义",
+      "description": "定义可用于厂内物理位置配置的位置主数据。"
+    },
+    {
+      "className": "A_ResourceBOM",
+      "chineseName": "资源BOM",
+      "description": "资源所需物料清单的版本化定义。"
+    },
+    {
+      "className": "A_ResourceBOMBase",
+      "chineseName": "资源BOM基础",
+      "description": "资源BOM各修订版本的基础记录。"
+    }
+  ]
+}

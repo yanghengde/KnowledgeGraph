@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_service_location",
+  "titleZh": "半导体服务、位置与账户建模",
+  "titleEn": "Semiconductor Service, Location, and Account Modeling",
+  "overviewZh": "本批次覆盖外部接口与位置、扫描、服务规则、扣留类型及账户终止相关配置。",
+  "overviewEn": "This batch covers external interfaces and locations, scanning, service rules, impound types, and account-termination configuration.",
+  "entities": [
+    {"className": "A_ExternalInterface", "chineseName": "外部接口", "description": "定义半导体外部系统接口。"},
+    {"className": "A_ExternalLocation", "chineseName": "外部位置", "description": "定义外部业务位置。"},
+    {"className": "A_ExternalLocationType", "chineseName": "外部位置类型", "description": "定义外部位置类型目录。"},
+    {"className": "A_ImpoundType", "chineseName": "扣留类型", "description": "定义物料或在制品扣留类型。"},
+    {"className": "A_InsertionReason", "chineseName": "插入原因", "description": "定义工艺步骤插入原因。"},
+    {"className": "A_LocationMap", "chineseName": "位置映射", "description": "定义内部与外部位置映射。"},
+    {"className": "A_ScanningName", "chineseName": "扫描名称", "description": "定义扫描数据项目录。"},
+    {"className": "A_ScanningSetup", "chineseName": "扫描配置", "description": "定义扫描采集和验证配置。"},
+    {"className": "A_ServiceAttrsSetup", "chineseName": "服务属性配置", "description": "定义服务可用属性配置。"},
+    {"className": "A_ServiceRules", "chineseName": "服务规则", "description": "定义服务执行规则。"},
+    {"className": "A_ServiceSetup", "chineseName": "服务配置", "description": "定义服务属性、规则和访问配置。"},
+    {"className": "A_TerminateAccount", "chineseName": "账户终止配置", "description": "定义账户终止处理配置。"},
+    {"className": "A_TerminateReason", "chineseName": "终止原因", "description": "定义账户或业务终止原因。"},
+    {"className": "A_UTAReason", "chineseName": "UTA原因", "description": "定义UTA处理原因。"},
+    {"className": "A_UnTerminateReason", "chineseName": "取消终止原因", "description": "定义撤销终止操作原因。"}
+  ]
+}

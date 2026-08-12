@@ -1,0 +1,42 @@
+{
+  "module": "spc_chart_visual_params",
+  "classes": [
+    {
+      "className": "SPCChartVisualParams",
+      "chineseName": "SPC图表可视化参数",
+      "description": "SPC图表可视化参数。物理对应 SPCChartVisualParams (CdoId: 1829, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → SPCChartDef"
+        },
+        {
+          "name": "paramValue",
+          "type": "String",
+          "description": "物理字段 ParamValue"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SPCChartVisualParamsName",
+          "required": true
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "SPCChartVisualParams",
+      "toClass": "SPCChartDef",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SPCChartVisualParams.ParentId"
+    }
+  ]
+}

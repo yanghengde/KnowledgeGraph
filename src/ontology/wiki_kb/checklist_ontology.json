@@ -1,0 +1,255 @@
+{
+  "module": "checklist",
+  "classes": [
+    {
+      "className": "ChecklistTemplate",
+      "chineseName": "检查表模板",
+      "description": "Checklist Template — 检查表模板。用于定义一系列必须执行的检查项目、质量核对项或操作指南，可分配给组织、初审规格(Triage Spec)或电子程序工步，以确保事件处理或生产作业符合规范。",
+      "properties": [
+        {
+          "name": "checklistTemplateBase",
+          "type": "Navigation",
+          "description": "版本控制基类 → ChecklistTemplateBase"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "安全配置访问控制 → SetupAccess"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读）"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "实例的当前状态 (Active=1, Inactive=2)。"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息管理器 → WIPMsgDefMgr"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "历史变更记录"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单（ECO）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "与该对象相关的备注和注释。"
+        },
+        {
+          "name": "checklistInstructions",
+          "type": "String",
+          "description": "核对单填写指导说明信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "过滤器标签"
+        }
+      ]
+    },
+    {
+      "className": "ChecklistTemplateBase",
+      "chineseName": "检查表模板基类",
+      "description": "ChecklistTemplateBase — 检查表模板基类。提供版本化检查表模板的生命周期与版本控制基线。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标 ID"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "关联的活动版本记录 → ChecklistTemplate"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "模板唯一名称（必填）",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "ChecklistEntry",
+      "chineseName": "检查表项",
+      "description": "Checklist Entry — 检查项/核对问题。定义检查表模板中的单个问题或任务，包括回答控件类型、是否必填、布局以及是否要求输入备注。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "关联的母实体，可以为 ChecklistTemplate 或 Checklist"
+        },
+        {
+          "name": "lastCompletedBy",
+          "type": "Navigation",
+          "description": "最后完成人员 → Employee"
+        },
+        {
+          "name": "lastCompletedByRole",
+          "type": "Navigation",
+          "description": "最后完成人员角色 → Role"
+        },
+        {
+          "name": "userComments",
+          "type": "String",
+          "description": "物理字段 UserComments"
+        },
+        {
+          "name": "lastCompletedOn",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOn"
+        },
+        {
+          "name": "lastCompletedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOnGMT"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ChecklistEntryName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "checklistText",
+          "type": "String",
+          "description": "物理字段 ChecklistText"
+        },
+        {
+          "name": "responseSet",
+          "type": "Navigation",
+          "description": "答案选项集 → ResponseSet"
+        },
+        {
+          "name": "entryRequired",
+          "type": "Boolean",
+          "description": "物理字段 EntryRequired"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "显示和执行的顺序序号"
+        },
+        {
+          "name": "responseEntryControl",
+          "type": "Integer",
+          "description": "回答输入控件类型 (Radio Button/Check Box/Picklist)"
+        },
+        {
+          "name": "commentsEntry",
+          "type": "Integer",
+          "description": "备注输入要求 (None/Required/Optional)"
+        },
+        {
+          "name": "responseLayout",
+          "type": "Integer",
+          "description": "响应选项布局 (Below-Vertical/Below-Horizontal/Right/Left)"
+        }
+      ]
+    },
+    {
+      "className": "Checklist",
+      "chineseName": "核对检查单实例",
+      "description": "Checklist — 车间运行时生成的核对检查单实例。记录操作员完成的实际检查核对记录 and 答复状态，包含多个检查表项实例(ChecklistEntry)。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "引用的检查表模板 → ChecklistTemplate"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "检查单实例唯一名称（必填，通常映射 ChecklistName）",
+          "required": true
+        },
+        {
+          "name": "checklistInstructions",
+          "type": "String",
+          "description": "核对单填写指导说明信息"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ChecklistTemplate",
+      "toClass": "ChecklistTemplateBase",
+      "relationName": "HAS_CHECKLIST_TEMPLATE_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChecklistTemplate.ChecklistTemplateBaseId"
+    },
+    {
+      "fromClass": "ChecklistTemplateBase",
+      "toClass": "ChecklistTemplate",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChecklistTemplateBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ChecklistEntry",
+      "toClass": "ChecklistTemplate",
+      "relationName": "HAS_PARENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChecklistEntry.ParentId"
+    },
+    {
+      "fromClass": "ChecklistEntry",
+      "toClass": "Employee",
+      "relationName": "HAS_LAST_COMPLETED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChecklistEntry.LastCompletedById"
+    },
+    {
+      "fromClass": "ChecklistEntry",
+      "toClass": "RoleDef",
+      "relationName": "HAS_LAST_COMPLETED_BY_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChecklistEntry.LastCompletedByRoleId"
+    },
+    {
+      "fromClass": "ChecklistEntry",
+      "toClass": "ResponseSet",
+      "relationName": "HAS_RESPONSE_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ChecklistEntry.ResponseSetId"
+    }
+  ]
+}

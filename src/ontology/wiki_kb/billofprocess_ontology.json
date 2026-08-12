@@ -1,0 +1,215 @@
+{
+  "module": "billofprocess",
+  "classes": [
+    {
+      "className": "BillOfProcess",
+      "chineseName": "工艺清单(BOP)",
+      "description": "Bill of Process — 制造工艺清单，定义产品的完整制造路线和工序配置。BOP 与 Workflow 类似但更侧重于工艺层面的配置管理，包含 Process Override 列表用于覆盖特定产品/工厂的默认工艺参数。MfgOrder 通过 BillOfProcess 字段引用 BOP 来指定使用哪套工艺进行生产。物理上对应 BillOfProcess (CdoId: 1111)。 【Swagger】Schema: BillOfProcessEntity；来源文件: BillOfProcesses.json；API: /api/BillOfProcesses。",
+      "properties": [
+        {
+          "name": "billOfProcessBase",
+          "type": "Navigation",
+          "description": "BOP对应的基线版本 → BillOfProcessBase"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "限制的设置权限限制 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联图标的标识符。 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只写） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "BOP 的描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "BOP 版本号（必填） 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "绑定的WIP消息管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "BillOfProcessOverride",
+      "chineseName": "BOP工艺覆盖",
+      "description": "Bill of Process Override — BOP 的工艺覆盖配置，允许针对特定产品、工厂或条件覆盖默认的工艺参数（如工时、资源分配等），实现灵活的工艺变体管理。物理上对应 BillOfProcessOverride (CdoId: 1049)。 【Swagger】Schema: BillOfProcessOverrideChanges；来源文件: BillOfProcesses.json；API: /api/BillOfProcesses。",
+      "properties": [
+        {
+          "name": "billOfProcess",
+          "type": "Navigation",
+          "description": "所属的母BOP工艺清单 → BillOfProcess"
+        },
+        {
+          "name": "resourceGroup",
+          "type": "Navigation",
+          "description": "覆盖的设备资源组 → ResourceGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "覆盖的作业指导文档集 → DocumentSet 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "trainingReqGroup",
+          "type": "Navigation",
+          "description": "覆盖的培训/上岗资格限制组 → TrainingRequirementGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "覆盖配置名称 【Swagger】Bill Of Process Override Name.",
+          "required": true
+        },
+        {
+          "name": "electronicProcedureBase",
+          "type": "Integer",
+          "description": "覆盖的电子程序基准版本 → ElectronicProcedureBase"
+        },
+        {
+          "name": "recipeFileBase",
+          "type": "Integer",
+          "description": "覆盖的配方文档基准版本 → DocumentBase"
+        },
+        {
+          "name": "setupBase",
+          "type": "Integer",
+          "description": "覆盖的设置基准版本 → SetupBase"
+        },
+        {
+          "name": "specBase",
+          "type": "Integer",
+          "description": "覆盖的规格基准版本 → SpecBase"
+        },
+        {
+          "name": "electronicProcedure",
+          "type": "Navigation",
+          "description": "覆盖的电子操作规程流程 → ElectronicProcedure 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "recipeFile",
+          "type": "Navigation",
+          "description": "覆盖的生产指导配方文档 → Document 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "setup",
+          "type": "Navigation",
+          "description": "覆盖的设备换线物理配置 → Setup 【Swagger】引用 Schema: RevisionedObjectRef。"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "覆盖的规格/工位参数规范 → Spec 【Swagger】引用 Schema: RevisionedObjectRef。"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "BillOfProcess",
+      "toClass": "BillOfProcessBase",
+      "relationName": "HAS_BILL_OF_PROCESS_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcess.BillOfProcessBaseId"
+    },
+    {
+      "fromClass": "BillOfProcessOverride",
+      "toClass": "BillOfProcess",
+      "relationName": "HAS_BILL_OF_PROCESS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcessOverride.BillOfProcessId"
+    },
+    {
+      "fromClass": "BillOfProcessOverride",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_RESOURCE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcessOverride.ResourceGroupId"
+    },
+    {
+      "fromClass": "BillOfProcessOverride",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcessOverride.DocumentSetId"
+    },
+    {
+      "fromClass": "BillOfProcessOverride",
+      "toClass": "TrainingRequirementGroup",
+      "relationName": "HAS_TRAINING_REQ_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcessOverride.TrainingReqGroupId"
+    },
+    {
+      "fromClass": "BillOfProcessOverride",
+      "toClass": "ElectronicProcedure",
+      "relationName": "HAS_ELECTRONIC_PROCEDURE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcessOverride.ElectronicProcedureId"
+    },
+    {
+      "fromClass": "BillOfProcessOverride",
+      "toClass": "Document",
+      "relationName": "HAS_RECIPE_FILE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcessOverride.RecipeFileId"
+    },
+    {
+      "fromClass": "BillOfProcessOverride",
+      "toClass": "Setup",
+      "relationName": "HAS_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcessOverride.SetupId"
+    },
+    {
+      "fromClass": "BillOfProcessOverride",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BillOfProcessOverride.SpecId"
+    }
+  ]
+}

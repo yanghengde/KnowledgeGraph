@@ -1,0 +1,59 @@
+{
+  "module": "regulatory_agency",
+  "classes": [
+    {
+      "className": "RegulatoryAgency",
+      "chineseName": "监管机构",
+      "description": "Regulatory Agency — 监管机构定义实体（CdoId: 7883）。定义需要向其提交合规报告的监管机构信息（如 FDA、EMA、NMPA 等），包括提交周期(submissionPeriod，以天为单位)。与 RegulatoryReportType 配合使用，确定向哪个机构提交何种类型的监管报告。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "decisionTreePageFlow",
+          "type": "Navigation",
+          "description": "关联的决策树页面流。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "监管机构的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

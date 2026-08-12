@@ -1,0 +1,59 @@
+{
+  "module": "owner",
+  "classes": [
+    {
+      "className": "Owner",
+      "chineseName": "Owner 责任人",
+      "description": "Owner — Camstar 建模中的责任人实体。Owner 代表对质量对象类别（Category）或事件分类（Event Classification）对应的质量事务负责的角色/人员定义。在 CategoryMap 和 EventClassificationSpecMap 中被引用，确定某类质量对象或事件的默认处理负责人，并可关联 WIP 消息定义管理器（wipMsgDefMgr）配置车间事务提示。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "Owner 的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明，默认与名称相同"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "物理字段 ChangeStatusId → ChangeStatus"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP 消息定义管理器 → WIPMsgEntity，用于配置车间事务提示消息"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签，逗号分隔"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

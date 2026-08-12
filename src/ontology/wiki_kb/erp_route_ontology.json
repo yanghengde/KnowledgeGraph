@@ -1,0 +1,153 @@
+{
+  "module": "erp_route",
+  "classes": [
+    {
+      "className": "ERPRoute",
+      "chineseName": "ERP工艺路线",
+      "description": "ERPRoute — ERP工艺路线（版本化实体）。从ERP系统下载的制造工艺路线定义，是ERP中最接近Camstar工作流(Workflow)的概念。包含多个工艺步骤(RouteStep)，每个步骤比工作流工步更粗粒度（通常在步骤级汇总）。可选择关联特定的产品(Product)。被 Workflow、MfgOrder、ERPBOM 引用，将ERP的工艺路线与Camstar'的工单和工作流桥接。 【Swagger】Schema: ERPRouteEntity；来源文件: ERPRoutes.json；API: /api/ERPRoutes。",
+      "properties": [
+        {
+          "name": "erpRouteBase",
+          "type": "Navigation",
+          "description": "ERP工艺路线基线引用"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "换线设置权限 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本号 【Swagger】Revision (unique within the context of the base entity)"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance"
+        },
+        {
+          "name": "erpItem",
+          "type": "String",
+          "description": "ERP系统对应的物料/项目编码 【Swagger】Reference to the ERP Item (usually equal to the InSite Product) that uses this route. Since a route could be used by multiple items, this is usually an optional field."
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive 【Swagger】Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号(ECO) 【Swagger】Engineering Change Order"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "productBase",
+          "type": "Integer",
+          "description": "产品基线引用"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "关联的产品(Product)，可选 【Swagger】引用 Schema: RevisionedObjectRef。"
+        }
+      ]
+    },
+    {
+      "className": "RouteStep",
+      "chineseName": "ERP工艺步骤",
+      "description": "RouteStep — ERP工艺步骤（ERPRoute 的子实体）。ERP工艺路线中的单个步骤，包含ERP工序代码(ERPOperation)、执行顺序(Sequence)、名称(Name)，以及SMT贴片相关参数（isSMTSide、isSMTDate、isTransferType 等）和产能计算参数（isSetupTime、isDurationPerUnit、isUnitsPerHour 等）。被 WorkflowStep 和物料清单行引用，用于将ERP步骤映射到具体工步和物料消耗位置。 【Swagger】Schema: RouteStepChanges；来源文件: ERPRoutes.json；API: /api/ERPRoutes。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "步骤名称 【Swagger】Unique name (within the particular ERP Route) for this step",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "erpRouteId",
+          "type": "Navigation",
+          "description": "物理字段 ERPRouteID → ERPRoute"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this step"
+        },
+        {
+          "name": "erpOperation",
+          "type": "String",
+          "description": "ERP工序操作代码 【Swagger】ERP Operation for this step. An ERP operation is similar in concept to an InSite operation."
+        },
+        {
+          "name": "sequence",
+          "type": "String",
+          "description": "执行顺序号 【Swagger】Sequence of this step. In cases where an ERP Operation by convention is only used once in a route, sequence is usually equal to ERP Operation."
+        },
+        {
+          "name": "schedulingOperation",
+          "type": "String",
+          "description": "排程操作代码(SchedulingOperation) 【Swagger】Scheduling Operation for this step. An Scheduling operation is similar in concept to an InSite operation."
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ERPRoute",
+      "toClass": "ERPRouteBase",
+      "relationName": "HAS_ERP_ROUTE_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ERPRoute.ERPRouteBaseId"
+    },
+    {
+      "fromClass": "ERPRoute",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ERPRoute.ProductId"
+    },
+    {
+      "fromClass": "RouteStep",
+      "toClass": "ERPRoute",
+      "relationName": "HAS_ERP_ROUTE_ID",
+      "cardinality": "MANY_TO_ONE",
+      "description": "RouteStep.ERPRouteID"
+    }
+  ]
+}

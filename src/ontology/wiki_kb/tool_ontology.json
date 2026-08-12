@@ -1,0 +1,152 @@
+{
+  "module": "tool",
+  "classes": [
+    {
+      "className": "A_ToolPlan",
+      "chineseName": "工装计划",
+      "description": "A_ToolPlan — 工装计划定义。设备资源（Resource）通过指定工装计划以确定其装配、验证 and 防错所需的工装标准。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "工装计划的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "关联的DocumentSet。"
+        },
+        {
+          "name": "scsIsDetailsEnabled",
+          "type": "Boolean",
+          "description": "物理字段 scsIsDetailsEnabled"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "A_ToolPlanDetails",
+      "chineseName": "工装计划明细",
+      "description": "A_ToolPlanDetails — 工装计划的规则明细。用于指定具体的工装实例需求、替代的工装组或工装家族，控制设备运行时的防错。",
+      "properties": [
+        {
+          "name": "toolPlan",
+          "type": "Navigation",
+          "description": "物理字段 ToolPlanId → A_ToolPlan"
+        },
+        {
+          "name": "maxRequired",
+          "type": "Integer",
+          "description": "物理字段 MaxRequired"
+        },
+        {
+          "name": "itemName",
+          "type": "String",
+          "description": "物理字段 ItemName"
+        },
+        {
+          "name": "toolFamily",
+          "type": "Navigation",
+          "description": "指定的替代工装家族 → ResourceFamily"
+        },
+        {
+          "name": "minRequired",
+          "type": "Integer",
+          "description": "物理字段 MinRequired"
+        },
+        {
+          "name": "tool",
+          "type": "Navigation",
+          "description": "指定的具体工装实例 → Resource"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "toolSequence",
+          "type": "Integer",
+          "description": "工装配对顺序号"
+        },
+        {
+          "name": "toolGroup",
+          "type": "Navigation",
+          "description": "指定的替代工装组 → ResourceGroup"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_ToolPlan",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ToolPlan.DocumentSetId"
+    },
+    {
+      "fromClass": "A_ToolPlanDetails",
+      "toClass": "A_ToolPlan",
+      "relationName": "HAS_TOOL_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ToolPlanDetails.ToolPlanId"
+    },
+    {
+      "fromClass": "A_ToolPlanDetails",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_TOOL_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ToolPlanDetails.ToolFamilyId"
+    },
+    {
+      "fromClass": "A_ToolPlanDetails",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_TOOL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ToolPlanDetails.ToolId"
+    },
+    {
+      "fromClass": "A_ToolPlanDetails",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_TOOL_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ToolPlanDetails.ToolGroupId"
+    }
+  ]
+}

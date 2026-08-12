@@ -1,0 +1,418 @@
+{
+  "module": "training_plan",
+  "classes": [
+    {
+      "className": "TrainingPlan",
+      "chineseName": "培训计划",
+      "description": "Training Plan — 定义员工的系统性培训路线图，包含一系列特定时间要求完成的培训细则或子计划。物理上对应 TrainingPlan (CdoId: 969)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限组（物理：SetupAccessId）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录（物理：ChangeHistoryId）"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "培训计划名称（物理：TrainingPlanName）",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "TrainingPlanDetail",
+      "chineseName": "培训计划细则",
+      "description": "Training Plan Detail — 培训计划的子项细则，规定了特定培训要求的目标完成时间或嵌套子培训计划。物理上对应 TrainingPlanDetail (CdoId: 970)。",
+      "properties": [
+        {
+          "name": "trainingPlan",
+          "type": "Navigation",
+          "description": "关联的父培训计划（物理：TrainingPlanId）"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结"
+        },
+        {
+          "name": "targetTrainingDate",
+          "type": "DateTime",
+          "description": "培训要求的目标完成截止日期"
+        },
+        {
+          "name": "subTrainingPlan",
+          "type": "Navigation",
+          "description": "关联的子培训计划（物理：SubTrainingPlanId）"
+        },
+        {
+          "name": "trainingRequirementBase",
+          "type": "Integer",
+          "description": "关联的培训要求基线（物理：TrainingRequirementBaseId）"
+        },
+        {
+          "name": "trainingRequirement",
+          "type": "Navigation",
+          "description": "关联的具体培训要求（物理：TrainingRequirementId）"
+        }
+      ]
+    },
+    {
+      "className": "TrainingRequirement",
+      "chineseName": "培训要求",
+      "description": "Training Requirement — 特定的资格准入、操作规范或 SOP 文档的培训要求。物理上对应 TrainingRequirement (CdoId: 966)。",
+      "properties": [
+        {
+          "name": "trainingRequirementBase",
+          "type": "Navigation",
+          "description": "关联的培训要求基线（物理：TrainingRequirementBaseId）"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限组（物理：SetupAccessId）"
+        },
+        {
+          "name": "expirationDate",
+          "type": "DateTime",
+          "description": "证书到期截止日期"
+        },
+        {
+          "name": "expirationPeriod",
+          "type": "Integer",
+          "description": "证书有效期天数"
+        },
+        {
+          "name": "effectiveFromDate",
+          "type": "DateTime",
+          "description": "生效起始日期"
+        },
+        {
+          "name": "effectiveThruDate",
+          "type": "DateTime",
+          "description": "失效截止日期"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "版本修订（物理：TrainingRequirementRevision）"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息定义管理器（物理：WIPMsgDefMgrId）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录（物理：ChangeHistoryId）"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "详细描述"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号"
+        },
+        {
+          "name": "effectiveFromDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveFromDateGMT"
+        },
+        {
+          "name": "effectiveThruDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveThruDateGMT"
+        },
+        {
+          "name": "expirationDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ExpirationDateGMT"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "sopDocBase",
+          "type": "Integer",
+          "description": "SOP基线文档引用（物理：SOPDocBaseId）"
+        },
+        {
+          "name": "sopDoc",
+          "type": "Navigation",
+          "description": "SOP文档实例引用（物理：SOPDocId）"
+        }
+      ]
+    },
+    {
+      "className": "TrainingRequirementGroup",
+      "chineseName": "培训要求组",
+      "description": "Training Requirement Group — 培训要求的分组容器。将多个 TrainingRequirement 按岗位、设备、工艺等分组管理，支持嵌套子分组。物理上对应 TrainingRequirementGroup (CdoId: 971)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限组（物理：SetupAccessId）"
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "条目对象类型名称"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "培训要求组 the unique name（物理：TrainingRequirementGroupName）",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录（物理：ChangeHistoryId）"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "TrainingRecordStatus",
+      "chineseName": "培训记录状态",
+      "description": "Training Record Status — 培训记录状态代码。定义员工培训记录的生命周期状态。物理上对应 TrainingRecordStatus (CdoId: 968)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限组（物理：SetupAccessId）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录（物理：ChangeHistoryId）"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "培训记录状态的唯一名称（物理：TrainingRecordStatusName）",
+          "required": true
+        },
+        {
+          "name": "permission",
+          "type": "Integer",
+          "description": "权限。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "TrainingRecord",
+      "chineseName": "员工培训记录",
+      "description": "Training Record — 记录工厂员工的具体培训执行和资格获取记录。物理上对应 TrainingRecord (CdoId: 975)。",
+      "properties": [
+        {
+          "name": "employee",
+          "type": "Navigation",
+          "description": "关联的员工（物理：EmployeeId）"
+        },
+        {
+          "name": "status",
+          "type": "Navigation",
+          "description": "当前培训记录状态（物理：StatusId）"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录（物理：ChangeHistoryId）"
+        },
+        {
+          "name": "expirationDate",
+          "type": "DateTime",
+          "description": "资格证书到期日期"
+        },
+        {
+          "name": "permission",
+          "type": "Integer",
+          "description": "培训授权状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "trainingRequirement",
+          "type": "Navigation",
+          "description": "关联的培训要求（物理：TrainingRequirementId）"
+        },
+        {
+          "name": "expirationDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ExpirationDateGMT"
+        },
+        {
+          "name": "eSigRequirement",
+          "type": "Navigation",
+          "description": "完成此项培训要求的电子签名授权（物理：ESigRequirementId）"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "TrainingPlanDetail",
+      "toClass": "TrainingPlan",
+      "relationName": "HAS_TRAINING_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TrainingPlanDetail.TrainingPlanId"
+    },
+    {
+      "fromClass": "TrainingPlanDetail",
+      "toClass": "TrainingPlan",
+      "relationName": "HAS_SUB_TRAINING_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TrainingPlanDetail.SubTrainingPlanId"
+    },
+    {
+      "fromClass": "TrainingPlanDetail",
+      "toClass": "TrainingRequirement",
+      "relationName": "HAS_TRAINING_REQUIREMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TrainingPlanDetail.TrainingRequirementId"
+    },
+    {
+      "fromClass": "TrainingRequirement",
+      "toClass": "TrainingRequirementBase",
+      "relationName": "HAS_TRAINING_REQUIREMENT_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TrainingRequirement.TrainingRequirementBaseId"
+    },
+    {
+      "fromClass": "TrainingRequirement",
+      "toClass": "Document",
+      "relationName": "HAS_SOP_DOC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TrainingRequirement.SOPDocId"
+    },
+    {
+      "fromClass": "TrainingRecord",
+      "toClass": "Employee",
+      "relationName": "HAS_EMPLOYEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TrainingRecord.EmployeeId"
+    },
+    {
+      "fromClass": "TrainingRecord",
+      "toClass": "TrainingRecordStatus",
+      "relationName": "HAS_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TrainingRecord.StatusId"
+    },
+    {
+      "fromClass": "TrainingRecord",
+      "toClass": "TrainingRequirement",
+      "relationName": "HAS_TRAINING_REQUIREMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "TrainingRecord.TrainingRequirementId"
+    }
+  ]
+}

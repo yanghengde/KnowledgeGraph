@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_cio_core",
+  "titleZh": "CIO连接与消息核心建模",
+  "titleEn": "CIO Connection and Messaging Core Modeling",
+  "overviewZh": "本批次覆盖Workspace 10中的CIO连接、通道、适配器、消息映射、模板、数据处理和基础函数配置。",
+  "overviewEn": "This batch covers CIO connections, channels, adapters, message mapping, templates, data handling, and foundation functions in workspace 10.",
+  "entities": [
+    {"className": "CIOSettings", "chineseName": "CIO全局设置", "description": "定义CIO集成运行的全局配置。"},
+    {"className": "CIOCamstarConnection", "chineseName": "Camstar连接", "description": "定义CIO访问Camstar服务的连接参数。"},
+    {"className": "CIOChannelSource", "chineseName": "通道源", "description": "定义消息通道的数据源和通信参数。"},
+    {"className": "CIOChannelAdapter", "chineseName": "通道适配器", "description": "定义不同协议和系统的CIO通道适配配置。"},
+    {"className": "CIOMessageChannel", "chineseName": "消息通道", "description": "定义消息通道、源、适配器和消息类型关联。"},
+    {"className": "CIOMessageType", "chineseName": "消息类型", "description": "定义CIO消息格式、方向和处理配置。"},
+    {"className": "CIOMessageMap", "chineseName": "消息映射", "description": "定义输入输出消息字段和模板映射。"},
+    {"className": "CIOTemplate", "chineseName": "CIO模板", "description": "定义消息转换和生成模板。"},
+    {"className": "CIOBinding", "chineseName": "CIO绑定", "description": "定义集成数据绑定配置。"},
+    {"className": "CIOBuffer", "chineseName": "CIO缓冲区", "description": "定义集成消息缓冲和容量规则。"},
+    {"className": "CIODataHandler", "chineseName": "数据处理器", "description": "定义CIO数据处理器主配置。"},
+    {"className": "CIODataPointType", "chineseName": "数据点类型", "description": "定义集成数据点类型目录。"},
+    {"className": "CIODataPointInstance", "chineseName": "数据点实例", "description": "定义具体数据点实例及其类型。"},
+    {"className": "CIOFilter", "chineseName": "CIO过滤器", "description": "定义集成消息和数据过滤规则。"},
+    {"className": "CIOFunction", "chineseName": "CIO函数", "description": "定义集成工作流可调用的函数目录。"}
+  ]
+}

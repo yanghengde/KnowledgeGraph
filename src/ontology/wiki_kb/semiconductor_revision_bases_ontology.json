@@ -1,0 +1,420 @@
+{
+  "module": "semiconductor_revision_bases",
+  "classes": [
+    {
+      "className": "MasterRecipeBase",
+      "chineseName": "主配方Base",
+      "description": "管理主配方修订记录。 物理对应 MasterRecipeBase (CdoId: 1274, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → MasterRecipe"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 MasterRecipeName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "ProcessModelTemplateBase",
+      "chineseName": "过程模型模板Base",
+      "description": "管理过程模型模板修订记录。 物理对应 ProcessModelTemplateBase (CdoId: 1144, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → ProcessModelTemplate"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ProcessModelTemplateName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "BusinessProcessSpecBase",
+      "chineseName": "业务过程规格Base",
+      "description": "管理业务过程规格修订记录。 物理对应 BusinessProcessSpecBase (CdoId: 1460, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → BusinessProcessSpec"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 BusinessProcessSpecName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "BusinessProcessWorkflowBase",
+      "chineseName": "业务过程工作流Base",
+      "description": "管理业务过程工作流修订记录。 物理对应 BusinessProcessWorkflowBase (CdoId: 1462, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → BusinessProcessWorkflow"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 BusinessProcessWorkflowName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "ProcessTimerBase",
+      "chineseName": "过程计时器Base",
+      "description": "管理过程计时器修订记录。 物理对应 ProcessTimerBase (CdoId: 1695, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → ProcessTimer"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ProcessTimerName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "isImageBase",
+      "chineseName": "图像Base",
+      "description": "管理图像对象修订记录。 物理对应 isImageBase (CdoId: 702545979, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → isImage"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 isImageName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "BOMBase",
+      "chineseName": "BOM Base",
+      "description": "管理BOM修订记录。 物理对应 BOMBase (CdoId: 696, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 BOMName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → BOM"
+        }
+      ]
+    },
+    {
+      "className": "DataCollectionDefBase",
+      "chineseName": "数据采集定义Base",
+      "description": "管理数据采集定义修订记录。 物理对应 DataCollectionDefBase (CdoId: 432, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 DataCollectionDefName",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → DataCollectionDef"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "SetupBase",
+      "chineseName": "Setup Base",
+      "description": "管理Setup修订记录。 物理对应 SetupBase (CdoId: 313, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SetupName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → Setup"
+        }
+      ]
+    },
+    {
+      "className": "MaintenanceReqBase",
+      "chineseName": "维护需求Base",
+      "description": "管理维护需求修订记录。 物理对应 MaintenanceReqBase (CdoId: 1015, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 MaintenanceReqName",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → MaintenanceReq"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "ERPBOMBase",
+      "chineseName": "ERP BOM Base",
+      "description": "管理ERP BOM修订记录。 物理对应 ERPBOMBase (CdoId: 874, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ERPBOMName",
+          "required": true
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → ERPBOM"
+        }
+      ]
+    },
+    {
+      "className": "MfgOrderProcedureBase",
+      "chineseName": "制造工单程序Base",
+      "description": "管理制造工单程序修订记录。 物理对应 MfgOrderProcedureBase (CdoId: 1775, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → MfgOrderProcedure"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 MfgOrderProcedureName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "MfgOrderTaskListBase",
+      "chineseName": "制造工单任务列表Base",
+      "description": "管理制造工单任务列表修订记录。 物理对应 MfgOrderTaskListBase (CdoId: 1776, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → MfgOrderTaskList"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 MfgOrderTaskListName",
+          "required": true
+        }
+      ]
+    },
+    {
+      "className": "SchedulingRouteBase",
+      "chineseName": "排程路线Base",
+      "description": "管理排程路线修订记录。 物理对应 SchedulingRouteBase (CdoId: 1763, Workspace: csi)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SchedulingRouteName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "revOfRcd",
+          "type": "Navigation",
+          "description": "物理字段 RevOfRcdId → SchedulingRoute"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "MasterRecipeBase",
+      "toClass": "MasterRecipe",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MasterRecipeBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ProcessModelTemplateBase",
+      "toClass": "ProcessModelTemplate",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModelTemplateBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "BusinessProcessSpecBase",
+      "toClass": "BusinessProcessSpec",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessProcessSpecBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "BusinessProcessWorkflowBase",
+      "toClass": "BusinessProcessWorkflow",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BusinessProcessWorkflowBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ProcessTimerBase",
+      "toClass": "ProcessTimer",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessTimerBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "BOMBase",
+      "toClass": "BOM",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "BOMBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "DataCollectionDefBase",
+      "toClass": "DataCollectionDef",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "DataCollectionDefBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "SetupBase",
+      "toClass": "Setup",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SetupBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "MaintenanceReqBase",
+      "toClass": "MaintenanceReq",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceReqBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "ERPBOMBase",
+      "toClass": "ERPBOM",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ERPBOMBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "MfgOrderProcedureBase",
+      "toClass": "MfgOrderProcedure",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderProcedureBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "MfgOrderTaskListBase",
+      "toClass": "MfgOrderTaskList",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MfgOrderTaskListBase.RevOfRcdId"
+    },
+    {
+      "fromClass": "SchedulingRouteBase",
+      "toClass": "SchedulingRoute",
+      "relationName": "HAS_REV_OF_RCD",
+      "cardinality": "MANY_TO_ONE",
+      "description": "SchedulingRouteBase.RevOfRcdId"
+    }
+  ]
+}

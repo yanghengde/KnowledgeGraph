@@ -1,0 +1,54 @@
+{
+  "module": "replace_reason",
+  "classes": [
+    {
+      "className": "ReplaceReason",
+      "chineseName": "替换原因",
+      "description": "Replace Reason — 替换原因代码定义实体。定义制造过程中物料/组件替换的原因分类（如来料不良、工艺变更、临时替代等）。 【Swagger】Schema: ReplaceReasonEntity；来源文件: ReplaceReasons.json；API: /api/ReplaceReasons。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "替换原因的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags"
+        },
+        {
+          "name": "isScrapRemoved",
+          "type": "Boolean",
+          "description": "若所选替换原因勾选了报废但组件无需报废，操作员可取消勾选。 【Swagger】If the selected replacement reason has scrapped checked and the component doesn't need to be scrapped the operator should be able to uncheck that box."
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

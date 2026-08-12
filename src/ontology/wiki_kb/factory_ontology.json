@@ -1,0 +1,658 @@
+{
+  "module": "factory",
+  "classes": [
+    {
+      "className": "Site",
+      "chineseName": "站点",
+      "description": "Site — 站点。企业内的物理地理位置或园区，用于按区域组织工厂。配置 URL、NT 登录密码、默认数据传输通道(DataTransport)、邮件传输通道(EMailTransport)和默认用户(Employee)。通过 Enterprise-->Site 的 LiveConnectProxySite 关联到企业。物理上对应 Site (CdoId: 300)。 【Swagger】Schema: SiteEntity；来源文件: Sites.json；API: /api/Sites。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限限制 → SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 → ChangeStatus 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "站点名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "eMailTransport",
+          "type": "Navigation",
+          "description": "邮件传输通道 → DataTransport 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "url",
+          "type": "String",
+          "description": "站点 URL 地址（必填） 【Swagger】URL"
+        },
+        {
+          "name": "user",
+          "type": "Navigation",
+          "description": "默认登录用户/员工（必填）→ Employee 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "password",
+          "type": "String",
+          "description": "NT 登录密码（必填，加密存储） 【Swagger】NT login password for the User."
+        },
+        {
+          "name": "defaultDataTransport",
+          "type": "Navigation",
+          "description": "默认数据传输通道 → DataTransport 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "Factory",
+      "chineseName": "工厂",
+      "description": "Factory — 工厂。Camstar 中的核心独立制造单元，属于 Enterprise 下 of 生产实体。配置班次日历(MfgCalendar)、编号规则(NumberingRule)、派工规则(DispatchRule)、组织(Organization)、设备状态模型(ResourceStatusModel)、培训要求组(TrainingRequirementGroup)等。包含多个 Location 子实体，并可精细化指定各项排程、载具、物料与工程配置。物理上对应 Factory (CdoId: 283)。 【Swagger】Schema: FactoryEntity；来源文件: Factories.json；API: /api/Factories。",
+      "properties": [
+        {
+          "name": "enterprise",
+          "type": "Navigation",
+          "description": "所属企业/集团 → Enterprise 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "testPlant",
+          "type": "String",
+          "description": "物理字段 TestPlant 【Swagger】The Test Plant name for the Factory. Copied over to Lot Attributes during Lot Schedule."
+        },
+        {
+          "name": "dateCodeRule",
+          "type": "Navigation",
+          "description": "物理字段 DateCodeRuleId → BusinessRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "shipPlantCode",
+          "type": "Navigation",
+          "description": "物理字段 ShipPlantCodeId → A_ShipPlantCode 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "shipFactoryCode",
+          "type": "Navigation",
+          "description": "物理字段 ShipFactoryCodeId → A_ShipFactoryCode 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "assemblyPlantCode",
+          "type": "String",
+          "description": "物理字段 AssemblyPlantCode 【Swagger】The Assembly Plant Code used by (for example) Set Date Code."
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置权限 ➔ SetupAccess 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "waferPlant",
+          "type": "String",
+          "description": "物理字段 WaferPlant 【Swagger】Wafer Plant"
+        },
+        {
+          "name": "webLoginTimeLimit",
+          "type": "Float",
+          "description": "物理字段 WebLoginTimeLimit 【Swagger】The time limit in days from the last login the user is allowed to login again. A value of 0 or less means no time limit."
+        },
+        {
+          "name": "testCountry",
+          "type": "String",
+          "description": "物理字段 TestCountry 【Swagger】The Test Country name for the Factory. Copied over to Lot Attributes during Lot Schedule."
+        },
+        {
+          "name": "waferSortCountry",
+          "type": "String",
+          "description": "物理字段 WaferSortCountry 【Swagger】The Wafer Sort Country name for the Factory. Copied over to Lot Attributes during Lot Schedule."
+        },
+        {
+          "name": "testArea",
+          "type": "String",
+          "description": "物理字段 TestArea 【Swagger】The Test Area name for the Factory. Copied over to Lot Attributes during Lot Schedule."
+        },
+        {
+          "name": "assemblyCountry",
+          "type": "String",
+          "description": "物理字段 AssemblyCountry 【Swagger】The Assembly Country name for the Factory. Copied over to Lot Attributes during Lot Schedule."
+        },
+        {
+          "name": "assemblyPlant",
+          "type": "String",
+          "description": "物理字段 AssemblyPlant 【Swagger】The Assembly Plant name for the Factory. Copied over to Lot Attributes during Lot Schedule."
+        },
+        {
+          "name": "waferSortArea",
+          "type": "String",
+          "description": "物理字段 WaferSortArea 【Swagger】The Wafer Sort Area name for the Factory. Copied over to Lot Attributes during Lot Schedule."
+        },
+        {
+          "name": "waferSortPlant",
+          "type": "String",
+          "description": "物理字段 WaferSortPlant 【Swagger】The Wafer Sort Plant name for the Factory. Copied over to Lot Attributes during Lot Schedule."
+        },
+        {
+          "name": "waferCountry",
+          "type": "String",
+          "description": "物理字段 WaferCountry 【Swagger】Wafer Country"
+        },
+        {
+          "name": "waferArea",
+          "type": "String",
+          "description": "物理字段 WaferArea 【Swagger】Wafer Area"
+        },
+        {
+          "name": "statusModel",
+          "type": "Navigation",
+          "description": "物理字段 StatusModelId → scsStatusModel 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "partRequestEmailGroup",
+          "type": "Navigation",
+          "description": "备件请求邮件组 → EmailGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "xmlPort",
+          "type": "Integer",
+          "description": "XML 服务器端口 【Swagger】The port required to transact an XML. Used by external applications like ObjectUpdate."
+        },
+        {
+          "name": "xmlServerName",
+          "type": "String",
+          "description": "XML 服务器名称 【Swagger】The server name required to transact an XML. Used by external applications like ObjectUpdate."
+        },
+        {
+          "name": "xmlPassword",
+          "type": "String",
+          "description": "XML 认证密码（加密） 【Swagger】The password required to transact an XML. Used by external applications like ObjectUpdate."
+        },
+        {
+          "name": "xmlUsername",
+          "type": "String",
+          "description": "XML 认证用户名 【Swagger】The username required to transact an XML. Used by external applications like ObjectUpdate."
+        },
+        {
+          "name": "assemblyArea",
+          "type": "String",
+          "description": "物理字段 AssemblyArea 【Swagger】The Assembly Area name for the Factory. Copied over to Lot Attributes during Lot Schedule."
+        },
+        {
+          "name": "scsUpdatePreactorStepCnt",
+          "type": "Integer",
+          "description": "物理字段 scsUpdatePreactorStepCnt 【Swagger】The purpose of “UpdatePreactorStepCnt” is assist the Move transaction to know when to send additional scheduling data to Preactor. We do not want to wait till we arrive at the Step equal to “MaxScheduleStepsToProcess”. Preactor may not have time to resch"
+        },
+        {
+          "name": "scsMaxScheduleStepsToProcess",
+          "type": "Integer",
+          "description": "物理字段 scsMaxScheduleStepsToProcess 【Swagger】The purpose of \"MaxScheduleStepsToProcess\" is to restrict the number of steps the logic evaluates when creating scheduling data to send to Preactor"
+        },
+        {
+          "name": "scsPreactorEnabled",
+          "type": "Boolean",
+          "description": "物理字段 scsPreactorEnabled 【Swagger】flag to check if IS is activated . if IS not active, value will always false untill IS is activated"
+        },
+        {
+          "name": "ssSurveillanceChanelSource",
+          "type": "Navigation",
+          "description": "物理字段 ss_SurveillanceChanelSourceId → CIOChannelSource"
+        },
+        {
+          "name": "ssSurveillanceCioChannelAda",
+          "type": "Navigation",
+          "description": "物理字段 ss_SurveillanceCIOChannelAdaId → CIOChannelAdapter"
+        },
+        {
+          "name": "eSigReqForLabelReprint",
+          "type": "Navigation",
+          "description": "物理字段 ESigReqForLabelReprintId → ESigRequirement 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "scsCarrConDefaultTerminateRe",
+          "type": "Navigation",
+          "description": "物理字段 scsCarrConDefaultTerminateReId → A_TerminateReason"
+        },
+        {
+          "name": "scsCarrierNumberingRule",
+          "type": "Navigation",
+          "description": "物理字段 scsCarrierNumberingRuleId → NumberingRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "scsUnloadCarrierContainer",
+          "type": "Boolean",
+          "description": "物理字段 scsUnloadCarrierContainer 【Swagger】Flag to indicate if the Carrier will be delinked from a Carrier Container when the lot moves from WIP back to Inventory. This flag is currently not displayed in the UI and only used in the backend logic during the ScheduleData.Complete event"
+        },
+        {
+          "name": "scsCarrierRenameRule",
+          "type": "Navigation",
+          "description": "物理字段 scsCarrierRenameRuleId → NumberingRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "scsEnabledHybridHpe",
+          "type": "Boolean",
+          "description": "物理字段 scsEnabledHybridHPE"
+        },
+        {
+          "name": "scsChannelSourceUrl",
+          "type": "String",
+          "description": "物理字段 scsChannelSourceURL"
+        },
+        {
+          "name": "scsQuantixEnabled",
+          "type": "Boolean",
+          "description": "物理字段 scsQuantixEnabled 【Swagger】Quantix Enabled"
+        },
+        {
+          "name": "scsChannelAdapterName",
+          "type": "String",
+          "description": "物理字段 scsChannelAdapterName 【Swagger】Channel Adapter Name"
+        },
+        {
+          "name": "mfgCalendar",
+          "type": "Navigation",
+          "description": "制造日历 → MfgCalendar 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP 消息定义管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "maxTimeSinceMsgsRetrieved",
+          "type": "Float",
+          "description": "上一次检索消息后的最大时间 【Swagger】This is the maximum time delay between the retrieval of the WIPMsgs and the actual validation of the messages allowed before the messages are retrieved again."
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "变更状态 → ChangeStatus"
+        },
+        {
+          "name": "retentionDays",
+          "type": "Integer",
+          "description": "容器关闭后在系统中保留的天数 【Swagger】Number of days a container remains in the system (not archived) after it is closed"
+        },
+        {
+          "name": "requireLocation",
+          "type": "Boolean",
+          "description": "是否强制启用库位(Location)管理 【Swagger】Determines if Location Management is active for this factory"
+        },
+        {
+          "name": "reportHeading",
+          "type": "String",
+          "description": "报表页眉文本 【Swagger】Text for report headings"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "工厂名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "trainingReqGroup",
+          "type": "Navigation",
+          "description": "培训要求组 → TrainingRequirementGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "dispatchRule",
+          "type": "Navigation",
+          "description": "工厂级派工规则 → DispatchRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "printQueue",
+          "type": "Navigation",
+          "description": "打印队列 → PrintQueue 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "smtpTransport",
+          "type": "Navigation",
+          "description": "SMTP 邮件传输 → DataTransport 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "generalMessage",
+          "type": "String",
+          "description": "通用消息文本，显示给操作员 【Swagger】General Message to be displayed to users"
+        },
+        {
+          "name": "displayGeneralMessage",
+          "type": "Boolean",
+          "description": "是否显示通用消息 【Swagger】Generic Boolean"
+        },
+        {
+          "name": "containerNumberingRule",
+          "type": "Navigation",
+          "description": "容器编号规则 → NumberingRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "organization",
+          "type": "Navigation",
+          "description": "归属组织 → Organization 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "signalRConfiguration",
+          "type": "Navigation",
+          "description": "SignalR 实时通信配置 → SignalRConfiguration 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "lastRptWeekly",
+          "type": "Integer",
+          "description": "物理字段 LastRPTWeekly"
+        },
+        {
+          "name": "slitNumberingRule",
+          "type": "Navigation",
+          "description": "分条编号规则 → NumberingRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "rptMinLimitNumberLots",
+          "type": "Integer",
+          "description": "RPT 最小批次数限额 【Swagger】Indicates the number of Minimum Limit Number of Lots"
+        },
+        {
+          "name": "rptMaxLimitNumberLots",
+          "type": "Integer",
+          "description": "RPT 最大批次数限额 【Swagger】Indicates the number of RPT Maximum Limit Number of Lots."
+        },
+        {
+          "name": "remainingProcessTimeEnabled",
+          "type": "Boolean",
+          "description": "是否启用 RPT(剩余加工时间)计算 【Swagger】A flag that enable RPT calculation."
+        },
+        {
+          "name": "containerAutoHoldReason",
+          "type": "Navigation",
+          "description": "容器自动冻结原因 → HoldReason 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "lastRptMonthly",
+          "type": "Integer",
+          "description": "物理字段 LastRPTMonthly"
+        },
+        {
+          "name": "lastRptQuarterly",
+          "type": "Integer",
+          "description": "物理字段 LastRPTQuarterly"
+        },
+        {
+          "name": "reprintReasonRequired",
+          "type": "Boolean",
+          "description": "重印标签时是否强制要求填写原因 【Swagger】User sets this to True if Reprint Reason field is required to be a mandatory field in Reprint Container Label page."
+        },
+        {
+          "name": "shopFloorSettings",
+          "type": "Navigation",
+          "description": "车间设置 → ShopFloorSettings 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "recipePattern",
+          "type": "String",
+          "description": "用于确定向设备下发哪套配方的表达式 【Swagger】InSite Unified Expression for determining what set of instructions to load to machines in this factory"
+        },
+        {
+          "name": "resourceStatusModel",
+          "type": "Navigation",
+          "description": "设备状态模型 → ResourceStatusModel 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "factoryLevelIndex",
+          "type": "Integer",
+          "description": "工厂在层级中的相对位置索引 【Swagger】Identifies the position of this factory relative to other factories under the same enterprise."
+        },
+        {
+          "name": "changeMgtApplication",
+          "type": "Navigation",
+          "description": "变更管理应用 → ChangeMgtApplication 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "allowLineSettingsOverride",
+          "type": "Boolean",
+          "description": "是否允许产线设置覆盖工厂设置 【Swagger】Allow Line Assignment Settings Override if set by Terminal"
+        },
+        {
+          "name": "smartScanRule",
+          "type": "Navigation",
+          "description": "智能扫描规则 → SmartScanRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        },
+        {
+          "name": "zifEventDestinationSubject",
+          "type": "String",
+          "description": "物理字段 zifEventDestinationSubject 【Swagger】zif Event Destination Subject"
+        },
+        {
+          "name": "zifDefaultOutboundDestinatio",
+          "type": "Navigation",
+          "description": "物理字段 zifDefaultOutboundDestinatioId → zifOutboundDestination"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "Site",
+      "toClass": "DataTransport",
+      "relationName": "HAS_E_MAIL_TRANSPORT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Site.EMailTransportId"
+    },
+    {
+      "fromClass": "Site",
+      "toClass": "Employee",
+      "relationName": "HAS_USER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Site.UserId"
+    },
+    {
+      "fromClass": "Site",
+      "toClass": "DataTransport",
+      "relationName": "HAS_DEFAULT_DATA_TRANSPORT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Site.DefaultDataTransportId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "Enterprise",
+      "relationName": "HAS_ENTERPRISE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.EnterpriseId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "BusinessRule",
+      "relationName": "HAS_DATE_CODE_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.DateCodeRuleId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "A_ShipPlantCode",
+      "relationName": "HAS_SHIP_PLANT_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.ShipPlantCodeId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "A_ShipFactoryCode",
+      "relationName": "HAS_SHIP_FACTORY_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.ShipFactoryCodeId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "scsStatusModel",
+      "relationName": "HAS_STATUS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.StatusModelId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "A_TerminateReason",
+      "relationName": "HAS_SCS_CARR_CON_DEFAULT_TERMINATE_RE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.scsCarrConDefaultTerminateReId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_SCS_CARRIER_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.scsCarrierNumberingRuleId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_SCS_CARRIER_RENAME_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.scsCarrierRenameRuleId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "MfgCalendar",
+      "relationName": "HAS_MFG_CALENDAR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.MfgCalendarId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "TrainingRequirementGroup",
+      "relationName": "HAS_TRAINING_REQ_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.TrainingReqGroupId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "DispatchRule",
+      "relationName": "HAS_DISPATCH_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.DispatchRuleId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "PrintQueue",
+      "relationName": "HAS_PRINT_QUEUE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.PrintQueueId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "DataTransport",
+      "relationName": "HAS_SMTP_TRANSPORT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.SMTPTransportId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_CONTAINER_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.ContainerNumberingRuleId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "Organization",
+      "relationName": "HAS_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.OrganizationId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_SLIT_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.SlitNumberingRuleId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "HoldReason",
+      "relationName": "HAS_CONTAINER_AUTO_HOLD_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.ContainerAutoHoldReasonId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "ShopFloorSettings",
+      "relationName": "HAS_SHOP_FLOOR_SETTINGS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.ShopFloorSettingsId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "ResourceStatusModel",
+      "relationName": "HAS_RESOURCE_STATUS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.ResourceStatusModelId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "ChangeMgtApplication",
+      "relationName": "HAS_CHANGE_MGT_APPLICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.ChangeMgtApplicationId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "SmartScanRule",
+      "relationName": "HAS_SMART_SCAN_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.SmartScanRuleId"
+    },
+    {
+      "fromClass": "Factory",
+      "toClass": "zifOutboundDestination",
+      "relationName": "HAS_ZIF_DEFAULT_OUTBOUND_DESTINATIO",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Factory.zifDefaultOutboundDestinatioId"
+    }
+  ]
+}

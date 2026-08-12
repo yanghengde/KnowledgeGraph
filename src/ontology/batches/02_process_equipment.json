@@ -1,0 +1,59 @@
+{
+  "module": "semiconductor_process_equipment",
+  "titleZh": "半导体工艺与设备能力建模",
+  "titleEn": "Semiconductor Process and Equipment Capability Modeling",
+  "overviewZh": "本批次覆盖工艺规格、工艺能力、设备约束、配方矩阵、设备参数和测试程序等半导体核心配置。",
+  "overviewEn": "This batch covers semiconductor process specifications, process capabilities, equipment constraints, recipe matrices, equipment parameters, and test-program configuration.",
+  "entities": [
+    {
+      "className": "A_ProcessSpec",
+      "chineseName": "半导体工艺规格",
+      "description": "定义可版本控制的半导体工艺规格及其有效期、周期时间、工作流和包装规则。"
+    },
+    {
+      "className": "A_ProcessSpecStatus",
+      "chineseName": "工艺规格状态",
+      "description": "定义工艺规格的可用状态目录。"
+    },
+    {
+      "className": "A_ProcessCapability",
+      "chineseName": "工艺能力",
+      "description": "定义设备可支持的工艺能力和多腔室条件。"
+    },
+    {
+      "className": "A_EquipmentMatrix",
+      "chineseName": "设备矩阵",
+      "description": "按产品、工艺规格、标准规格、设备组和工作流步骤配置可用设备。"
+    },
+    {
+      "className": "ss_EqpConstraintMatrix",
+      "chineseName": "设备约束矩阵",
+      "description": "定义具体设备或设备组的半导体约束矩阵。"
+    },
+    {
+      "className": "A_RecipeMatrix",
+      "chineseName": "配方矩阵",
+      "description": "按工艺能力、设备、产品、规格和工作流步骤选择生产配方与工装计划。"
+    },
+    {
+      "className": "ss_RecipeGroup",
+      "chineseName": "配方组",
+      "description": "定义半导体配方分组目录。"
+    },
+    {
+      "className": "A_ModifyAttrsSetup",
+      "chineseName": "属性修改配置",
+      "description": "定义可修改属性、字段类型、访问级别和修改原因要求。"
+    },
+    {
+      "className": "A_EquipmentParamList",
+      "chineseName": "设备参数列表",
+      "description": "定义设备参数列表主数据。"
+    },
+    {
+      "className": "A_TestProgramSetup",
+      "chineseName": "测试程序配置",
+      "description": "按产品线、产品、规格和工艺规格配置测试程序。"
+    }
+  ]
+}

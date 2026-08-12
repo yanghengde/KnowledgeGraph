@@ -1,0 +1,518 @@
+{
+  "module": "maintenance",
+  "classes": [
+    {
+      "className": "MaintenanceClass",
+      "chineseName": "维护分类",
+      "description": "MaintenanceClass — 维护分类。对设备(Resource)的维护需求进行分类的命名对象，例如：预防性维护、校准、检修、安全巡检等。每个设备可选指定一个维护分类(MaintenanceClass)来约束适用的维护需求类型。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "failureStatus",
+          "type": "Navigation",
+          "description": "物理字段 FailureStatusId → ResourceStatusCode"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "维护分类唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "MaintenanceReason",
+      "chineseName": "维护原因",
+      "description": "MaintenanceReason — 维护原因代码。用于指定设备执行维护活动时的具体业务原因，如设备故障、定期保养、性能下降、安全检查不合格等。被维护需求(MaintenanceReq)引用。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "维护原因唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "MaintenanceReq",
+      "chineseName": "维护需求",
+      "description": "MaintenanceReq — 维护需求定义（版本化实体）。定义设备的定期/按量维护需求规则，包含维护原因、BOM物料清单、检查清单(Checklist)、数据采集定义、文档集、电子签名要求、邮件通知等完整配置。支持基于时间或使用量(Thruput)两种触发模式，配置重复周期、频率、发生次数等调度参数。通过 AssignedMaintReq 分配给 MaintenanceClass 或 Resource 执行。",
+      "properties": [
+        {
+          "name": "maintenanceReqBase",
+          "type": "Navigation",
+          "description": "物理字段 MaintenanceReqBaseId → MaintenanceReqBase"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "estimatedDuration",
+          "type": "Float",
+          "description": "预计维护工时"
+        },
+        {
+          "name": "enforceChecklistSequence",
+          "type": "Boolean",
+          "description": "是否强制按顺序执行检查清单"
+        },
+        {
+          "name": "thruputFactorType2",
+          "type": "String",
+          "description": "物理字段 ThruputFactorType2"
+        },
+        {
+          "name": "thruputFactorType",
+          "type": "String",
+          "description": "物理字段 ThruputFactorType"
+        },
+        {
+          "name": "thruputFactor2",
+          "type": "Float",
+          "description": "物理字段 ThruputFactor2"
+        },
+        {
+          "name": "thruputFactor",
+          "type": "Float",
+          "description": "物理字段 ThruputFactor"
+        },
+        {
+          "name": "jobModel",
+          "type": "Navigation",
+          "description": "维护作业模型"
+        },
+        {
+          "name": "ssMaxUsageCount",
+          "type": "Float",
+          "description": "物理字段 ss_MaxUsageCount"
+        },
+        {
+          "name": "ssClearDelayDetails",
+          "type": "Boolean",
+          "description": "物理字段 ss_ClearDelayDetails"
+        },
+        {
+          "name": "ssMaxDelayUsageCount",
+          "type": "Float",
+          "description": "物理字段 ss_MaxDelayUsageCount"
+        },
+        {
+          "name": "ssMayBeDelayed",
+          "type": "Boolean",
+          "description": "物理字段 ss_MayBeDelayed"
+        },
+        {
+          "name": "ssMayBeWaived",
+          "type": "Boolean",
+          "description": "物理字段 ss_MayBeWaived"
+        },
+        {
+          "name": "ssMaxDelayPeriod",
+          "type": "Float",
+          "description": "物理字段 ss_MaxDelayPeriod"
+        },
+        {
+          "name": "ssESigReqForWaiveOrDelayMai",
+          "type": "Navigation",
+          "description": "物理字段 ss_ESigReqForWaiveOrDelayMaiId → ESigRequirement"
+        },
+        {
+          "name": "ssMaxDelayThruputQty",
+          "type": "Float",
+          "description": "物理字段 ss_MaxDelayThruputQty"
+        },
+        {
+          "name": "ssMaxDelayThruputQty2",
+          "type": "Float",
+          "description": "物理字段 ss_MaxDelayThruputQty2"
+        },
+        {
+          "name": "ssToleranceUsageCount",
+          "type": "Float",
+          "description": "物理字段 ss_ToleranceUsageCount"
+        },
+        {
+          "name": "ssWarningUsageCount",
+          "type": "Float",
+          "description": "物理字段 ss_WarningUsageCount"
+        },
+        {
+          "name": "calculatedEndDate",
+          "type": "DateTime",
+          "description": "物理字段 CalculatedEndDate"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "工程变更单号(ECO)"
+        },
+        {
+          "name": "pendingEmailText",
+          "type": "String",
+          "description": "预警通知邮件内容"
+        },
+        {
+          "name": "occurrences",
+          "type": "Integer",
+          "description": "重复次数"
+        },
+        {
+          "name": "recurringDateType",
+          "type": "Integer",
+          "description": "日期重复类型编码"
+        },
+        {
+          "name": "dayOfWeek",
+          "type": "Integer",
+          "description": "物理字段 DayOfWeek"
+        },
+        {
+          "name": "monthOfYear",
+          "type": "Integer",
+          "description": "物理字段 MonthOfYear"
+        },
+        {
+          "name": "dayOfMonth",
+          "type": "Integer",
+          "description": "物理字段 DayOfMonth"
+        },
+        {
+          "name": "frequency",
+          "type": "Integer",
+          "description": "重复频率"
+        },
+        {
+          "name": "seedDate",
+          "type": "DateTime",
+          "description": "种子起始日期"
+        },
+        {
+          "name": "scheduleDate",
+          "type": "DateTime",
+          "description": "计划维护日期（首次）"
+        },
+        {
+          "name": "dueEmailText",
+          "type": "String",
+          "description": "到期通知邮件内容"
+        },
+        {
+          "name": "pastDueEmailText",
+          "type": "String",
+          "description": "逾期通知邮件内容"
+        },
+        {
+          "name": "qty",
+          "type": "Float",
+          "description": "基于数量的触发值1"
+        },
+        {
+          "name": "uom",
+          "type": "Navigation",
+          "description": "基于数量维护的主计量单位 → UOM"
+        },
+        {
+          "name": "qty2",
+          "type": "Float",
+          "description": "基于数量的触发值2"
+        },
+        {
+          "name": "uom2",
+          "type": "Navigation",
+          "description": "基于数量维护的副计量单位 → UOM"
+        },
+        {
+          "name": "toleranceQty",
+          "type": "Float",
+          "description": "物理字段 ToleranceQty"
+        },
+        {
+          "name": "endDate",
+          "type": "DateTime",
+          "description": "维护周期结束日期"
+        },
+        {
+          "name": "warningQty2",
+          "type": "Float",
+          "description": "物理字段 WarningQty2"
+        },
+        {
+          "name": "toleranceQty2",
+          "type": "Float",
+          "description": "物理字段 ToleranceQty2"
+        },
+        {
+          "name": "tolerancePeriod",
+          "type": "Float",
+          "description": "容忍期（到期后仍可继续使用的宽限期）"
+        },
+        {
+          "name": "warningPeriod",
+          "type": "Float",
+          "description": "预警期（到期前开始发送预警通知的时间）"
+        },
+        {
+          "name": "recurringDatePattern",
+          "type": "Integer",
+          "description": "日期重复模式编码"
+        },
+        {
+          "name": "warningQty",
+          "type": "Float",
+          "description": "物理字段 WarningQty"
+        },
+        {
+          "name": "firstMaintDateDue",
+          "type": "DateTime",
+          "description": "物理字段 FirstMaintDateDue"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "maintenanceReason",
+          "type": "Navigation",
+          "description": "维护原因（必填）"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "关联的文档集"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态：1=Active, 2=Inactive"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "修订版本号（必填）"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "eSigRequirement",
+          "type": "Navigation",
+          "description": "电子签名要求"
+        },
+        {
+          "name": "scheduleDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ScheduleDateGMT"
+        },
+        {
+          "name": "calculatedEndDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 CalculatedEndDateGMT"
+        },
+        {
+          "name": "endDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EndDateGMT"
+        },
+        {
+          "name": "firstMaintDateDueGmt",
+          "type": "DateTime",
+          "description": "物理字段 FirstMaintDateDueGMT"
+        },
+        {
+          "name": "seedDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 SeedDateGMT"
+        },
+        {
+          "name": "timeZone",
+          "type": "String",
+          "description": "物理字段 TimeZone"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        },
+        {
+          "name": "dataCollectionDefBase",
+          "type": "Integer",
+          "description": "物理字段 DataCollectionDefBaseId"
+        },
+        {
+          "name": "dataCollection",
+          "type": "Navigation",
+          "description": "物理字段 DataCollectionDefId → DataCollectionDef"
+        },
+        {
+          "name": "bom",
+          "type": "Navigation",
+          "description": "维护所需物料BOM"
+        },
+        {
+          "name": "bomBase",
+          "type": "Integer",
+          "description": "物理字段 BOMBaseId"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "MaintenanceClass",
+      "toClass": "ResourceStatusCode",
+      "relationName": "HAS_FAILURE_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceClass.FailureStatusId"
+    },
+    {
+      "fromClass": "MaintenanceReq",
+      "toClass": "MaintenanceReqBase",
+      "relationName": "HAS_MAINTENANCE_REQ_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceReq.MaintenanceReqBaseId"
+    },
+    {
+      "fromClass": "MaintenanceReq",
+      "toClass": "A_JobModel",
+      "relationName": "HAS_JOB_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceReq.JobModelId"
+    },
+    {
+      "fromClass": "MaintenanceReq",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceReq.UOMId"
+    },
+    {
+      "fromClass": "MaintenanceReq",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM2",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceReq.UOM2Id"
+    },
+    {
+      "fromClass": "MaintenanceReq",
+      "toClass": "MaintenanceReason",
+      "relationName": "HAS_MAINTENANCE_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceReq.MaintenanceReasonId"
+    },
+    {
+      "fromClass": "MaintenanceReq",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceReq.DocumentSetId"
+    },
+    {
+      "fromClass": "MaintenanceReq",
+      "toClass": "DataCollectionDef",
+      "relationName": "HAS_DATA_COLLECTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceReq.DataCollectionDefId"
+    },
+    {
+      "fromClass": "MaintenanceReq",
+      "toClass": "A_ResourceBOM",
+      "relationName": "HAS_BOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "MaintenanceReq.BOMId"
+    }
+  ]
+}

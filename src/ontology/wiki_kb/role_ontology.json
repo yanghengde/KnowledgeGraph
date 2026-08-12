@@ -1,0 +1,59 @@
+{
+  "module": "role",
+  "classes": [
+    {
+      "className": "RoleDef",
+      "chineseName": "角色定义",
+      "description": "RoleDef — 系统角色定义实体。物理上对应 RoleDef (CdoId: 914)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "设置/换线权限配置（物理：SetupAccessId）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录（物理：ChangeHistoryId）"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "角色描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "角色的唯一名称（物理：RoleName）",
+          "required": true
+        },
+        {
+          "name": "roleType",
+          "type": "Integer",
+          "description": "角色类别（物理：RoleType）"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_scheduling_flow",
+  "titleZh": "半导体排程与工艺流控制建模",
+  "titleEn": "Semiconductor Scheduling and Process-Flow Control Modeling",
+  "overviewZh": "本批次覆盖日历、派工、排程、步骤逻辑、周期时间、Send Ahead及制造线等配置。",
+  "overviewEn": "This batch covers calendars, dispatch, scheduling, step logic, cycle time, send-ahead, and manufacturing-line configuration.",
+  "entities": [
+    {"className": "A_AreaGroup", "chineseName": "区域组", "description": "定义制造区域分组。"},
+    {"className": "A_AutomationPlan", "chineseName": "自动化计划", "description": "定义自动化执行计划。"},
+    {"className": "A_Calendar", "chineseName": "半导体日历", "description": "定义班次、工作周和节假日生产日历。"},
+    {"className": "A_CalendarHolidays", "chineseName": "日历节假日", "description": "定义生产日历节假日规则。"},
+    {"className": "A_CalendarShiftsCycle", "chineseName": "日历班次周期", "description": "定义日历班次轮换周期。"},
+    {"className": "A_CycleTimeHolidays", "chineseName": "周期时间节假日", "description": "定义周期时间计算使用的节假日。"},
+    {"className": "A_DispatchPlan", "chineseName": "派工计划", "description": "定义半导体派工计划。"},
+    {"className": "A_EqpDispatchQueryMatrix", "chineseName": "设备派工查询矩阵", "description": "按设备、产品和工艺上下文选择派工查询。"},
+    {"className": "A_ScheduleInstructions", "chineseName": "排程指令", "description": "定义排程使用的作业指令。"},
+    {"className": "A_StepCycleTimeSetup", "chineseName": "步骤周期时间配置", "description": "按产品和工艺步骤配置标准周期时间。"},
+    {"className": "A_StepLogic", "chineseName": "步骤逻辑", "description": "定义工作流步骤上的半导体控制逻辑。"},
+    {"className": "scsSchedulingMatrix", "chineseName": "排程矩阵", "description": "按产品、设备、规格和步骤选择排程配置。"},
+    {"className": "ss_MfgLine", "chineseName": "半导体制造线", "description": "定义半导体制造线主数据。"},
+    {"className": "ss_ProcessTimerMatrix", "chineseName": "工艺计时器矩阵", "description": "按工艺上下文选择过程计时器。"},
+    {"className": "ss_SendAheadMatrix", "chineseName": "Send Ahead矩阵", "description": "定义批次提前送往后续步骤的控制矩阵。"}
+  ]
+}

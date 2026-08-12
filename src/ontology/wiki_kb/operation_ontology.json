@@ -1,0 +1,460 @@
+{
+  "module": "operation",
+  "classes": [
+    {
+      "className": "ContainerLevel",
+      "chineseName": "容器级别",
+      "description": "ContainerLevel — 容器级别（命名对象）。定义在制品容器(Container)的追踪层级，如 Unit(单件)、Panel(拼板)、Batch(批次) 等。每个级别可配置容器编号规则(NumberingRule)、是否允许移动(AllowMove)、是否名称唯一(IsNameUnique)、级别类型(ES_LevelType)，以及 WIP 消息配置和 UI 偏好。Operation 通过 ThruputReportingLevelId 指定产出报告的容器级别。 【Swagger】Schema: ContainerLevelEntity；来源文件: ContainerLevels.json；API: /api/ContainerLevels。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "uiPreference",
+          "type": "Navigation",
+          "description": "UI显示配置偏好 → UIPreference 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "容器级别名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息定义管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "allowMove",
+          "type": "Boolean",
+          "description": "是否允许在该级别执行移动事务 【Swagger】Determines if a Container of this level can be the primary Container in a Move transaction. This is in contrast to being moved as a Child (or other descendent) of another Container."
+        },
+        {
+          "name": "wipMsgConfig",
+          "type": "Navigation",
+          "description": "WIP消息配置 → WIPMsgConfig 【Swagger】引用 Schema: WIPMsgConfigChanges。"
+        },
+        {
+          "name": "isNameUnique",
+          "type": "Boolean",
+          "description": "容器名称在该级别内是否唯一 【Swagger】Determines if multiple containers of this Level can have the same name."
+        },
+        {
+          "name": "containerNumberingRule",
+          "type": "Navigation",
+          "description": "容器编号规则 → NumberingRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "Operation",
+      "chineseName": "工序/操作",
+      "description": "Operation — 工序/操作（命名对象）。定义制造过程中的操作节点，是追踪 WIP 和关联各类原因代码组的核心实体。配置是否在途(InTransit)、是否库存点(InventoryPoint)、是否外协(OutsideServicePoint)、是否启用队列(UseQueue)、产出汇总(SummaryThruput)和产出报告级别(ThruputReportingLevelId → ContainerLevel)。关联工作中心(WorkCenter)、派工规则(DispatchRule)、培训要求(TrainingReqGroup)以及多种原因代码组(Bonus/Buy/Rework/Loss/LocalRework/ContainerDefect/ComponentDefect 等)。 【Swagger】Schema: OperationEntity；来源文件: Operations.json；API: /api/Operations。",
+      "properties": [
+        {
+          "name": "objectType",
+          "type": "String",
+          "description": "物理字段 ObjectType"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "objectCategory",
+          "type": "String",
+          "description": "物理字段 ObjectCategory"
+        },
+        {
+          "name": "operationGroup",
+          "type": "Navigation",
+          "description": "物理字段 OperationGroupId → A_OperationGroup"
+        },
+        {
+          "name": "impoundAge",
+          "type": "Float",
+          "description": "物理字段 ImpoundAge"
+        },
+        {
+          "name": "impoundType",
+          "type": "Navigation",
+          "description": "物理字段 ImpoundTypeId → A_ImpoundType"
+        },
+        {
+          "name": "externalLocationType",
+          "type": "Navigation",
+          "description": "物理字段 ExternalLocationTypeId → A_ExternalLocationType"
+        },
+        {
+          "name": "skipIntegration",
+          "type": "Boolean",
+          "description": "物理字段 SkipIntegration"
+        },
+        {
+          "name": "externalLocation",
+          "type": "Navigation",
+          "description": "物理字段 ExternalLocationId → A_ExternalLocation"
+        },
+        {
+          "name": "defaultRollupReason",
+          "type": "Navigation",
+          "description": "默认的汇总原因码 → RollupReason 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "componentDefectReasons",
+          "type": "Navigation",
+          "description": "组件缺陷原因组 → CompDefectReasonGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "buyReasons",
+          "type": "Navigation",
+          "description": "购买原因组 → BuyReasonGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "qtyAdjustReason",
+          "type": "Navigation",
+          "description": "物理字段 QtyAdjustReasonId → QtyAdjustGroup"
+        },
+        {
+          "name": "sellReasons",
+          "type": "Navigation",
+          "description": "允许的销售原因组限制 → SellReasonGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "shipmentDestinations",
+          "type": "Navigation",
+          "description": "允许的出货目的地组限制 → ShipmentDestinationGrp 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "useQueue",
+          "type": "Boolean",
+          "description": "是否使用队列状态跟踪待处理容器 【Swagger】General purpose True/False field value."
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "WIP消息定义管理器 → WIPMsgDefMgr 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "schedulingDetail",
+          "type": "Navigation",
+          "description": "排程明细 → OperationSchedulingDetail 【Swagger】引用 Schema: OperationSchedulingDetailChanges。"
+        },
+        {
+          "name": "workCenter",
+          "type": "Navigation",
+          "description": "工作中心 → WorkCenter 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "工序名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "物理字段 ChangeStatusId → ChangeStatus"
+        },
+        {
+          "name": "lossReasons",
+          "type": "Navigation",
+          "description": "损耗原因组 → LossReasonGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "containerDefectReasons",
+          "type": "Navigation",
+          "description": "容器缺陷原因组 → ContDefectReasonGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "bonusReasons",
+          "type": "Navigation",
+          "description": "奖励原因组 → BonusReasonGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "localReworkReasons",
+          "type": "Navigation",
+          "description": "本地返工原因组 → LocalReworkReasonGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "reworkReasons",
+          "type": "Navigation",
+          "description": "返工原因组 → ReworkReasonGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "inTransit",
+          "type": "Boolean",
+          "description": "是否视为在途操作 【Swagger】General purpose True/False field value."
+        },
+        {
+          "name": "inventoryPoint",
+          "type": "Boolean",
+          "description": "是否为库存持有点 【Swagger】General purpose True/False field value."
+        },
+        {
+          "name": "outsideServicePoint",
+          "type": "Boolean",
+          "description": "是否为外部服务点（外协） 【Swagger】General purpose True/False field value."
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "summaryThruput",
+          "type": "Boolean",
+          "description": "是否在顶层记录产出信息 【Swagger】General purpose True/False field value."
+        },
+        {
+          "name": "thruputReportingLevel",
+          "type": "Navigation",
+          "description": "产出报告容器级别 → ContainerLevel 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "autoAdjustReason",
+          "type": "Integer",
+          "description": "关联的自动调整原因。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "autoAdjustLimit",
+          "type": "Float",
+          "description": "自动调整数量上限 【Swagger】Material quantity (individual)"
+        },
+        {
+          "name": "trainingReqGroup",
+          "type": "Navigation",
+          "description": "培训要求组 → TrainingRequirementGroup 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "image",
+          "type": "String",
+          "description": "关联的图片标识 【Swagger】Image"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "rejectIncomingNcContainer",
+          "type": "Boolean",
+          "description": "物理字段 RejectIncomingNCContainer"
+        },
+        {
+          "name": "dispatchRule",
+          "type": "Navigation",
+          "description": "派工规则 → DispatchRule 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "printQueue",
+          "type": "Navigation",
+          "description": "打印队列 → PrintQueue 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "actionsMenu",
+          "type": "Navigation",
+          "description": "操作菜单 → ActionsMenu 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ContainerLevel",
+      "toClass": "NumberingRule",
+      "relationName": "HAS_CONTAINER_NUMBERING_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ContainerLevel.ContainerNumberingRuleId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "A_OperationGroup",
+      "relationName": "HAS_OPERATION_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.OperationGroupId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "A_ImpoundType",
+      "relationName": "HAS_IMPOUND_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.ImpoundTypeId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "A_ExternalLocationType",
+      "relationName": "HAS_EXTERNAL_LOCATION_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.ExternalLocationTypeId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "A_ExternalLocation",
+      "relationName": "HAS_EXTERNAL_LOCATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.ExternalLocationId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "RollupReason",
+      "relationName": "HAS_DEFAULT_ROLLUP_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.DefaultRollupReasonId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "CompDefectReasonGroup",
+      "relationName": "HAS_COMPONENT_DEFECT_REASONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.ComponentDefectReasonsId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "BuyReasonGroup",
+      "relationName": "HAS_BUY_REASONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.BuyReasonsId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "QtyAdjustGroup",
+      "relationName": "HAS_QTY_ADJUST_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.QtyAdjustReasonId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "SellReasonGroup",
+      "relationName": "HAS_SELL_REASONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.SellReasonsId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "ShipmentDestinationGrp",
+      "relationName": "HAS_SHIPMENT_DESTINATIONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.ShipmentDestinationsId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "WorkCenter",
+      "relationName": "HAS_WORK_CENTER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.WorkCenterId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "LossReasonGroup",
+      "relationName": "HAS_LOSS_REASONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.LossReasonsId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "ContDefectReasonGroup",
+      "relationName": "HAS_CONTAINER_DEFECT_REASONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.ContainerDefectReasonsId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "BonusReasonGroup",
+      "relationName": "HAS_BONUS_REASONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.BonusReasonsId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "LocalReworkReasonGroup",
+      "relationName": "HAS_LOCAL_REWORK_REASONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.LocalReworkReasonsId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "ReworkReasonGroup",
+      "relationName": "HAS_REWORK_REASONS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.ReworkReasonsId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "ContainerLevel",
+      "relationName": "HAS_THRUPUT_REPORTING_LEVEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.ThruputReportingLevelId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "TrainingRequirementGroup",
+      "relationName": "HAS_TRAINING_REQ_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.TrainingReqGroupId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "DispatchRule",
+      "relationName": "HAS_DISPATCH_RULE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.DispatchRuleId"
+    },
+    {
+      "fromClass": "Operation",
+      "toClass": "PrintQueue",
+      "relationName": "HAS_PRINT_QUEUE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Operation.PrintQueueId"
+    }
+  ]
+}

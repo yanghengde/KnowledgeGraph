@@ -1,0 +1,54 @@
+{
+  "module": "returned_equipment_action",
+  "classes": [
+    {
+      "className": "ReturnedEquipmentAction",
+      "chineseName": "设备退回处理动作",
+      "description": "Returned Equipment Action — 设备退回处理动作定义实体（CdoId: 7583）。定义设备/工装退回时的处理动作代码（如检查、维修、报废、重新入库等），用于设备退回流程中指定后续处理方式。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "处理动作的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

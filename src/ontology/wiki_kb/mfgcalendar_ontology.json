@@ -1,0 +1,136 @@
+{
+  "module": "mfgcalendar",
+  "classes": [
+    {
+      "className": "MfgCalendar",
+      "chineseName": "制造日历",
+      "description": "MfgCalendar — 制造日历。定义工厂的班次排程、制造日期和财会期间。包含多个 CalendarShift 条目，每条记录班次起止时间(ShiftStart/ShiftEnd)、制造日期、财会周期(年/季/月/周)和排程信息。Factory 和 WorkCenter 通过 USES_MFG_CALENDAR 引用。 【Swagger】Schema: MfgCalendarEntity；来源文件: MfgCalendars.json；API: /api/MfgCalendars。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "安全配置访问控制 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "制造日历唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "maxShiftDuration",
+          "type": "Float",
+          "description": "日历中班次的最大时长（只读） 【Swagger】Indicates the maximum duration of a CalendarShift."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "CalendarShift",
+      "chineseName": "日历班次条目",
+      "description": "CalendarShift — 日历班次条目（MfgCalendar 的子实体）。记录制造日历中每个班次的起止时间(ShiftStart/ShiftEnd)、制造日期(CalendarDate)、财会期间（年/季/月/周）、非排程时间(isNonScheduledTime)，以及关联的班次类型(Shift)和班组(Team)。 【Swagger】Schema: CalendarShiftChanges；来源文件: MfgCalendars.json；API: /api/MfgCalendars。",
+      "properties": [
+        {
+          "name": "mfgCalendar",
+          "type": "Integer",
+          "description": "物理字段 MfgCalendarId"
+        },
+        {
+          "name": "shiftStart",
+          "type": "DateTime",
+          "description": "班次开始时间 【Swagger】The start time of the shift."
+        },
+        {
+          "name": "shiftEnd",
+          "type": "DateTime",
+          "description": "班次结束时间 【Swagger】The end time of the shift."
+        },
+        {
+          "name": "team",
+          "type": "Navigation",
+          "description": "班组 → Team 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "calendarDate",
+          "type": "DateTime",
+          "description": "制造日期 【Swagger】Factories often have shift schedules that result in a shift starting work on one date and ending on another date; where 12 midnight is in the middle of the shift. For these factories, it is normal to have a concept of \"Manufacturing Date\" that enables any particular shift to fall entirely on one particular manufacturing day. A factory with shifts that start at 7am, 3pm, and 11pm will normally have a \"Manufacturing Date\" that begins on 11pm of the previous clock date, and ends at 11pm of the current clock date."
+        },
+        {
+          "name": "fiscalYear",
+          "type": "Integer",
+          "description": "财年 【Swagger】Accounting information that describes how to group manufacturing dates into accounting periods (typically Year, Quarter, Month, and Week)."
+        },
+        {
+          "name": "fiscalQuarter",
+          "type": "Integer",
+          "description": "财季 【Swagger】Accounting information that describes how to group manufacturing dates into accounting periods (typically Year, Quarter, Month, and Week)"
+        },
+        {
+          "name": "fiscalMonth",
+          "type": "Integer",
+          "description": "财月 【Swagger】Accounting information that describes how to group manufacturing dates into accounting periods (typically Year, Quarter, Month, and Week)."
+        },
+        {
+          "name": "fiscalWeek",
+          "type": "Integer",
+          "description": "财周 【Swagger】Accounting information that describes how to group manufacturing dates into accounting periods (typically Year, Quarter, Month, and Week)."
+        },
+        {
+          "name": "shift",
+          "type": "Navigation",
+          "description": "班次类型 → Shift 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "CalendarShift",
+      "toClass": "Team",
+      "relationName": "HAS_TEAM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CalendarShift.TeamId"
+    },
+    {
+      "fromClass": "CalendarShift",
+      "toClass": "Shift",
+      "relationName": "HAS_SHIFT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CalendarShift.ShiftId"
+    }
+  ]
+}

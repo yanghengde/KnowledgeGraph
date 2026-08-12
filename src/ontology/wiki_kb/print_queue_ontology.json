@@ -1,0 +1,75 @@
+{
+  "module": "print_queue",
+  "classes": [
+    {
+      "className": "PrintQueue",
+      "chineseName": "打印队列",
+      "description": "Print Queue — 打印机队列配置实体（CdoId: 7288）。定义标签打印机队列的位置和参数配置，包括字符编码类型(encodingType)、输出到文件(outputToFile)或直接发送到打印机、序列化标签的文件路径模板(printFile)以及打印队列位置标识(printQueue)。Organization、Part 和 PartFamily 都通过 printQueue 字段引用打印队列。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明（InSite 可用打印机列表）"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "打印队列的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "printQueue",
+          "type": "String",
+          "description": "打印队列位置标识（必填）",
+          "required": true
+        },
+        {
+          "name": "outputToFile",
+          "type": "Boolean",
+          "description": "是否序列化标签到文件（而非直接发送到打印机）"
+        },
+        {
+          "name": "printFile",
+          "type": "String",
+          "description": "序列化标签的文件路径和模板名称"
+        },
+        {
+          "name": "encodingType",
+          "type": "Integer",
+          "description": "字符编码方法：1=UTF-16 LE, 2=UTF-16 BE, 3=UTF-8, 4=ASCII"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

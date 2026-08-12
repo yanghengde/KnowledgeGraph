@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "dimensions": [
+    {
+      "id": "mfg_order",
+      "nameZh": "制造工单",
+      "table": "MfgOrder",
+      "key": "MfgOrderId",
+      "label": "MfgOrderName"
+    },
+    {
+      "id": "resource",
+      "nameZh": "设备资源",
+      "table": "ResourceDef",
+      "key": "ResourceId",
+      "label": "ResourceName"
+    },
+    {
+      "id": "operation",
+      "nameZh": "工序",
+      "table": "Operation",
+      "key": "OperationId",
+      "label": "OperationName"
+    },
+    {
+      "id": "product",
+      "nameZh": "产品",
+      "table": "Product",
+      "key": "ProductId",
+      "label": "ProductName"
+    },
+    {
+      "id": "container",
+      "nameZh": "容器/批次",
+      "table": "Container",
+      "key": "ContainerId",
+      "label": "ContainerName"
+    }
+  ]
+}

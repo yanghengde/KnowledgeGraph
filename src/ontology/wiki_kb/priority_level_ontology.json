@@ -1,0 +1,54 @@
+{
+  "module": "priority_level",
+  "classes": [
+    {
+      "className": "PriorityLevel",
+      "chineseName": "优先级",
+      "description": "Priority Level — 优先级定义实体（CdoId: 7475）。定义系统中的优先级等级（如高、中、低、紧急等），用于对不同业务对象（如质量事件、变更包、工单）进行紧急程度分级。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "优先级等级的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    }
+  ],
+  "relationships": []
+}

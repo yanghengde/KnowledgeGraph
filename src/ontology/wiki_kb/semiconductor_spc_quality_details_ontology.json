@@ -1,0 +1,883 @@
+{
+  "module": "semiconductor_spc_quality_details",
+  "classes": [
+    {
+      "className": "A_SPCMatrixParams",
+      "chineseName": "SPC矩阵参数",
+      "description": "定义SPC矩阵参数。 物理对应 A_SPCMatrixParams (CdoId: 679477465, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "spcMatrix",
+          "type": "Navigation",
+          "description": "物理字段 SPCMatrixId → A_SPCMatrix"
+        },
+        {
+          "name": "paramValue",
+          "type": "String",
+          "description": "物理字段 ParamValue"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "spcSetupDetailsName",
+          "type": "String",
+          "description": "物理字段 SPCSetupDetailsName"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        }
+      ]
+    },
+    {
+      "className": "A_SPCRulesParams",
+      "chineseName": "SPC规则参数",
+      "description": "定义SPC规则参数。 物理对应 A_SPCRulesParams (CdoId: 679477370, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "spcRules",
+          "type": "Navigation",
+          "description": "物理字段 SPCRulesId → A_SPCRules"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        },
+        {
+          "name": "defaultValue",
+          "type": "String",
+          "description": "物理字段 DefaultValue"
+        }
+      ]
+    },
+    {
+      "className": "A_SPCSetupDetails",
+      "chineseName": "SPC配置明细",
+      "description": "定义SPC图表和数据项明细。 物理对应 A_SPCSetupDetails (CdoId: 679477369, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "spcSetup",
+          "type": "Navigation",
+          "description": "物理字段 SPCSetupId → A_SPCSetup"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "spcRules",
+          "type": "Navigation",
+          "description": "物理字段 SPCRulesId → A_SPCRules"
+        },
+        {
+          "name": "spcChart",
+          "type": "Navigation",
+          "description": "物理字段 SPCChartId → A_SPCChart"
+        },
+        {
+          "name": "failureAction",
+          "type": "String",
+          "description": "物理字段 FailureAction"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SPCSetupDetailsName",
+          "required": true
+        },
+        {
+          "name": "scsLegendLocation",
+          "type": "Integer",
+          "description": "物理字段 scsLegendLocation"
+        },
+        {
+          "name": "scsResolvedTitle",
+          "type": "String",
+          "description": "物理字段 scsResolvedTitle"
+        },
+        {
+          "name": "spcChartTypeInline",
+          "type": "Navigation",
+          "description": "物理字段 SPCChartTypeInlineId → A_SPCChart"
+        },
+        {
+          "name": "scsDvnResolvedValue",
+          "type": "String",
+          "description": "物理字段 scsDVNResolvedValue"
+        },
+        {
+          "name": "scsSpcQueryOverride",
+          "type": "Navigation",
+          "description": "物理字段 scsSPCQueryOverrideId → UserQuery"
+        },
+        {
+          "name": "scsDvnOverride",
+          "type": "String",
+          "description": "物理字段 scsDVNOverride"
+        },
+        {
+          "name": "scsRslOverride",
+          "type": "Integer",
+          "description": "物理字段 scsRSLOverride"
+        },
+        {
+          "name": "scsDvnIsDynamic",
+          "type": "Boolean",
+          "description": "物理字段 scsDVNIsDynamic"
+        },
+        {
+          "name": "scsReqOverrideAnnotations",
+          "type": "Boolean",
+          "description": "物理字段 scsReqOverrideAnnotations"
+        },
+        {
+          "name": "ssFailureFutureHoldSetup",
+          "type": "Navigation",
+          "description": "物理字段 ss_FailureFutureHoldSetupId → ss_FailureFutureHoldSetup"
+        },
+        {
+          "name": "ssFailureNcrSetup",
+          "type": "Navigation",
+          "description": "物理字段 ss_FailureNCRSetupId → ss_FailureNCRSetup"
+        },
+        {
+          "name": "ssFailureHoldReason",
+          "type": "Navigation",
+          "description": "物理字段 ss_FailureHoldReasonId → HoldReason"
+        },
+        {
+          "name": "ssAnnvarTertiaryValue",
+          "type": "String",
+          "description": "物理字段 ss_ANNVARTertiaryValue"
+        },
+        {
+          "name": "ssXAxisTrendValue",
+          "type": "String",
+          "description": "物理字段 ss_XAxisTrendValue"
+        },
+        {
+          "name": "ssDataValue",
+          "type": "String",
+          "description": "物理字段 ss_DataValue"
+        },
+        {
+          "name": "ssSpcRuleDataPointAnalysisMet",
+          "type": "String",
+          "description": "物理字段 ss_SPCRuleDataPointAnalysisMet"
+        },
+        {
+          "name": "ssDisplayHistoricalLimits",
+          "type": "Boolean",
+          "description": "物理字段 ss_DisplayHistoricalLimits"
+        },
+        {
+          "name": "ssSubgroupPlotMethod",
+          "type": "String",
+          "description": "物理字段 ss_SubgroupPlotMethod"
+        },
+        {
+          "name": "ssXAxisDisplayValue",
+          "type": "String",
+          "description": "物理字段 ss_XAxisDisplayValue"
+        },
+        {
+          "name": "ssAnnvarPrimaryValue",
+          "type": "String",
+          "description": "物理字段 ss_ANNVARPrimaryValue"
+        },
+        {
+          "name": "ssIsYVariable",
+          "type": "Boolean",
+          "description": "物理字段 ss_IsYVariable"
+        },
+        {
+          "name": "ssAnnvarSecondaryValue",
+          "type": "String",
+          "description": "物理字段 ss_ANNVARSecondaryValue"
+        }
+      ]
+    },
+    {
+      "className": "A_SPCSetupDetailsInlineParam",
+      "chineseName": "SPC内联参数",
+      "description": "定义SPC配置内联参数。 物理对应 A_SPCSetupDetailsInlineParam (CdoId: 681574519, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "paramValue",
+          "type": "String",
+          "description": "物理字段 ParamValue"
+        },
+        {
+          "name": "spcSetupDetailsIlParamsName",
+          "type": "String",
+          "description": "物理字段 SPCSetupDetailsILParamsName"
+        },
+        {
+          "name": "spcSetupDetails",
+          "type": "Navigation",
+          "description": "物理字段 SPCSetupDetailsId → A_SPCSetupDetails"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "paramType",
+          "type": "String",
+          "description": "物理字段 ParamType"
+        },
+        {
+          "name": "allowMatrixOverride",
+          "type": "Boolean",
+          "description": "物理字段 AllowMatrixOverride"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        }
+      ]
+    },
+    {
+      "className": "A_SPCSetupDetailsParams",
+      "chineseName": "SPC明细参数",
+      "description": "定义SPC明细参数。 物理对应 A_SPCSetupDetailsParams (CdoId: 679477375, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "paramValue",
+          "type": "String",
+          "description": "物理字段 ParamValue"
+        },
+        {
+          "name": "spcSetupDetails",
+          "type": "Navigation",
+          "description": "物理字段 SPCSetupDetailsId → A_SPCSetupDetails"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        },
+        {
+          "name": "paramType",
+          "type": "String",
+          "description": "物理字段 ParamType"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "allowMatrixOverride",
+          "type": "Boolean",
+          "description": "物理字段 AllowMatrixOverride"
+        }
+      ]
+    },
+    {
+      "className": "A_SPCSetupDetailsTitle",
+      "chineseName": "SPC明细标题",
+      "description": "定义SPC明细显示标题。 物理对应 A_SPCSetupDetailsTitle (CdoId: 681574517, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SPCSetupDetailsTitleName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "spcSetupDetails",
+          "type": "Navigation",
+          "description": "物理字段 SPCSetupDetailsId → A_SPCSetupDetails"
+        },
+        {
+          "name": "scsTitleRow",
+          "type": "Integer",
+          "description": "物理字段 scsTitleRow"
+        },
+        {
+          "name": "scsTitleContent",
+          "type": "String",
+          "description": "物理字段 scsTitleContent"
+        },
+        {
+          "name": "scsIsDynamic",
+          "type": "Boolean",
+          "description": "物理字段 scsIsDynamic"
+        }
+      ]
+    },
+    {
+      "className": "A_SPCSetupParams",
+      "chineseName": "SPC配置参数",
+      "description": "定义SPC配置级参数。 物理对应 A_SPCSetupParams (CdoId: 679477373, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "spcSetup",
+          "type": "Navigation",
+          "description": "物理字段 SPCSetupId → A_SPCSetup"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        },
+        {
+          "name": "paramValue",
+          "type": "String",
+          "description": "物理字段 ParamValue"
+        },
+        {
+          "name": "isDynamic",
+          "type": "Boolean",
+          "description": "物理字段 IsDynamic"
+        }
+      ]
+    },
+    {
+      "className": "A_SPCWIPDataMatrixParams",
+      "chineseName": "SPC WIP矩阵参数",
+      "description": "定义SPC WIP数据矩阵参数。 物理对应 A_SPCWIPDataMatrixParams (CdoId: 681574518, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 SPCWIPDataMatrixParamsName",
+          "required": true
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        },
+        {
+          "name": "paramValue",
+          "type": "String",
+          "description": "物理字段 ParamValue"
+        },
+        {
+          "name": "wipDataSetupDetails",
+          "type": "Navigation",
+          "description": "物理字段 WIPDataSetupDetailsId → A_WIPDataSetupDetails"
+        }
+      ]
+    },
+    {
+      "className": "ss_CustomSPCGridFilter",
+      "chineseName": "SPC网格过滤器",
+      "description": "定义SPC网格自定义过滤配置。 物理对应 ss_CustomSPCGridFilter (CdoId: 681574429, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "ssSpcCustomFilterTable",
+          "type": "Navigation",
+          "description": "物理字段 ss_SPCCustomFilterTableId → ss_SPCCustomFilterTable"
+        },
+        {
+          "name": "spcMatrix",
+          "type": "Navigation",
+          "description": "物理字段 SPCMatrixId → A_SPCMatrix"
+        },
+        {
+          "name": "ssColumn",
+          "type": "String",
+          "description": "物理字段 ss_Column"
+        },
+        {
+          "name": "ssFilter",
+          "type": "String",
+          "description": "物理字段 ss_Filter"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_CustomSPCGridFilterName",
+          "required": true
+        },
+        {
+          "name": "ssIsDynamic",
+          "type": "Boolean",
+          "description": "物理字段 ss_IsDynamic"
+        }
+      ]
+    },
+    {
+      "className": "ss_SPCGPCChartData",
+      "chineseName": "SPC GPC图表配置",
+      "description": "定义SPC GPC图表数据配置。 物理对应 ss_SPCGPCChartData (CdoId: 681574474, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "ssCpk",
+          "type": "Float",
+          "description": "物理字段 ss_CPK"
+        },
+        {
+          "name": "ssCp",
+          "type": "Float",
+          "description": "物理字段 ss_CP"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_SPCGPCChartDataName",
+          "required": true
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "ssMean",
+          "type": "Float",
+          "description": "物理字段 ss_Mean"
+        },
+        {
+          "name": "ssPp",
+          "type": "Float",
+          "description": "物理字段 ss_PP"
+        },
+        {
+          "name": "ssPpk",
+          "type": "Float",
+          "description": "物理字段 ss_PPK"
+        },
+        {
+          "name": "ssSdu",
+          "type": "Float",
+          "description": "物理字段 ss_SDU"
+        },
+        {
+          "name": "ssSdl",
+          "type": "Float",
+          "description": "物理字段 ss_SDL"
+        },
+        {
+          "name": "ssRsd",
+          "type": "Float",
+          "description": "物理字段 ss_RSD"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "spcTxnDataDetails",
+          "type": "Navigation",
+          "description": "物理字段 SPCTxnDataDetailsId → A_SPCTxnDataDetails"
+        },
+        {
+          "name": "ssSd",
+          "type": "Float",
+          "description": "物理字段 ss_SD"
+        }
+      ]
+    },
+    {
+      "className": "ss_ParameterMatrixList",
+      "chineseName": "参数矩阵列表",
+      "description": "定义参数矩阵列表明细。 物理对应 ss_ParameterMatrixList (CdoId: 681574402, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "ssParameterMatrix",
+          "type": "Navigation",
+          "description": "物理字段 ss_ParameterMatrixId → ss_ParameterMatrix"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_ParameterMatrixListName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "ssParamName",
+          "type": "Navigation",
+          "description": "物理字段 ss_ParamNameId → A_ParamName"
+        },
+        {
+          "name": "ssOverrideValue",
+          "type": "String",
+          "description": "物理字段 ss_OverrideValue"
+        }
+      ]
+    },
+    {
+      "className": "ss_ParamNameDetails",
+      "chineseName": "参数名称明细",
+      "description": "定义参数名称的可选项和规则。 物理对应 ss_ParamNameDetails (CdoId: 681574400, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "paramName",
+          "type": "Navigation",
+          "description": "物理字段 ParamNameId → A_ParamName"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_ParamNameDetailsName",
+          "required": true
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "ssConditionExpression",
+          "type": "String",
+          "description": "物理字段 ss_ConditionExpression"
+        },
+        {
+          "name": "ssValue",
+          "type": "String",
+          "description": "物理字段 ss_Value"
+        }
+      ]
+    },
+    {
+      "className": "scsInlineParams",
+      "chineseName": "内联参数",
+      "description": "定义半导体内联参数。 物理对应 scsInlineParams (CdoId: 681574521, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "wipDataSetupDetails",
+          "type": "Navigation",
+          "description": "物理字段 WIPDataSetupDetailsId → A_WIPDataSetupDetails"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 scsInlineParamsName",
+          "required": true
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "scsName",
+          "type": "String",
+          "description": "物理字段 scsName"
+        },
+        {
+          "name": "scsParamName",
+          "type": "String",
+          "description": "物理字段 scsParamName"
+        },
+        {
+          "name": "scsParamValue",
+          "type": "String",
+          "description": "物理字段 scsParamValue"
+        }
+      ]
+    },
+    {
+      "className": "A_TestIQCParamsDetails",
+      "chineseName": "IQC参数明细",
+      "description": "定义IQC测试参数明细。 物理对应 A_TestIQCParamsDetails (CdoId: 679477350, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "testIqcParams",
+          "type": "Navigation",
+          "description": "物理字段 TestIQCParamsId → A_TestIQCParams"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "paramName",
+          "type": "String",
+          "description": "物理字段 ParamName"
+        },
+        {
+          "name": "displaySequence",
+          "type": "Integer",
+          "description": "物理字段 DisplaySequence"
+        }
+      ]
+    },
+    {
+      "className": "ss_UsageReqSetupDetails",
+      "chineseName": "使用需求配置明细",
+      "description": "定义使用需求配置明细。 物理对应 ss_UsageReqSetupDetails (CdoId: 681574409, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "ssUsageCountQuery",
+          "type": "Navigation",
+          "description": "物理字段 ss_UsageCountQueryId → UserQuery"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "ssUsageReq",
+          "type": "Integer",
+          "description": "物理字段 ss_UsageReqId"
+        },
+        {
+          "name": "ssUsageCountExpression",
+          "type": "String",
+          "description": "物理字段 ss_UsageCountExpression"
+        },
+        {
+          "name": "ssUsageReqCountType",
+          "type": "Integer",
+          "description": "物理字段 ss_UsageReqCountType"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_UsageReqSetupDetailsName",
+          "required": true
+        },
+        {
+          "name": "ssUsageReqTxn",
+          "type": "Integer",
+          "description": "物理字段 ss_UsageReqTxn"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_SPCMatrixParams",
+      "toClass": "A_SPCMatrix",
+      "relationName": "HAS_SPC_MATRIX",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCMatrixParams.SPCMatrixId"
+    },
+    {
+      "fromClass": "A_SPCRulesParams",
+      "toClass": "A_SPCRules",
+      "relationName": "HAS_SPC_RULES",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCRulesParams.SPCRulesId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetails",
+      "toClass": "A_SPCSetup",
+      "relationName": "HAS_SPC_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetails.SPCSetupId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetails",
+      "toClass": "A_SPCRules",
+      "relationName": "HAS_SPC_RULES",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetails.SPCRulesId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetails",
+      "toClass": "A_SPCChart",
+      "relationName": "HAS_SPC_CHART",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetails.SPCChartId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetails",
+      "toClass": "A_SPCChart",
+      "relationName": "HAS_SPC_CHART_TYPE_INLINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetails.SPCChartTypeInlineId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetails",
+      "toClass": "ss_FailureFutureHoldSetup",
+      "relationName": "HAS_SS_FAILURE_FUTURE_HOLD_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetails.ss_FailureFutureHoldSetupId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetails",
+      "toClass": "ss_FailureNCRSetup",
+      "relationName": "HAS_SS_FAILURE_NCR_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetails.ss_FailureNCRSetupId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetails",
+      "toClass": "HoldReason",
+      "relationName": "HAS_SS_FAILURE_HOLD_REASON",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetails.ss_FailureHoldReasonId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetailsInlineParam",
+      "toClass": "A_SPCSetupDetails",
+      "relationName": "HAS_SPC_SETUP_DETAILS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetailsInlineParam.SPCSetupDetailsId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetailsParams",
+      "toClass": "A_SPCSetupDetails",
+      "relationName": "HAS_SPC_SETUP_DETAILS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetailsParams.SPCSetupDetailsId"
+    },
+    {
+      "fromClass": "A_SPCSetupDetailsTitle",
+      "toClass": "A_SPCSetupDetails",
+      "relationName": "HAS_SPC_SETUP_DETAILS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupDetailsTitle.SPCSetupDetailsId"
+    },
+    {
+      "fromClass": "A_SPCSetupParams",
+      "toClass": "A_SPCSetup",
+      "relationName": "HAS_SPC_SETUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCSetupParams.SPCSetupId"
+    },
+    {
+      "fromClass": "A_SPCWIPDataMatrixParams",
+      "toClass": "A_WIPDataSetupDetails",
+      "relationName": "HAS_WIP_DATA_SETUP_DETAILS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_SPCWIPDataMatrixParams.WIPDataSetupDetailsId"
+    },
+    {
+      "fromClass": "ss_CustomSPCGridFilter",
+      "toClass": "ss_SPCCustomFilterTable",
+      "relationName": "HAS_SS_SPC_CUSTOM_FILTER_TABLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_CustomSPCGridFilter.ss_SPCCustomFilterTableId"
+    },
+    {
+      "fromClass": "ss_CustomSPCGridFilter",
+      "toClass": "A_SPCMatrix",
+      "relationName": "HAS_SPC_MATRIX",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_CustomSPCGridFilter.SPCMatrixId"
+    },
+    {
+      "fromClass": "ss_ParameterMatrixList",
+      "toClass": "ss_ParameterMatrix",
+      "relationName": "HAS_SS_PARAMETER_MATRIX",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_ParameterMatrixList.ss_ParameterMatrixId"
+    },
+    {
+      "fromClass": "ss_ParameterMatrixList",
+      "toClass": "A_ParamName",
+      "relationName": "HAS_SS_PARAM_NAME",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_ParameterMatrixList.ss_ParamNameId"
+    },
+    {
+      "fromClass": "ss_ParamNameDetails",
+      "toClass": "A_ParamName",
+      "relationName": "HAS_PARAM_NAME",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_ParamNameDetails.ParamNameId"
+    },
+    {
+      "fromClass": "scsInlineParams",
+      "toClass": "A_WIPDataSetupDetails",
+      "relationName": "HAS_WIP_DATA_SETUP_DETAILS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "scsInlineParams.WIPDataSetupDetailsId"
+    },
+    {
+      "fromClass": "A_TestIQCParamsDetails",
+      "toClass": "A_TestIQCParams",
+      "relationName": "HAS_TEST_IQC_PARAMS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_TestIQCParamsDetails.TestIQCParamsId"
+    }
+  ]
+}

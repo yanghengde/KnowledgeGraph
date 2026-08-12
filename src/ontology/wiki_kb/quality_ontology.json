@@ -1,0 +1,1710 @@
+{
+  "module": "quality",
+  "classes": [
+    {
+      "className": "NCRDefectData",
+      "chineseName": "不合格缺陷数据",
+      "description": "不合格报告中记录的具体缺陷项，记录受影响的产品、批次和缺陷数量。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Navigation",
+          "description": "物理字段 ParentId → EventLot"
+        },
+        {
+          "name": "actualComponentIssue",
+          "type": "Navigation",
+          "description": "物理字段 ActualComponentIssueId → IssueActualsHistory"
+        },
+        {
+          "name": "container",
+          "type": "Navigation",
+          "description": "缺陷关联的容器 → Container"
+        },
+        {
+          "name": "lot",
+          "type": "String",
+          "description": "批次号"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "缺陷关联的产品 → Product"
+        },
+        {
+          "name": "referenceDesignator",
+          "type": "String",
+          "description": "位号"
+        }
+      ]
+    },
+    {
+      "className": "NonconformanceReport",
+      "chineseName": "不合格报告",
+      "description": "不合格报告(NCR)，记录生产流程中的质量异常并触发评审处理程序。",
+      "properties": [
+        {
+          "name": "container",
+          "type": "Navigation",
+          "description": "物理字段 ContainerId → Container"
+        },
+        {
+          "name": "attachments",
+          "type": "Navigation",
+          "description": "关联的文档附件 → DocAttachments"
+        },
+        {
+          "name": "closeDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 CloseDateGMT"
+        },
+        {
+          "name": "creationDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 CreationDateGMT"
+        },
+        {
+          "name": "ncrStatus",
+          "type": "Integer",
+          "description": "不合格报告状态"
+        },
+        {
+          "name": "preventiveActionComments",
+          "type": "Navigation",
+          "description": "物理字段 PreventiveActionCommentsId → NCRComments"
+        },
+        {
+          "name": "correctiveActionComments",
+          "type": "Navigation",
+          "description": "物理字段 CorrectiveActionCommentsId → NCRComments"
+        },
+        {
+          "name": "failureInvestigationComments",
+          "type": "Navigation",
+          "description": "物理字段 FailureInvestigationCommentsId → NCRComments"
+        },
+        {
+          "name": "ncrResolutionCode",
+          "type": "Navigation",
+          "description": "不合格处置代码 → NCRResolutionCode"
+        },
+        {
+          "name": "lastRevTxn",
+          "type": "Integer",
+          "description": "物理字段 LastRevTxnId"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 NonconformanceReportName",
+          "required": true
+        },
+        {
+          "name": "relatedNonconformance",
+          "type": "Navigation",
+          "description": "关联的不合格报告 → NonconformanceReport"
+        },
+        {
+          "name": "ncrCauseCodeGroup",
+          "type": "Navigation",
+          "description": "物理字段 NCRCauseCodeGroupId → NCRCauseCodeGroup"
+        },
+        {
+          "name": "ncrCauseCode",
+          "type": "Navigation",
+          "description": "物理字段 NCRCauseCodeId → NCRCauseCode"
+        },
+        {
+          "name": "creationDate",
+          "type": "DateTime",
+          "description": "创建时间"
+        },
+        {
+          "name": "closeDate",
+          "type": "DateTime",
+          "description": "关闭时间"
+        },
+        {
+          "name": "chargeToStep",
+          "type": "Navigation",
+          "description": "物理字段 ChargeToStepId → WorkflowStep"
+        },
+        {
+          "name": "ncrComment",
+          "type": "String",
+          "description": "备注说明"
+        },
+        {
+          "name": "ncrFailureType",
+          "type": "Navigation",
+          "description": "物理字段 NCRFailureTypeId → NCRFailureType"
+        },
+        {
+          "name": "task",
+          "type": "Navigation",
+          "description": "物理字段 TaskId → TaskItem"
+        },
+        {
+          "name": "escalatedEvent",
+          "type": "Integer",
+          "description": "物理字段 EscalatedEventId"
+        },
+        {
+          "name": "escalationDate",
+          "type": "DateTime",
+          "description": "物理字段 EscalationDate"
+        },
+        {
+          "name": "escalationDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EscalationDateGMT"
+        },
+        {
+          "name": "escalatedBy",
+          "type": "Navigation",
+          "description": "物理字段 EscalatedById → Employee"
+        }
+      ]
+    },
+    {
+      "className": "CAPA",
+      "chineseName": "纠正与预防措施",
+      "description": "用于调查不合格报告(NCR)的根本原因并实施纠正与预防措施以防止缺陷再次发生。",
+      "properties": [
+        {
+          "name": "carSeverity",
+          "type": "Navigation",
+          "description": "纠正与预防措施严重程度"
+        },
+        {
+          "name": "occurrenceDate",
+          "type": "DateTime",
+          "description": "发生日期时间"
+        },
+        {
+          "name": "occurrenceDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 OccurrenceDateGMT"
+        },
+        {
+          "name": "organization",
+          "type": "Navigation",
+          "description": "负责/所属组织 → Organization"
+        },
+        {
+          "name": "priorityLevel",
+          "type": "Navigation",
+          "description": "关联的严重性/优先级 → PriorityLevel"
+        },
+        {
+          "name": "reportedDate",
+          "type": "DateTime",
+          "description": "报告日期时间"
+        },
+        {
+          "name": "reportedDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ReportedDateGMT"
+        },
+        {
+          "name": "reporter",
+          "type": "Navigation",
+          "description": "报告人 → Employee"
+        },
+        {
+          "name": "reporterOrganization",
+          "type": "Navigation",
+          "description": "报告人所属组织 → Organization"
+        },
+        {
+          "name": "isSubmitted",
+          "type": "Boolean",
+          "description": "是否已提交"
+        },
+        {
+          "name": "systemicIssue",
+          "type": "Boolean",
+          "description": "是否为系统性问题"
+        },
+        {
+          "name": "subClassification",
+          "type": "Navigation",
+          "description": "关联的质量事件子类 → SubClassification"
+        },
+        {
+          "name": "initiator",
+          "type": "Navigation",
+          "description": "创建/发起人 → Employee"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 CAPAName",
+          "required": true
+        },
+        {
+          "name": "attachments",
+          "type": "Navigation",
+          "description": "关联的文档附件 → DocAttachments"
+        },
+        {
+          "name": "briefDescription",
+          "type": "String",
+          "description": "简要说明"
+        },
+        {
+          "name": "category",
+          "type": "Integer",
+          "description": "分类类别编码"
+        },
+        {
+          "name": "classification",
+          "type": "Navigation",
+          "description": "关联的质量事件大类 → Classification"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "详细描述（支持长文本）"
+        },
+        {
+          "name": "initiatorOrganization",
+          "type": "Navigation",
+          "description": "发起人所属组织 → Organization"
+        },
+        {
+          "name": "closedBy",
+          "type": "Navigation",
+          "description": "关闭人 → Employee"
+        },
+        {
+          "name": "closeDate",
+          "type": "DateTime",
+          "description": "关闭日期时间"
+        },
+        {
+          "name": "closeDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 CloseDateGMT"
+        },
+        {
+          "name": "proposedResolution",
+          "type": "String",
+          "description": "建议的解决方案/措施"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读）"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态编码"
+        },
+        {
+          "name": "role",
+          "type": "Navigation",
+          "description": "指派的审批角色 → Role"
+        },
+        {
+          "name": "processModel",
+          "type": "Navigation",
+          "description": "运行时流转处理实例 → ProcessModel"
+        },
+        {
+          "name": "carResolutionAction",
+          "type": "Integer",
+          "description": "物理字段 CARResolutionAction"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "责任人 → Employee"
+        },
+        {
+          "name": "qualityResolutionCode",
+          "type": "Navigation",
+          "description": "质量处置/解决代码 → QualityResolutionCode"
+        },
+        {
+          "name": "closeDescription",
+          "type": "String",
+          "description": "关闭描述说明"
+        },
+        {
+          "name": "origProcessModelTemplate",
+          "type": "Navigation",
+          "description": "关联的原始处理流程模板 → ProcessModelTemplate"
+        },
+        {
+          "name": "triageComplete",
+          "type": "Boolean",
+          "description": "分流/初审是否完成"
+        },
+        {
+          "name": "riskAssessment",
+          "type": "Navigation",
+          "description": "执行的风险评估记录 → RiskAssessment"
+        },
+        {
+          "name": "capaCustomData",
+          "type": "Navigation",
+          "description": "CAPA自定义属性容器 → CAPACustomData"
+        }
+      ]
+    },
+    {
+      "className": "HoldReason",
+      "chineseName": "冻结原因",
+      "description": "说明为何阻止容器/批次继续生产（例如质量缺陷、工艺等待等）。 【Swagger】Schema: HoldReasonEntity；来源文件: HoldReasons.json；API: /api/HoldReasons。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "关联的WIP消息定义管理器 【Swagger】引用 Schema: WIPMsgEntity。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "冻结原因唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标标识 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "changeStatus",
+          "type": "Navigation",
+          "description": "物理字段 ChangeStatusId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注说明 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "过滤器标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    },
+    {
+      "className": "CARSeverity",
+      "chineseName": "纠正与预防措施严重程度",
+      "description": "CARSeverity — 纠正与预防措施严重程度。定义纠正与预防措施(CAPA)的严重级别（例如：高、中、低），用于分类和评估CAPA的严重性以及跟进的优先级。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "详细备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标标识"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "严重程度的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "associatedPackages",
+          "type": "Integer",
+          "description": "关联变更包的数量。"
+        },
+        {
+          "name": "instanceLocked",
+          "type": "Boolean",
+          "description": "是否已被变更管理锁定。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "过滤器标签"
+        }
+      ]
+    },
+    {
+      "className": "Classification",
+      "chineseName": "事件分类",
+      "description": "Classification — 事件分类。用于定义质量记录/事件（如不合格报告 NCR、纠正与预防措施 CAPA 等）的大类，与子分类（Subclassification）配对使用，以划分事件种类并关联特定的业务流程。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "eventClassification",
+          "type": "Integer",
+          "description": "物理字段 EventClassification"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标标识"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "详细备注信息"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读）"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "分类的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "过滤器标签"
+        }
+      ]
+    },
+    {
+      "className": "SubClassification",
+      "chineseName": "事件子分类",
+      "description": "SubClassification — 事件子分类（CdoId: 8173）。与事件分类（Classification）配对使用，细化质量事件类型，决定其在系统中的具体业务流程 and 处理规格。被 EventClassificationSpecMap、QualityProcessingMap 和 QualityReportConfig 引用以确定事件类型的处理路径。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读）"
+        },
+        {
+          "name": "eventSubClassification",
+          "type": "Integer",
+          "description": "用于对质量对象进行子分类。"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "子分类的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签"
+        }
+      ]
+    },
+    {
+      "className": "CommentType",
+      "chineseName": "评论类型",
+      "description": "Comment Type — 评论/批注类型。用于对质量事件日志（EventLog）中的评论/批注进行分类，区分不同性质的审核意见、操作备注或协作反馈（如内部评审意见、客户反馈、检验说明等）。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "评论类型的唯一名称（必填）",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读）"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "详细备注信息"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "图标标识"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "过滤器标签"
+        }
+      ]
+    },
+    {
+      "className": "Event",
+      "chineseName": "质量事件",
+      "description": "质量事件(Event)是 Camstar 品质管理模块的核心命名对象。当生产或检验中发现缺陷、不合格品、流程偏差或客户投诉时触发记录，用于收集问题信息、初步分类、分流并决定是否发起 CAPA 流程。",
+      "properties": [
+        {
+          "name": "reporter",
+          "type": "Navigation",
+          "description": "报告人 → Employee"
+        },
+        {
+          "name": "category",
+          "type": "Integer",
+          "description": "品质对象类别枚举：1=Event, 2=CAR"
+        },
+        {
+          "name": "discoveryArea",
+          "type": "String",
+          "description": "缺陷发现区域/工序"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "详细描述（支持长文本）"
+        },
+        {
+          "name": "initiator",
+          "type": "Navigation",
+          "description": "创建/发起人 → Employee"
+        },
+        {
+          "name": "initiatorOrganization",
+          "type": "Navigation",
+          "description": "发起人所属组织 → Organization"
+        },
+        {
+          "name": "occurrenceDate",
+          "type": "DateTime",
+          "description": "发生日期时间"
+        },
+        {
+          "name": "occurrenceDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 OccurrenceDateGMT"
+        },
+        {
+          "name": "priorityLevel",
+          "type": "Navigation",
+          "description": "事件处理优先级"
+        },
+        {
+          "name": "reportedDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ReportedDateGMT"
+        },
+        {
+          "name": "reporterOrganization",
+          "type": "Navigation",
+          "description": "报告人所属组织 → Organization"
+        },
+        {
+          "name": "organization",
+          "type": "Navigation",
+          "description": "负责/所属组织 → Organization"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 EventName",
+          "required": true
+        },
+        {
+          "name": "attachments",
+          "type": "Navigation",
+          "description": "关联的文档附件 → DocAttachments"
+        },
+        {
+          "name": "briefDescription",
+          "type": "String",
+          "description": "简要说明"
+        },
+        {
+          "name": "reportedDate",
+          "type": "DateTime",
+          "description": "报告日期时间"
+        },
+        {
+          "name": "classification",
+          "type": "Navigation",
+          "description": "关联的事件大类 → Classification"
+        },
+        {
+          "name": "processModel",
+          "type": "Navigation",
+          "description": "运行时流转处理实例 → ProcessModel"
+        },
+        {
+          "name": "subClassification",
+          "type": "Navigation",
+          "description": "关联的事件子类 → SubClassification"
+        },
+        {
+          "name": "eventData",
+          "type": "Navigation",
+          "description": "事件详细业务数据 → EventData"
+        },
+        {
+          "name": "isSubmitted",
+          "type": "Boolean",
+          "description": "是否已提交"
+        },
+        {
+          "name": "closeDate",
+          "type": "DateTime",
+          "description": "关闭日期时间"
+        },
+        {
+          "name": "closedBy",
+          "type": "Navigation",
+          "description": "关闭人 → Employee"
+        },
+        {
+          "name": "closeDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 CloseDateGMT"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结启用（只读）"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "状态编码"
+        },
+        {
+          "name": "role",
+          "type": "Navigation",
+          "description": "指派的审批角色 → Role"
+        },
+        {
+          "name": "isCarRequiredToClose",
+          "type": "Boolean",
+          "description": "物理字段 IsCARRequiredToClose"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "事件负责人"
+        },
+        {
+          "name": "qualityResolutionCode",
+          "type": "Navigation",
+          "description": "关联的质量处置/解决代码 → QualityResolutionCode"
+        },
+        {
+          "name": "closeDescription",
+          "type": "String",
+          "description": "关闭描述说明"
+        },
+        {
+          "name": "checklistSaved",
+          "type": "Boolean",
+          "description": "物理字段 ChecklistSaved"
+        },
+        {
+          "name": "checklist",
+          "type": "Navigation",
+          "description": "关联的检查清单实例 → Checklist"
+        },
+        {
+          "name": "origProcessModelTemplate",
+          "type": "Navigation",
+          "description": "关联的原始流程模板 → ProcessModelTemplate"
+        },
+        {
+          "name": "triageComplete",
+          "type": "Boolean",
+          "description": "分流/初审是否完成"
+        },
+        {
+          "name": "escalateToComplaint",
+          "type": "Boolean",
+          "description": "物理字段 EscalateToComplaint"
+        },
+        {
+          "name": "riskAssessment",
+          "type": "Navigation",
+          "description": "执行的风险评估记录 → RiskAssessment"
+        }
+      ]
+    },
+    {
+      "className": "DocAttachments",
+      "chineseName": "文档附件",
+      "description": "DocAttachments — 质量对象(Event/CAPA/NonconformanceReport)关联的上传文档或附件集合。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否只读/冻结"
+        }
+      ]
+    },
+    {
+      "className": "RiskAssessment",
+      "chineseName": "风险评估",
+      "description": "RiskAssessment — 质量事件或CAPA生命周期中执行的严重性、发生概率及可探测度风险评估(RPN)。",
+      "properties": [
+        {
+          "name": "riskAssessmentNotRequired",
+          "type": "Boolean",
+          "description": "是否无需风险评估"
+        },
+        {
+          "name": "detection",
+          "type": "Integer",
+          "description": "探测度"
+        },
+        {
+          "name": "comments",
+          "type": "String",
+          "description": "评估意见说明"
+        },
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "severity",
+          "type": "Integer",
+          "description": "严重度"
+        },
+        {
+          "name": "occurrence",
+          "type": "Integer",
+          "description": "频度/发生率"
+        },
+        {
+          "name": "rpn",
+          "type": "Integer",
+          "description": "风险优先数(RPN = Severity * Occurrence * Detection)"
+        }
+      ]
+    },
+    {
+      "className": "CAPACustomData",
+      "chineseName": "CAPA自定义属性",
+      "description": "CAPACustomData — 纠正与预防措施(CAPA)的自定义扩展属性字段容器。",
+      "properties": [
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        }
+      ]
+    },
+    {
+      "className": "EventData",
+      "chineseName": "事件数据",
+      "description": "EventData — 质量事件(Event)的详细业务交易扩展数据，涵盖客户反馈、退货、缺陷产品说明等细节。",
+      "properties": [
+        {
+          "name": "compensateCustomerAction",
+          "type": "Navigation",
+          "description": "补偿客户动作 → ReturnedEquipmentAction"
+        },
+        {
+          "name": "eventDate",
+          "type": "String",
+          "description": "事件发生日期时间"
+        },
+        {
+          "name": "reportDate",
+          "type": "DateTime",
+          "description": "报告日期"
+        },
+        {
+          "name": "dateReceived",
+          "type": "DateTime",
+          "description": "接收日期"
+        },
+        {
+          "name": "problemDescription",
+          "type": "String",
+          "description": "问题描述说明"
+        },
+        {
+          "name": "sampleQuantity",
+          "type": "String",
+          "description": "样品数量"
+        },
+        {
+          "name": "rmaNumber",
+          "type": "String",
+          "description": "RMA退货编号"
+        },
+        {
+          "name": "deviceLocation",
+          "type": "String",
+          "description": "设备/器具位置"
+        },
+        {
+          "name": "returnedContactName",
+          "type": "String",
+          "description": "退货联系人姓名"
+        },
+        {
+          "name": "recallNumber",
+          "type": "String",
+          "description": "召回编号"
+        },
+        {
+          "name": "contactCustomer",
+          "type": "Navigation",
+          "description": "主要联系客户 → Customer"
+        },
+        {
+          "name": "returnedPhoneNumber",
+          "type": "String",
+          "description": "退货联系人电话"
+        },
+        {
+          "name": "occupation",
+          "type": "Navigation",
+          "description": "操作员职务/岗位 → Occupation"
+        },
+        {
+          "name": "reportingCustomer",
+          "type": "Navigation",
+          "description": "报告此事件的客户 → Customer"
+        },
+        {
+          "name": "dateReceivedGmt",
+          "type": "DateTime",
+          "description": "物理字段 DateReceivedGMT"
+        },
+        {
+          "name": "reportDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 ReportDateGMT"
+        },
+        {
+          "name": "reportFiledWithFda",
+          "type": "Navigation",
+          "description": "物理字段 ReportFiledWithFDAId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "reportSource",
+          "type": "Navigation",
+          "description": "物理字段 ReportSourceId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "eventType",
+          "type": "Navigation",
+          "description": "物理字段 EventTypeId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "adverseEvent",
+          "type": "Navigation",
+          "description": "物理字段 AdverseEventId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "deviceAvailable",
+          "type": "Navigation",
+          "description": "物理字段 DeviceAvailableId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "deviceEvaluated",
+          "type": "Navigation",
+          "description": "物理字段 DeviceEvaluatedId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "deviceOperator",
+          "type": "Navigation",
+          "description": "物理字段 DeviceOperatorId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "deviceReturned",
+          "type": "Navigation",
+          "description": "物理字段 DeviceReturnedId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "healthProfessional",
+          "type": "Navigation",
+          "description": "物理字段 HealthProfessionalId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "productProblem",
+          "type": "Navigation",
+          "description": "物理字段 ProductProblemId → EventCheckBoxFieldData"
+        },
+        {
+          "name": "event",
+          "type": "Navigation",
+          "description": "反向关联的质量事件 → Event"
+        },
+        {
+          "name": "workflowName",
+          "type": "String",
+          "description": "物理字段 WorkflowName"
+        },
+        {
+          "name": "workflowRev",
+          "type": "String",
+          "description": "物理字段 WorkflowRev"
+        },
+        {
+          "name": "productRev",
+          "type": "String",
+          "description": "产品版本文本"
+        },
+        {
+          "name": "productName",
+          "type": "String",
+          "description": "产品名称文本"
+        },
+        {
+          "name": "operationName",
+          "type": "String",
+          "description": "物理字段 OperationName"
+        },
+        {
+          "name": "specName",
+          "type": "String",
+          "description": "物理字段 SpecName"
+        },
+        {
+          "name": "specRev",
+          "type": "String",
+          "description": "物理字段 SpecRev"
+        },
+        {
+          "name": "workCenterName",
+          "type": "String",
+          "description": "物理字段 WorkCenterName"
+        },
+        {
+          "name": "resourceName",
+          "type": "String",
+          "description": "物理字段 ResourceName"
+        },
+        {
+          "name": "maintenanceReqName",
+          "type": "String",
+          "description": "物理字段 MaintenanceReqName"
+        },
+        {
+          "name": "maintenanceReqRev",
+          "type": "String",
+          "description": "物理字段 MaintenanceReqRev"
+        },
+        {
+          "name": "workflowStepName",
+          "type": "String",
+          "description": "物理字段 WorkflowStepName"
+        },
+        {
+          "name": "escalateComplaintDateGmt",
+          "type": "DateTime",
+          "description": "物理字段 EscalateComplaintDateGMT"
+        },
+        {
+          "name": "escalateComplaintDate",
+          "type": "DateTime",
+          "description": "物理字段 EscalateComplaintDate"
+        },
+        {
+          "name": "eventCustomData",
+          "type": "Navigation",
+          "description": "物理字段 EventCustomDataId → EventCustomData"
+        },
+        {
+          "name": "nonconformanceNumber",
+          "type": "String",
+          "description": "关联的不合格报告编号"
+        },
+        {
+          "name": "causeCodeName",
+          "type": "String",
+          "description": "原因代码名称"
+        },
+        {
+          "name": "failureInvestigationComments",
+          "type": "Navigation",
+          "description": "物理字段 FailureInvestigationCommentsId → NCRComments"
+        },
+        {
+          "name": "correctiveActionComments",
+          "type": "Navigation",
+          "description": "物理字段 CorrectiveActionCommentsId → NCRComments"
+        },
+        {
+          "name": "preventiveActionComments",
+          "type": "Navigation",
+          "description": "物理字段 PreventiveActionCommentsId → NCRComments"
+        }
+      ]
+    },
+    {
+      "className": "ProcessModel",
+      "chineseName": "运行时流程模型",
+      "description": "ProcessModel — 运行时质量事件或CAPA的实际路由流转处理实例模型。",
+      "properties": [
+        {
+          "name": "lastCompletedOn",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOn"
+        },
+        {
+          "name": "lastCompletedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastCompletedOnGMT"
+        },
+        {
+          "name": "firstRoutedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 FirstRoutedOnGMT"
+        },
+        {
+          "name": "firstRoutedOn",
+          "type": "DateTime",
+          "description": "物理字段 FirstRoutedOn"
+        },
+        {
+          "name": "autoComplete",
+          "type": "Boolean",
+          "description": "是否自动完成"
+        },
+        {
+          "name": "reassignmentComments",
+          "type": "String",
+          "description": "指派调整说明"
+        },
+        {
+          "name": "assigneeRole",
+          "type": "Navigation",
+          "description": "当前指派角色 → Role"
+        },
+        {
+          "name": "autoStart",
+          "type": "Boolean",
+          "description": "是否自动启动"
+        },
+        {
+          "name": "parent",
+          "type": "Integer",
+          "description": "物理字段 ParentId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否冻结"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ProcessModelName",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "说明"
+        },
+        {
+          "name": "isRequired",
+          "type": "Boolean",
+          "description": "是否必填"
+        },
+        {
+          "name": "attachments",
+          "type": "Navigation",
+          "description": "关联的文档附件 → DocAttachments"
+        },
+        {
+          "name": "stage",
+          "type": "Integer",
+          "description": "当前阶段"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "allowReassignment",
+          "type": "Integer",
+          "description": "是否允许重新指派"
+        },
+        {
+          "name": "assignee",
+          "type": "Navigation",
+          "description": "当前指派人 → Employee"
+        },
+        {
+          "name": "completionComments",
+          "type": "String",
+          "description": "完成说明"
+        },
+        {
+          "name": "lastDesignatedOn",
+          "type": "DateTime",
+          "description": "物理字段 LastDesignatedOn"
+        },
+        {
+          "name": "assigneeOption",
+          "type": "Integer",
+          "description": "物理字段 AssigneeOption"
+        },
+        {
+          "name": "lastDesignatedOnGmt",
+          "type": "DateTime",
+          "description": "物理字段 LastDesignatedOnGMT"
+        },
+        {
+          "name": "designated",
+          "type": "Boolean",
+          "description": "物理字段 Designated"
+        },
+        {
+          "name": "lastStage",
+          "type": "Integer",
+          "description": "物理字段 LastStage"
+        },
+        {
+          "name": "defaultAssigneeInfo",
+          "type": "Boolean",
+          "description": "物理字段 DefaultAssigneeInfo"
+        },
+        {
+          "name": "lastCompletedBy",
+          "type": "Navigation",
+          "description": "最后处理人 → Employee"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "关联的参考文档集 → DocumentSet"
+        },
+        {
+          "name": "autoCompleteFailure",
+          "type": "Boolean",
+          "description": "物理字段 AutoCompleteFailure"
+        },
+        {
+          "name": "outstandingDetailStatus",
+          "type": "Integer",
+          "description": "物理字段 OutstandingDetailStatus"
+        },
+        {
+          "name": "sequence",
+          "type": "Integer",
+          "description": "顺序"
+        },
+        {
+          "name": "dataPointCollection",
+          "type": "Navigation",
+          "description": "物理字段 DataPointCollectionId → DataPointCollection"
+        },
+        {
+          "name": "checklist",
+          "type": "Navigation",
+          "description": "关联的运行时核对单实例 → Checklist"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "NCRDefectData",
+      "toClass": "Container",
+      "relationName": "HAS_CONTAINER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NCRDefectData.ContainerId"
+    },
+    {
+      "fromClass": "NCRDefectData",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NCRDefectData.ProductId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "Container",
+      "relationName": "HAS_CONTAINER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.ContainerId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_ATTACHMENTS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.AttachmentsId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "NCRResolutionCode",
+      "relationName": "HAS_NCR_RESOLUTION_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.NCRResolutionCodeId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "NonconformanceReport",
+      "relationName": "HAS_RELATED_NONCONFORMANCE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.RelatedNonconformanceId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "NCRCauseCodeGroup",
+      "relationName": "HAS_NCR_CAUSE_CODE_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.NCRCauseCodeGroupId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "NCRCauseCode",
+      "relationName": "HAS_NCR_CAUSE_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.NCRCauseCodeId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_CHARGE_TO_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.ChargeToStepId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "NCRFailureType",
+      "relationName": "HAS_NCR_FAILURE_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.NCRFailureTypeId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "TaskItem",
+      "relationName": "HAS_TASK",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.TaskId"
+    },
+    {
+      "fromClass": "NonconformanceReport",
+      "toClass": "Employee",
+      "relationName": "HAS_ESCALATED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "NonconformanceReport.EscalatedById"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "CARSeverity",
+      "relationName": "HAS_CAR_SEVERITY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.CARSeverityId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "Organization",
+      "relationName": "HAS_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.OrganizationId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "PriorityLevel",
+      "relationName": "HAS_PRIORITY_LEVEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.PriorityLevelId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "Employee",
+      "relationName": "HAS_REPORTER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.ReporterId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "Organization",
+      "relationName": "HAS_REPORTER_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.ReporterOrganizationId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "SubClassification",
+      "relationName": "HAS_SUB_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.SubClassificationId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "Employee",
+      "relationName": "HAS_INITIATOR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.InitiatorId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_ATTACHMENTS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.AttachmentsId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "Classification",
+      "relationName": "HAS_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.ClassificationId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "Organization",
+      "relationName": "HAS_INITIATOR_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.InitiatorOrganizationId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "Employee",
+      "relationName": "HAS_CLOSED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.ClosedById"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.RoleId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "ProcessModel",
+      "relationName": "HAS_PROCESS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.ProcessModelId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "Employee",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.OwnerId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "QualityResolutionCode",
+      "relationName": "HAS_QUALITY_RESOLUTION_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.QualityResolutionCodeId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "ProcessModelTemplate",
+      "relationName": "HAS_ORIG_PROCESS_MODEL_TEMPLATE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.OrigProcessModelTemplateId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "RiskAssessment",
+      "relationName": "HAS_RISK_ASSESSMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.RiskAssessmentId"
+    },
+    {
+      "fromClass": "CAPA",
+      "toClass": "CAPACustomData",
+      "relationName": "HAS_CAPA_CUSTOM_DATA",
+      "cardinality": "MANY_TO_ONE",
+      "description": "CAPA.CAPACustomDataId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "Employee",
+      "relationName": "HAS_REPORTER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.ReporterId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "Employee",
+      "relationName": "HAS_INITIATOR",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.InitiatorId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "Organization",
+      "relationName": "HAS_INITIATOR_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.InitiatorOrganizationId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "PriorityLevel",
+      "relationName": "HAS_PRIORITY_LEVEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.PriorityLevelId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "Organization",
+      "relationName": "HAS_REPORTER_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.ReporterOrganizationId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "Organization",
+      "relationName": "HAS_ORGANIZATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.OrganizationId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_ATTACHMENTS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.AttachmentsId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "Classification",
+      "relationName": "HAS_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.ClassificationId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "ProcessModel",
+      "relationName": "HAS_PROCESS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.ProcessModelId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "SubClassification",
+      "relationName": "HAS_SUB_CLASSIFICATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.SubClassificationId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "EventData",
+      "relationName": "HAS_EVENT_DATA",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.EventDataId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "Employee",
+      "relationName": "HAS_CLOSED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.ClosedById"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.RoleId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "Employee",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.OwnerId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "QualityResolutionCode",
+      "relationName": "HAS_QUALITY_RESOLUTION_CODE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.QualityResolutionCodeId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "Checklist",
+      "relationName": "HAS_CHECKLIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.ChecklistId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "ProcessModelTemplate",
+      "relationName": "HAS_ORIG_PROCESS_MODEL_TEMPLATE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.OrigProcessModelTemplateId"
+    },
+    {
+      "fromClass": "Event",
+      "toClass": "RiskAssessment",
+      "relationName": "HAS_RISK_ASSESSMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "Event.RiskAssessmentId"
+    },
+    {
+      "fromClass": "EventData",
+      "toClass": "ReturnedEquipmentAction",
+      "relationName": "HAS_COMPENSATE_CUSTOMER_ACTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventData.CompensateCustomerActionId"
+    },
+    {
+      "fromClass": "EventData",
+      "toClass": "Occupation",
+      "relationName": "HAS_OCCUPATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventData.OccupationId"
+    },
+    {
+      "fromClass": "EventData",
+      "toClass": "Event",
+      "relationName": "HAS_EVENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "EventData.EventId"
+    },
+    {
+      "fromClass": "ProcessModel",
+      "toClass": "RoleDef",
+      "relationName": "HAS_ASSIGNEE_ROLE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModel.AssigneeRoleId"
+    },
+    {
+      "fromClass": "ProcessModel",
+      "toClass": "DocAttachments",
+      "relationName": "HAS_ATTACHMENTS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModel.AttachmentsId"
+    },
+    {
+      "fromClass": "ProcessModel",
+      "toClass": "Employee",
+      "relationName": "HAS_ASSIGNEE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModel.AssigneeId"
+    },
+    {
+      "fromClass": "ProcessModel",
+      "toClass": "Employee",
+      "relationName": "HAS_LAST_COMPLETED_BY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModel.LastCompletedById"
+    },
+    {
+      "fromClass": "ProcessModel",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModel.DocumentSetId"
+    },
+    {
+      "fromClass": "ProcessModel",
+      "toClass": "DataPointCollection",
+      "relationName": "HAS_DATA_POINT_COLLECTION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModel.DataPointCollectionId"
+    },
+    {
+      "fromClass": "ProcessModel",
+      "toClass": "Checklist",
+      "relationName": "HAS_CHECKLIST",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ProcessModel.ChecklistId"
+    }
+  ]
+}

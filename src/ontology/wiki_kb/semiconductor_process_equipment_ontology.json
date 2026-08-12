@@ -1,0 +1,1091 @@
+{
+  "module": "semiconductor_process_equipment",
+  "classes": [
+    {
+      "className": "A_ProcessSpec",
+      "chineseName": "半导体工艺规格",
+      "description": "定义可版本控制的半导体工艺规格及其有效期、周期时间、工作流和包装规则。 物理对应 A_ProcessSpec (CdoId: 679477258, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "processSpecBase",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecBaseId → A_ProcessSpecBase"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "revision",
+          "type": "String",
+          "description": "物理字段 ProcessSpecRevision"
+        },
+        {
+          "name": "status",
+          "type": "Integer",
+          "description": "物理字段 Status"
+        },
+        {
+          "name": "wipMsgDefMgr",
+          "type": "Navigation",
+          "description": "物理字段 WIPMsgDefMgrId → WIPMsgDefMgr"
+        },
+        {
+          "name": "objectType",
+          "type": "String",
+          "description": "物理字段 ObjectType"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "documentSet",
+          "type": "Navigation",
+          "description": "物理字段 DocumentSetId → DocumentSet"
+        },
+        {
+          "name": "objectCategory",
+          "type": "String",
+          "description": "物理字段 ObjectCategory"
+        },
+        {
+          "name": "packingType",
+          "type": "Navigation",
+          "description": "物理字段 PackingTypeId → A_PackingType"
+        },
+        {
+          "name": "processSpecStatus",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecStatusId → A_ProcessSpecStatus"
+        },
+        {
+          "name": "mfgOrderRequired",
+          "type": "Boolean",
+          "description": "物理字段 MfgOrderRequired"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "cycleTime",
+          "type": "Float",
+          "description": "物理字段 CycleTime"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "useOnlyIfValid",
+          "type": "Boolean",
+          "description": "物理字段 UseOnlyIfValid"
+        },
+        {
+          "name": "isEngineering",
+          "type": "Boolean",
+          "description": "物理字段 IsEngineering"
+        },
+        {
+          "name": "expiryTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 ExpiryTimestamp"
+        },
+        {
+          "name": "effectiveTimestamp",
+          "type": "DateTime",
+          "description": "物理字段 EffectiveTimestamp"
+        },
+        {
+          "name": "duration",
+          "type": "Float",
+          "description": "物理字段 Duration"
+        },
+        {
+          "name": "isSs",
+          "type": "Boolean",
+          "description": "物理字段 IsSS"
+        },
+        {
+          "name": "eco",
+          "type": "String",
+          "description": "物理字段 ECO"
+        },
+        {
+          "name": "scsPositionAssignLotVerificati",
+          "type": "Integer",
+          "description": "物理字段 scsPositionAssignLotVerificati"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "workflow",
+          "type": "Navigation",
+          "description": "物理字段 WorkflowId → Workflow"
+        },
+        {
+          "name": "workflowBase",
+          "type": "Integer",
+          "description": "物理字段 WorkflowBaseId"
+        },
+        {
+          "name": "ldCsamValidation",
+          "type": "Navigation",
+          "description": "物理字段 ldCSAMValidationId → A_ldCSAMValidation"
+        }
+      ]
+    },
+    {
+      "className": "A_ProcessSpecStatus",
+      "chineseName": "工艺规格状态",
+      "description": "定义工艺规格的可用状态目录。 物理对应 A_ProcessSpecStatus (CdoId: 679477278, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ProcessSpecStatusName",
+          "required": true
+        },
+        {
+          "name": "isAvailable",
+          "type": "Boolean",
+          "description": "物理字段 IsAvailable"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        }
+      ]
+    },
+    {
+      "className": "A_ProcessCapability",
+      "chineseName": "工艺能力",
+      "description": "定义设备可支持的工艺能力和多腔室条件。 物理对应 A_ProcessCapability (CdoId: 679477680, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "multiChamberCondition",
+          "type": "String",
+          "description": "物理字段 MultiChamberCondition"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ProcessCapabilityName",
+          "required": true
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_EquipmentMatrix",
+      "chineseName": "设备矩阵",
+      "description": "按产品、工艺规格、标准规格、设备组和工作流步骤配置可用设备。 物理对应 A_EquipmentMatrix (CdoId: 679477424, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "autoExceptionOnSpcFailure",
+          "type": "Boolean",
+          "description": "物理字段 AutoExceptionOnSPCFailure"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "equipmentGroup",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentGroupId → ResourceGroup"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 EquipmentMatrixName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "productLine",
+          "type": "Navigation",
+          "description": "物理字段 ProductLineId → A_ProductLine"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        }
+      ]
+    },
+    {
+      "className": "ss_EqpConstraintMatrix",
+      "chineseName": "设备约束矩阵",
+      "description": "定义具体设备或设备组的半导体约束矩阵。 物理对应 ss_EqpConstraintMatrix (CdoId: 681574405, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "ssEquipment",
+          "type": "Navigation",
+          "description": "物理字段 ss_EquipmentId → ResourceDef"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_EqpConstraintMatrixName",
+          "required": true
+        },
+        {
+          "name": "ssEquipmentGroup",
+          "type": "Navigation",
+          "description": "物理字段 ss_EquipmentGroupId → ResourceGroup"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_RecipeMatrix",
+      "chineseName": "配方矩阵",
+      "description": "按工艺能力、设备、产品、规格和工作流步骤选择生产配方与工装计划。 物理对应 A_RecipeMatrix (CdoId: 679477683, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 RecipeMatrixName",
+          "required": true
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "processCapability",
+          "type": "Navigation",
+          "description": "物理字段 ProcessCapabilityId → A_ProcessCapability"
+        },
+        {
+          "name": "equipment",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentId → ResourceDef"
+        },
+        {
+          "name": "toolPlan",
+          "type": "Navigation",
+          "description": "物理字段 ToolPlanId → A_ToolPlan"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "equipmentFamily",
+          "type": "Navigation",
+          "description": "物理字段 EquipmentFamilyId → ResourceFamily"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "scsProcessType",
+          "type": "Navigation",
+          "description": "物理字段 scsProcessTypeId → A_ProcessType"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "ssWipStepMainWorkflowName",
+          "type": "String",
+          "description": "物理字段 ss_WIPStepMainWorkflowName"
+        },
+        {
+          "name": "ssWipStep",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepId → WorkflowStep"
+        },
+        {
+          "name": "ssWfStackSteps",
+          "type": "String",
+          "description": "物理字段 ss_WfStackSteps"
+        },
+        {
+          "name": "ssWfStackKey",
+          "type": "String",
+          "description": "物理字段 ss_WfStackKey"
+        },
+        {
+          "name": "ssWipStepWorkflow",
+          "type": "Navigation",
+          "description": "物理字段 ss_WIPStepWorkflowId → Workflow"
+        },
+        {
+          "name": "productBase",
+          "type": "Integer",
+          "description": "物理字段 ProductBaseId"
+        },
+        {
+          "name": "specBase",
+          "type": "Integer",
+          "description": "物理字段 SpecBaseId"
+        },
+        {
+          "name": "processSpecBase",
+          "type": "Integer",
+          "description": "物理字段 ProcessSpecBaseId"
+        },
+        {
+          "name": "recipe",
+          "type": "Navigation",
+          "description": "物理字段 RecipeId → Document"
+        },
+        {
+          "name": "recipeBase",
+          "type": "Integer",
+          "description": "物理字段 RecipeBaseId"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        }
+      ]
+    },
+    {
+      "className": "ss_RecipeGroup",
+      "chineseName": "配方组",
+      "description": "定义半导体配方分组目录。 物理对应 ss_RecipeGroup (CdoId: 681574476, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ss_RecipeGroupName",
+          "required": true
+        },
+        {
+          "name": "entryType",
+          "type": "String",
+          "description": "物理字段 EntryType"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        }
+      ]
+    },
+    {
+      "className": "A_ModifyAttrsSetup",
+      "chineseName": "属性修改配置",
+      "description": "定义可修改属性、字段类型、访问级别和修改原因要求。 物理对应 A_ModifyAttrsSetup (CdoId: 679477292, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 ModifyAttrsSetupName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "accessLevel",
+          "type": "Integer",
+          "description": "物理字段 AccessLevel"
+        },
+        {
+          "name": "alternateName1",
+          "type": "String",
+          "description": "物理字段 AlternateName1"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "alternateName2",
+          "type": "String",
+          "description": "物理字段 AlternateName2"
+        },
+        {
+          "name": "attributeType",
+          "type": "Navigation",
+          "description": "物理字段 AttributeTypeId → A_AttributeType"
+        },
+        {
+          "name": "requireModifyAttrsReason",
+          "type": "Boolean",
+          "description": "物理字段 RequireModifyAttrsReason"
+        },
+        {
+          "name": "singleLotModifyOnly",
+          "type": "Boolean",
+          "description": "物理字段 SingleLotModifyOnly"
+        },
+        {
+          "name": "fieldType",
+          "type": "String",
+          "description": "物理字段 FieldType"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "attributeCdoName",
+          "type": "String",
+          "description": "物理字段 AttributeCDOName"
+        },
+        {
+          "name": "objectTypeName",
+          "type": "String",
+          "description": "物理字段 ObjectTypeName"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_EquipmentParamList",
+      "chineseName": "设备参数列表",
+      "description": "定义设备参数列表主数据。 物理对应 A_EquipmentParamList (CdoId: 679477259, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 EquipmentParamListName",
+          "required": true
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    },
+    {
+      "className": "A_TestProgramSetup",
+      "chineseName": "测试程序配置",
+      "description": "按产品线、产品、规格和工艺规格配置测试程序。 物理对应 A_TestProgramSetup (CdoId: 679477437, Workspace: 40)。",
+      "properties": [
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "物理字段 SetupAccessId → A_SetupAccess"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "物理字段 Description"
+        },
+        {
+          "name": "processSpec",
+          "type": "Navigation",
+          "description": "物理字段 ProcessSpecId → A_ProcessSpec"
+        },
+        {
+          "name": "spec",
+          "type": "Navigation",
+          "description": "物理字段 SpecId → Spec"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "物理字段 TestProgramSetupName",
+          "required": true
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "物理字段 IconId"
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "物理字段 ChangeHistoryId → ChangeStatus"
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "物理字段 Notes"
+        },
+        {
+          "name": "productLine",
+          "type": "Navigation",
+          "description": "物理字段 ProductLineId → A_ProductLine"
+        },
+        {
+          "name": "owner",
+          "type": "Navigation",
+          "description": "物理字段 OwnerId → Owner"
+        },
+        {
+          "name": "product",
+          "type": "Navigation",
+          "description": "物理字段 ProductId → Product"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "物理字段 IsFrozen"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "物理字段 FilterTags"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "A_ProcessSpec",
+      "toClass": "A_ProcessSpecBase",
+      "relationName": "HAS_PROCESS_SPEC_BASE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpec.ProcessSpecBaseId"
+    },
+    {
+      "fromClass": "A_ProcessSpec",
+      "toClass": "DocumentSet",
+      "relationName": "HAS_DOCUMENT_SET",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpec.DocumentSetId"
+    },
+    {
+      "fromClass": "A_ProcessSpec",
+      "toClass": "A_PackingType",
+      "relationName": "HAS_PACKING_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpec.PackingTypeId"
+    },
+    {
+      "fromClass": "A_ProcessSpec",
+      "toClass": "A_ProcessSpecStatus",
+      "relationName": "HAS_PROCESS_SPEC_STATUS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpec.ProcessSpecStatusId"
+    },
+    {
+      "fromClass": "A_ProcessSpec",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpec.OwnerId"
+    },
+    {
+      "fromClass": "A_ProcessSpec",
+      "toClass": "Workflow",
+      "relationName": "HAS_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpec.WorkflowId"
+    },
+    {
+      "fromClass": "A_EquipmentMatrix",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EquipmentMatrix.OwnerId"
+    },
+    {
+      "fromClass": "A_EquipmentMatrix",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EquipmentMatrix.ProductId"
+    },
+    {
+      "fromClass": "A_EquipmentMatrix",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EquipmentMatrix.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_EquipmentMatrix",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_EQUIPMENT_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EquipmentMatrix.EquipmentGroupId"
+    },
+    {
+      "fromClass": "A_EquipmentMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EquipmentMatrix.SpecId"
+    },
+    {
+      "fromClass": "A_EquipmentMatrix",
+      "toClass": "A_ProductLine",
+      "relationName": "HAS_PRODUCT_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EquipmentMatrix.ProductLineId"
+    },
+    {
+      "fromClass": "A_EquipmentMatrix",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EquipmentMatrix.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "A_EquipmentMatrix",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_EquipmentMatrix.ss_WIPStepId"
+    },
+    {
+      "fromClass": "ss_EqpConstraintMatrix",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_SS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_EqpConstraintMatrix.ss_EquipmentId"
+    },
+    {
+      "fromClass": "ss_EqpConstraintMatrix",
+      "toClass": "ResourceGroup",
+      "relationName": "HAS_SS_EQUIPMENT_GROUP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ss_EqpConstraintMatrix.ss_EquipmentGroupId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "A_ProcessCapability",
+      "relationName": "HAS_PROCESS_CAPABILITY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.ProcessCapabilityId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "ResourceDef",
+      "relationName": "HAS_EQUIPMENT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.EquipmentId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "A_ToolPlan",
+      "relationName": "HAS_TOOL_PLAN",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.ToolPlanId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.OwnerId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "ResourceFamily",
+      "relationName": "HAS_EQUIPMENT_FAMILY",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.EquipmentFamilyId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "A_ProcessType",
+      "relationName": "HAS_SCS_PROCESS_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.scsProcessTypeId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "WorkflowStep",
+      "relationName": "HAS_SS_WIP_STEP",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.ss_WIPStepId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "Workflow",
+      "relationName": "HAS_SS_WIP_STEP_WORKFLOW",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.ss_WIPStepWorkflowId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "Document",
+      "relationName": "HAS_RECIPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.RecipeId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.ProductId"
+    },
+    {
+      "fromClass": "A_RecipeMatrix",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_RecipeMatrix.SpecId"
+    },
+    {
+      "fromClass": "A_ModifyAttrsSetup",
+      "toClass": "A_AttributeType",
+      "relationName": "HAS_ATTRIBUTE_TYPE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ModifyAttrsSetup.AttributeTypeId"
+    },
+    {
+      "fromClass": "A_TestProgramSetup",
+      "toClass": "A_ProcessSpec",
+      "relationName": "HAS_PROCESS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_TestProgramSetup.ProcessSpecId"
+    },
+    {
+      "fromClass": "A_TestProgramSetup",
+      "toClass": "Spec",
+      "relationName": "HAS_SPEC",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_TestProgramSetup.SpecId"
+    },
+    {
+      "fromClass": "A_TestProgramSetup",
+      "toClass": "A_ProductLine",
+      "relationName": "HAS_PRODUCT_LINE",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_TestProgramSetup.ProductLineId"
+    },
+    {
+      "fromClass": "A_TestProgramSetup",
+      "toClass": "Owner",
+      "relationName": "HAS_OWNER",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_TestProgramSetup.OwnerId"
+    },
+    {
+      "fromClass": "A_TestProgramSetup",
+      "toClass": "Product",
+      "relationName": "HAS_PRODUCT",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_TestProgramSetup.ProductId"
+    },
+    {
+      "fromClass": "A_ProcessSpec",
+      "toClass": "A_ldCSAMValidation",
+      "relationName": "HAS_LD_CSAM_VALIDATION",
+      "cardinality": "MANY_TO_ONE",
+      "description": "A_ProcessSpec.ldCSAMValidationId"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "module": "semiconductor_process_wip_details",
+  "titleZh": "半导体工艺与WIP配置明细建模",
+  "titleEn": "Semiconductor Process and WIP Configuration Detail Modeling",
+  "overviewZh": "本批次覆盖工艺规格、实验计划、产品BOM、工装、WIP数据、未来Hold、供料器和排程矩阵的配置明细。",
+  "overviewEn": "This batch covers configuration details for process specifications, experiment plans, product BOMs, tooling, WIP data, future holds, feeders, and scheduling matrices.",
+  "entities": [
+    {"className": "A_ProcessSpecDetails", "chineseName": "工艺规格明细", "description": "定义工艺规格的步骤和业务配置明细。"},
+    {"className": "A_ProcessSpecDetailsAction", "chineseName": "工艺规格明细动作", "description": "定义工艺规格明细关联动作。"},
+    {"className": "A_ProcessSpecDetailsParams", "chineseName": "工艺规格明细参数", "description": "定义工艺规格明细参数。"},
+    {"className": "A_ProcessSpecParams", "chineseName": "工艺规格参数", "description": "定义工艺规格级参数。"},
+    {"className": "A_ProcessCodeParams", "chineseName": "工艺代码参数", "description": "定义工艺代码参数。"},
+    {"className": "A_ProcessDataDetails", "chineseName": "工艺数据明细", "description": "定义工艺数据明细。"},
+    {"className": "A_ExperimentPlanDetails", "chineseName": "实验计划明细", "description": "定义实验计划步骤及自动动作明细。"},
+    {"className": "A_ProductBOMMaterialList", "chineseName": "产品BOM物料清单", "description": "定义半导体产品BOM物料明细。"},
+    {"className": "A_ToolPlanItem", "chineseName": "工装计划项", "description": "定义工装计划项目及配方。"},
+    {"className": "A_TestProgramSetupDetails", "chineseName": "测试程序配置明细", "description": "定义测试程序配置明细。"},
+    {"className": "A_WIPDataSetupDetails", "chineseName": "WIP数据配置明细", "description": "定义WIP数据字段、验证和失败动作明细。"},
+    {"className": "ss_FutureHoldSetupDetails", "chineseName": "未来Hold配置明细", "description": "定义未来Hold目标步骤明细。"},
+    {"className": "ss_FeederPlanDetails", "chineseName": "供料器计划明细", "description": "定义供料器计划槽位和物料明细。"},
+    {"className": "scsSchedulingMatrixDetail", "chineseName": "排程矩阵明细", "description": "定义排程矩阵具体调度参数。"},
+    {"className": "ss_EqpConstraintDetails", "chineseName": "设备约束明细", "description": "定义设备约束矩阵明细。"}
+  ]
+}

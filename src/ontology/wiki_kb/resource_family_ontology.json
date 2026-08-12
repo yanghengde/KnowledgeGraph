@@ -1,0 +1,168 @@
+{
+  "module": "resource_family",
+  "classes": [
+    {
+      "className": "ResourceFamily",
+      "chineseName": "资源家族",
+      "description": "Resource Family — 资源家族/分类定义实体。将通用资源按家族分组进行分类管理，区别于 PartFamily（设备资源族）用于更通用的资源分类。 【Swagger】Schema: ResourceFamilyEntity；来源文件: ResourceFamilies.json；API: /api/ResourceFamilies。",
+      "properties": [
+        {
+          "name": "statusModel",
+          "type": "Navigation",
+          "description": "物理字段 StatusModelId → scsStatusModel 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "jobNotificationEmailGroup",
+          "type": "Navigation",
+          "description": "关联的作业通知邮件组。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "uom",
+          "type": "Navigation",
+          "description": "物理字段 UOMId → UOM 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "objectType",
+          "type": "String",
+          "description": "物理字段 ObjectType"
+        },
+        {
+          "name": "objectCategory",
+          "type": "String",
+          "description": "物理字段 ObjectCategory"
+        },
+        {
+          "name": "setupAccess",
+          "type": "Navigation",
+          "description": "关联的建模访问权限（A_SetupAccess）。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "noOfSlots",
+          "type": "Integer",
+          "description": "物理字段 NoOfSlots"
+        },
+        {
+          "name": "scsPositionAssignLotVerificati",
+          "type": "Integer",
+          "description": "物理字段 scsPositionAssignLotVerificati"
+        },
+        {
+          "name": "scsWaferHandler",
+          "type": "Boolean",
+          "description": "物理字段 scsWaferHandler 【Swagger】Will indicate which Equipment Family is a Wafer Handler family in order to limit the list of Equipment displayed to the user."
+        },
+        {
+          "name": "scsShopFloorSettings",
+          "type": "Navigation",
+          "description": "物理字段 scsShopFloorSettingsId → ShopFloorSettings"
+        },
+        {
+          "name": "ssProcessUsageReq",
+          "type": "Boolean",
+          "description": "物理字段 ss_ProcessUsageReq"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "description": "资源家族的唯一名称（必填） 【Swagger】Unique name for this instance",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "description": "备注信息 【Swagger】Notations and comments associated with this object."
+        },
+        {
+          "name": "changeHistory",
+          "type": "Navigation",
+          "description": "变更历史记录 【Swagger】引用 Schema: ChangeHistoryChanges。"
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "description": "描述说明 【Swagger】Description of this entity. Defaults to the name of this entity if not specified"
+        },
+        {
+          "name": "iconId",
+          "type": "Integer",
+          "description": "关联的图标 ID 【Swagger】Identifier for the icon associated with this Base Entity"
+        },
+        {
+          "name": "isFrozen",
+          "type": "Boolean",
+          "description": "是否已冻结（只读） 【Swagger】Determines if changes are allowed to this instance (or any of its revisions)"
+        },
+        {
+          "name": "resourceStatusModel",
+          "type": "Navigation",
+          "description": "关联的资源状态模型。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "carrierPositionalMethod",
+          "type": "Integer",
+          "description": "物理字段 CarrierPositionalMethod"
+        },
+        {
+          "name": "enableCarrierPositions",
+          "type": "Boolean",
+          "description": "物理字段 EnableCarrierPositions"
+        },
+        {
+          "name": "carrierXPositions",
+          "type": "Integer",
+          "description": "物理字段 CarrierXPositions"
+        },
+        {
+          "name": "carrierYPositions",
+          "type": "Integer",
+          "description": "物理字段 CarrierYPositions"
+        },
+        {
+          "name": "carrierZPositions",
+          "type": "Integer",
+          "description": "物理字段 CarrierZPositions"
+        },
+        {
+          "name": "uiPreference",
+          "type": "Navigation",
+          "description": "关联的UI偏好。 【Swagger】引用 Schema: NamedObjectRef。"
+        },
+        {
+          "name": "filterTags",
+          "type": "String",
+          "description": "分类筛选标签 【Swagger】FilterTags comma seperated list"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "fromClass": "ResourceFamily",
+      "toClass": "scsStatusModel",
+      "relationName": "HAS_STATUS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceFamily.StatusModelId"
+    },
+    {
+      "fromClass": "ResourceFamily",
+      "toClass": "UOM",
+      "relationName": "HAS_UOM",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceFamily.UOMId"
+    },
+    {
+      "fromClass": "ResourceFamily",
+      "toClass": "ShopFloorSettings",
+      "relationName": "HAS_SCS_SHOP_FLOOR_SETTINGS",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceFamily.scsShopFloorSettingsId"
+    },
+    {
+      "fromClass": "ResourceFamily",
+      "toClass": "ResourceStatusModel",
+      "relationName": "HAS_RESOURCE_STATUS_MODEL",
+      "cardinality": "MANY_TO_ONE",
+      "description": "ResourceFamily.ResourceStatusModelId"
+    }
+  ]
+}
