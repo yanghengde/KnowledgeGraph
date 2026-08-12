@@ -64,6 +64,9 @@ class SyncSettings:
     state_database_url: str | None
     shared_file_connection: str | None
     shared_file_path: str
+    source_kind: str = "camstar_sqlserver"
+    source_schema: str | None = None
+    source_connect_mode: str = "service_name"
 
     @classmethod
     def from_env(cls, env_file: Path | None = None) -> "SyncSettings":
@@ -73,7 +76,12 @@ class SyncSettings:
             neo4j_user=_required("NEO4J_USER"),
             neo4j_password=_required("NEO4J_PASSWORD"),
             source_host=_required("SRC_DB_HOST"),
-            source_port=int(os.getenv("SRC_DB_PORT", "1433")),
+            source_port=int(
+                os.getenv(
+                    "SRC_DB_PORT",
+                    "1521" if os.getenv("SRC_DB_TYPE", "sqlserver").strip().casefold() == "oracle" else "1433",
+                )
+            ),
             source_database=_required("SRC_DB_NAME"),
             source_user=_required("SRC_DB_USER"),
             source_password=_required("SRC_DB_PASSWORD"),
@@ -87,4 +95,11 @@ class SyncSettings:
             state_database_url=_state_database_url(),
             shared_file_connection=os.getenv("GRAPHSTUDIO_FILE_CONNECTION") or None,
             shared_file_path=os.getenv("GRAPHSTUDIO_FILE_PATH", "Opcenter2607/CamstarSync").strip("/"),
+            source_kind=(
+                "camstar_oracle"
+                if os.getenv("SRC_DB_TYPE", "sqlserver").strip().casefold() == "oracle"
+                else "camstar_sqlserver"
+            ),
+            source_schema=os.getenv("SRC_DB_SCHEMA", "").strip() or None,
+            source_connect_mode=os.getenv("SRC_DB_ORACLE_MODE", "service_name").strip().casefold(),
         )

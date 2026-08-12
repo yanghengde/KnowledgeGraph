@@ -99,6 +99,7 @@ class ControlPlaneRepository:
         self,
         key: str,
         *,
+        kind: str,
         display_name: str,
         endpoint: str,
         database_name: str | None,
@@ -111,7 +112,7 @@ class ControlPlaneRepository:
                 text(
                     """
                     UPDATE graphsync.connection_profile
-                    SET display_name=:display_name, endpoint=:endpoint,
+                    SET kind=:kind, display_name=:display_name, endpoint=:endpoint,
                         database_name=:database_name, username=:username,
                         enabled=:enabled, config=CAST(:config AS jsonb),
                         status=CASE WHEN :enabled THEN 'unknown' ELSE 'disabled' END,
@@ -123,6 +124,7 @@ class ControlPlaneRepository:
                 ),
                 {
                     "key": key,
+                    "kind": kind,
                     "display_name": display_name,
                     "endpoint": endpoint,
                     "database_name": database_name,

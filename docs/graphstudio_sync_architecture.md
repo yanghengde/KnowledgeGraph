@@ -3,7 +3,7 @@
 ## 结论
 
 建议增加 PostgreSQL，但它应该是**同步控制面**，不是 Camstar 数据的全量中转仓库。
-业务数据仍然从 Camstar SQL Server 读取，Neo4j 仍然是本体和映射的事实来源，
+业务数据仍然从可配置的 Camstar SQL Server/Oracle 读取，Neo4j 仍然是本体和映射的事实来源，
 同步工具将两者编译为 RDF 批次，经共享文件区导入 Graph Studio。
 
 不建议默认走 `SQL Server → PostgreSQL 全量镜像 → RDF`，因为这会引入第二套业务
@@ -27,7 +27,7 @@ Schema、双写一致性、更多存储和额外时延。只有当后续需要�
 
 ```mermaid
 flowchart LR
-    SQL["Camstar SQL Server<br/>业务数据"]
+    SQL["Camstar SQL Server / Oracle<br/>业务数据"]
     NEO["Neo4j<br/>本体、属性、关系"]
     RUN["graphstudio-sync Runner<br/>映射编译、抽取、RDF 校验"]
     PG["PostgreSQL Control Plane<br/>任务、运行、检查点、产物"]
@@ -53,7 +53,7 @@ flowchart LR
 
 | 组件 | 责任 | 不承担的责任 |
 |---|---|---|
-| SQL Server | Camstar 业务数据的唯一事实来源 | 不保存 Graph Studio 运行状态 |
+| SQL Server / Oracle | Camstar 业务数据的唯一事实来源 | 不保存 Graph Studio 运行状态 |
 | Neo4j | 本体类、属性、关系和物理映射 | 不复制 Camstar 全量数据 |
 | PostgreSQL | 任务配置、run ledger、checkpoint、锁、artifact URI | 默认不存业务全表 |
 | Runner | 生成映射清单、抽取、RDF 序列化、发布、验收 | 不长期持有调度循环 |

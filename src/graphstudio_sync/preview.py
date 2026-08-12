@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-import pymssql
 from neo4j import GraphDatabase
 from rdflib import Graph, Literal, Namespace, RDF, RDFS, URIRef, XSD
 from rdflib.namespace import OWL, SKOS
@@ -25,6 +24,13 @@ from sqlalchemy import text
 from .config import PROJECT_ROOT, SyncSettings
 from .connections import resolved_settings
 from .repository import ControlPlaneRepository
+from .source_database import (
+    ORACLE_KIND,
+    connect_source,
+    fetch_dicts,
+    quote_identifier,
+    source_cursor,
+)
 
 
 ONTOLOGY_URI = URIRef("https://opcenter.siemens.com/ontology/camstar/2607/full")
@@ -187,10 +193,10 @@ def _serialize_deterministic_turtle(graph: Graph, path: Path) -> None:
     )
 
 
-def _safe_sql_identifier(value: str) -> str:
+def _safe_sql_identifier(value: str, kind: str) -> str:
     if not SAFE_IDENTIFIER.fullmatch(value):
         raise RuntimeError(f"Unsafe SQL identifier: {value!r}")
-    return f"[{value}]"
+    return quote_identifier(value, kind)
 
 
 def _zero_zip_external_attributes(path: Path) -> None:
@@ -289,41 +295,61 @@ def _load_descriptions(settings: SyncSettings) -> dict[str, dict[Any, dict[str, 
 
 
 def _source_metadata(settings: SyncSettings, class_rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
-    connection = pymssql.connect(
-        server=settings.source_host,
-        port=settings.source_port,
-        user=settings.source_user,
-        password=settings.source_password,
-        database=settings.source_database,
-        login_timeout=20,
-        timeout=120,
-    )
-    cursor = connection.cursor(as_dict=True)
+    connection = connect_source(settings)
+    cursor = source_cursor(connection, settings.source_kind)
     try:
-        cursor.execute(
-            """
-            SELECT tc.TABLE_SCHEMA, tc.TABLE_NAME, kcu.COLUMN_NAME, kcu.ORDINAL_POSITION
-            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-            JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-              ON kcu.CONSTRAINT_SCHEMA=tc.CONSTRAINT_SCHEMA
-             AND kcu.CONSTRAINT_NAME=tc.CONSTRAINT_NAME
-             AND kcu.TABLE_NAME=tc.TABLE_NAME
-            WHERE tc.CONSTRAINT_TYPE='PRIMARY KEY'
-            ORDER BY tc.TABLE_SCHEMA,tc.TABLE_NAME,kcu.ORDINAL_POSITION
-            """
-        )
+        if settings.source_kind == ORACLE_KIND:
+            owner = (settings.source_schema or settings.source_user).upper()
+            cursor.execute(
+                """
+                SELECT cols.OWNER AS "TABLE_SCHEMA", cols.TABLE_NAME AS "TABLE_NAME",
+                       cols.COLUMN_NAME AS "COLUMN_NAME", cols.POSITION AS "ORDINAL_POSITION"
+                FROM ALL_CONSTRAINTS constraints
+                JOIN ALL_CONS_COLUMNS cols
+                  ON cols.OWNER=constraints.OWNER
+                 AND cols.CONSTRAINT_NAME=constraints.CONSTRAINT_NAME
+                WHERE constraints.CONSTRAINT_TYPE='P' AND constraints.OWNER=:owner
+                ORDER BY cols.OWNER,cols.TABLE_NAME,cols.POSITION
+                """,
+                {"owner": owner},
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT tc.TABLE_SCHEMA, tc.TABLE_NAME, kcu.COLUMN_NAME, kcu.ORDINAL_POSITION
+                FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+                JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+                  ON kcu.CONSTRAINT_SCHEMA=tc.CONSTRAINT_SCHEMA
+                 AND kcu.CONSTRAINT_NAME=tc.CONSTRAINT_NAME
+                 AND kcu.TABLE_NAME=tc.TABLE_NAME
+                WHERE tc.CONSTRAINT_TYPE='PRIMARY KEY'
+                ORDER BY tc.TABLE_SCHEMA,tc.TABLE_NAME,kcu.ORDINAL_POSITION
+                """
+            )
         pk_by_table: dict[tuple[str, str], list[str]] = defaultdict(list)
-        for row in cursor.fetchall():
+        for row in fetch_dicts(cursor):
             pk_by_table[(row["TABLE_SCHEMA"], row["TABLE_NAME"])].append(row["COLUMN_NAME"])
-        cursor.execute(
-            """
-            SELECT TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME
-            FROM INFORMATION_SCHEMA.COLUMNS
-            ORDER BY TABLE_SCHEMA,TABLE_NAME,ORDINAL_POSITION
-            """
-        )
+        if settings.source_kind == ORACLE_KIND:
+            cursor.execute(
+                """
+                SELECT OWNER AS "TABLE_SCHEMA", TABLE_NAME AS "TABLE_NAME",
+                       COLUMN_NAME AS "COLUMN_NAME"
+                FROM ALL_TAB_COLUMNS
+                WHERE OWNER=:owner
+                ORDER BY OWNER,TABLE_NAME,COLUMN_ID
+                """,
+                {"owner": owner},
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                ORDER BY TABLE_SCHEMA,TABLE_NAME,ORDINAL_POSITION
+                """
+            )
         columns_by_table: dict[tuple[str, str], list[str]] = defaultdict(list)
-        for row in cursor.fetchall():
+        for row in fetch_dicts(cursor):
             columns_by_table[(row["TABLE_SCHEMA"], row["TABLE_NAME"])].append(row["COLUMN_NAME"])
     finally:
         connection.close()
@@ -453,20 +479,21 @@ def _label_for_row(
 def _fetch_rows(
     connection,
     *,
+    kind: str,
     schema: str,
     table: str,
     columns: list[str],
     primary_keys: list[str],
 ) -> list[dict[str, Any]]:
     selected = sorted(set(columns), key=lambda value: (value not in primary_keys, value.casefold()))
-    sql_columns = ", ".join(_safe_sql_identifier(column) for column in selected)
-    order_by = ", ".join(_safe_sql_identifier(column) for column in primary_keys)
-    cursor = connection.cursor(as_dict=True)
+    sql_columns = ", ".join(_safe_sql_identifier(column, kind) for column in selected)
+    order_by = ", ".join(_safe_sql_identifier(column, kind) for column in primary_keys)
+    cursor = source_cursor(connection, kind)
     cursor.execute(
-        f"SELECT {sql_columns} FROM {_safe_sql_identifier(schema)}.{_safe_sql_identifier(table)} "
+        f"SELECT {sql_columns} FROM {_safe_sql_identifier(schema, kind)}.{_safe_sql_identifier(table, kind)} "
         f"ORDER BY {order_by}"
     )
-    return [dict(row) for row in cursor.fetchall()]
+    return fetch_dicts(cursor)
 
 
 def _write_data_shards(
@@ -490,15 +517,7 @@ def _write_data_shards(
     }
     subjects: set[str] = set()
     rows_by_class: dict[str, list[dict[str, Any]]] = {}
-    source = pymssql.connect(
-        server=settings.source_host,
-        port=settings.source_port,
-        user=settings.source_user,
-        password=settings.source_password,
-        database=settings.source_database,
-        login_timeout=20,
-        timeout=180,
-    )
+    source = connect_source(settings)
     try:
         for class_item in catalog["classes"]:
             class_name = class_item["class_name"]
@@ -515,6 +534,7 @@ def _write_data_shards(
             ]
             rows = _fetch_rows(
                 source,
+                kind=settings.source_kind,
                 schema=table_meta["schema"],
                 table=table_meta["table"],
                 columns=table_meta["primaryKeys"] + mapped_columns + relationship_columns,

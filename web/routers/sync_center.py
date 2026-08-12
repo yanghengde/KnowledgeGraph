@@ -40,6 +40,10 @@ def _repo() -> ControlPlaneRepository:
 
 
 class ConnectionUpdate(BaseModel):
+    kind: Literal[
+        "camstar_sqlserver", "camstar_oracle", "ontology_neo4j",
+        "graph_studio", "state_postgresql",
+    ]
     display_name: str = Field(min_length=1, max_length=120)
     endpoint: str = Field(min_length=1, max_length=500)
     database_name: str | None = Field(default=None, max_length=500)
@@ -115,6 +119,13 @@ def update_connection(connection_key: str, request: ConnectionUpdate):
             status_code=409,
             detail="The control PostgreSQL connection is environment-managed to prevent self-disconnection",
         )
+    allowed_kinds = {
+        "camstar-source": {"camstar_sqlserver", "camstar_oracle"},
+        "ontology-neo4j": {"ontology_neo4j"},
+        "graph-studio": {"graph_studio"},
+    }
+    if request.kind not in allowed_kinds.get(connection_key, set()):
+        raise HTTPException(status_code=422, detail="Connection type is not valid for this profile")
     try:
         return _repo().update_connection(connection_key, **request.model_dump())
     except KeyError as exc:

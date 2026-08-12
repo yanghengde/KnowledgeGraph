@@ -71,6 +71,16 @@
         return ({ online: "在线", offline: "离线", degraded: "降级", unknown: "未检查", disabled: "已停用", succeeded: "成功", failed: "失败", queued: "排队", started: "运行中", extracting: "抽取中", staged: "已暂存", loading: "加载中", verifying: "验证中", cancelled: "已取消" })[value] || value || "未知";
     }
 
+    function connectionKindLabel(value) {
+        return ({
+            camstar_sqlserver: "Camstar · SQL Server",
+            camstar_oracle: "Camstar · Oracle",
+            ontology_neo4j: "Ontology · Neo4j",
+            graph_studio: "Graph Studio",
+            state_postgresql: "Control Plane · PostgreSQL",
+        })[value] || String(value || "").replaceAll("_", " ");
+    }
+
     function renderNavigation() {
         const nav = $("#syncNavigation");
         nav.innerHTML = state.navigation.map(item => `
@@ -120,7 +130,7 @@
     function renderConnections() {
         $("#connectionGrid").innerHTML = state.connections.map(item => `
             <article class="connection-card" data-connection="${escapeHtml(item.connection_key)}">
-                <div class="card-top"><div><h3>${escapeHtml(item.display_name)}</h3><p>${escapeHtml(item.kind.replaceAll("_", " "))}</p></div><span class="status-pill ${item.status}">${statusLabel(item.status)}</span></div>
+                <div class="card-top"><div><h3>${escapeHtml(item.display_name)}</h3><p>${escapeHtml(connectionKindLabel(item.kind))}</p></div><span class="status-pill ${item.status}">${statusLabel(item.status)}</span></div>
                 <div class="card-details">
                     <div class="detail-field"><span>Endpoint</span><strong title="${escapeHtml(item.endpoint)}">${escapeHtml(item.endpoint)}</strong></div>
                     <div class="detail-field"><span>Database / Target</span><strong title="${escapeHtml(item.database_name || "—")}">${escapeHtml(item.database_name || "—")}</strong></div>
@@ -200,30 +210,78 @@
 
     function field(name, label, value = "", options = {}) {
         const className = options.wide ? "dialog-field wide" : "dialog-field";
+        const help = options.help ? `<small class="field-help">${escapeHtml(options.help)}</small>` : "";
+        const attributes = `${options.hidden ? " hidden" : ""} data-field-name="${escapeHtml(name)}"`;
         if (options.type === "select") {
-            return `<div class="${className}"><label for="dialog-${name}">${label}</label><select id="dialog-${name}" name="${name}">${options.items.map(([key, text]) => `<option value="${key}" ${key === value ? "selected" : ""}>${text}</option>`).join("")}</select></div>`;
+            return `<div class="${className}"${attributes}><label id="dialog-${name}-label" for="dialog-${name}">${label}</label><select id="dialog-${name}" name="${name}">${options.items.map(([key, text]) => `<option value="${escapeHtml(key)}" ${key === value ? "selected" : ""}>${escapeHtml(text)}</option>`).join("")}</select>${help}</div>`;
         }
         if (options.type === "checkbox") {
-            return `<div class="${className}"><label><input type="checkbox" name="${name}" ${value ? "checked" : ""}> ${label}</label></div>`;
+            return `<div class="${className} switch-field"${attributes}><label class="switch-row"><span class="switch-copy"><strong>${label}</strong><small>${escapeHtml(options.help || "关闭后不会参与自动测试和同步任务")}</small></span><input class="switch-input" type="checkbox" name="${name}" ${value ? "checked" : ""}><span class="switch-control" aria-hidden="true"></span></label></div>`;
         }
-        return `<div class="${className}"><label for="dialog-${name}">${label}</label><input id="dialog-${name}" name="${name}" type="${options.type || "text"}" value="${escapeHtml(value ?? "")}" ${options.readonly ? "readonly" : ""}></div>`;
+        return `<div class="${className}"${attributes}><label id="dialog-${name}-label" for="dialog-${name}">${label}</label><input id="dialog-${name}" name="${name}" type="${options.type || "text"}" value="${escapeHtml(value ?? "")}" placeholder="${escapeHtml(options.placeholder || "")}" ${options.readonly ? "readonly" : ""}>${help}</div>`;
     }
 
     function openConnectionDialog(item) {
-        $("#dialogTitle").textContent = `编辑 ${item.display_name}`;
-        $("#dialogKicker").textContent = "CONNECTION PROFILE";
-        $("#dialogFields").innerHTML = [
-            field("display_name", "显示名称", item.display_name, { wide: true }),
-            field("endpoint", "Endpoint", item.endpoint, { wide: true }),
-            field("database_name", "数据库 / Graphmart URI", item.database_name || "", { wide: true }),
+        const isSource = item.connection_key === "camstar-source";
+        const config = item.config || {};
+        $("#dialogTitle").textContent = isSource ? "编辑 Camstar 数据源" : `编辑 ${item.display_name}`;
+        $("#dialogKicker").textContent = isSource ? "DATABASE CONNECTION" : "CONNECTION PROFILE";
+        const fields = [field("display_name", "显示名称", item.display_name, { wide: true })];
+        if (isSource) {
+            fields.push(
+                field("kind", "数据库类型", item.kind, { type: "select", items: [["camstar_sqlserver", "SQL Server"], ["camstar_oracle", "Oracle"]] }),
+                field("endpoint", "主机与端口", item.endpoint, { placeholder: "db.example.com:1433", help: "SQL Server 默认 1433；Oracle 默认 1521" }),
+                field("database_name", "数据库名称", item.database_name || "", { placeholder: "CamstarPRD" }),
+                field("source_schema", "Oracle Schema", config.schema || "", { placeholder: "CAMSTAR", hidden: item.kind !== "camstar_oracle" }),
+                field("oracle_connect_mode", "Oracle 连接标识", config.oracleConnectMode || "service_name", { type: "select", items: [["service_name", "Service Name"], ["sid", "SID"]], hidden: item.kind !== "camstar_oracle" }),
+            );
+        } else {
+            fields.push(
+                field("endpoint", "Endpoint", item.endpoint, { wide: true }),
+                field("database_name", "数据库 / Graphmart URI", item.database_name || "", { wide: true }),
+            );
+        }
+        fields.push(
             field("username", "用户名", item.username || ""),
-            field("enabled", "启用此连接", item.enabled, { type: "checkbox" }),
-        ].join("");
+            field("enabled", "启用此连接", item.enabled, { type: "checkbox", wide: true }),
+        );
+        $("#dialogFields").innerHTML = fields.join("");
+        let previousSourceKind = item.kind;
+        const updateSourceFields = () => {
+            if (!isSource) return;
+            const nextSourceKind = $("#dialog-kind").value;
+            const oracle = nextSourceKind === "camstar_oracle";
+            if (nextSourceKind !== previousSourceKind) {
+                const endpoint = $("#dialog-endpoint");
+                if (oracle && endpoint.value.endsWith(":1433")) endpoint.value = `${endpoint.value.slice(0, -5)}:1521`;
+                if (!oracle && endpoint.value.endsWith(":1521")) endpoint.value = `${endpoint.value.slice(0, -5)}:1433`;
+                const displayName = $("#dialog-display_name");
+                if (["Camstar SQL Server", "Camstar Oracle"].includes(displayName.value)) {
+                    displayName.value = oracle ? "Camstar Oracle" : "Camstar SQL Server";
+                }
+                previousSourceKind = nextSourceKind;
+            }
+            $$('[data-field-name="source_schema"], [data-field-name="oracle_connect_mode"]', $("#dialogFields")).forEach(element => { element.hidden = !oracle; });
+            $("#dialog-database_name-label").textContent = oracle ? "Service Name / SID" : "数据库名称";
+            $("#dialog-database_name").placeholder = oracle ? "ORCLPDB1" : "CamstarPRD";
+            $("#dialog-endpoint").placeholder = oracle ? "db.example.com:1521" : "db.example.com:1433";
+        };
+        if (isSource) {
+            $("#dialog-kind").addEventListener("change", updateSourceFields);
+            updateSourceFields();
+        }
         state.dialogSubmit = async (form) => {
+            const kind = isSource ? form.get("kind") : item.kind;
+            const nextConfig = isSource ? {
+                ...config,
+                schema: form.get("source_schema") || null,
+                oracleConnectMode: form.get("oracle_connect_mode") || "service_name",
+            } : config;
             const payload = {
+                kind,
                 display_name: form.get("display_name"), endpoint: form.get("endpoint"),
                 database_name: form.get("database_name") || null, username: form.get("username") || null,
-                enabled: form.get("enabled") === "on", config: item.config || {},
+                enabled: form.get("enabled") === "on", config: nextConfig,
             };
             await request(`/api/sync/connections/${encodeURIComponent(item.connection_key)}`, { method: "PUT", body: JSON.stringify(payload) });
             toast("连接配置已保存，建议立即执行连接测试");

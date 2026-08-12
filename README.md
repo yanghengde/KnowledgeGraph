@@ -2,19 +2,19 @@
 
 Opcenter Graph Sync 是一个将 Siemens Opcenter Execution（Camstar）的本体与业务数据持续发布到 RapidMiner/Altair Graph Studio 的同步平台。
 
-> 项目主线已统一为 **Camstar SQL Server + Neo4j Ontology → RDF → Graph Studio Graphmart**。
+> 项目主线已统一为 **Camstar SQL Server/Oracle + Neo4j Ontology → RDF → Graph Studio Graphmart**。
 > Neo4j 本体编辑、SQL 查询、Wiki、RAG 问答与旧 SQL Server ETL 仍保留，但它们是辅助工具，不再是平台主入口。
 
 ## 主流程
 
 ```text
-Camstar SQL Server  ─┐
+Camstar SQL Server/Oracle ─┐
                       ├──> Mapping Compiler ──> RDF Snapshot ──> Graph Studio API
 Neo4j Ontology      ─┘                  │                         │
                                            PostgreSQL Control Plane <── SPARQL Verify
 ```
 
-- **Camstar SQL Server**：业务数据唯一事实来源。
+- **Camstar SQL Server/Oracle**：可配置的业务数据唯一事实来源。
 - **Neo4j**：本体类、属性、关系及 Camstar 物理映射。
 - **PostgreSQL**：控制面，保存连接档案、菜单、任务、映射编译快照、运行日志、检查点和产物 URI。
 - **Graph Studio**：最终本体、Dataset、Layer 和 Graphmart 服务。
@@ -52,11 +52,14 @@ NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=...
 
+SRC_DB_TYPE=sqlserver # 或 oracle
 SRC_DB_HOST=...
 SRC_DB_PORT=1433
 SRC_DB_NAME=...
 SRC_DB_USER=...
 SRC_DB_PASSWORD=...
+SRC_DB_SCHEMA=       # Oracle Schema；SQL Server 可留空
+SRC_DB_ORACLE_MODE=service_name # 或 sid
 
 GRAPHSTUDIO_BASE_URL=https://graphstudio.example.com
 GRAPHSTUDIO_USER=...
@@ -72,7 +75,7 @@ PGSQL_USER=postgres
 PGSQL_PASSWORD=...
 ```
 
-密码始终由环境变量管理。PostgreSQL `connection_profile` 只保存 `env://...` 引用，不存明文密码。
+密码始终由环境变量管理。PostgreSQL `connection_profile` 只保存 `env://...` 引用，不存明文密码。Camstar 数据源支持 SQL Server 和 Oracle；管理页面切换类型后，连接测试、盘点和 RDF 预览会使用对应驱动。
 
 ### 2. 安装与初始化
 

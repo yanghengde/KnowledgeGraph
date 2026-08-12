@@ -57,3 +57,28 @@ def test_postgres_connection_profiles_override_metadata_not_secrets() -> None:
     assert resolved.graphstudio_password == "graph-secret"
     assert resolved.graphmart_uri == "urn:graphmart:new"
     assert resolved.shared_file_connection == "urn:file:shared"
+
+
+def test_oracle_source_profile_selects_driver_defaults_and_schema() -> None:
+    resolved = settings_from_profiles(
+        _settings(),
+        [
+            {
+                "connection_key": "camstar-source",
+                "kind": "camstar_oracle",
+                "enabled": True,
+                "endpoint": "oracle.internal",
+                "database_name": "CAMSTARPDB",
+                "username": "camstar",
+                "config": {"schema": "CAMSTAR_OWNER", "oracleConnectMode": "service_name"},
+            }
+        ],
+    )
+
+    assert resolved.source_kind == "camstar_oracle"
+    assert resolved.source_host == "oracle.internal"
+    assert resolved.source_port == 1521
+    assert resolved.source_database == "CAMSTARPDB"
+    assert resolved.source_schema == "CAMSTAR_OWNER"
+    assert resolved.source_connect_mode == "service_name"
+    assert resolved.source_password == "sql-secret"

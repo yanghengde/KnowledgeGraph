@@ -9,13 +9,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import pymssql
 import requests
 from neo4j import GraphDatabase
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .config import PROJECT_ROOT, SyncSettings
+from .source_database import ORACLE_KIND, connect_source, fetch_dicts, source_cursor
 
 
 FIELDS_CSV = PROJECT_ROOT / "docs" / "Database_Fields.csv"
@@ -89,37 +89,53 @@ def read_ontology(settings: SyncSettings) -> OntologyInventory:
 
 
 def read_source_catalog(settings: SyncSettings) -> dict[str, dict[str, Any]]:
-    connection = pymssql.connect(
-        server=settings.source_host,
-        port=settings.source_port,
-        user=settings.source_user,
-        password=settings.source_password,
-        database=settings.source_database,
-        login_timeout=20,
-        timeout=120,
-    )
-    cursor = connection.cursor(as_dict=True)
+    connection = connect_source(settings)
+    cursor = source_cursor(connection, settings.source_kind)
     try:
-        cursor.execute(
-            """
-            SELECT s.name AS schema_name, t.name AS table_name,
-                   SUM(CASE WHEN p.index_id IN (0,1) THEN p.rows ELSE 0 END) AS row_count
-            FROM sys.tables t
-            JOIN sys.schemas s ON s.schema_id=t.schema_id
-            LEFT JOIN sys.partitions p ON p.object_id=t.object_id
-            GROUP BY s.name,t.name
-            """
-        )
-        tables = {normalize_identifier(row["table_name"]): dict(row) for row in cursor.fetchall()}
-        cursor.execute(
-            """
-            SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
-            FROM INFORMATION_SCHEMA.COLUMNS
-            ORDER BY TABLE_SCHEMA,TABLE_NAME,ORDINAL_POSITION
-            """
-        )
+        if settings.source_kind == ORACLE_KIND:
+            owner = (settings.source_schema or settings.source_user).upper()
+            cursor.execute(
+                """
+                SELECT OWNER AS "schema_name", TABLE_NAME AS "table_name",
+                       NVL(NUM_ROWS, 0) AS "row_count"
+                FROM ALL_TABLES
+                WHERE OWNER=:owner
+                """,
+                {"owner": owner},
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT s.name AS schema_name, t.name AS table_name,
+                       SUM(CASE WHEN p.index_id IN (0,1) THEN p.rows ELSE 0 END) AS row_count
+                FROM sys.tables t
+                JOIN sys.schemas s ON s.schema_id=t.schema_id
+                LEFT JOIN sys.partitions p ON p.object_id=t.object_id
+                GROUP BY s.name,t.name
+                """
+            )
+        tables = {normalize_identifier(row["table_name"]): row for row in fetch_dicts(cursor)}
+        if settings.source_kind == ORACLE_KIND:
+            cursor.execute(
+                """
+                SELECT OWNER AS "TABLE_SCHEMA", TABLE_NAME AS "TABLE_NAME",
+                       COLUMN_NAME AS "COLUMN_NAME"
+                FROM ALL_TAB_COLUMNS
+                WHERE OWNER=:owner
+                ORDER BY OWNER,TABLE_NAME,COLUMN_ID
+                """,
+                {"owner": (settings.source_schema or settings.source_user).upper()},
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                ORDER BY TABLE_SCHEMA,TABLE_NAME,ORDINAL_POSITION
+                """
+            )
         columns: dict[tuple[str, str], list[str]] = {}
-        for row in cursor.fetchall():
+        for row in fetch_dicts(cursor):
             columns.setdefault((row["TABLE_SCHEMA"], row["TABLE_NAME"]), []).append(row["COLUMN_NAME"])
     finally:
         connection.close()

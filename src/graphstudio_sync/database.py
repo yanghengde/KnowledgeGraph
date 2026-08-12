@@ -73,13 +73,17 @@ def seed_runtime_connections(
     profiles = [
         {
             "key": "camstar-source",
-            "kind": "camstar_sqlserver",
-            "name": "Camstar SQL Server",
+            "kind": settings.source_kind,
+            "name": "Camstar Oracle" if settings.source_kind == "camstar_oracle" else "Camstar SQL Server",
             "endpoint": f"{settings.source_host}:{settings.source_port}",
             "database": settings.source_database,
             "username": settings.source_user,
             "secret_ref": "env://SRC_DB_PASSWORD",
-            "config": {"role": "business_source"},
+            "config": {
+                "role": "business_source",
+                "schema": settings.source_schema,
+                "oracleConnectMode": settings.source_connect_mode,
+            },
         },
         {
             "key": "ontology-neo4j",

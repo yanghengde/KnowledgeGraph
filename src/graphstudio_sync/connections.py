@@ -7,7 +7,6 @@ from dataclasses import replace
 from typing import Any
 from urllib.parse import quote
 
-import pymssql
 import requests
 from neo4j import GraphDatabase
 from requests.adapters import HTTPAdapter
@@ -17,6 +16,7 @@ from urllib3.util.retry import Retry
 from .config import SyncSettings
 from .database import control_engine
 from .repository import ControlPlaneRepository
+from .source_database import ORACLE_KIND, connect_source, fetch_dicts, source_cursor, source_default_port
 
 
 def _host_port(endpoint: str, default_port: int) -> tuple[str, int]:
@@ -38,9 +38,16 @@ def settings_from_profiles(
     values: dict[str, Any] = {}
     source = by_key.get("camstar-source")
     if source:
-        values["source_host"], values["source_port"] = _host_port(source["endpoint"], 1433)
+        source_kind = source.get("kind") or base.source_kind
+        source_config = source.get("config") or {}
+        values["source_kind"] = source_kind
+        values["source_host"], values["source_port"] = _host_port(
+            source["endpoint"], source_default_port(source_kind)
+        )
         values["source_database"] = source.get("database_name") or base.source_database
         values["source_user"] = source.get("username") or base.source_user
+        values["source_schema"] = source_config.get("schema") or base.source_schema
+        values["source_connect_mode"] = source_config.get("oracleConnectMode") or base.source_connect_mode
     ontology = by_key.get("ontology-neo4j")
     if ontology:
         values["neo4j_uri"] = ontology["endpoint"]
@@ -61,19 +68,20 @@ def resolved_settings(base: SyncSettings, repository: ControlPlaneRepository) ->
 
 
 def _test_source(settings: SyncSettings) -> dict[str, Any]:
-    connection = pymssql.connect(
-        server=settings.source_host,
-        port=settings.source_port,
-        user=settings.source_user,
-        password=settings.source_password,
-        database=settings.source_database,
-        login_timeout=10,
-        timeout=15,
-    )
+    connection = connect_source(settings)
     try:
-        cursor = connection.cursor()
-        cursor.execute("SELECT COUNT(*) FROM sys.tables")
-        return {"tables": int(cursor.fetchone()[0])}
+        cursor = source_cursor(connection, settings.source_kind)
+        if settings.source_kind == ORACLE_KIND:
+            owner = (settings.source_schema or settings.source_user).upper()
+            cursor.execute(
+                'SELECT COUNT(*) AS "table_count" FROM ALL_TABLES WHERE OWNER=:owner',
+                {"owner": owner},
+            )
+            count = fetch_dicts(cursor)[0]["table_count"]
+            return {"engine": "oracle", "schema": owner, "tables": int(count)}
+        cursor.execute("SELECT COUNT(*) AS table_count FROM sys.tables")
+        count = fetch_dicts(cursor)[0]["table_count"]
+        return {"engine": "sqlserver", "tables": int(count)}
     finally:
         connection.close()
 

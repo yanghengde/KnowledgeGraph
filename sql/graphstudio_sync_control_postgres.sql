@@ -1,6 +1,6 @@
 -- Camstar -> Graph Studio control plane.
 -- This schema stores orchestration metadata only; source business data remains
--- in Camstar SQL Server and published RDF remains in Graph Studio.
+-- in the Camstar SQL Server/Oracle source and published RDF remains in Graph Studio.
 
 CREATE SCHEMA IF NOT EXISTS graphsync;
 
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS graphsync.schema_version (
 CREATE TABLE IF NOT EXISTS graphsync.connection_profile (
     connection_key  text PRIMARY KEY,
     kind            text NOT NULL CHECK (kind IN (
-                        'camstar_sqlserver', 'ontology_neo4j',
+                        'camstar_sqlserver', 'camstar_oracle', 'ontology_neo4j',
                         'graph_studio', 'state_postgresql'
                     )),
     display_name    text NOT NULL,
@@ -31,6 +31,15 @@ CREATE TABLE IF NOT EXISTS graphsync.connection_profile (
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now()
 );
+
+-- Existing installations need the expanded source-engine constraint as well.
+ALTER TABLE graphsync.connection_profile
+    DROP CONSTRAINT IF EXISTS connection_profile_kind_check;
+ALTER TABLE graphsync.connection_profile
+    ADD CONSTRAINT connection_profile_kind_check CHECK (kind IN (
+        'camstar_sqlserver', 'camstar_oracle', 'ontology_neo4j',
+        'graph_studio', 'state_postgresql'
+    ));
 
 CREATE TABLE IF NOT EXISTS graphsync.menu_item (
     menu_key        text PRIMARY KEY,
@@ -355,6 +364,10 @@ ON CONFLICT (version) DO NOTHING;
 
 INSERT INTO graphsync.schema_version (version, description)
 VALUES (3, 'Mapping review overrides and relationship candidates')
+ON CONFLICT (version) DO NOTHING;
+
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (4, 'SQL Server and Oracle Camstar source profiles')
 ON CONFLICT (version) DO NOTHING;
 
 INSERT INTO graphsync.menu_item
