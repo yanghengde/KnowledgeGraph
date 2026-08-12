@@ -61,7 +61,10 @@ def doctor(settings: SyncSettings) -> dict[str, Any]:
         checks["stateDatabase"] = {
             "ok": True,
             "configured": False,
-            "warning": "SYNC_STATE_DATABASE_URL is not set; production checkpoints are not durable yet",
+            "warning": (
+                "PostgreSQL control plane is disabled; set PGSQL_ENABLED=true and PGSQL_PASSWORD, "
+                "or provide SYNC_STATE_DATABASE_URL"
+            ),
         }
     return {
         "ok": all(item.get("ok") for item in checks.values()),
@@ -85,4 +88,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

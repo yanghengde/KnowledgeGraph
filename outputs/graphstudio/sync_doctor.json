@@ -20,7 +20,7 @@
     "stateDatabase": {
       "ok": true,
       "configured": false,
-      "warning": "SYNC_STATE_DATABASE_URL is not set; production checkpoints are not durable yet"
+      "warning": "PostgreSQL control plane is disabled; set PGSQL_ENABLED=true and PGSQL_PASSWORD, or provide SYNC_STATE_DATABASE_URL"
     }
   }
 }

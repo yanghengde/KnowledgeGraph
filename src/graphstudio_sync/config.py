@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from dotenv import load_dotenv
+from sqlalchemy.engine import URL
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -17,6 +18,33 @@ def _required(name: str) -> str:
     if not value:
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
+
+
+def _enabled(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().casefold() in {"1", "true", "yes", "on"}
+
+
+def _state_database_url() -> str | None:
+    """Build the control-plane URL without requiring a password-bearing URL in .env."""
+    explicit_url = os.getenv("SYNC_STATE_DATABASE_URL", "").strip()
+    if explicit_url:
+        return explicit_url
+    if not _enabled("PGSQL_ENABLED"):
+        return None
+    password = _required("PGSQL_PASSWORD")
+    url = URL.create(
+        drivername="postgresql+psycopg",
+        username=os.getenv("PGSQL_USER", "graphsync").strip(),
+        password=password,
+        host=os.getenv("PGSQL_HOST", "127.0.0.1").strip(),
+        port=int(os.getenv("PGSQL_PORT", "5433")),
+        database=os.getenv("PGSQL_DATABASE", "graphsync").strip(),
+        query={"sslmode": os.getenv("PGSQL_SSLMODE", "prefer").strip()},
+    )
+    return url.render_as_string(hide_password=False)
 
 
 @dataclass(frozen=True)
@@ -56,8 +84,7 @@ class SyncSettings:
                 "GRAPHSTUDIO_GRAPHMART_URI",
                 "http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56",
             ).strip(),
-            state_database_url=os.getenv("SYNC_STATE_DATABASE_URL") or None,
+            state_database_url=_state_database_url(),
             shared_file_connection=os.getenv("GRAPHSTUDIO_FILE_CONNECTION") or None,
             shared_file_path=os.getenv("GRAPHSTUDIO_FILE_PATH", "Opcenter2607/CamstarSync").strip("/"),
         )
-

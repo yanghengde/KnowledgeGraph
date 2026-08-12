@@ -122,7 +122,7 @@ python scripts/graphstudio_sync.py doctor --output outputs/graphstudio/sync_doct
 python scripts/graphstudio_sync.py plan --output outputs/graphstudio/full_sync_plan.json
 
 # 启动可选 PostgreSQL 控制面
-$env:GRAPHSYNC_POSTGRES_PASSWORD = '<secret>'
+$env:PGSQL_PASSWORD = '<secret>'
 docker compose -f deploy/graphstudio-sync/compose.postgres.yaml up -d
 ```
 
