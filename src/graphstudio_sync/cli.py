@@ -15,6 +15,7 @@ from .catalog import compile_catalog
 from .database import initialize_control_plane
 from .inventory import build_plan, check_graphstudio, read_ontology, read_source_catalog
 from .incremental import execute_incremental_plan, execute_incremental_probe
+from .incremental_preview import build_incremental_preview
 from .repository import ControlPlaneRepository
 from .preview import build_full_preview
 from .run_manager import execute_dry_run
@@ -128,6 +129,12 @@ def main(argv: list[str] | None = None) -> int:
     incremental_plan_parser.add_argument("--job", default="camstar-full")
     incremental_plan_parser.add_argument("--output", type=Path)
     incremental_plan_parser.add_argument("--no-refresh", action="store_true")
+    incremental_preview_parser = subparsers.add_parser(
+        "preview-incremental",
+        help="Extract planned change windows into an audited JSONL package without publishing",
+    )
+    incremental_preview_parser.add_argument("--job", default="camstar-full")
+    incremental_preview_parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     settings = SyncSettings.from_env()
     if args.command == "doctor":
@@ -155,7 +162,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "probe-incremental":
         repository = ControlPlaneRepository(settings)
         payload = execute_incremental_probe(settings, repository, job_name=args.job)
-    else:
+    elif args.command == "plan-incremental":
         repository = ControlPlaneRepository(settings)
         payload = execute_incremental_plan(
             settings,
@@ -163,6 +170,9 @@ def main(argv: list[str] | None = None) -> int:
             job_name=args.job,
             refresh_capabilities=not args.no_refresh,
         )
+    else:
+        repository = ControlPlaneRepository(settings)
+        payload = build_incremental_preview(settings, repository, job_name=args.job)
     _write(payload, args.output)
     return 0 if payload.get("ok", True) else 1
 

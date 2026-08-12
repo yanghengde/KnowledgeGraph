@@ -138,6 +138,8 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 
 控制面 v6 还包含 `source_capability_snapshot` 和 `incremental_window`：前者记录 SQL Server CT/CDC 或 Oracle SCN/Flashback 的实际探测证据，后者在抽取前冻结可恢复的上下界。没有检查点、检查点已被源库清理或原生能力未启用时，窗口会进入 `baseline_required`/`blocked`，不会继续同步。
 
+`preview-incremental` 会将已规划窗口读取成统一 JSONL 变更包，支持 SQL Server CT、CDC、Oracle Flashback SCN 以及 watermark/append-only。事件包含主键、insert/update/upsert/delete 操作和数据库恢复位置；预览只生成审计产物，不提交 checkpoint，也不写 Graph Studio。
+
 “同步任务 → 表级同步策略”可为每个本体类配置全量快照、水位增量、追加增量、CDC 或不导入。超过 `sync.snapshot_row_threshold` 且没有显式策略的表会在抽取前失败，避免误扫亿级表。水位/追加策略必须配置水位列；每个已验证 RDF 分片会写入 `sync_batch`，便于审计和后续断点续跑。
 
 ## 同步安全边界

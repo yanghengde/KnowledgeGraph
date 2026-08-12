@@ -281,6 +281,7 @@ def plan_incremental_windows(
 ) -> list[dict[str, Any]]:
     table_capabilities = {item["className"]: item for item in capability_snapshot["tables"]}
     source_position = capability_snapshot["sourcePosition"]
+    database_capabilities = capability_snapshot.get("capabilities") or {}
     windows: list[dict[str, Any]] = []
     for policy in policies:
         strategy = policy.get("effective_strategy")
@@ -308,7 +309,9 @@ def plan_incremental_windows(
             if adapter == "sqlserver_change_tracking":
                 upper = {"changeTrackingVersion": source_position.get("changeTrackingVersion")}
                 minimum = (capability.get("changeTracking") or {}).get("min_valid_version")
-                if lower and minimum is not None and int(lower.get("changeTrackingVersion", -1)) < int(minimum):
+                if database_capabilities.get("snapshotIsolation") != "ON":
+                    status, reason = "blocked", "snapshot_isolation_required_for_change_tracking"
+                elif lower and minimum is not None and int(lower.get("changeTrackingVersion", -1)) < int(minimum):
                     status, reason = "blocked", "checkpoint_before_min_valid_change_tracking_version"
             elif adapter == "sqlserver_cdc":
                 upper = {"cdcLsn": source_position.get("cdcMaxLsn")}
@@ -320,8 +323,17 @@ def plan_incremental_windows(
             else:
                 upper = {"unavailable": True}
                 status, reason = "blocked", "native_change_capture_not_enabled"
-        if not any(value is not None and value is not False for value in upper.values()):
+        upper_available = {
+            "database_watermark": upper.get("watermark") is not None,
+            "sqlserver_change_tracking": upper.get("changeTrackingVersion") is not None,
+            "sqlserver_cdc": upper.get("cdcLsn") is not None,
+            "oracle_flashback_scn": upper.get("scn") is not None,
+        }.get(adapter, False)
+        if not upper_available:
             status, reason = "blocked", reason or "source_upper_bound_unavailable"
+        metadata = {"reason": reason} if reason else {}
+        if adapter == "sqlserver_cdc" and capability.get("cdc"):
+            metadata["captureInstance"] = capability["cdc"].get("capture_instance")
         windows.append(
             {
                 "class_name": class_name,
@@ -330,7 +342,7 @@ def plan_incremental_windows(
                 "status": status,
                 "lower_bound": lower,
                 "upper_bound": upper,
-                "metadata": {"reason": reason} if reason else {},
+                "metadata": metadata,
             }
         )
     return windows

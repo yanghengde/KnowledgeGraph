@@ -12,6 +12,7 @@ from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
 from src.graphstudio_sync.incremental import execute_incremental_plan, execute_incremental_probe
+from src.graphstudio_sync.incremental_preview import build_incremental_preview
 from src.graphstudio_sync.repository import ControlPlaneRepository
 from src.graphstudio_sync.preview import build_full_preview
 from src.graphstudio_sync.run_manager import execute_dry_run
@@ -225,6 +226,16 @@ def incremental_plan(job_name: str):
         raise HTTPException(status_code=404, detail="Sync job not found") from exc
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Incremental window planning failed: {exc}") from exc
+
+
+@router.post("/jobs/{job_name}/incremental-preview")
+def incremental_preview(job_name: str):
+    try:
+        return build_incremental_preview(_settings(), _repo(), job_name=job_name)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job not found") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Incremental preview failed: {exc}") from exc
 
 
 @router.post("/jobs/{job_name}/dry-run")

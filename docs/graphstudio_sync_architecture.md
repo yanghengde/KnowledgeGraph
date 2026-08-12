@@ -106,8 +106,13 @@ flowchart LR
   窗口写入 `incremental_window`。
 - 没有 checkpoint 时窗口标记为 `baseline_required`；CT/CDC checkpoint 早于数据库最小
   有效位置时标记为 `blocked`，必须重新做基线，不能跳过丢失区间。
-- 当前阶段只完成能力探测和窗口规划。窗口规划不会抽取业务行、提交 checkpoint 或修改
-  Graph Studio；源库的 CT/CDC/Flashback 配置必须由 DBA 审核。
+- 窗口规划本身不会抽取业务行、提交 checkpoint 或修改 Graph Studio；源库的
+  CT/CDC/Flashback 配置必须由 DBA 审核。
+- `preview-incremental` 已具备四种有界读取器：SQL Server Change Tracking、SQL Server
+  CDC、Oracle Flashback Versions 和普通 watermark/append-only。读取结果统一为带主键、
+  操作类型和恢复位置的 JSONL change envelope；删除记录进入 tombstone 计数。
+- 增量预览包会回读 JSONL、验证 ZIP CRC 并记录 run/artifact，但明确设置
+  `checkpointCommitted=false`。只有未来 Graph Studio 应用和 SPARQL 验收成功后才能提交检查点。
 
 ### 触发升级到增量的条件
 
@@ -166,6 +171,7 @@ python scripts/graphstudio_sync.py dry-run --job camstar-full
 python scripts/graphstudio_sync.py preview --job camstar-full
 python scripts/graphstudio_sync.py probe-incremental --job camstar-full
 python scripts/graphstudio_sync.py plan-incremental --job camstar-full
+python scripts/graphstudio_sync.py preview-incremental --job camstar-full
 
 # 启动可选 PostgreSQL 控制面
 $env:PGSQL_PASSWORD = '<secret>'

@@ -502,6 +502,25 @@ class ControlPlaneRepository:
                 recorded.append(dict(row))
         return recorded
 
+    def latest_incremental_windows(self, job_name: str) -> list[dict[str, Any]]:
+        with self.engine.connect() as connection:
+            return _rows(
+                connection.execute(
+                    text(
+                        """
+                        SELECT DISTINCT ON (class_name)
+                               window_id, job_name, class_name, strategy, adapter, status,
+                               lower_bound, upper_bound, capability_snapshot_id, run_id,
+                               row_count, tombstone_count, error, metadata, created_at, updated_at
+                        FROM graphsync.incremental_window
+                        WHERE job_name=:job_name
+                        ORDER BY class_name, created_at DESC
+                        """
+                    ),
+                    {"job_name": job_name},
+                )
+            )
+
     def list_runs(self, *, limit: int = 100) -> list[dict[str, Any]]:
         with self.engine.connect() as connection:
             return _rows(

@@ -18,6 +18,7 @@ def _probe(table, *, position=120):
     return {
         "sourceKind": "camstar_sqlserver",
         "sourcePosition": {"changeTrackingVersion": position, "cdcMaxLsn": None},
+        "capabilities": {"snapshotIsolation": "ON"},
         "tables": [table],
     }
 
@@ -73,6 +74,26 @@ def test_incremental_table_without_checkpoint_requires_baseline() -> None:
     assert window["status"] == "baseline_required"
 
 
+def test_change_tracking_requires_snapshot_isolation() -> None:
+    table = {
+        "className": "HistoryMainline",
+        "nativeAdapter": "sqlserver_change_tracking",
+        "changeTracking": {"min_valid_version": 80},
+    }
+    probe = _probe(table)
+    probe["capabilities"]["snapshotIsolation"] = "OFF"
+    checkpoints = {
+        "HistoryMainline": {"committed_watermark": {"changeTrackingVersion": 100}}
+    }
+
+    window = incremental.plan_incremental_windows(
+        _settings(), [_policy()], probe, checkpoints
+    )[0]
+
+    assert window["status"] == "blocked"
+    assert window["metadata"]["reason"] == "snapshot_isolation_required_for_change_tracking"
+
+
 def test_cdc_policy_without_native_capture_is_blocked() -> None:
     table = {
         "className": "HistoryMainline",
@@ -107,3 +128,16 @@ def test_watermark_window_reads_upper_bound_without_full_scan(monkeypatch) -> No
     assert window["adapter"] == "database_watermark"
     assert window["status"] == "planned"
     assert window["upper_bound"]["watermark"] == "2026-08-13T12:00:00+00:00"
+
+
+def test_empty_watermark_table_has_no_false_upper_bound(monkeypatch) -> None:
+    monkeypatch.setattr(incremental, "read_watermark_upper_bound", lambda *args, **kwargs: None)
+    table = {"className": "MfgOrder", "nativeAdapter": None}
+    checkpoints = {"MfgOrder": {"committed_watermark": {"watermark": "2026-08-13"}}}
+
+    window = incremental.plan_incremental_windows(
+        _settings(), [_policy("MfgOrder", "watermark")], _probe(table), checkpoints
+    )[0]
+
+    assert window["status"] == "blocked"
+    assert window["metadata"]["reason"] == "source_upper_bound_unavailable"

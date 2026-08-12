@@ -607,6 +607,17 @@
         } catch (error) { toast(error.message, true); }
         finally { button.disabled = false; button.textContent = "规划增量窗口"; }
     });
+    $("#previewIncremental").addEventListener("click", async event => {
+        const button = event.currentTarget; button.disabled = true; button.textContent = "生成中…";
+        try {
+            const result = await request("/api/sync/jobs/camstar-full/incremental-preview", { method: "POST" });
+            toast(result.status === "no_incremental_windows"
+                ? "当前没有可执行的增量窗口"
+                : `增量预览已生成：${result.events} 个事件，${result.tombstones} 个删除`);
+            await loadRuns();
+        } catch (error) { toast(error.message, true); }
+        finally { button.disabled = false; button.textContent = "生成增量预览"; }
+    });
     $("#compileMappings").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true; button.textContent = "编译中…";
         try {
