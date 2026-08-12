@@ -20,14 +20,14 @@
             searchPlaceholder: "搜索类名、属性…", classes: "类", attributes: "属性", relations: "关系",
             queryBuilder: "查询构建", industrySettings: "行业设置", graphSettings: "平台设置",
             graphImport: "图谱导入", graphMaintenance: "图谱维护", maintenanceTitle: "图谱维护", maintenanceHelp: "集中管理会影响整个图谱的维护操作，请在执行前确认当前环境与数据范围。",
-            importTitle: "导入物理结构", importHelp: "分别选择表定义 CSV 和字段定义 CSV。现有节点作为已审核业务对象；新 CDO 默认不导入，必须人工勾选确认。",
+            importTitle: "导入物理结构", importHelp: "分别选择表定义 CSV 和字段定义 CSV。现有节点与项目本体库中的成熟业务模型会默认勾选；未知或技术型 CDO 保留人工审核。",
             databaseType: "描述来源数据库", descriptionColumn: "描述",
             tableCsv: "表定义 CSV", fieldCsv: "字段定义 CSV", analyzeImport: "分析文件", analyzing: "分析中…",
             translationPending: "中文翻译等待处理", translationRunning: "中文翻译正在后台处理", translationCompleted: "中文翻译已完成",
             translationUnavailable: "中文翻译暂不可用，当前显示英文原文", translationFailed: "部分翻译未完成，当前显示英文原文",
             translationProgress: "已完成", retryTranslation: "重试未完成翻译", retryingTranslation: "正在重试…",
             descriptionLoading: "正在后台读取数据库描述，候选结构已可审核", descriptionFailed: "数据库描述读取失败，候选结构仍可审核",
-            importSearch: "搜索候选 CDO…", allStatuses: "全部状态", approvedStatus: "已审核", reviewStatus: "待审核", excludedStatus: "建议排除",
+            importSearch: "搜索候选 CDO…", allStatuses: "全部状态", approvedStatus: "已审核", recommendedStatus: "业务建议", reviewStatus: "待审核", excludedStatus: "建议排除",
             importApply: "导入已选业务对象", importing: "导入中…", importSelected: "已选择", importConfirm: "确定导入已选择的业务对象吗？本次操作只增量合并，不会删除现有节点。",
             clearGraphTitle: "危险操作", clearGraphHelp: "需要从零开始或导入结果异常时，可清空当前 Neo4j 图谱。此操作不可撤销。",
             clearGraphButton: "一键清空图谱", clearGraphDialogTitle: "确认清空全部图谱？", clearGraphIrreversible: "这是不可撤销的破坏性操作",
@@ -68,14 +68,14 @@
             searchPlaceholder: "Search classes or properties…", classes: "Classes", attributes: "Properties", relations: "Relations",
             queryBuilder: "Query Builder", industrySettings: "Industry Settings", graphSettings: "Platform Settings",
             graphImport: "Graph Import", graphMaintenance: "Graph Maintenance", maintenanceTitle: "Graph Maintenance", maintenanceHelp: "Manage operations that affect the entire graph. Verify the current environment and data scope before proceeding.",
-            importTitle: "Import Physical Structure", importHelp: "Select the table and field definition CSV files. Existing nodes are reviewed business objects; new CDOs stay unchecked until manually approved.",
+            importTitle: "Import Physical Structure", importHelp: "Select the table and field definition CSV files. Existing nodes and mature business models from the curated ontology library are preselected; unknown or technical CDOs remain for review.",
             databaseType: "Description database", descriptionColumn: "Description",
             tableCsv: "Table CSV", fieldCsv: "Field CSV", analyzeImport: "Analyze Files", analyzing: "Analyzing…",
             translationPending: "Chinese translation is queued", translationRunning: "Chinese translation is running in the background", translationCompleted: "Chinese translation completed",
             translationUnavailable: "Chinese translation is unavailable; showing English", translationFailed: "Some translations are incomplete; showing English",
             translationProgress: "Completed", retryTranslation: "Retry Incomplete Translations", retryingTranslation: "Retrying…",
             descriptionLoading: "Loading database descriptions in the background; candidates are ready for review", descriptionFailed: "Database descriptions could not be loaded; candidates remain available",
-            importSearch: "Search candidate CDOs…", allStatuses: "All statuses", approvedStatus: "Reviewed", reviewStatus: "Review", excludedStatus: "Suggested exclusion",
+            importSearch: "Search candidate CDOs…", allStatuses: "All statuses", approvedStatus: "Reviewed", recommendedStatus: "Business recommendation", reviewStatus: "Review", excludedStatus: "Suggested exclusion",
             importApply: "Import Selected Objects", importing: "Importing…", importSelected: "Selected", importConfirm: "Import the selected business objects? This incrementally merges data and does not delete existing nodes.",
             clearGraphTitle: "Danger Zone", clearGraphHelp: "Clear the current Neo4j graph when you need to restart from zero or discard a bad import. This cannot be undone.",
             clearGraphButton: "Clear Entire Graph", clearGraphDialogTitle: "Clear the entire graph?", clearGraphIrreversible: "This destructive action cannot be undone",
@@ -346,7 +346,7 @@
                                 <div class="i18n-import-toolbar">
                                     <input id="i18nImportSearch" type="search" class="i18n-form-control" />
                                     <select id="i18nImportStatus" class="i18n-form-control">
-                                        <option value="all"></option><option value="approved"></option><option value="review"></option><option value="excluded"></option>
+                                        <option value="all"></option><option value="approved"></option><option value="recommended"></option><option value="review"></option><option value="excluded"></option>
                                     </select>
                                 </div>
                                 <div class="i18n-import-list-head"><span></span><span>CDO</span><span data-import-head="description"></span><span>Workspace</span><span>属性 / 关系</span><span>判断</span></div>
@@ -456,7 +456,7 @@
         modal.querySelector("#i18nAnalyzeImport").textContent = t("analyzeImport");
         modal.querySelector("#i18nImportSearch").placeholder = t("importSearch");
         const statusOptions = modal.querySelector("#i18nImportStatus").options;
-        ["allStatuses", "approvedStatus", "reviewStatus", "excludedStatus"].forEach((key, index) => { statusOptions[index].textContent = t(key); });
+        ["allStatuses", "approvedStatus", "recommendedStatus", "reviewStatus", "excludedStatus"].forEach((key, index) => { statusOptions[index].textContent = t(key); });
         modal.querySelector("#i18nApplyImport").textContent = t("importApply");
         modal.querySelector("#i18nRetryTranslation").textContent = t("retryTranslation");
         modal.querySelector('[data-clear-text="title"]').textContent = t("clearGraphTitle");
@@ -526,7 +526,7 @@
     }
 
     function importStatusLabel(status) {
-        return t(status === "approved" ? "approvedStatus" : status === "excluded" ? "excludedStatus" : "reviewStatus");
+        return t(status === "approved" ? "approvedStatus" : status === "recommended" ? "recommendedStatus" : status === "excluded" ? "excludedStatus" : "reviewStatus");
     }
 
     async function responseError(response) {
@@ -672,7 +672,7 @@
         const summary = importAnalysis.summary;
         const items = [
             [t("classes"), summary.tables], [t("attributes"), summary.fields],
-            [t("approvedStatus"), summary.approved], [t("reviewStatus"), summary.review],
+            [t("approvedStatus"), summary.approved], [t("recommendedStatus"), summary.recommended], [t("reviewStatus"), summary.review],
             [t("excludedStatus"), summary.excluded],
             [t("descriptionColumn"), summary.described],
         ];

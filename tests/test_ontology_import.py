@@ -25,8 +25,9 @@ def upload(name: str, value: str) -> UploadFile:
     return UploadFile(filename=name, file=io.BytesIO(value.encode("utf-8")))
 
 
-def test_csv_analysis_never_auto_selects_new_cdos(monkeypatch):
+def test_csv_analysis_preselects_curated_business_cdos(monkeypatch):
     monkeypatch.setattr(ontology_import, "_reviewed_class_names", lambda: {"Product"})
+    monkeypatch.setattr(ontology_import, "_curated_business_class_names", lambda: {"Product", "NewBusinessObject"})
     monkeypatch.setattr("web.designer_metadata.load_cdo_description_catalog", lambda database: {
         "product": {"description": "A product."},
         "newbusinessobject": {"description": "A new business object."},
@@ -43,8 +44,8 @@ def test_csv_analysis_never_auto_selects_new_cdos(monkeypatch):
 
     assert candidates["Product"]["status"] == "approved"
     assert candidates["Product"]["selected"] is True
-    assert candidates["NewBusinessObject"]["status"] == "review"
-    assert candidates["NewBusinessObject"]["selected"] is False
+    assert candidates["NewBusinessObject"]["status"] == "recommended"
+    assert candidates["NewBusinessObject"]["selected"] is True
     assert candidates["AuditHistoryDetail"]["status"] == "excluded"
     assert candidates["AuditHistoryDetail"]["selected"] is False
     assert candidates["Product"]["descriptionEn"] == ""
@@ -54,9 +55,10 @@ def test_csv_analysis_never_auto_selects_new_cdos(monkeypatch):
         "tables": 3,
         "fields": 3,
         "approved": 1,
-        "review": 1,
+        "recommended": 1,
+        "review": 0,
         "excluded": 1,
-        "defaultSelected": 1,
+        "defaultSelected": 2,
         "described": 0,
         "translated": 0,
     }

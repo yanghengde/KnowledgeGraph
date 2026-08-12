@@ -1,8 +1,8 @@
 """Reviewed CSV import for the physical Camstar ontology skeleton.
 
-CSV rows are never published directly.  Existing ontology classes are treated
-as the reviewed business allow-list; every previously unseen CDO remains an
-unchecked candidate until the user explicitly selects it in the settings UI.
+CSV rows are never published directly. Existing graph classes stay selected,
+while classes already modeled in the curated ontology library are offered as
+business recommendations. Unknown and technical CDOs remain unchecked.
 """
 
 from __future__ import annotations
@@ -57,6 +57,8 @@ _TECHNICAL_PATTERNS = (
     (re.compile(r"(?:Changes|Maint|Inquiry|Service)$", re.I), "维护、查询或服务型 CDO"),
     (re.compile(r"(?:HistoryDetails?|Txn|Txns|Map|Mapping|ListItem|Details)$", re.I), "历史明细、事务或桥接型 CDO"),
     (re.compile(r"(?:Enum|Message|QueryDef|InquiryDef)$", re.I), "枚举、消息或查询定义型 CDO"),
+    (re.compile(r"(?:DefaultForObj(?:ect)?Types?|DefaultForObjec|Entries|Groups|PathSelectors)$", re.I), "分组成员、默认范围或路径子表"),
+    (re.compile(r"^(?:UI|Portal|WebPart|XMLConnect)|^VersionInfo$", re.I), "界面、门户或平台基础设施 CDO"),
 )
 
 
@@ -116,12 +118,40 @@ def _reviewed_class_names() -> set[str]:
     return {name for name in names if name}
 
 
-def _candidate_status(class_name: str, reviewed: set[str]) -> tuple[str, str, bool]:
+def _curated_business_class_names() -> set[str]:
+    """Return classes deliberately modeled in source-controlled ontologies.
+
+    The generated CSV import file is excluded so a previous broad import cannot
+    silently become a recommendation on the next run.
+    """
+    names: set[str] = set()
+    for path in ONTOLOGY_DIR.glob("*_ontology.json"):
+        if path == IMPORTED_ONTOLOGY:
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8-sig"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        names.update(
+            str(item.get("className") or "").strip()
+            for item in payload.get("classes", [])
+            if item.get("className")
+        )
+    return {name for name in names if name}
+
+
+def _candidate_status(
+    class_name: str,
+    reviewed: set[str],
+    curated: set[str],
+) -> tuple[str, str, bool]:
     if class_name in reviewed:
         return "approved", "当前图谱中已审核的业务对象", True
     for pattern, reason in _TECHNICAL_PATTERNS:
         if pattern.search(class_name):
             return "excluded", reason, False
+    if class_name in curated:
+        return "recommended", "项目本体库中已正式建模的业务对象，建议导入", True
     return "review", "新发现的 CDO，需要确认是否具有独立业务意义", False
 
 
@@ -420,10 +450,11 @@ def analyze_import(
         raise HTTPException(status_code=422, detail=f"字段 CSV 引用了表 CSV 中不存在的 CDO：{sample}")
 
     reviewed = _reviewed_class_names()
+    curated = _curated_business_class_names()
     candidates = []
     for name, table in sorted(table_by_name.items(), key=lambda item: item[0].casefold()):
         canonical = canonical_physical_fields(fields_by_class.get(name, []), name)
-        status, reason, selected = _candidate_status(name, reviewed)
+        status, reason, selected = _candidate_status(name, reviewed, curated)
         relationship_count = sum(
             1
             for field in canonical
@@ -467,6 +498,7 @@ def analyze_import(
         "tables": len(table_by_name),
         "fields": len(field_rows),
         "approved": sum(item["status"] == "approved" for item in candidates),
+        "recommended": sum(item["status"] == "recommended" for item in candidates),
         "review": sum(item["status"] == "review" for item in candidates),
         "excluded": sum(item["status"] == "excluded" for item in candidates),
         "defaultSelected": sum(item["selected"] for item in candidates),

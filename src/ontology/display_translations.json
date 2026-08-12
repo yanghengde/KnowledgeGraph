@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "revision": 1785570318,
-  "updatedAt": 1785570318233,
+  "revision": 1785570319,
+  "updatedAt": 1786537311601,
   "translations": {
     "nodeDescriptions": {
       "A_AdHocWIPDataSetup": {
@@ -313,7 +313,7 @@
         "en": "The positions within the location."
       },
       "A_PhysicalPosition": {
-        "zh": "表示物理位置内的位置。",
+        "zh": "表示 PhysicalLocation 内部的位置。",
         "en": "Represents the positions within a PhysicalLocation."
       },
       "A_PrintData": {
@@ -6551,7 +6551,7 @@
         "en": "Details of the last change."
       },
       "A_PhysicalPosition.description": {
-        "zh": "此实体的描述。如果未指定，默认为此实体的名称。",
+        "zh": "此实体的描述。如果未指定，则默认为此实体的名称。",
         "en": "Description of this entity. Defaults to the name of this entity if not specified"
       },
       "A_PhysicalPosition.filterTags": {
@@ -6563,7 +6563,7 @@
         "en": "Identifier for the icon associated with this Base Entity"
       },
       "A_PhysicalPosition.isFrozen": {
-        "zh": "确定是否允许对此实例（或其任何修订版本）进行更改。",
+        "zh": "确定是否允许对此实例（或其任何修订版）进行更改。",
         "en": "Determines if changes are allowed to this instance (or any of its revisions)."
       },
       "A_PhysicalPosition.name": {
@@ -6571,12 +6571,12 @@
         "en": "Unique name for this instance"
       },
       "A_PhysicalPosition.notes": {
-        "zh": "与此对象关联的注释和评论。",
+        "zh": "与此对象关联的注释和备注。",
         "en": "Notations and comments associated with this object."
       },
       "A_PhysicalPosition.setupAccess": {
-        "zh": "用于验证用户对特定建模记录的访问权限。必须首先将一个或多个 Setup Access 分配给 Role。每个建模记录将有一个 Setup Access。当建模记录被事务处理时，系统将比较其 Setup Access。",
-        "en": "This is used to verify the user's access to a particular modeling record. One or more Setup Access must first be assigned to a Role. Each modeling record will have one Setup Access. When a modeling record in transacted the system will compare its Setup Ac"
+        "zh": "用于验证用户对特定建模记录的访问权限。必须首先将一个或多个 Setup Access 分配给 Role。每个建模记录都有一个 Setup Access。当建模记录被事务处理时，系统会将其 Setup Access 与分配给用户所拥有的 Roles 的 Setup Access 进行比较。如果建模记录没有 Setup Access，或者用户在分配的 Roles 之一中拥有该 Setup Access，则允许事务。",
+        "en": "This is used to verify the user's access to a particular modeling record. One or more Setup Access must first be assigned to a Role. Each modeling record will have one Setup Access. When a modeling record in transacted the system will compare its Setup Access against the Setup Access assigned to the Roles that are assigned to the user. Transaction is allowed if the modeling record has no Setup Access or if the user has the Setup Access in one of the assigned Roles."
       },
       "A_PrintData.changeHistory": {
         "zh": "上次更改的详细信息。",
@@ -35726,6 +35726,21 @@
         "zh": "物理字段 zifURL",
         "en": "Physical field zifURL"
       }
+    }
+  },
+  "manualEdits": {
+    "nodeDescriptions": {},
+    "propertyDescriptions": {}
+  },
+  "syncMeta": {
+    "A_PhysicalPosition": {
+      "source": "Camstar Designer",
+      "sourceCDOName": "PhysicalPosition",
+      "sourceCDODefId": "4751472",
+      "syncedAt": 1786537311601,
+      "matchedDescriptions": 9,
+      "updatedDescriptions": 9,
+      "manualDescriptionsPreserved": 0
     }
   }
 }
