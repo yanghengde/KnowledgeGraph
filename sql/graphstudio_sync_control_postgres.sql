@@ -382,6 +382,113 @@ CREATE TABLE IF NOT EXISTS graphsync.app_setting (
     updated_at       timestamptz NOT NULL DEFAULT now()
 );
 
+-- Business graph profiles deliberately separate the complete ontology from the
+-- bounded instance graph that is useful to operations.  Physical mappings remain
+-- facts; these rows record business intent and may therefore be reviewed safely.
+CREATE TABLE IF NOT EXISTS graphsync.graph_profile (
+    profile_key                 text PRIMARY KEY,
+    title                       text NOT NULL,
+    description                 text,
+    job_name                    text NOT NULL REFERENCES graphsync.sync_job(job_name) ON DELETE CASCADE,
+    enabled                     boolean NOT NULL DEFAULT true,
+    max_depth                   integer NOT NULL DEFAULT 2 CHECK (max_depth BETWEEN 0 AND 8),
+    max_context_nodes_per_seed  integer NOT NULL DEFAULT 200 CHECK (max_context_nodes_per_seed BETWEEN 1 AND 100000),
+    max_total_nodes_per_run     bigint NOT NULL DEFAULT 1000000 CHECK (max_total_nodes_per_run BETWEEN 1 AND 1000000000),
+    config                      jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at                  timestamptz NOT NULL DEFAULT now(),
+    updated_at                  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.profile_class (
+    profile_key          text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    class_name           text NOT NULL,
+    role                 text NOT NULL CHECK (role IN (
+                             'core', 'context', 'reference', 'on_demand', 'excluded'
+                         )),
+    orphan_policy        text NOT NULL DEFAULT 'quarantine' CHECK (orphan_policy IN (
+                             'reject', 'quarantine', 'allow', 'referenced_only'
+                         )),
+    seed_enabled         boolean NOT NULL DEFAULT false,
+    max_instances_per_run bigint CHECK (max_instances_per_run IS NULL OR max_instances_per_run > 0),
+    priority             integer NOT NULL DEFAULT 100,
+    enabled              boolean NOT NULL DEFAULT true,
+    review_status        text NOT NULL DEFAULT 'draft' CHECK (review_status IN (
+                             'draft', 'reviewed', 'approved'
+                         )),
+    config               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    updated_at           timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (profile_key, class_name),
+    CHECK (NOT seed_enabled OR role = 'core')
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_profile_class_role
+    ON graphsync.profile_class (profile_key, role, enabled, priority);
+
+CREATE TABLE IF NOT EXISTS graphsync.profile_relationship (
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    source_class          text NOT NULL,
+    relationship_name     text NOT NULL,
+    target_class          text NOT NULL,
+    strength              text NOT NULL CHECK (strength IN (
+                              'core', 'context', 'weak', 'on_demand'
+                          )),
+    required_context      boolean NOT NULL DEFAULT false,
+    traverse              boolean NOT NULL DEFAULT false,
+    direction             text NOT NULL DEFAULT 'outgoing' CHECK (direction IN (
+                              'outgoing', 'incoming', 'both'
+                          )),
+    max_depth             integer CHECK (max_depth IS NULL OR max_depth BETWEEN 1 AND 8),
+    max_targets_per_source integer NOT NULL DEFAULT 50 CHECK (max_targets_per_source BETWEEN 1 AND 100000),
+    enabled               boolean NOT NULL DEFAULT true,
+    review_status         text NOT NULL DEFAULT 'draft' CHECK (review_status IN (
+                              'draft', 'reviewed', 'approved'
+                          )),
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (profile_key, source_class, relationship_name, target_class),
+    CHECK (strength <> 'weak' OR NOT traverse),
+    CHECK (NOT required_context OR strength IN ('core', 'context'))
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_profile_relationship_traversal
+    ON graphsync.profile_relationship (profile_key, traverse, strength, enabled);
+
+CREATE TABLE IF NOT EXISTS graphsync.context_validation (
+    validation_id        uuid PRIMARY KEY,
+    profile_key          text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    run_id               uuid REFERENCES graphsync.sync_run(run_id) ON DELETE CASCADE,
+    class_name           text,
+    entity_uri           text,
+    rule_key             text NOT NULL,
+    severity             text NOT NULL CHECK (severity IN ('info', 'warning', 'error')),
+    status               text NOT NULL CHECK (status IN ('open', 'resolved', 'ignored')),
+    message              text NOT NULL,
+    details              jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    resolved_at          timestamptz
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_context_validation_open
+    ON graphsync.context_validation (profile_key, status, severity, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS graphsync.pending_reference (
+    profile_key          text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    source_entity_uri    text NOT NULL,
+    relationship_name   text NOT NULL,
+    target_entity_key    text NOT NULL,
+    target_class         text NOT NULL,
+    first_seen_at        timestamptz NOT NULL DEFAULT now(),
+    last_seen_at         timestamptz NOT NULL DEFAULT now(),
+    attempt_count        integer NOT NULL DEFAULT 0,
+    status               text NOT NULL DEFAULT 'pending' CHECK (status IN (
+                             'pending', 'resolved', 'quarantined', 'expired'
+                         )),
+    details              jsonb NOT NULL DEFAULT '{}'::jsonb,
+    PRIMARY KEY (profile_key, source_entity_uri, relationship_name, target_entity_key)
+);
+
 CREATE OR REPLACE FUNCTION graphsync.touch_updated_at()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
@@ -423,6 +530,21 @@ FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 DROP TRIGGER IF EXISTS trg_incremental_window_updated ON graphsync.incremental_window;
 CREATE TRIGGER trg_incremental_window_updated
 BEFORE UPDATE ON graphsync.incremental_window
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_graph_profile_updated ON graphsync.graph_profile;
+CREATE TRIGGER trg_graph_profile_updated
+BEFORE UPDATE ON graphsync.graph_profile
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_profile_class_updated ON graphsync.profile_class;
+CREATE TRIGGER trg_profile_class_updated
+BEFORE UPDATE ON graphsync.profile_class
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_profile_relationship_updated ON graphsync.profile_relationship;
+CREATE TRIGGER trg_profile_relationship_updated
+BEFORE UPDATE ON graphsync.profile_relationship
 FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 
 CREATE OR REPLACE VIEW graphsync.latest_job_run AS
@@ -486,12 +608,17 @@ INSERT INTO graphsync.schema_version (version, description)
 VALUES (6, 'Source capability snapshots and bounded incremental windows')
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (7, 'Business graph profiles and controlled context closure')
+ON CONFLICT (version) DO NOTHING;
+
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)
 VALUES
     ('overview',    '总览',     'Overview',    '#overview',    'dashboard', 10, true,  'sync.read'),
     ('connections', '连接管理', 'Connections', '#connections', 'plug',      20, true,  'connection.read'),
     ('jobs',        '同步任务', 'Sync Jobs',   '#jobs',        'schedule',  30, true,  'job.read'),
+    ('profiles',    '业务图谱', 'Graph Profile','#profiles',    'profile',   35, true,  'profile.write'),
     ('mappings',    '映射管理', 'Mappings',    '#mappings',    'mapping',   40, true,  'mapping.read'),
     ('runs',        '运行记录', 'Runs',        '#runs',        'history',   50, true,  'run.read'),
     ('settings',    '系统设置', 'Settings',    '#settings',    'settings',  60, true,  'setting.write')
@@ -516,6 +643,28 @@ INSERT INTO graphsync.sync_scope
     (job_name, scope_key, class_pattern, layer_title, enabled, sort_order)
 VALUES ('camstar-full', 'all', '*', 'Camstar Full Ontology and Data', true, 10)
 ON CONFLICT (job_name, scope_key) DO NOTHING;
+
+INSERT INTO graphsync.graph_profile
+    (profile_key, title, description, job_name, max_depth,
+     max_context_nodes_per_seed, max_total_nodes_per_run, config)
+VALUES (
+    'opcenter2607-core',
+    'Opcenter2607 核心业务图谱',
+    '完整本体、受控实例：从核心对象出发，仅沿审核通过的核心/上下文关系扩展。',
+    'camstar-full', 2, 200, 1000000,
+    '{"ontologyLayer":"complete","instanceMode":"controlled_context_closure","reviewRequired":true}'::jsonb
+)
+ON CONFLICT (profile_key) DO NOTHING;
+
+INSERT INTO graphsync.profile_class
+    (profile_key, class_name, role, orphan_policy, seed_enabled, priority,
+     review_status, config)
+VALUES
+    ('opcenter2607-core', 'Product',  'core', 'quarantine', true, 10, 'draft',
+     '{"reason":"Initial core object requested by user"}'::jsonb),
+    ('opcenter2607-core', 'MfgOrder', 'core', 'quarantine', true, 20, 'draft',
+     '{"reason":"Initial core object requested by user"}'::jsonb)
+ON CONFLICT (profile_key, class_name) DO NOTHING;
 
 INSERT INTO graphsync.app_setting (setting_key, value, description, editable)
 VALUES

@@ -132,11 +132,14 @@ Schema：`graphsync`
 | 平台 | `schema_version`, `app_setting`, `menu_item`, `connection_profile` |
 | 编排 | `sync_job`, `sync_scope`, `table_sync_policy`, `source_capability_snapshot`, `incremental_window`, `sync_run`, `sync_batch`, `checkpoint` |
 | 映射 | `catalog_snapshot`, `class_mapping`, `property_mapping`, `relationship_mapping`, `mapping_override` |
+| 业务图谱 | `graph_profile`, `profile_class`, `profile_relationship`, `context_validation`, `pending_reference` |
 | 审计 | `artifact`, `validation_result`, `row_state` |
 
 DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapshot`，新编译失败不会破坏当前 `ready` 版本。
 
 控制面 v6 还包含 `source_capability_snapshot` 和 `incremental_window`：前者记录 SQL Server CT/CDC 或 Oracle SCN/Flashback 的实际探测证据，后者在抽取前冻结可恢复的上下界。没有检查点、检查点已被源库清理或原生能力未启用时，窗口会进入 `baseline_required`/`blocked`，不会继续同步。
+
+控制面 v7 增加业务图谱配置：完整本体仍可发布为模型层，实例层按核心/上下文/参考/按需对象和核心/上下文/弱关系构建受控闭包。初始草案以 `Product`、`MfgOrder` 为核心种子；关系必须来自实际映射目录并经过审核，弱关系不能驱动扩展。页面中的闭包预览不读取 Camstar 业务行，也不修改 Graph Studio。
 
 `preview-incremental` 会将已规划窗口读取成统一 JSONL 变更包，支持 SQL Server CT、CDC、Oracle Flashback SCN 以及 watermark/append-only。事件包含主键、insert/update/upsert/delete 操作和数据库恢复位置；预览只生成审计产物，不提交 checkpoint，也不写 Graph Studio。
 

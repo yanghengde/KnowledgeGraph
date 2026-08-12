@@ -140,6 +140,20 @@ flowchart LR
 - 连接页仅维护脱敏元数据；密码始终通过 `env://...` 引用环境变量。
 - 映射页显示未解析属性及多候选/未解析关系，人工规则分别写入 `mapping_override` 和 `relationship_override`。
 
+## 业务图谱与上下文闭包
+
+完整本体和业务实例范围分开管理。Neo4j 中的完整本体继续作为模型层；实例层由 PostgreSQL 中的 `graph_profile`、`profile_class`、`profile_relationship` 控制，避免把全部本体类和历史表无差别扩展成高成本、低价值的实例图谱。
+
+- 对象角色：`core`、`context`、`reference`、`on_demand`、`excluded`。
+- 关系强度：`core`、`context`、`weak`、`on_demand`。只有前两类关系可启用上下文遍历，数据库约束禁止弱关联驱动遍历。
+- 孤立对象策略：拒绝、隔离、允许、仅被引用时导入。默认隔离，不静默丢弃，也不直接污染核心层。
+- 闭包预算：全局最大深度、每个种子的上下文节点上限、单次运行总节点上限、每条关系的扇出上限。
+- 发布门禁：核心对象必须有物理表映射；必需上下文关系必须唯一解析；对象角色和关系强度必须经过审核。
+
+初始配置 `opcenter2607-core` 只把 `Product` 和 `MfgOrder` 设为核心种子，审核状态为草案。系统从实际本体映射列出关系候选，但不会根据名称自动认定核心关系。类级闭包预览不读取 Camstar 数据、不写 Graph Studio；关系审核完成后，实例抽取器才能使用该配置。
+
+上下文质量问题记录在 `context_validation`，跨批次暂时找不到目标的引用记录在 `pending_reference`，供后续批次补齐或进入隔离层。
+
 ## 工具边界和路线图
 
 ### 已落地
@@ -150,6 +164,7 @@ flowchart LR
 - 表级同步策略、安全阈值、批大小/RDF 分片配置，以及 `sync_batch` 分片审计台账。
 - SQL Server CT/CDC、Oracle SCN/Flashback 能力探测，以及可持久化的增量窗口规划。
 - PostgreSQL 控制面 DDL，本地 Compose 和暂停状态的 Kubernetes CronJob 模板。
+- 业务图谱角色、关系强度、孤立策略、闭包预算和只读类级闭包规划。
 - Product/MfgOrder 子图的 RDF 导出和 API 导入已作为端到端概念验证。
 
 ### 下一个实现里程碑

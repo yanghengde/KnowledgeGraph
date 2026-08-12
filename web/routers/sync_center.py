@@ -13,6 +13,7 @@ from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
 from src.graphstudio_sync.incremental import execute_incremental_plan, execute_incremental_probe
 from src.graphstudio_sync.incremental_preview import build_incremental_preview
+from src.graphstudio_sync.graph_profile import plan_context_closure, validate_graph_profile
 from src.graphstudio_sync.repository import ControlPlaneRepository
 from src.graphstudio_sync.preview import build_full_preview
 from src.graphstudio_sync.run_manager import execute_dry_run
@@ -102,6 +103,50 @@ class PropertyOverrideUpdate(BaseModel):
 class RelationshipOverrideUpdate(BaseModel):
     source_property: str = Field(min_length=1, max_length=200)
     notes: str | None = Field(default=None, max_length=2000)
+
+
+class GraphProfileUpdate(BaseModel):
+    title: str = Field(min_length=1, max_length=160)
+    description: str | None = Field(default=None, max_length=2000)
+    enabled: bool = True
+    max_depth: int = Field(default=2, ge=0, le=8)
+    max_context_nodes_per_seed: int = Field(default=200, ge=1, le=100000)
+    max_total_nodes_per_run: int = Field(default=1000000, ge=1, le=1000000000)
+
+
+class ProfileClassUpdate(BaseModel):
+    role: Literal["core", "context", "reference", "on_demand", "excluded"]
+    orphan_policy: Literal["reject", "quarantine", "allow", "referenced_only"] = "quarantine"
+    seed_enabled: bool = False
+    max_instances_per_run: int | None = Field(default=None, ge=1, le=1000000000)
+    priority: int = Field(default=100, ge=0, le=10000)
+    enabled: bool = True
+    review_status: Literal["draft", "reviewed", "approved"] = "draft"
+
+    @model_validator(mode="after")
+    def validate_seed_role(self):
+        if self.seed_enabled and self.role != "core":
+            raise ValueError("Only a core class may be used as a context seed")
+        return self
+
+
+class ProfileRelationshipUpdate(BaseModel):
+    strength: Literal["core", "context", "weak", "on_demand"]
+    required_context: bool = False
+    traverse: bool = False
+    direction: Literal["outgoing", "incoming", "both"] = "outgoing"
+    max_depth: int | None = Field(default=None, ge=1, le=8)
+    max_targets_per_source: int = Field(default=50, ge=1, le=100000)
+    enabled: bool = True
+    review_status: Literal["draft", "reviewed", "approved"] = "draft"
+
+    @model_validator(mode="after")
+    def validate_traversal_strength(self):
+        if self.strength == "weak" and self.traverse:
+            raise ValueError("Weak relationships cannot drive context traversal")
+        if self.required_context and self.strength not in {"core", "context"}:
+            raise ValueError("Required context must use a core or context relationship")
+        return self
 
 
 @router.get("/overview")
@@ -271,6 +316,82 @@ def preview_job(job_name: str):
 @router.get("/runs")
 def runs(limit: int = Query(default=100, ge=1, le=500)):
     return {"items": _repo().list_runs(limit=limit)}
+
+
+@router.get("/profiles")
+def graph_profiles():
+    return {"items": _repo().list_graph_profiles()}
+
+
+@router.get("/profiles/{profile_key}")
+def graph_profile(profile_key: str):
+    try:
+        payload = _repo().graph_profile(profile_key)
+        payload["issues"] = validate_graph_profile(
+            payload["profile"], payload["classes"], payload["relationships"]
+        )
+        return payload
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+@router.get("/profiles/{profile_key}/candidates")
+def graph_profile_candidates(profile_key: str):
+    try:
+        return _repo().graph_profile_candidates(profile_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+@router.put("/profiles/{profile_key}")
+def update_graph_profile(profile_key: str, request: GraphProfileUpdate):
+    try:
+        return _repo().update_graph_profile(profile_key, **request.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+@router.put("/profiles/{profile_key}/classes/{class_name}")
+def update_profile_class(profile_key: str, class_name: str, request: ProfileClassUpdate):
+    try:
+        return _repo().upsert_profile_class(
+            profile_key, class_name, **request.model_dump()
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Mapped ontology class not found") from exc
+
+
+@router.put(
+    "/profiles/{profile_key}/relationships/{source_class}/{relationship_name}/{target_class}"
+)
+def update_profile_relationship(
+    profile_key: str,
+    source_class: str,
+    relationship_name: str,
+    target_class: str,
+    request: ProfileRelationshipUpdate,
+):
+    try:
+        return _repo().upsert_profile_relationship(
+            profile_key,
+            source_class,
+            relationship_name,
+            target_class,
+            **request.model_dump(),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Ontology relationship candidate not found") from exc
+
+
+@router.post("/profiles/{profile_key}/closure-plan")
+def context_closure_plan(profile_key: str):
+    try:
+        payload = _repo().graph_profile(profile_key)
+        return plan_context_closure(
+            payload["profile"], payload["classes"], payload["relationships"]
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
 
 
 @router.get("/mappings")
