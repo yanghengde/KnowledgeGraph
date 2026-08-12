@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-5">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-6">
 </head>
 <body>
     <div class="app-shell">
@@ -122,6 +122,18 @@
                         <div id="profileBoundary" class="profile-boundary"></div>
                     </article>
                     <article class="panel table-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">DATA GOVERNANCE GATE</span><h3>Camstar 数据契约</h3></div><div class="card-action-buttons"><span id="curationPublishable" class="count-badge">尚未预览</span><button class="mini-btn" id="previewCuration">运行治理预览</button></div></div>
+                        <div class="table-wrap"><table><thead><tr><th>对象</th><th>物理来源</th><th>主键 / 业务键</th><th>必填字段</th><th>预览上限</th><th>状态</th><th>操作</th></tr></thead><tbody id="dataContractRows"></tbody></table></div>
+                    </article>
+                    <article class="panel table-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">SEMANTIC CONTRACT</span><h3>MfgOrder 产品关系</h3></div><span class="panel-note">ProductId 与 BeginProductId 分开治理</span></div>
+                        <div class="table-wrap"><table><thead><tr><th>关系</th><th>业务语义</th><th>源字段</th><th>目标对象</th><th>必需上下文</th><th>状态</th><th>操作</th></tr></thead><tbody id="relationshipContractRows"></tbody></table></div>
+                    </article>
+                    <article class="panel table-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">QUALITY EVIDENCE</span><h3>最近治理结果</h3></div><span id="qualityResultCount" class="count-badge">0</span></div>
+                        <div id="qualityResults" class="profile-issues"></div>
+                    </article>
+                    <article class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">OBJECT ROLES</span><h3>对象范围</h3></div><div class="profile-toolbar"><input id="profileClassSearch" class="field-input" placeholder="搜索本体对象"><button class="mini-btn" id="addProfileClass">添加对象</button></div></div>
                         <div class="table-wrap"><table><thead><tr><th>本体对象</th><th>业务角色</th><th>种子</th><th>孤立数据策略</th><th>估算行数</th><th>审核状态</th><th>操作</th></tr></thead><tbody id="profileClassRows"></tbody></table></div>
                     </article>
@@ -182,6 +194,6 @@
     </dialog>
 
     <div id="toast" class="toast" hidden></div>
-    <script src="/static/sync.js?v=20260813-5"></script>
+    <script src="/static/sync.js?v=20260813-6"></script>
 </body>
 </html>

@@ -982,6 +982,216 @@ class ControlPlaneRepository:
             ).mappings().one()
         return dict(row)
 
+    def governance_profile(self, profile_key: str) -> dict[str, Any]:
+        with self.engine.connect() as connection:
+            profile_exists = connection.execute(
+                text("SELECT EXISTS(SELECT 1 FROM graphsync.graph_profile WHERE profile_key=:key)"),
+                {"key": profile_key},
+            ).scalar_one()
+            if not profile_exists:
+                raise KeyError(profile_key)
+            contracts = _rows(
+                connection.execute(
+                    text(
+                        """
+                        SELECT contract.contract_key, contract.profile_key,
+                               contract.class_name, contract.version, contract.status,
+                               contract.source_schema, contract.source_table,
+                               contract.primary_key_columns,
+                               contract.business_key_columns,
+                               contract.selected_columns, contract.required_columns,
+                               contract.freshness_column, contract.preview_row_limit,
+                               contract.publication_layer, contract.quality_thresholds,
+                               contract.config, contract.updated_at,
+                               mapping.physical_schema AS mapped_schema,
+                               mapping.physical_table AS mapped_table,
+                               mapping.approximate_rows, mapping.mapping_status,
+                               class.review_status AS class_review_status,
+                               class.orphan_policy
+                        FROM graphsync.data_contract contract
+                        LEFT JOIN graphsync.current_class_mapping mapping
+                          ON mapping.class_name=contract.class_name
+                        LEFT JOIN graphsync.profile_class class
+                          ON class.profile_key=contract.profile_key
+                         AND class.class_name=contract.class_name
+                        WHERE contract.profile_key=:profile_key
+                        ORDER BY contract.class_name
+                        """
+                    ),
+                    {"profile_key": profile_key},
+                )
+            )
+            relationships = _rows(
+                connection.execute(
+                    text(
+                        """
+                        SELECT relationship.relationship_contract_key,
+                               relationship.profile_key,
+                               relationship.version,
+                               relationship.source_contract_key,
+                               source.class_name AS source_class,
+                               relationship.relationship_name,
+                               relationship.target_contract_key,
+                               target.class_name AS target_class,
+                               relationship.source_columns,
+                               relationship.target_columns,
+                               relationship.semantic_role,
+                               relationship.required_context,
+                               relationship.status, relationship.config,
+                               relationship.updated_at
+                        FROM graphsync.relationship_contract relationship
+                        JOIN graphsync.data_contract source
+                          ON source.contract_key=relationship.source_contract_key
+                        JOIN graphsync.data_contract target
+                          ON target.contract_key=relationship.target_contract_key
+                        WHERE relationship.profile_key=:profile_key
+                        ORDER BY source.class_name, relationship.relationship_name
+                        """
+                    ),
+                    {"profile_key": profile_key},
+                )
+            )
+            latest_run = connection.execute(
+                text(
+                    """
+                    SELECT curation_run_id, profile_key, status, preview_only,
+                           started_at, finished_at, source_rows_read,
+                           accepted_rows, quarantined_rows, publishable,
+                           contract_versions, summary, error
+                    FROM graphsync.curation_run
+                    WHERE profile_key=:profile_key
+                    ORDER BY started_at DESC LIMIT 1
+                    """
+                ),
+                {"profile_key": profile_key},
+            ).mappings().one_or_none()
+            quality_results: list[dict[str, Any]] = []
+            if latest_run is not None:
+                quality_results = _rows(
+                    connection.execute(
+                        text(
+                            """
+                            SELECT quality_result_id, contract_key,
+                                   relationship_contract_key, rule_key,
+                                   severity, passed, checked_rows, failed_rows,
+                                   message, details, created_at
+                            FROM graphsync.data_quality_result
+                            WHERE curation_run_id=:run_id
+                            ORDER BY passed, severity DESC, rule_key
+                            """
+                        ),
+                        {"run_id": latest_run["curation_run_id"]},
+                    )
+                )
+        return {
+            "contracts": contracts,
+            "relationships": relationships,
+            "latestRun": dict(latest_run) if latest_run else None,
+            "qualityResults": quality_results,
+        }
+
+    def update_data_contract(
+        self,
+        contract_key: str,
+        *,
+        status: str,
+        business_key_columns: list[str],
+        required_columns: list[str],
+        freshness_column: str | None,
+        preview_row_limit: int,
+        publication_layer: str,
+    ) -> dict[str, Any]:
+        with self.engine.begin() as connection:
+            existing = connection.execute(
+                text(
+                    """
+                    SELECT selected_columns
+                    FROM graphsync.data_contract
+                    WHERE contract_key=:contract_key
+                    FOR UPDATE
+                    """
+                ),
+                {"contract_key": contract_key},
+            ).mappings().one_or_none()
+            if existing is None:
+                raise KeyError(contract_key)
+            selected = set(existing["selected_columns"] or [])
+            requested = set(business_key_columns) | set(required_columns)
+            if freshness_column:
+                requested.add(freshness_column)
+            unknown = sorted(requested - selected)
+            if unknown:
+                raise ValueError(
+                    f"Contract columns are not part of the governed projection: {unknown}"
+                )
+            row = connection.execute(
+                text(
+                    """
+                    UPDATE graphsync.data_contract
+                    SET version=version + 1, status=:status,
+                        business_key_columns=CAST(:business_keys AS jsonb),
+                        required_columns=CAST(:required_columns AS jsonb),
+                        freshness_column=:freshness_column,
+                        preview_row_limit=:preview_row_limit,
+                        publication_layer=:publication_layer
+                    WHERE contract_key=:contract_key
+                    RETURNING contract_key, profile_key, class_name, version,
+                              status, source_schema, source_table,
+                              primary_key_columns, business_key_columns,
+                              selected_columns, required_columns,
+                              freshness_column, preview_row_limit,
+                              publication_layer, quality_thresholds, config,
+                              updated_at
+                    """
+                ),
+                {
+                    "contract_key": contract_key,
+                    "status": status,
+                    "business_keys": json.dumps(business_key_columns),
+                    "required_columns": json.dumps(required_columns),
+                    "freshness_column": freshness_column,
+                    "preview_row_limit": preview_row_limit,
+                    "publication_layer": publication_layer,
+                },
+            ).mappings().one_or_none()
+        if row is None:
+            raise KeyError(contract_key)
+        return dict(row)
+
+    def update_relationship_contract(
+        self,
+        relationship_contract_key: str,
+        *,
+        status: str,
+        semantic_role: str,
+        required_context: bool,
+    ) -> dict[str, Any]:
+        with self.engine.begin() as connection:
+            row = connection.execute(
+                text(
+                    """
+                    UPDATE graphsync.relationship_contract
+                    SET version=version + 1, status=:status, semantic_role=:semantic_role,
+                        required_context=:required_context
+                    WHERE relationship_contract_key=:key
+                    RETURNING relationship_contract_key, profile_key, version,
+                              source_contract_key, relationship_name,
+                              target_contract_key, source_columns,
+                              target_columns, semantic_role, required_context,
+                              status, config, updated_at
+                    """
+                ),
+                {
+                    "key": relationship_contract_key,
+                    "status": status,
+                    "semantic_role": semantic_role,
+                    "required_context": required_context,
+                },
+            ).mappings().one_or_none()
+        if row is None:
+            raise KeyError(relationship_contract_key)
+        return dict(row)
+
     def update_setting(self, key: str, value: Any) -> dict[str, Any]:
         with self.engine.begin() as connection:
             row = connection.execute(

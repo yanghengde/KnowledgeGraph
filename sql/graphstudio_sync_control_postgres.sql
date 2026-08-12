@@ -3,6 +3,7 @@
 -- in the Camstar SQL Server/Oracle source and published RDF remains in Graph Studio.
 
 CREATE SCHEMA IF NOT EXISTS graphsync;
+CREATE SCHEMA IF NOT EXISTS camstar_curated;
 
 CREATE TABLE IF NOT EXISTS graphsync.schema_version (
     version         integer PRIMARY KEY,
@@ -489,6 +490,175 @@ CREATE TABLE IF NOT EXISTS graphsync.pending_reference (
     PRIMARY KEY (profile_key, source_entity_uri, relationship_name, target_entity_key)
 );
 
+CREATE TABLE IF NOT EXISTS graphsync.data_contract (
+    contract_key          text PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    class_name            text NOT NULL,
+    version               integer NOT NULL DEFAULT 1 CHECK (version > 0),
+    status                text NOT NULL DEFAULT 'draft' CHECK (status IN (
+                             'draft', 'reviewed', 'approved', 'retired'
+                         )),
+    source_schema         text NOT NULL,
+    source_table          text NOT NULL,
+    primary_key_columns   jsonb NOT NULL,
+    business_key_columns  jsonb NOT NULL DEFAULT '[]'::jsonb,
+    selected_columns      jsonb NOT NULL,
+    required_columns      jsonb NOT NULL DEFAULT '[]'::jsonb,
+    freshness_column      text,
+    preview_row_limit     integer NOT NULL DEFAULT 100000 CHECK (
+                             preview_row_limit BETWEEN 1 AND 1000000
+                         ),
+    publication_layer     text NOT NULL DEFAULT 'core' CHECK (publication_layer IN (
+                             'core', 'context', 'reference', 'quarantine'
+                         )),
+    quality_thresholds    jsonb NOT NULL DEFAULT '{}'::jsonb,
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (profile_key, class_name),
+    CHECK (jsonb_typeof(primary_key_columns) = 'array'),
+    CHECK (jsonb_array_length(primary_key_columns) > 0),
+    CHECK (jsonb_typeof(selected_columns) = 'array')
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.relationship_contract (
+    relationship_contract_key text PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    version               integer NOT NULL DEFAULT 1 CHECK (version > 0),
+    source_contract_key   text NOT NULL REFERENCES graphsync.data_contract(contract_key) ON DELETE CASCADE,
+    relationship_name     text NOT NULL,
+    target_contract_key   text NOT NULL REFERENCES graphsync.data_contract(contract_key) ON DELETE CASCADE,
+    source_columns        jsonb NOT NULL,
+    target_columns        jsonb NOT NULL,
+    semantic_role         text NOT NULL,
+    required_context      boolean NOT NULL DEFAULT false,
+    status                text NOT NULL DEFAULT 'draft' CHECK (status IN (
+                              'draft', 'reviewed', 'approved', 'retired'
+                          )),
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    CHECK (jsonb_typeof(source_columns) = 'array'),
+    CHECK (jsonb_typeof(target_columns) = 'array'),
+    CHECK (jsonb_array_length(source_columns) > 0),
+    CHECK (jsonb_array_length(source_columns) = jsonb_array_length(target_columns))
+);
+
+ALTER TABLE graphsync.relationship_contract
+    ADD COLUMN IF NOT EXISTS version integer NOT NULL DEFAULT 1;
+
+CREATE TABLE IF NOT EXISTS graphsync.curation_run (
+    curation_run_id       uuid PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key),
+    status                text NOT NULL CHECK (status IN (
+                              'started', 'succeeded', 'failed', 'cancelled'
+                          )),
+    preview_only          boolean NOT NULL DEFAULT true,
+    started_at            timestamptz NOT NULL DEFAULT now(),
+    finished_at           timestamptz,
+    source_rows_read      bigint NOT NULL DEFAULT 0,
+    accepted_rows         bigint NOT NULL DEFAULT 0,
+    quarantined_rows      bigint NOT NULL DEFAULT 0,
+    publishable           boolean NOT NULL DEFAULT false,
+    contract_versions     jsonb NOT NULL DEFAULT '{}'::jsonb,
+    summary               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    error                 jsonb
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_curation_run_profile
+    ON graphsync.curation_run (profile_key, started_at DESC);
+
+CREATE TABLE IF NOT EXISTS graphsync.data_quality_result (
+    quality_result_id     uuid PRIMARY KEY,
+    curation_run_id       uuid NOT NULL REFERENCES graphsync.curation_run(curation_run_id) ON DELETE CASCADE,
+    contract_key          text REFERENCES graphsync.data_contract(contract_key) ON DELETE SET NULL,
+    relationship_contract_key text REFERENCES graphsync.relationship_contract(relationship_contract_key) ON DELETE SET NULL,
+    rule_key              text NOT NULL,
+    severity              text NOT NULL CHECK (severity IN ('info', 'warning', 'error')),
+    passed                boolean NOT NULL,
+    checked_rows          bigint NOT NULL DEFAULT 0,
+    failed_rows           bigint NOT NULL DEFAULT 0,
+    message               text NOT NULL,
+    details               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_quality_run
+    ON graphsync.data_quality_result (curation_run_id, severity, passed);
+
+-- Curated tables contain only governance-approved projections. The initial
+-- implementation creates the contract-shaped targets but preview runs do not
+-- write business rows into them.
+CREATE TABLE IF NOT EXISTS camstar_curated.product (
+    source_product_id     text PRIMARY KEY,
+    product_base_id       text,
+    revision              text,
+    description           text,
+    status                integer,
+    object_type           text,
+    workflow_id           text,
+    product_type_id       text,
+    change_count          bigint,
+    source_payload        jsonb NOT NULL DEFAULT '{}'::jsonb,
+    source_hash           text NOT NULL,
+    source_change_at      timestamptz,
+    curated_at            timestamptz NOT NULL DEFAULT now(),
+    curation_run_id       uuid NOT NULL REFERENCES graphsync.curation_run(curation_run_id)
+);
+
+CREATE TABLE IF NOT EXISTS camstar_curated.mfg_order (
+    source_mfg_order_id   text PRIMARY KEY,
+    order_name            text NOT NULL,
+    description           text,
+    ordered_product_id    text,
+    begin_product_id      text,
+    quantity              numeric,
+    order_status_id       text,
+    reporting_factory_id  text,
+    planned_start_at      timestamptz,
+    planned_completion_at timestamptz,
+    last_change_at        timestamptz,
+    change_count          bigint,
+    source_payload        jsonb NOT NULL DEFAULT '{}'::jsonb,
+    source_hash           text NOT NULL,
+    curated_at            timestamptz NOT NULL DEFAULT now(),
+    curation_run_id       uuid NOT NULL REFERENCES graphsync.curation_run(curation_run_id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_curated_mfg_order_product
+    ON camstar_curated.mfg_order (ordered_product_id);
+
+CREATE TABLE IF NOT EXISTS camstar_curated.mfg_order_product_link (
+    source_mfg_order_id   text NOT NULL,
+    relationship_name    text NOT NULL CHECK (relationship_name IN (
+                             'ORDERED_PRODUCT', 'BEGIN_PRODUCT'
+                         )),
+    source_product_id     text NOT NULL,
+    resolution_status    text NOT NULL CHECK (resolution_status IN (
+                             'resolved', 'pending', 'quarantined'
+                         )),
+    curated_at            timestamptz NOT NULL DEFAULT now(),
+    curation_run_id       uuid NOT NULL REFERENCES graphsync.curation_run(curation_run_id),
+    PRIMARY KEY (source_mfg_order_id, relationship_name)
+);
+
+CREATE INDEX IF NOT EXISTS ix_curated_mfg_order_product_target
+    ON camstar_curated.mfg_order_product_link (source_product_id, relationship_name);
+
+CREATE TABLE IF NOT EXISTS camstar_curated.quarantine_record (
+    quarantine_id        uuid PRIMARY KEY,
+    curation_run_id      uuid NOT NULL REFERENCES graphsync.curation_run(curation_run_id) ON DELETE CASCADE,
+    contract_key         text NOT NULL REFERENCES graphsync.data_contract(contract_key),
+    source_primary_key   jsonb NOT NULL,
+    rule_keys            jsonb NOT NULL,
+    source_payload       jsonb NOT NULL,
+    status               text NOT NULL DEFAULT 'open' CHECK (status IN (
+                             'open', 'resolved', 'ignored', 'expired'
+                         )),
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    resolved_at          timestamptz
+);
+
 CREATE OR REPLACE FUNCTION graphsync.touch_updated_at()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
@@ -545,6 +715,16 @@ FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 DROP TRIGGER IF EXISTS trg_profile_relationship_updated ON graphsync.profile_relationship;
 CREATE TRIGGER trg_profile_relationship_updated
 BEFORE UPDATE ON graphsync.profile_relationship
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_data_contract_updated ON graphsync.data_contract;
+CREATE TRIGGER trg_data_contract_updated
+BEFORE UPDATE ON graphsync.data_contract
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_relationship_contract_updated ON graphsync.relationship_contract;
+CREATE TRIGGER trg_relationship_contract_updated
+BEFORE UPDATE ON graphsync.relationship_contract
 FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 
 CREATE OR REPLACE VIEW graphsync.latest_job_run AS
@@ -612,6 +792,10 @@ INSERT INTO graphsync.schema_version (version, description)
 VALUES (7, 'Business graph profiles and controlled context closure')
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (8, 'Governed Camstar curated layer and data quality contracts')
+ON CONFLICT (version) DO NOTHING;
+
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)
 VALUES
@@ -665,6 +849,46 @@ VALUES
     ('opcenter2607-core', 'MfgOrder', 'core', 'quarantine', true, 20, 'draft',
      '{"reason":"Initial core object requested by user"}'::jsonb)
 ON CONFLICT (profile_key, class_name) DO NOTHING;
+
+INSERT INTO graphsync.data_contract
+    (contract_key, profile_key, class_name, source_schema, source_table,
+     primary_key_columns, business_key_columns, selected_columns,
+     required_columns, freshness_column, publication_layer,
+     quality_thresholds, config)
+VALUES
+    ('opcenter2607-product-v1', 'opcenter2607-core', 'Product',
+     'CamstarPRD_SCHEMA', 'Product', '["ProductId"]'::jsonb,
+     '["ProductBaseId", "ProductRevision"]'::jsonb,
+     '["ProductId", "ProductBaseId", "ProductRevision", "Description", "Status", "ObjectType", "WorkflowId", "ProductTypeId", "ChangeCount"]'::jsonb,
+     '["ProductId"]'::jsonb, NULL, 'core',
+     '{"maxErrorRate":0,"maxWarningRate":0.05}'::jsonb,
+     '{"targetTable":"camstar_curated.product","businessKeyRequiresReview":true}'::jsonb),
+    ('opcenter2607-mfgorder-v1', 'opcenter2607-core', 'MfgOrder',
+     'CamstarPRD_SCHEMA', 'MfgOrder', '["MfgOrderId"]'::jsonb,
+     '["MfgOrderName"]'::jsonb,
+     '["MfgOrderId", "MfgOrderName", "Description", "ProductId", "BeginProductId", "Qty", "OrderStatusId", "ReportingFactoryId", "PlannedStartDateGMT", "PlannedCompletionDateGMT", "LastChangeDate", "ChangeCount"]'::jsonb,
+     '["MfgOrderId", "MfgOrderName", "ProductId"]'::jsonb,
+     'LastChangeDate', 'core',
+     '{"maxErrorRate":0,"maxWarningRate":0.05}'::jsonb,
+     '{"targetTable":"camstar_curated.mfg_order"}'::jsonb)
+ON CONFLICT (contract_key) DO NOTHING;
+
+INSERT INTO graphsync.relationship_contract
+    (relationship_contract_key, profile_key, source_contract_key,
+     relationship_name, target_contract_key, source_columns, target_columns,
+     semantic_role, required_context, status, config)
+VALUES
+    ('mfgorder-ordered-product-v1', 'opcenter2607-core',
+     'opcenter2607-mfgorder-v1', 'ORDERED_PRODUCT', 'opcenter2607-product-v1',
+     '["ProductId"]'::jsonb, '["ProductId"]'::jsonb,
+     '订单目标产品', true, 'draft',
+     '{"ontologyCandidate":"HAS_PRODUCT","requiresBusinessApproval":true}'::jsonb),
+    ('mfgorder-begin-product-v1', 'opcenter2607-core',
+     'opcenter2607-mfgorder-v1', 'BEGIN_PRODUCT', 'opcenter2607-product-v1',
+     '["BeginProductId"]'::jsonb, '["ProductId"]'::jsonb,
+     '订单起始产品', false, 'draft',
+     '{"ontologyCandidate":"HAS_BEGIN_PRODUCT","requiresBusinessApproval":true}'::jsonb)
+ON CONFLICT (relationship_contract_key) DO NOTHING;
 
 INSERT INTO graphsync.app_setting (setting_key, value, description, editable)
 VALUES

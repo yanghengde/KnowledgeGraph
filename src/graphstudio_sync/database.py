@@ -177,6 +177,9 @@ def initialize_control_plane(
             "tables": connection.execute(
                 text("SELECT count(*) FROM information_schema.tables WHERE table_schema='graphsync' AND table_type='BASE TABLE'")
             ).scalar_one(),
+            "curatedTables": connection.execute(
+                text("SELECT count(*) FROM information_schema.tables WHERE table_schema='camstar_curated' AND table_type='BASE TABLE'")
+            ).scalar_one(),
             "views": connection.execute(
                 text("SELECT count(*) FROM information_schema.views WHERE table_schema='graphsync'")
             ).scalar_one(),

@@ -154,6 +154,19 @@ flowchart LR
 
 上下文质量问题记录在 `context_validation`，跨批次暂时找不到目标的引用记录在 `pending_reference`，供后续批次补齐或进入隔离层。
 
+### 治理后的业务对象层
+
+`camstar_curated` 是 Graph Studio 实例数据的受控来源，不是 Camstar 全库镜像。对象必须先在 `graphsync.data_contract` 中声明物理来源、主键、业务键、投影字段、必填字段、增量时间列、预览上限和目标图层；对象之间的字段连接及业务语义由 `relationship_contract` 单独审批。
+
+首批纵向切片包含：
+
+- `ProductId` 是 Product 物理主键；`ProductBaseId + ProductRevision` 暂作为待业务确认的业务键。
+- `MfgOrderId` 是 MfgOrder 物理主键，`MfgOrderName` 是业务键。
+- `MfgOrder.ProductId` 表示订单目标产品，是必需上下文候选。
+- `MfgOrder.BeginProductId` 表示订单起始产品，是可选上下文候选。
+
+治理预览读取量受每个契约的 `preview_row_limit` 约束，并将聚合结果记录到 `curation_run` 和 `data_quality_result`。契约、对象角色、必需关系未批准，数据存在主键/必填错误，预览被截断，或必需目标无法解析时，`publishable=false`。当前阶段不提供 curated materialize/apply 命令，避免审核前写入业务投影。
+
 ## 工具边界和路线图
 
 ### 已落地
@@ -165,6 +178,7 @@ flowchart LR
 - SQL Server CT/CDC、Oracle SCN/Flashback 能力探测，以及可持久化的增量窗口规划。
 - PostgreSQL 控制面 DDL，本地 Compose 和暂停状态的 Kubernetes CronJob 模板。
 - 业务图谱角色、关系强度、孤立策略、闭包预算和只读类级闭包规划。
+- Product/MfgOrder 数据契约、独立关系语义、治理预览和质量门禁审计。
 - Product/MfgOrder 子图的 RDF 导出和 API 导入已作为端到端概念验证。
 
 ### 下一个实现里程碑
@@ -187,6 +201,7 @@ python scripts/graphstudio_sync.py preview --job camstar-full
 python scripts/graphstudio_sync.py probe-incremental --job camstar-full
 python scripts/graphstudio_sync.py plan-incremental --job camstar-full
 python scripts/graphstudio_sync.py preview-incremental --job camstar-full
+python scripts/graphstudio_sync.py preview-curation --profile opcenter2607-core
 
 # 启动可选 PostgreSQL 控制面
 $env:PGSQL_PASSWORD = '<secret>'

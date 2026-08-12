@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, model_validator
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
+from src.graphstudio_sync.curation import build_curation_preview
 from src.graphstudio_sync.incremental import execute_incremental_plan, execute_incremental_probe
 from src.graphstudio_sync.incremental_preview import build_incremental_preview
 from src.graphstudio_sync.graph_profile import plan_context_closure, validate_graph_profile
@@ -147,6 +148,21 @@ class ProfileRelationshipUpdate(BaseModel):
         if self.required_context and self.strength not in {"core", "context"}:
             raise ValueError("Required context must use a core or context relationship")
         return self
+
+
+class DataContractUpdate(BaseModel):
+    status: Literal["draft", "reviewed", "approved", "retired"] = "draft"
+    business_key_columns: list[str] = Field(default_factory=list, max_length=20)
+    required_columns: list[str] = Field(default_factory=list, max_length=100)
+    freshness_column: str | None = Field(default=None, max_length=200)
+    preview_row_limit: int = Field(default=100000, ge=1, le=1000000)
+    publication_layer: Literal["core", "context", "reference", "quarantine"] = "core"
+
+
+class RelationshipContractUpdate(BaseModel):
+    status: Literal["draft", "reviewed", "approved", "retired"] = "draft"
+    semantic_role: str = Field(min_length=1, max_length=200)
+    required_context: bool = False
 
 
 @router.get("/overview")
@@ -392,6 +408,47 @@ def context_closure_plan(profile_key: str):
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+@router.get("/profiles/{profile_key}/governance")
+def governance_profile(profile_key: str):
+    try:
+        return _repo().governance_profile(profile_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+@router.put("/data-contracts/{contract_key}")
+def update_data_contract(contract_key: str, request: DataContractUpdate):
+    try:
+        return _repo().update_data_contract(contract_key, **request.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Data contract not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/relationship-contracts/{relationship_contract_key}")
+def update_relationship_contract(
+    relationship_contract_key: str,
+    request: RelationshipContractUpdate,
+):
+    try:
+        return _repo().update_relationship_contract(
+            relationship_contract_key, **request.model_dump()
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Relationship contract not found") from exc
+
+
+@router.post("/profiles/{profile_key}/curation-preview")
+def curation_preview(profile_key: str):
+    try:
+        return build_curation_preview(_settings(), _repo(), profile_key=profile_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Curation preview failed: {exc}") from exc
 
 
 @router.get("/mappings")

@@ -12,6 +12,7 @@ from sqlalchemy import create_engine, text
 
 from .config import SyncSettings
 from .catalog import compile_catalog
+from .curation import build_curation_preview
 from .database import initialize_control_plane
 from .inventory import build_plan, check_graphstudio, read_ontology, read_source_catalog
 from .incremental import execute_incremental_plan, execute_incremental_probe
@@ -135,6 +136,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     incremental_preview_parser.add_argument("--job", default="camstar-full")
     incremental_preview_parser.add_argument("--output", type=Path)
+    curation_preview_parser = subparsers.add_parser(
+        "preview-curation",
+        help="Evaluate governed Camstar data contracts without materializing business rows",
+    )
+    curation_preview_parser.add_argument("--profile", default="opcenter2607-core")
+    curation_preview_parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     settings = SyncSettings.from_env()
     if args.command == "doctor":
@@ -170,9 +177,12 @@ def main(argv: list[str] | None = None) -> int:
             job_name=args.job,
             refresh_capabilities=not args.no_refresh,
         )
-    else:
+    elif args.command == "preview-incremental":
         repository = ControlPlaneRepository(settings)
         payload = build_incremental_preview(settings, repository, job_name=args.job)
+    else:
+        repository = ControlPlaneRepository(settings)
+        payload = build_curation_preview(settings, repository, profile_key=args.profile)
     _write(payload, args.output)
     return 0 if payload.get("ok", True) else 1
 

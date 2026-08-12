@@ -12,6 +12,7 @@
         activeProfile: null,
         profileCandidates: { classes: [], relationships: [] },
         closurePlan: null,
+        governance: { contracts: [], relationships: [], latestRun: null, qualityResults: [] },
         mappings: null,
         runs: [],
         settings: [],
@@ -312,6 +313,68 @@
         `).join("") || '<tr class="empty-row"><td colspan="7">尚未配置关系。添加关系后默认仍需人工审核。</td></tr>';
         $("#profileIssueCount").textContent = `${issues.length} 项`;
         $("#profileIssues").innerHTML = issues.map(item => `<div class="profile-issue ${item.severity}"><span>${item.severity === "error" ? "阻断" : "提醒"}</span><strong>${escapeHtml(item.message)}</strong><small>${escapeHtml(item.rule)}</small></div>`).join("") || '<div class="profile-empty">业务图谱配置检查通过</div>';
+        renderGovernance();
+    }
+
+    function reviewLabel(value) {
+        return ({ draft: "草案", reviewed: "已复核", approved: "已批准", retired: "已退役" })[value] || value;
+    }
+
+    function renderGovernance() {
+        const governance = state.governance || {};
+        const contracts = governance.contracts || [];
+        const relationships = governance.relationships || [];
+        const latest = governance.latestRun;
+        const gate = $("#curationPublishable");
+        gate.className = `count-badge ${latest?.publishable ? "approved" : ""}`;
+        gate.textContent = latest ? (latest.publishable ? "具备发布资格" : "未通过治理门禁") : "尚未预览";
+        $("#dataContractRows").innerHTML = contracts.map(item => `
+            <tr data-contract="${escapeHtml(item.contract_key)}"><td><strong>${escapeHtml(item.class_name)}</strong><br><small>v${item.version}</small></td><td>${escapeHtml(`${item.source_schema}.${item.source_table}`)}</td><td>${escapeHtml((item.primary_key_columns || []).join(", "))}<br><small>${escapeHtml((item.business_key_columns || []).join(", ") || "未配置业务键")}</small></td><td title="${escapeHtml((item.required_columns || []).join(', '))}">${escapeHtml((item.required_columns || []).join(", ") || "—")}</td><td>${Number(item.preview_row_limit).toLocaleString()} 行</td><td><span class="status-pill ${item.status === "approved" ? "online" : "unknown"}">${escapeHtml(reviewLabel(item.status))}</span></td><td><button class="mini-btn" data-action="edit-data-contract">配置</button></td></tr>
+        `).join("") || '<tr class="empty-row"><td colspan="7">尚未配置数据契约</td></tr>';
+        $("#relationshipContractRows").innerHTML = relationships.map(item => `
+            <tr data-relationship-contract="${escapeHtml(item.relationship_contract_key)}"><td><strong>${escapeHtml(item.relationship_name)}</strong><br><small>v${item.version}</small></td><td>${escapeHtml(item.semantic_role)}</td><td>${escapeHtml((item.source_columns || []).join(", "))}</td><td>${escapeHtml(item.target_class)}.${escapeHtml((item.target_columns || []).join(", "))}</td><td>${item.required_context ? '<span class="status-pill online">必需</span>' : '<span class="status-pill">可选</span>'}</td><td><span class="status-pill ${item.status === "approved" ? "online" : "unknown"}">${escapeHtml(reviewLabel(item.status))}</span></td><td><button class="mini-btn" data-action="edit-relationship-contract">配置</button></td></tr>
+        `).join("") || '<tr class="empty-row"><td colspan="7">尚未配置关系契约</td></tr>';
+        const results = governance.qualityResults || [];
+        $("#qualityResultCount").textContent = latest ? `${results.filter(item => !item.passed).length} 项未通过` : "0";
+        $("#qualityResults").innerHTML = results.map(item => `<div class="profile-issue ${!item.passed && item.severity === "error" ? "error" : ""}"><span>${item.passed ? "通过" : item.severity === "error" ? "阻断" : "提醒"}</span><strong>${escapeHtml(item.message)}</strong><small>${Number(item.failed_rows || 0).toLocaleString()}/${Number(item.checked_rows || 0).toLocaleString()} · ${escapeHtml(item.rule_key)}</small></div>`).join("") || '<div class="profile-empty">运行治理预览后显示质量证据</div>';
+    }
+
+    function openDataContractDialog(item) {
+        $("#dialogTitle").textContent = `${item.class_name} 数据契约`;
+        $("#dialogKicker").textContent = "DATA CONTRACT";
+        $("#dialogFields").innerHTML = [
+            field("source", "物理来源", `${item.source_schema}.${item.source_table}`, { readonly: true, wide: true }),
+            field("primary_keys", "主键", (item.primary_key_columns || []).join(", "), { readonly: true }),
+            field("business_key_columns", "业务键（逗号分隔）", (item.business_key_columns || []).join(", "), { help: "用于业务唯一性检查，不替代物理主键" }),
+            field("required_columns", "必填字段（逗号分隔）", (item.required_columns || []).join(", "), { wide: true }),
+            field("freshness_column", "增量时间列", item.freshness_column || "", { help: "为空表示尚未确认可靠水位列" }),
+            field("preview_row_limit", "治理预览行数上限", item.preview_row_limit, { type: "number" }),
+            field("publication_layer", "目标层", item.publication_layer, { type: "select", items: [["core", "核心层"], ["context", "上下文层"], ["reference", "参考层"], ["quarantine", "隔离层"]] }),
+            field("status", "审核状态", item.status, { type: "select", items: [["draft", "草案"], ["reviewed", "已复核"], ["approved", "已批准"], ["retired", "已退役"]] }),
+        ].join("");
+        const parseColumns = value => String(value || "").split(",").map(column => column.trim()).filter(Boolean);
+        state.dialogSubmit = async form => {
+            await request(`/api/sync/data-contracts/${encodeURIComponent(item.contract_key)}`, { method: "PUT", body: JSON.stringify({ status: form.get("status"), business_key_columns: parseColumns(form.get("business_key_columns")), required_columns: parseColumns(form.get("required_columns")), freshness_column: form.get("freshness_column") || null, preview_row_limit: Number(form.get("preview_row_limit")), publication_layer: form.get("publication_layer") }) });
+            toast(`${item.class_name} 数据契约已保存`); await loadGraphProfiles();
+        };
+        $("#editDialog").showModal();
+    }
+
+    function openRelationshipContractDialog(item) {
+        $("#dialogTitle").textContent = `${item.relationship_name} 关系契约`;
+        $("#dialogKicker").textContent = "SEMANTIC CONTRACT";
+        $("#dialogFields").innerHTML = [
+            field("source", "源对象与字段", `${item.source_class}.${(item.source_columns || []).join(",")}`, { readonly: true, wide: true }),
+            field("target", "目标对象与字段", `${item.target_class}.${(item.target_columns || []).join(",")}`, { readonly: true, wide: true }),
+            field("semantic_role", "业务语义", item.semantic_role, { wide: true }),
+            field("required_context", "作为必需上下文", item.required_context, { type: "checkbox", help: "缺少或无法解析目标时阻止进入正式图谱" }),
+            field("status", "审核状态", item.status, { type: "select", items: [["draft", "草案"], ["reviewed", "已复核"], ["approved", "已批准"], ["retired", "已退役"]] }),
+        ].join("");
+        state.dialogSubmit = async form => {
+            await request(`/api/sync/relationship-contracts/${encodeURIComponent(item.relationship_contract_key)}`, { method: "PUT", body: JSON.stringify({ status: form.get("status"), semantic_role: form.get("semantic_role"), required_context: form.get("required_context") === "on" }) });
+            toast(`${item.relationship_name} 关系契约已保存`); await loadGraphProfiles();
+        };
+        $("#editDialog").showModal();
     }
 
     function openGraphProfileDialog() {
@@ -601,9 +664,10 @@
         state.profiles = (await request("/api/sync/profiles")).items;
         const profileKey = state.profiles[0]?.profile_key;
         if (!profileKey) return;
-        [state.activeProfile, state.profileCandidates] = await Promise.all([
+        [state.activeProfile, state.profileCandidates, state.governance] = await Promise.all([
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}`),
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/candidates`),
+            request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/governance`),
         ]);
         renderGraphProfile();
     }
@@ -676,6 +740,14 @@
             const [sourceClass, relationshipName, targetClass] = row.dataset.profileRelationship.split("|");
             openProfileRelationshipDialog(state.activeProfile.relationships.find(item => item.source_class === sourceClass && item.relationship_name === relationshipName && item.target_class === targetClass)); return;
         }
+        if (action.dataset.action === "edit-data-contract") {
+            const row = action.closest("[data-contract]");
+            openDataContractDialog(state.governance.contracts.find(item => item.contract_key === row.dataset.contract)); return;
+        }
+        if (action.dataset.action === "edit-relationship-contract") {
+            const row = action.closest("[data-relationship-contract]");
+            openRelationshipContractDialog(state.governance.relationships.find(item => item.relationship_contract_key === row.dataset.relationshipContract)); return;
+        }
         if (action.dataset.action === "dry-run-job" && jobCard) {
             action.disabled = true; action.textContent = "盘点中…";
             try {
@@ -741,6 +813,15 @@
             toast(`闭包预览完成：${state.closurePlan.summary.includedClassCount} 类、${state.closurePlan.summary.traversalStepCount} 个扩展步骤`);
         } catch (error) { toast(error.message, true); }
         finally { button.disabled = false; button.textContent = "预览上下文闭包"; }
+    });
+    $("#previewCuration").addEventListener("click", async event => {
+        const button = event.currentTarget; button.disabled = true; button.textContent = "检查中…";
+        try {
+            const result = await request(`/api/sync/profiles/${encodeURIComponent(state.activeProfile.profile.profile_key)}/curation-preview`, { method: "POST" });
+            await loadGraphProfiles();
+            toast(result.publishable ? "治理门禁通过，可进入发布审批" : `治理预览完成：${result.summary.failedErrors} 个阻断项，尚不可发布`, !result.publishable);
+        } catch (error) { toast(error.message, true); }
+        finally { button.disabled = false; button.textContent = "运行治理预览"; }
     });
     $("#probeIncremental").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true; button.textContent = "检测中…";

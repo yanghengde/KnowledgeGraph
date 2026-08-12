@@ -87,6 +87,7 @@ python scripts/graphstudio_sync.py compile-catalog
 python scripts/graphstudio_sync.py doctor
 python scripts/graphstudio_sync.py dry-run --job camstar-full
 python scripts/graphstudio_sync.py preview --job camstar-full
+python scripts/graphstudio_sync.py preview-curation --profile opcenter2607-core
 ```
 
 `init-db` 可创建目标 PostgreSQL 数据库和 `graphsync` Schema。已有连接档案默认不会被 `.env` 覆盖；只有显式传入 `--sync-connections` 才会重新同步环境变量中的连接元数据。
@@ -133,6 +134,7 @@ Schema：`graphsync`
 | 编排 | `sync_job`, `sync_scope`, `table_sync_policy`, `source_capability_snapshot`, `incremental_window`, `sync_run`, `sync_batch`, `checkpoint` |
 | 映射 | `catalog_snapshot`, `class_mapping`, `property_mapping`, `relationship_mapping`, `mapping_override` |
 | 业务图谱 | `graph_profile`, `profile_class`, `profile_relationship`, `context_validation`, `pending_reference` |
+| 数据治理 | `data_contract`, `relationship_contract`, `curation_run`, `data_quality_result`；业务投影位于 `camstar_curated` schema |
 | 审计 | `artifact`, `validation_result`, `row_state` |
 
 DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapshot`，新编译失败不会破坏当前 `ready` 版本。
@@ -140,6 +142,8 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 控制面 v6 还包含 `source_capability_snapshot` 和 `incremental_window`：前者记录 SQL Server CT/CDC 或 Oracle SCN/Flashback 的实际探测证据，后者在抽取前冻结可恢复的上下界。没有检查点、检查点已被源库清理或原生能力未启用时，窗口会进入 `baseline_required`/`blocked`，不会继续同步。
 
 控制面 v7 增加业务图谱配置：完整本体仍可发布为模型层，实例层按核心/上下文/参考/按需对象和核心/上下文/弱关系构建受控闭包。初始草案以 `Product`、`MfgOrder` 为核心种子；关系必须来自实际映射目录并经过审核，弱关系不能驱动扩展。页面中的闭包预览不读取 Camstar 业务行，也不修改 Graph Studio。
+
+控制面 v8 增加 `camstar_curated` 治理层和版本化数据契约。首批契约覆盖 Product、MfgOrder，并把 `ProductId → Product.ProductId`（订单目标产品）与 `BeginProductId → Product.ProductId`（订单起始产品）作为两条独立关系审核。`preview-curation` 只执行有上限的主键、业务键、必填字段、物理映射、增量水位和引用完整性检查；它仅在 PostgreSQL 记录聚合质量证据，不保存源行、不写 curated 业务表，也不写 Graph Studio。
 
 `preview-incremental` 会将已规划窗口读取成统一 JSONL 变更包，支持 SQL Server CT、CDC、Oracle Flashback SCN 以及 watermark/append-only。事件包含主键、insert/update/upsert/delete 操作和数据库恢复位置；预览只生成审计产物，不提交 checkpoint，也不写 Graph Studio。
 

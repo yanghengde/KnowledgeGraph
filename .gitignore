@@ -12,6 +12,7 @@ outputs/graphstudio/control_plane_init*.json
 outputs/graphstudio/catalog_compile*.json
 outputs/graphstudio/dry_run_result.json
 outputs/graphstudio/previews/
+outputs/graphstudio/curation/
 outputs/graphstudio/full_preview_result*.json
 outputs/graphstudio/doctor*.json
 
