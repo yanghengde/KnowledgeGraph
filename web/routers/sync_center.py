@@ -12,6 +12,7 @@ from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
 from src.graphstudio_sync.repository import ControlPlaneRepository
+from src.graphstudio_sync.preview import build_full_preview
 from src.graphstudio_sync.run_manager import execute_dry_run
 
 
@@ -152,6 +153,25 @@ def dry_run_job(job_name: str):
     try:
         result = execute_dry_run(_settings(), _repo(), job_name=job_name)
         return {"runId": result["runId"], "status": result["status"], "artifact": result["artifact"]}
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/jobs/{job_name}/preview")
+def preview_job(job_name: str):
+    try:
+        manifest = build_full_preview(_settings(), _repo(), job_name=job_name)
+        return {
+            "runId": manifest["runId"],
+            "previewOnly": manifest["previewOnly"],
+            "graphStudioMutated": manifest["graphStudioMutated"],
+            "instances": manifest["data"]["instances"],
+            "modelTriples": manifest["model"]["triples"],
+            "dataTriples": manifest["data"]["dataTriples"],
+            "report": manifest["files"]["report"],
+        }
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Sync job not found") from exc
     except RuntimeError as exc:

@@ -144,7 +144,7 @@
                     <div class="detail-field"><span>Scope</span><strong>${escapeHtml(item.scopes?.map(scope => scope.class_pattern).join(", ") || "—")}</strong></div>
                     <div class="detail-field"><span>Retention</span><strong>${item.retention_success} 个成功版本</strong></div>
                 </div>
-                <div class="card-actions"><small>${item.enabled ? "任务已启用" : "任务已停用"}</small><div class="card-action-buttons"><button class="mini-btn" data-action="dry-run-job">执行盘点</button><button class="mini-btn" data-action="edit-job">配置任务</button></div></div>
+                <div class="card-actions"><small>${item.enabled ? "任务已启用" : "任务已停用"}</small><div class="card-action-buttons"><button class="mini-btn" data-action="dry-run-job">执行盘点</button><button class="mini-btn" data-action="preview-job">生成 RDF 预览</button><button class="mini-btn" data-action="edit-job">配置任务</button></div></div>
             </article>`).join("");
     }
 
@@ -362,6 +362,16 @@
                 await loadRuns(); await loadOverview();
             } catch (error) { toast(error.message, true); }
             finally { action.disabled = false; action.textContent = "执行盘点"; }
+            return;
+        }
+        if (action.dataset.action === "preview-job" && jobCard) {
+            action.disabled = true; action.textContent = "生成中…";
+            try {
+                const result = await request(`/api/sync/jobs/${encodeURIComponent(jobCard.dataset.job)}/preview`, { method: "POST" });
+                toast(`RDF 预览已生成：${result.instances} 个实例，Graph Studio 未修改`);
+                await loadRuns(); await loadOverview();
+            } catch (error) { toast(error.message, true); }
+            finally { action.disabled = false; action.textContent = "生成 RDF 预览"; }
             return;
         }
         if (action.dataset.action === "override-property") {

@@ -82,9 +82,12 @@ python scripts/graphstudio_sync.py init-db
 python scripts/graphstudio_sync.py compile-catalog
 python scripts/graphstudio_sync.py doctor
 python scripts/graphstudio_sync.py dry-run --job camstar-full
+python scripts/graphstudio_sync.py preview --job camstar-full
 ```
 
 `init-db` 可创建目标 PostgreSQL 数据库和 `graphsync` Schema。已有连接档案默认不会被 `.env` 覆盖；只有显式传入 `--sync-connections` 才会重新同步环境变量中的连接元数据。
+
+`preview` 会在 `outputs/graphstudio/previews/<run-id>/` 生成完整 OWL/Turtle 模型、分片 RDF ZIP、样本、manifest 和校验报告；它只读取 Camstar、Neo4j 与 PostgreSQL，不调用 Graph Studio 写接口。
 
 ### 3. 运行 Web 平台
 

@@ -15,6 +15,7 @@ from .catalog import compile_catalog
 from .database import initialize_control_plane
 from .inventory import build_plan, check_graphstudio, read_ontology, read_source_catalog
 from .repository import ControlPlaneRepository
+from .preview import build_full_preview
 from .run_manager import execute_dry_run
 
 
@@ -107,6 +108,12 @@ def main(argv: list[str] | None = None) -> int:
         help="Compile Neo4j and Camstar physical mappings into PostgreSQL",
     )
     catalog_parser.add_argument("--output", type=Path)
+    preview_parser = subparsers.add_parser(
+        "preview",
+        help="Build and validate a complete RDF preview without mutating Graph Studio",
+    )
+    preview_parser.add_argument("--job", default="camstar-full")
+    preview_parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     settings = SyncSettings.from_env()
     if args.command == "doctor":
@@ -125,9 +132,12 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "dry-run":
         repository = ControlPlaneRepository(settings)
         payload = execute_dry_run(settings, repository, job_name=args.job)
-    else:
+    elif args.command == "compile-catalog":
         repository = ControlPlaneRepository(settings)
         payload = {"ok": True, "catalog": compile_catalog(settings, repository)}
+    else:
+        repository = ControlPlaneRepository(settings)
+        payload = build_full_preview(settings, repository, job_name=args.job)
     _write(payload, args.output)
     return 0 if payload.get("ok", True) else 1
 

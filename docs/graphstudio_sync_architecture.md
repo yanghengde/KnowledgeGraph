@@ -112,16 +112,16 @@ flowchart LR
 
 - `doctor`：只读检查 Neo4j、SQL Server、Graph Studio 和 PostgreSQL 连通性。
 - `plan`：输出类/表覆盖、属性映射率、行数估算和推荐模式。
+- `preview`：生成完整、确定性的 OWL/Turtle 模型与分片 RDF ZIP，执行回读、URI、引用和数据类型校验，全程不调用 Graph Studio 写接口。
 - PostgreSQL 控制面 DDL，本地 Compose 和暂停状态的 Kubernetes CronJob 模板。
 - Product/MfgOrder 子图的 RDF 导出和 API 导入已作为端到端概念验证。
 
 ### 下一个实现里程碑
 
-1. 将 32 个未确定属性放入显式 mapping override，并为每个关系保存 sourceFieldId。
-2. 实现全量 manifest compiler 和分片 RDF writer，避免一次将大数据全部放入内存。
-3. 实现幂等的 `sync --job camstar-full --apply`，包含蓝绿 Dataset 切换、SPARQL 验收和回滚。
-4. 通过 UAT 后取消 CronJob 模板的 `suspend: true`。
-5. 运行一个观察周期，再依据实测时间和体积决定是否增加 CDC。
+1. 审核 32 个未确定属性、159 个多候选关系、72 个未解析关系，以及预览报告中的引用和数据类型告警。
+2. 实现幂等的 `sync --job camstar-full --apply`，包含蓝绿 Dataset 切换、SPARQL 验收和回滚。
+3. 通过 UAT 后取消 CronJob 模板的 `suspend: true`。
+4. 运行一个观察周期，再依据实测时间和体积决定是否增加 CDC。
 
 ## 命令
 
@@ -131,6 +131,7 @@ python scripts/graphstudio_sync.py plan --output outputs/graphstudio/full_sync_p
 python scripts/graphstudio_sync.py init-db
 python scripts/graphstudio_sync.py compile-catalog
 python scripts/graphstudio_sync.py dry-run --job camstar-full
+python scripts/graphstudio_sync.py preview --job camstar-full
 
 # 启动可选 PostgreSQL 控制面
 $env:PGSQL_PASSWORD = '<secret>'
