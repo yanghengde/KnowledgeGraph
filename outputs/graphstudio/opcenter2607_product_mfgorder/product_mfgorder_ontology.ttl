@@ -1,0 +1,1939 @@
+@prefix cam: <https://opcenter.siemens.com/ontology/camstar/2607/ProductMfgOrder#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://opcenter.siemens.com/ontology/camstar/2607/ProductMfgOrder> a owl:Ontology ;
+    rdfs:label "Opcenter 2607 Product and MfgOrder Ontology"@en ;
+    rdfs:comment "Subset exported from CamstarOntology Neo4j." .
+
+cam:MfgOrder_actualFinished a owl:DatatypeProperty ;
+    rdfs:label "actualFinished" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "ES_ActualFinished" ;
+    cam:required false ;
+    cam:sourceFieldId "689965544" .
+
+cam:MfgOrder_beginProduct a owl:ObjectProperty ;
+    rdfs:label "beginProduct" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "BeginProductId" ;
+    cam:required false ;
+    cam:sourceFieldId "2466" .
+
+cam:MfgOrder_beginProductBase a owl:DatatypeProperty ;
+    rdfs:label "beginProductBase" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "BeginProductBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "2467" .
+
+cam:MfgOrder_billOfProcess a owl:ObjectProperty ;
+    rdfs:label "billOfProcess" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "BillOfProcessId" ;
+    cam:required false ;
+    cam:sourceFieldId "9809" .
+
+cam:MfgOrder_billOfProcessBase a owl:DatatypeProperty ;
+    rdfs:label "billOfProcessBase" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "BillOfProcessBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "12744" .
+
+cam:MfgOrder_changeStatus a owl:ObjectProperty ;
+    rdfs:label "changeStatus" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ChangeStatusId" ;
+    cam:required false ;
+    cam:sourceFieldId "2465" .
+
+cam:MfgOrder_childContainerNumberingRu a owl:ObjectProperty ;
+    rdfs:label "childContainerNumberingRu" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ES_ChildContainerNumberingRuId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965494" .
+
+cam:MfgOrder_completionPlan a owl:DatatypeProperty ;
+    rdfs:label "completionPlan" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "CompletionPlan" ;
+    cam:required false ;
+    cam:sourceFieldId "689963023" .
+
+cam:MfgOrder_consumingOrder a owl:DatatypeProperty ;
+    rdfs:label "consumingOrder" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ConsumingOrder" ;
+    cam:required false ;
+    cam:sourceFieldId "17259" .
+
+cam:MfgOrder_containerNumberingRule a owl:ObjectProperty ;
+    rdfs:label "containerNumberingRule" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ContainerNumberingRuleId" ;
+    cam:required false ;
+    cam:sourceFieldId "16602" .
+
+cam:MfgOrder_continueOnFail a owl:DatatypeProperty ;
+    rdfs:label "continueOnFail" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_ContinueOnFail" ;
+    cam:required false ;
+    cam:sourceFieldId "689965436" .
+
+cam:MfgOrder_customAddressPool a owl:ObjectProperty ;
+    rdfs:label "customAddressPool" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ES_CustomAddressPoolId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965789" .
+
+cam:MfgOrder_customAddressQty a owl:DatatypeProperty ;
+    rdfs:label "customAddressQty" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_CustomAddressQty" ;
+    cam:required false ;
+    cam:sourceFieldId "689965792" .
+
+cam:MfgOrder_customerReference a owl:DatatypeProperty ;
+    rdfs:label "customerReference" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "CustomerReference" ;
+    cam:required false ;
+    cam:sourceFieldId "689963034" .
+
+cam:MfgOrder_dateShipped a owl:DatatypeProperty ;
+    rdfs:label "dateShipped" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "DateShipped" ;
+    cam:required false ;
+    cam:sourceFieldId "689963026" .
+
+cam:MfgOrder_defaultLot a owl:DatatypeProperty ;
+    rdfs:label "defaultLot" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "DefaultLot" ;
+    cam:required false ;
+    cam:sourceFieldId "8508" .
+
+cam:MfgOrder_defaultPutawayStockPoint a owl:DatatypeProperty ;
+    rdfs:label "defaultPutawayStockPoint" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "DefaultPutawayStockPoint" ;
+    cam:required false ;
+    cam:sourceFieldId "8501" .
+
+cam:MfgOrder_description a owl:DatatypeProperty ;
+    rdfs:label "description" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "Description" ;
+    cam:required false ;
+    cam:sourceFieldId "2462" .
+
+cam:MfgOrder_erpRoute a owl:ObjectProperty ;
+    rdfs:label "erpRoute" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ERPRouteId" ;
+    cam:required false ;
+    cam:sourceFieldId "7947" .
+
+cam:MfgOrder_erpRouteBase a owl:DatatypeProperty ;
+    rdfs:label "erpRouteBase" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ERPRouteBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "7948" .
+
+cam:MfgOrder_erpbom a owl:ObjectProperty ;
+    rdfs:label "erpbom" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ERPBOMId" ;
+    cam:required false ;
+    cam:sourceFieldId "8502" .
+
+cam:MfgOrder_externallyControlled a owl:DatatypeProperty ;
+    rdfs:label "externallyControlled" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ExternallyControlled" ;
+    cam:required false ;
+    cam:sourceFieldId "8504" .
+
+cam:MfgOrder_filterTags a owl:DatatypeProperty ;
+    rdfs:label "filterTags" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "FilterTags" ;
+    cam:required false ;
+    cam:sourceFieldId "16629" .
+
+cam:MfgOrder_holdStatus a owl:ObjectProperty ;
+    rdfs:label "holdStatus" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "HoldStatusId" ;
+    cam:required false ;
+    cam:sourceFieldId "18012" .
+
+cam:MfgOrder_iconId a owl:DatatypeProperty ;
+    rdfs:label "iconId" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "IconId" ;
+    cam:required false ;
+    cam:sourceFieldId "2463" .
+
+cam:MfgOrder_imeiAddressPool a owl:ObjectProperty ;
+    rdfs:label "imeiAddressPool" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ES_IMEIAddressPoolId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965788" .
+
+cam:MfgOrder_imeiAddressQty a owl:DatatypeProperty ;
+    rdfs:label "imeiAddressQty" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_IMEIAddressQty" ;
+    cam:required false ;
+    cam:sourceFieldId "689965791" .
+
+cam:MfgOrder_isFrozen a owl:DatatypeProperty ;
+    rdfs:label "isFrozen" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "IsFrozen" ;
+    cam:required false ;
+    cam:sourceFieldId "2464" .
+
+cam:MfgOrder_isKittingOrder a owl:DatatypeProperty ;
+    rdfs:label "isKittingOrder" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "isKittingOrder" ;
+    cam:required false ;
+    cam:sourceFieldId "702546580" .
+
+cam:MfgOrder_isPreactorSchedule a owl:ObjectProperty ;
+    rdfs:label "isPreactorSchedule" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "isPreactorScheduleId" ;
+    cam:required false ;
+    cam:sourceFieldId "702546557" .
+
+cam:MfgOrder_isRecipePlan a owl:ObjectProperty ;
+    rdfs:label "isRecipePlan" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "isRecipePlanId" ;
+    cam:required false ;
+    cam:sourceFieldId "702546664" .
+
+cam:MfgOrder_isWorkflow a owl:ObjectProperty ;
+    rdfs:label "isWorkflow" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "isWorkflowId" ;
+    cam:required false ;
+    cam:sourceFieldId "702546540" .
+
+cam:MfgOrder_isWorkflowBase a owl:DatatypeProperty ;
+    rdfs:label "isWorkflowBase" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:required false ;
+    cam:sourceFieldId "702546673" .
+
+cam:MfgOrder_latestCustomerRequiredDate a owl:DatatypeProperty ;
+    rdfs:label "latestCustomerRequiredDate" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "LatestCustomerRequiredDate" ;
+    cam:required false ;
+    cam:sourceFieldId "689963036" .
+
+cam:MfgOrder_macAddressPool a owl:ObjectProperty ;
+    rdfs:label "macAddressPool" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ES_MACAddressPoolId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965787" .
+
+cam:MfgOrder_macAddressQty a owl:DatatypeProperty ;
+    rdfs:label "macAddressQty" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_MACAddressQty" ;
+    cam:required false ;
+    cam:sourceFieldId "689965790" .
+
+cam:MfgOrder_materialAttributes a owl:DatatypeProperty ;
+    rdfs:label "materialAttributes" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ES_MaterialAttributes" ;
+    cam:required false ;
+    cam:sourceFieldId "689965545" .
+
+cam:MfgOrder_mfgLine a owl:ObjectProperty ;
+    rdfs:label "mfgLine" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "MfgLineId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963040" .
+
+cam:MfgOrder_modelNumber a owl:DatatypeProperty ;
+    rdfs:label "modelNumber" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ModelNumber" ;
+    cam:required false ;
+    cam:sourceFieldId "689963035" .
+
+cam:MfgOrder_mpsDate a owl:DatatypeProperty ;
+    rdfs:label "mpsDate" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "MPSDate" ;
+    cam:required false ;
+    cam:sourceFieldId "689963027" .
+
+cam:MfgOrder_name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "MfgOrderName" ;
+    cam:required true ;
+    cam:sourceFieldId "2461" .
+
+cam:MfgOrder_notes a owl:DatatypeProperty ;
+    rdfs:label "notes" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "Notes" ;
+    cam:required false ;
+    cam:sourceFieldId "8335" .
+
+cam:MfgOrder_orderStatus a owl:ObjectProperty ;
+    rdfs:label "orderStatus" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "OrderStatusId" ;
+    cam:required false ;
+    cam:sourceFieldId "8509" .
+
+cam:MfgOrder_orderType a owl:ObjectProperty ;
+    rdfs:label "orderType" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "OrderTypeId" ;
+    cam:required false ;
+    cam:sourceFieldId "8505" .
+
+cam:MfgOrder_originalCompletionPlan a owl:DatatypeProperty ;
+    rdfs:label "originalCompletionPlan" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "OriginalCompletionPlan" ;
+    cam:required false ;
+    cam:sourceFieldId "689963031" .
+
+cam:MfgOrder_originalPmDemandDate a owl:DatatypeProperty ;
+    rdfs:label "originalPmDemandDate" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "OriginalPMDemandDate" ;
+    cam:required false ;
+    cam:sourceFieldId "689963029" .
+
+cam:MfgOrder_originalShipPlanAndRbwCommit a owl:DatatypeProperty ;
+    rdfs:label "originalShipPlanAndRbwCommit" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "OriginalShipPlanAndRBWCommit" ;
+    cam:required false ;
+    cam:sourceFieldId "689963024" .
+
+cam:MfgOrder_piso a owl:DatatypeProperty ;
+    rdfs:label "piso" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "PISO" ;
+    cam:required false ;
+    cam:sourceFieldId "689963032" .
+
+cam:MfgOrder_plannedCompletionDate a owl:DatatypeProperty ;
+    rdfs:label "plannedCompletionDate" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "PlannedCompletionDate" ;
+    cam:required false ;
+    cam:sourceFieldId "8500" .
+
+cam:MfgOrder_plannedCompletionDateGmt a owl:DatatypeProperty ;
+    rdfs:label "plannedCompletionDateGmt" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "PlannedCompletionDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "11322" .
+
+cam:MfgOrder_plannedStartDate a owl:DatatypeProperty ;
+    rdfs:label "plannedStartDate" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "PlannedStartDate" ;
+    cam:required false ;
+    cam:sourceFieldId "8499" .
+
+cam:MfgOrder_plannedStartDateGmt a owl:DatatypeProperty ;
+    rdfs:label "plannedStartDateGmt" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "PlannedStartDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "11323" .
+
+cam:MfgOrder_pmDemandDate a owl:DatatypeProperty ;
+    rdfs:label "pmDemandDate" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "PMDemandDate" ;
+    cam:required false ;
+    cam:sourceFieldId "689963028" .
+
+cam:MfgOrder_poNumber a owl:DatatypeProperty ;
+    rdfs:label "poNumber" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "PONumber" ;
+    cam:required false ;
+    cam:sourceFieldId "689963033" .
+
+cam:MfgOrder_postProductionCompleteDateGmt a owl:DatatypeProperty ;
+    rdfs:label "postProductionCompleteDateGmt" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "PostProductionCompleteDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "17767" .
+
+cam:MfgOrder_postProductionProcedure a owl:ObjectProperty ;
+    rdfs:label "postProductionProcedure" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "PostProductionProcedureId" ;
+    cam:required false ;
+    cam:sourceFieldId "17617" .
+
+cam:MfgOrder_postProductionProcedureState a owl:DatatypeProperty ;
+    rdfs:label "postProductionProcedureState" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "PostProductionProcedureState" ;
+    cam:required false ;
+    cam:sourceFieldId "17761" .
+
+cam:MfgOrder_postProductionStartDateGmt a owl:DatatypeProperty ;
+    rdfs:label "postProductionStartDateGmt" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "PostProductionStartDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "17766" .
+
+cam:MfgOrder_preProductionCompleteDateGmt a owl:DatatypeProperty ;
+    rdfs:label "preProductionCompleteDateGmt" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "PreProductionCompleteDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "17763" .
+
+cam:MfgOrder_preProductionProcedure a owl:ObjectProperty ;
+    rdfs:label "preProductionProcedure" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "PreProductionProcedureId" ;
+    cam:required false ;
+    cam:sourceFieldId "17616" .
+
+cam:MfgOrder_preProductionProcedureRequired a owl:DatatypeProperty ;
+    rdfs:label "preProductionProcedureRequired" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "PreProductionProcedureRequired" ;
+    cam:required false ;
+    cam:sourceFieldId "17820" .
+
+cam:MfgOrder_preProductionProcedureState a owl:DatatypeProperty ;
+    rdfs:label "preProductionProcedureState" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "PreProductionProcedureState" ;
+    cam:required false ;
+    cam:sourceFieldId "17760" .
+
+cam:MfgOrder_preProductionStartDateGmt a owl:DatatypeProperty ;
+    rdfs:label "preProductionStartDateGmt" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "PreProductionStartDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "17762" .
+
+cam:MfgOrder_priority a owl:ObjectProperty ;
+    rdfs:label "priority" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "PriorityId" ;
+    cam:required false ;
+    cam:sourceFieldId "8506" .
+
+cam:MfgOrder_product a owl:ObjectProperty ;
+    rdfs:label "product" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ProductId" ;
+    cam:required false ;
+    cam:sourceFieldId "2469" .
+
+cam:MfgOrder_productBase a owl:DatatypeProperty ;
+    rdfs:label "productBase" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ProductBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "2470" .
+
+cam:MfgOrder_productConversionPlan a owl:ObjectProperty ;
+    rdfs:label "productConversionPlan" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ProductConversionPlanId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963043" .
+
+cam:MfgOrder_productionBom a owl:ObjectProperty ;
+    rdfs:label "productionBom" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ES_ProductionBOMId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965467" .
+
+cam:MfgOrder_productionCompleteDateGmt a owl:DatatypeProperty ;
+    rdfs:label "productionCompleteDateGmt" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "ProductionCompleteDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "17765" .
+
+cam:MfgOrder_productionStartDateGmt a owl:DatatypeProperty ;
+    rdfs:label "productionStartDateGmt" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "ProductionStartDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "17764" .
+
+cam:MfgOrder_programVariant a owl:DatatypeProperty ;
+    rdfs:label "programVariant" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ES_ProgramVariant" ;
+    cam:required false ;
+    cam:sourceFieldId "689965546" .
+
+cam:MfgOrder_projectCode a owl:DatatypeProperty ;
+    rdfs:label "projectCode" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ProjectCode" ;
+    cam:required false ;
+    cam:sourceFieldId "689963038" .
+
+cam:MfgOrder_qty a owl:DatatypeProperty ;
+    rdfs:label "qty" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:double ;
+    cam:physicalField "Qty" ;
+    cam:required false ;
+    cam:sourceFieldId "2468" .
+
+cam:MfgOrder_qty2 a owl:DatatypeProperty ;
+    rdfs:label "qty2" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:double ;
+    cam:physicalField "Qty2" ;
+    cam:required false ;
+    cam:sourceFieldId "2476" .
+
+cam:MfgOrder_qty2Started a owl:DatatypeProperty ;
+    rdfs:label "qty2Started" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:double ;
+    cam:physicalField "Qty2Started" ;
+    cam:required false ;
+    cam:sourceFieldId "689963042" .
+
+cam:MfgOrder_qtyStarted a owl:DatatypeProperty ;
+    rdfs:label "qtyStarted" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:double ;
+    cam:physicalField "QtyStarted" ;
+    cam:required false ;
+    cam:sourceFieldId "689963041" .
+
+cam:MfgOrder_releaseDate a owl:DatatypeProperty ;
+    rdfs:label "releaseDate" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "ReleaseDate" ;
+    cam:required false ;
+    cam:sourceFieldId "8503" .
+
+cam:MfgOrder_releaseDateGmt a owl:DatatypeProperty ;
+    rdfs:label "releaseDateGmt" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "ReleaseDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "11324" .
+
+cam:MfgOrder_reportingFactory a owl:ObjectProperty ;
+    rdfs:label "reportingFactory" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ReportingFactoryId" ;
+    cam:required false ;
+    cam:sourceFieldId "8507" .
+
+cam:MfgOrder_reworkId a owl:DatatypeProperty ;
+    rdfs:label "reworkId" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ReworkId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963039" .
+
+cam:MfgOrder_rmaNumber a owl:DatatypeProperty ;
+    rdfs:label "rmaNumber" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "RMANumber" ;
+    cam:required false ;
+    cam:sourceFieldId "689963030" .
+
+cam:MfgOrder_rsdCommitment a owl:DatatypeProperty ;
+    rdfs:label "rsdCommitment" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:string ;
+    cam:physicalField "RSDCommitment" ;
+    cam:required false ;
+    cam:sourceFieldId "689963025" .
+
+cam:MfgOrder_serialNumberQty a owl:DatatypeProperty ;
+    rdfs:label "serialNumberQty" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_SerialNumberQty" ;
+    cam:required false ;
+    cam:sourceFieldId "689965708" .
+
+cam:MfgOrder_setupAccess a owl:ObjectProperty ;
+    rdfs:label "setupAccess" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "SetupAccessId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963022" .
+
+cam:MfgOrder_startVirtualSn a owl:DatatypeProperty ;
+    rdfs:label "startVirtualSn" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_StartVirtualSN" ;
+    cam:required false ;
+    cam:sourceFieldId "689965689" .
+
+cam:MfgOrder_toolPlanMatrix a owl:ObjectProperty ;
+    rdfs:label "toolPlanMatrix" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "ES_ToolPlanMatrixId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965539" .
+
+cam:MfgOrder_uom a owl:ObjectProperty ;
+    rdfs:label "uom" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "UOMId" ;
+    cam:required false ;
+    cam:sourceFieldId "2477" .
+
+cam:MfgOrder_uom2 a owl:ObjectProperty ;
+    rdfs:label "uom2" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "UOM2Id" ;
+    cam:required false ;
+    cam:sourceFieldId "2478" .
+
+cam:MfgOrder_wipMsgDefMgr a owl:ObjectProperty ;
+    rdfs:label "wipMsgDefMgr" ;
+    rdfs:domain cam:MfgOrder ;
+    cam:physicalField "WIPMsgDefMgrId" ;
+    cam:required false ;
+    cam:sourceFieldId "3746" .
+
+cam:Product_adjustmentType a owl:DatatypeProperty ;
+    rdfs:label "adjustmentType" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "AdjustmentType" ;
+    cam:required false ;
+    cam:sourceFieldId "17912" .
+
+cam:Product_adjustmentValue a owl:DatatypeProperty ;
+    rdfs:label "adjustmentValue" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "AdjustmentValue" ;
+    cam:required false ;
+    cam:sourceFieldId "17913" .
+
+cam:Product_allowAllRevisionsAsSubstitute a owl:DatatypeProperty ;
+    rdfs:label "allowAllRevisionsAsSubstitute" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "AllowAllRevisionsAsSubstitute" ;
+    cam:required false ;
+    cam:sourceFieldId "18051" .
+
+cam:Product_billOfProcess a owl:ObjectProperty ;
+    rdfs:label "billOfProcess" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "BillOfProcessId" ;
+    cam:required false ;
+    cam:sourceFieldId "9810" .
+
+cam:Product_billOfProcessBase a owl:DatatypeProperty ;
+    rdfs:label "billOfProcessBase" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "BillOfProcessBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "12745" .
+
+cam:Product_bom a owl:ObjectProperty ;
+    rdfs:label "bom" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "BOMId" ;
+    cam:required false ;
+    cam:sourceFieldId "6484" .
+
+cam:Product_bomBase a owl:DatatypeProperty ;
+    rdfs:label "bomBase" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "BOMBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "6485" .
+
+cam:Product_brandName a owl:DatatypeProperty ;
+    rdfs:label "brandName" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "BrandName" ;
+    cam:required false ;
+    cam:sourceFieldId "10510" .
+
+cam:Product_cadInstructions a owl:ObjectProperty ;
+    rdfs:label "cadInstructions" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_CADInstructionsId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965930" .
+
+cam:Product_catalogNumber a owl:DatatypeProperty ;
+    rdfs:label "catalogNumber" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "CatalogNumber" ;
+    cam:required false ;
+    cam:sourceFieldId "10511" .
+
+cam:Product_changeHistory a owl:ObjectProperty ;
+    rdfs:label "changeHistory" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ChangeHistoryId" ;
+    cam:required false ;
+    cam:sourceFieldId "5966" .
+
+cam:Product_childContainerNumberingRule a owl:ObjectProperty ;
+    rdfs:label "childContainerNumberingRule" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ChildContainerNumberingRuleId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963152" .
+
+cam:Product_childSnRule a owl:ObjectProperty ;
+    rdfs:label "childSnRule" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_ChildSNRuleId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965281" .
+
+cam:Product_concomitantProductNumber a owl:DatatypeProperty ;
+    rdfs:label "concomitantProductNumber" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ConcomitantProductNumber" ;
+    cam:required false ;
+    cam:sourceFieldId "10512" .
+
+cam:Product_containerAction a owl:DatatypeProperty ;
+    rdfs:label "containerAction" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_ContainerAction" ;
+    cam:required false ;
+    cam:sourceFieldId "689965504" .
+
+cam:Product_containerNumberingRule a owl:ObjectProperty ;
+    rdfs:label "containerNumberingRule" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ContainerNumberingRuleId" ;
+    cam:required false ;
+    cam:sourceFieldId "12372" .
+
+cam:Product_currentCost a owl:DatatypeProperty ;
+    rdfs:label "currentCost" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "CurrentCost" ;
+    cam:required false ;
+    cam:sourceFieldId "4752" .
+
+cam:Product_customAddressPool a owl:ObjectProperty ;
+    rdfs:label "customAddressPool" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_CustomAddressPoolId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965755" .
+
+cam:Product_customAddressQty a owl:DatatypeProperty ;
+    rdfs:label "customAddressQty" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_CustomAddressQty" ;
+    cam:required false ;
+    cam:sourceFieldId "689965758" .
+
+cam:Product_customer a owl:ObjectProperty ;
+    rdfs:label "customer" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "CustomerId" ;
+    cam:required false ;
+    cam:sourceFieldId "4753" .
+
+cam:Product_customerProductNumber a owl:DatatypeProperty ;
+    rdfs:label "customerProductNumber" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "CustomerProductNumber" ;
+    cam:required false ;
+    cam:sourceFieldId "4754" .
+
+cam:Product_description a owl:DatatypeProperty ;
+    rdfs:label "description" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "Description" ;
+    cam:required false ;
+    cam:sourceFieldId "4750" .
+
+cam:Product_deviceType a owl:DatatypeProperty ;
+    rdfs:label "deviceType" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "DeviceType" ;
+    cam:required false ;
+    cam:sourceFieldId "10513" .
+
+cam:Product_documentSet a owl:ObjectProperty ;
+    rdfs:label "documentSet" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "DocumentSetId" ;
+    cam:required false ;
+    cam:sourceFieldId "4755" .
+
+cam:Product_eco a owl:DatatypeProperty ;
+    rdfs:label "eco" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ECO" ;
+    cam:required false ;
+    cam:sourceFieldId "9661" .
+
+cam:Product_effectiveEndDate a owl:DatatypeProperty ;
+    rdfs:label "effectiveEndDate" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "ES_EffectiveEndDate" ;
+    cam:required false ;
+    cam:sourceFieldId "689966049" .
+
+cam:Product_effectiveEndDateGmt a owl:DatatypeProperty ;
+    rdfs:label "effectiveEndDateGmt" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "ES_EffectiveEndDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "689966099" .
+
+cam:Product_effectiveStartDate a owl:DatatypeProperty ;
+    rdfs:label "effectiveStartDate" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "ES_EffectiveStartDate" ;
+    cam:required false ;
+    cam:sourceFieldId "689966050" .
+
+cam:Product_effectiveStartDateGmt a owl:DatatypeProperty ;
+    rdfs:label "effectiveStartDateGmt" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:dateTime ;
+    cam:physicalField "ES_EffectiveStartDateGMT" ;
+    cam:required false ;
+    cam:sourceFieldId "689966100" .
+
+cam:Product_erpProductFamily a owl:DatatypeProperty ;
+    rdfs:label "erpProductFamily" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ERPProductFamily" ;
+    cam:required false ;
+    cam:sourceFieldId "689963124" .
+
+cam:Product_erpRoute a owl:ObjectProperty ;
+    rdfs:label "erpRoute" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ERPRouteId" ;
+    cam:required false ;
+    cam:sourceFieldId "8493" .
+
+cam:Product_erpRouteBase a owl:DatatypeProperty ;
+    rdfs:label "erpRouteBase" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ERPRouteBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "9702" .
+
+cam:Product_erpbom a owl:ObjectProperty ;
+    rdfs:label "erpbom" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ERPBOMId" ;
+    cam:required false ;
+    cam:sourceFieldId "7874" .
+
+cam:Product_erpbomBase a owl:DatatypeProperty ;
+    rdfs:label "erpbomBase" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ERPBOMBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "7875" .
+
+cam:Product_externallyControlled a owl:DatatypeProperty ;
+    rdfs:label "externallyControlled" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ExternallyControlled" ;
+    cam:required false ;
+    cam:sourceFieldId "8489" .
+
+cam:Product_fefoEnforce a owl:DatatypeProperty ;
+    rdfs:label "fefoEnforce" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "FEFOEnforce" ;
+    cam:required false ;
+    cam:sourceFieldId "12306" .
+
+cam:Product_fefoOverrideESigRequirement a owl:ObjectProperty ;
+    rdfs:label "fefoOverrideESigRequirement" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "FEFOOverrideESigRequirementId" ;
+    cam:required false ;
+    cam:sourceFieldId "12295" .
+
+cam:Product_filterTags a owl:DatatypeProperty ;
+    rdfs:label "filterTags" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "FilterTags" ;
+    cam:required false ;
+    cam:sourceFieldId "16648" .
+
+cam:Product_frequency a owl:DatatypeProperty ;
+    rdfs:label "frequency" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "Frequency" ;
+    cam:required false ;
+    cam:sourceFieldId "689963125" .
+
+cam:Product_glEntity a owl:DatatypeProperty ;
+    rdfs:label "glEntity" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "GLEntity" ;
+    cam:required false ;
+    cam:sourceFieldId "8497" .
+
+cam:Product_holdStatus a owl:ObjectProperty ;
+    rdfs:label "holdStatus" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "HoldStatusId" ;
+    cam:required false ;
+    cam:sourceFieldId "18027" .
+
+cam:Product_iconId a owl:DatatypeProperty ;
+    rdfs:label "iconId" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "IconId" ;
+    cam:required false ;
+    cam:sourceFieldId "4749" .
+
+cam:Product_imeiAddressPool a owl:ObjectProperty ;
+    rdfs:label "imeiAddressPool" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_IMEIAddressPoolId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965756" .
+
+cam:Product_imeiAddressQty a owl:DatatypeProperty ;
+    rdfs:label "imeiAddressQty" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_IMEIAddressQty" ;
+    cam:required false ;
+    cam:sourceFieldId "689965759" .
+
+cam:Product_inheritExposure a owl:DatatypeProperty ;
+    rdfs:label "inheritExposure" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_InheritExposure" ;
+    cam:required false ;
+    cam:sourceFieldId "689969324" .
+
+cam:Product_inspectAll a owl:DatatypeProperty ;
+    rdfs:label "inspectAll" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "InspectAll" ;
+    cam:required false ;
+    cam:sourceFieldId "14110" .
+
+cam:Product_inventoryControlled a owl:DatatypeProperty ;
+    rdfs:label "inventoryControlled" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "InventoryControlled" ;
+    cam:required false ;
+    cam:sourceFieldId "8494" .
+
+cam:Product_isDefaultInventoryLocation a owl:ObjectProperty ;
+    rdfs:label "isDefaultInventoryLocation" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "isDefaultInventoryLocationId" ;
+    cam:required false ;
+    cam:sourceFieldId "702546087" .
+
+cam:Product_isFrozen a owl:DatatypeProperty ;
+    rdfs:label "isFrozen" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "IsFrozen" ;
+    cam:required false ;
+    cam:sourceFieldId "4748" .
+
+cam:Product_isImage a owl:ObjectProperty ;
+    rdfs:label "isImage" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "isImageId" ;
+    cam:required false ;
+    cam:sourceFieldId "17759" .
+
+cam:Product_isPhantom a owl:DatatypeProperty ;
+    rdfs:label "isPhantom" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "IsPhantom" ;
+    cam:required false ;
+    cam:sourceFieldId "7759" .
+
+cam:Product_isRecipePlan a owl:ObjectProperty ;
+    rdfs:label "isRecipePlan" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "isRecipePlanId" ;
+    cam:required false ;
+    cam:sourceFieldId "702546663" .
+
+cam:Product_isRegisterContainers a owl:DatatypeProperty ;
+    rdfs:label "isRegisterContainers" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "isRegisterContainers" ;
+    cam:required false ;
+    cam:sourceFieldId "702546725" .
+
+cam:Product_lifetimeLimit a owl:DatatypeProperty ;
+    rdfs:label "lifetimeLimit" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "LifetimeLimit" ;
+    cam:required false ;
+    cam:sourceFieldId "679477466" .
+
+cam:Product_lifetimeLimit2 a owl:DatatypeProperty ;
+    rdfs:label "lifetimeLimit2" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "LifetimeLimit2" ;
+    cam:required false ;
+    cam:sourceFieldId "679477465" .
+
+cam:Product_limitsEmailGroup a owl:ObjectProperty ;
+    rdfs:label "limitsEmailGroup" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "LimitsEmailGroupId" ;
+    cam:required false ;
+    cam:sourceFieldId "679477464" .
+
+cam:Product_lotControlled a owl:DatatypeProperty ;
+    rdfs:label "lotControlled" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "LotControlled" ;
+    cam:required false ;
+    cam:sourceFieldId "8490" .
+
+cam:Product_macAddressPool a owl:ObjectProperty ;
+    rdfs:label "macAddressPool" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_MACAddressPoolId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965757" .
+
+cam:Product_macAddressQty a owl:DatatypeProperty ;
+    rdfs:label "macAddressQty" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_MACAddressQty" ;
+    cam:required false ;
+    cam:sourceFieldId "689965760" .
+
+cam:Product_masterRecipe a owl:DatatypeProperty ;
+    rdfs:label "masterRecipe" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ES_MasterRecipe" ;
+    cam:required false ;
+    cam:sourceFieldId "689965557" .
+
+cam:Product_materialAccumulateExposure a owl:DatatypeProperty ;
+    rdfs:label "materialAccumulateExposure" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "MaterialAccumulateExposure" ;
+    cam:required false ;
+    cam:sourceFieldId "689963145" .
+
+cam:Product_materialAttributes a owl:DatatypeProperty ;
+    rdfs:label "materialAttributes" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ES_MaterialAttributes" ;
+    cam:required false ;
+    cam:sourceFieldId "689965558" .
+
+cam:Product_materialCategory a owl:DatatypeProperty ;
+    rdfs:label "materialCategory" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "MaterialCategory" ;
+    cam:required false ;
+    cam:sourceFieldId "689963120" .
+
+cam:Product_materialExposureDuration a owl:DatatypeProperty ;
+    rdfs:label "materialExposureDuration" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "MaterialExposureDuration" ;
+    cam:required false ;
+    cam:sourceFieldId "689963143" .
+
+cam:Product_materialMaxReturns a owl:DatatypeProperty ;
+    rdfs:label "materialMaxReturns" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "MaterialMaxReturns" ;
+    cam:required false ;
+    cam:sourceFieldId "689963146" .
+
+cam:Product_materialThawingDuration a owl:DatatypeProperty ;
+    rdfs:label "materialThawingDuration" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "MaterialThawingDuration" ;
+    cam:required false ;
+    cam:sourceFieldId "689963144" .
+
+cam:Product_maxQty a owl:DatatypeProperty ;
+    rdfs:label "maxQty" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "MaxQty" ;
+    cam:required false ;
+    cam:sourceFieldId "679477463" .
+
+cam:Product_mfgOrderRequired a owl:DatatypeProperty ;
+    rdfs:label "mfgOrderRequired" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "MfgOrderRequired" ;
+    cam:required false ;
+    cam:sourceFieldId "689963149" .
+
+cam:Product_minQty a owl:DatatypeProperty ;
+    rdfs:label "minQty" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "MinQty" ;
+    cam:required false ;
+    cam:sourceFieldId "679477462" .
+
+cam:Product_minQtyReorderEmailGroup a owl:ObjectProperty ;
+    rdfs:label "minQtyReorderEmailGroup" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "MinQtyReorderEmailGroupId" ;
+    cam:required false ;
+    cam:sourceFieldId "679477461" .
+
+cam:Product_minQtyReorderLimit a owl:DatatypeProperty ;
+    rdfs:label "minQtyReorderLimit" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "MinQtyReorderLimit" ;
+    cam:required false ;
+    cam:sourceFieldId "679477460" .
+
+cam:Product_modelNumber a owl:DatatypeProperty ;
+    rdfs:label "modelNumber" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ModelNumber" ;
+    cam:required false ;
+    cam:sourceFieldId "10514" .
+
+cam:Product_mountingTechnology a owl:DatatypeProperty ;
+    rdfs:label "mountingTechnology" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_MountingTechnology" ;
+    cam:required false ;
+    cam:sourceFieldId "689965196" .
+
+cam:Product_notes a owl:DatatypeProperty ;
+    rdfs:label "notes" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "Notes" ;
+    cam:required false ;
+    cam:sourceFieldId "8401" .
+
+cam:Product_npiJob a owl:ObjectProperty ;
+    rdfs:label "npiJob" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_NPIJobId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965195" .
+
+cam:Product_npiJobBase a owl:DatatypeProperty ;
+    rdfs:label "npiJobBase" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:required false ;
+    cam:sourceFieldId "689965419" .
+
+cam:Product_objectCategory a owl:DatatypeProperty ;
+    rdfs:label "objectCategory" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ObjectCategory" ;
+    cam:required false ;
+    cam:sourceFieldId "679477497" .
+
+cam:Product_objectType a owl:DatatypeProperty ;
+    rdfs:label "objectType" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ObjectType" ;
+    cam:required false ;
+    cam:sourceFieldId "679477496" .
+
+cam:Product_outsourceTag a owl:DatatypeProperty ;
+    rdfs:label "outsourceTag" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "OutsourceTag" ;
+    cam:required false ;
+    cam:sourceFieldId "689963122" .
+
+cam:Product_parentSnRule a owl:ObjectProperty ;
+    rdfs:label "parentSnRule" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_ParentSNRuleId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965280" .
+
+cam:Product_partType a owl:DatatypeProperty ;
+    rdfs:label "partType" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "PartType" ;
+    cam:required false ;
+    cam:sourceFieldId "679477459" .
+
+cam:Product_pinCount a owl:DatatypeProperty ;
+    rdfs:label "pinCount" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_PinCount" ;
+    cam:required false ;
+    cam:sourceFieldId "689965199" .
+
+cam:Product_plannedCost a owl:DatatypeProperty ;
+    rdfs:label "plannedCost" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "PlannedCost" ;
+    cam:required false ;
+    cam:sourceFieldId "4759" .
+
+cam:Product_platform a owl:DatatypeProperty ;
+    rdfs:label "platform" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "Platform" ;
+    cam:required false ;
+    cam:sourceFieldId "689963121" .
+
+cam:Product_polarized a owl:DatatypeProperty ;
+    rdfs:label "polarized" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_Polarized" ;
+    cam:required false ;
+    cam:sourceFieldId "689965197" .
+
+cam:Product_productBase a owl:ObjectProperty ;
+    rdfs:label "productBase" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ProductBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "5273" .
+
+cam:Product_productConversionPlan a owl:ObjectProperty ;
+    rdfs:label "productConversionPlan" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ProductConversionPlanId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963159" .
+
+cam:Product_productFamily a owl:ObjectProperty ;
+    rdfs:label "productFamily" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ProductFamilyId" ;
+    cam:required false ;
+    cam:sourceFieldId "4760" .
+
+cam:Product_productType a owl:ObjectProperty ;
+    rdfs:label "productType" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ProductTypeId" ;
+    cam:required false ;
+    cam:sourceFieldId "4761" .
+
+cam:Product_productVariation a owl:DatatypeProperty ;
+    rdfs:label "productVariation" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ProductVariation" ;
+    cam:required false ;
+    cam:sourceFieldId "8491" .
+
+cam:Product_productionBom a owl:ObjectProperty ;
+    rdfs:label "productionBom" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_ProductionBOMId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965194" .
+
+cam:Product_productionBomBase a owl:DatatypeProperty ;
+    rdfs:label "productionBomBase" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:required false ;
+    cam:sourceFieldId "689965420" .
+
+cam:Product_propagateExposure a owl:DatatypeProperty ;
+    rdfs:label "propagateExposure" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_PropagateExposure" ;
+    cam:required false ;
+    cam:sourceFieldId "689969325" .
+
+cam:Product_reconditionLimit a owl:DatatypeProperty ;
+    rdfs:label "reconditionLimit" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ReconditionLimit" ;
+    cam:required false ;
+    cam:sourceFieldId "679477458" .
+
+cam:Product_requiredToolFamily a owl:ObjectProperty ;
+    rdfs:label "requiredToolFamily" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_RequiredToolFamilyId" ;
+    cam:required false ;
+    cam:sourceFieldId "689969309" .
+
+cam:Product_resetReworkTotalCount a owl:DatatypeProperty ;
+    rdfs:label "resetReworkTotalCount" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_ResetReworkTotalCount" ;
+    cam:required false ;
+    cam:sourceFieldId "689965508" .
+
+cam:Product_revision a owl:DatatypeProperty ;
+    rdfs:label "revision" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ProductRevision" ;
+    cam:required false ;
+    cam:sourceFieldId "4745" .
+
+cam:Product_reworkCycleCheck a owl:DatatypeProperty ;
+    rdfs:label "reworkCycleCheck" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_ReworkCycleCheck" ;
+    cam:required false ;
+    cam:sourceFieldId "689965493" .
+
+cam:Product_reworkCycleLimit a owl:DatatypeProperty ;
+    rdfs:label "reworkCycleLimit" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_ReworkCycleLimit" ;
+    cam:required false ;
+    cam:sourceFieldId "689965498" .
+
+cam:Product_reworkHoldReason a owl:ObjectProperty ;
+    rdfs:label "reworkHoldReason" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_ReworkHoldReasonId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965497" .
+
+cam:Product_reworkLossReason a owl:ObjectProperty ;
+    rdfs:label "reworkLossReason" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_ReworkLossReasonId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965496" .
+
+cam:Product_rptMinimumValue a owl:DatatypeProperty ;
+    rdfs:label "rptMinimumValue" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "RPTMinimumValue" ;
+    cam:required false ;
+    cam:sourceFieldId "17977" .
+
+cam:Product_samplingPlan a owl:ObjectProperty ;
+    rdfs:label "samplingPlan" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "SamplingPlanId" ;
+    cam:required false ;
+    cam:sourceFieldId "14109" .
+
+cam:Product_samplingPlanBase a owl:DatatypeProperty ;
+    rdfs:label "samplingPlanBase" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "SamplingPlanBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "14111" .
+
+cam:Product_schematic a owl:ObjectProperty ;
+    rdfs:label "schematic" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_SchematicId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965468" .
+
+cam:Product_serialControlled a owl:DatatypeProperty ;
+    rdfs:label "serialControlled" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "SerialControlled" ;
+    cam:required false ;
+    cam:sourceFieldId "8492" .
+
+cam:Product_serialNumberConfig a owl:DatatypeProperty ;
+    rdfs:label "serialNumberConfig" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_SerialNumberConfig" ;
+    cam:required false ;
+    cam:sourceFieldId "689965277" .
+
+cam:Product_serialNumberGeneration a owl:DatatypeProperty ;
+    rdfs:label "serialNumberGeneration" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_SerialNumberGeneration" ;
+    cam:required false ;
+    cam:sourceFieldId "689965283" .
+
+cam:Product_serialNumberPrefix a owl:DatatypeProperty ;
+    rdfs:label "serialNumberPrefix" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "ES_SerialNumberPrefix" ;
+    cam:required false ;
+    cam:sourceFieldId "689965279" .
+
+cam:Product_serialNumberQty a owl:DatatypeProperty ;
+    rdfs:label "serialNumberQty" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_SerialNumberQty" ;
+    cam:required false ;
+    cam:sourceFieldId "689965707" .
+
+cam:Product_setupAccess a owl:ObjectProperty ;
+    rdfs:label "setupAccess" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "SetupAccessId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963123" .
+
+cam:Product_shopfloorDocument a owl:ObjectProperty ;
+    rdfs:label "shopfloorDocument" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_ShopfloorDocumentId" ;
+    cam:required false ;
+    cam:sourceFieldId "689969384" .
+
+cam:Product_slitCount a owl:DatatypeProperty ;
+    rdfs:label "slitCount" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "SlitCount" ;
+    cam:required false ;
+    cam:sourceFieldId "17901" .
+
+cam:Product_slitProduct a owl:ObjectProperty ;
+    rdfs:label "slitProduct" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "SlitProductId" ;
+    cam:required false ;
+    cam:sourceFieldId "17902" .
+
+cam:Product_startVirtualSn a owl:DatatypeProperty ;
+    rdfs:label "startVirtualSn" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_StartVirtualSN" ;
+    cam:required false ;
+    cam:sourceFieldId "689965687" .
+
+cam:Product_status a owl:DatatypeProperty ;
+    rdfs:label "status" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "Status" ;
+    cam:required false ;
+    cam:sourceFieldId "4744" .
+
+cam:Product_stdCost a owl:DatatypeProperty ;
+    rdfs:label "stdCost" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "StdCost" ;
+    cam:required false ;
+    cam:sourceFieldId "4762" .
+
+cam:Product_stdStartChildLevel a owl:ObjectProperty ;
+    rdfs:label "stdStartChildLevel" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_StdStartChildLevelId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965278" .
+
+cam:Product_stdStartChildQty a owl:DatatypeProperty ;
+    rdfs:label "stdStartChildQty" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "StdStartChildQty" ;
+    cam:required false ;
+    cam:sourceFieldId "689963151" .
+
+cam:Product_stdStartChildQty2 a owl:DatatypeProperty ;
+    rdfs:label "stdStartChildQty2" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "StdStartChildQty2" ;
+    cam:required false ;
+    cam:sourceFieldId "689963147" .
+
+cam:Product_stdStartCustomer a owl:ObjectProperty ;
+    rdfs:label "stdStartCustomer" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "StdStartCustomerId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963155" .
+
+cam:Product_stdStartFactory a owl:ObjectProperty ;
+    rdfs:label "stdStartFactory" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "StdStartFactoryId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963156" .
+
+cam:Product_stdStartLevel a owl:ObjectProperty ;
+    rdfs:label "stdStartLevel" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "StdStartLevelId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963153" .
+
+cam:Product_stdStartOwner a owl:ObjectProperty ;
+    rdfs:label "stdStartOwner" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "StdStartOwnerId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963157" .
+
+cam:Product_stdStartPriorityCode a owl:ObjectProperty ;
+    rdfs:label "stdStartPriorityCode" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "StdStartPriorityCodeId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963154" .
+
+cam:Product_stdStartQty a owl:DatatypeProperty ;
+    rdfs:label "stdStartQty" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "StdStartQty" ;
+    cam:required false ;
+    cam:sourceFieldId "4763" .
+
+cam:Product_stdStartQty2 a owl:DatatypeProperty ;
+    rdfs:label "stdStartQty2" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "StdStartQty2" ;
+    cam:required false ;
+    cam:sourceFieldId "4764" .
+
+cam:Product_stdStartReason a owl:ObjectProperty ;
+    rdfs:label "stdStartReason" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "StdStartReasonId" ;
+    cam:required false ;
+    cam:sourceFieldId "689963148" .
+
+cam:Product_stdStartUom a owl:ObjectProperty ;
+    rdfs:label "stdStartUom" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "StdStartUOMId" ;
+    cam:required false ;
+    cam:sourceFieldId "4765" .
+
+cam:Product_stdStartUom2 a owl:ObjectProperty ;
+    rdfs:label "stdStartUom2" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "StdStartUOM2Id" ;
+    cam:required false ;
+    cam:sourceFieldId "4766" .
+
+cam:Product_stockPointControlled a owl:DatatypeProperty ;
+    rdfs:label "stockPointControlled" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "StockPointControlled" ;
+    cam:required false ;
+    cam:sourceFieldId "8495" .
+
+cam:Product_subFactory a owl:DatatypeProperty ;
+    rdfs:label "subFactory" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "SubFactory" ;
+    cam:required false ;
+    cam:sourceFieldId "8496" .
+
+cam:Product_targetCycleTime a owl:DatatypeProperty ;
+    rdfs:label "targetCycleTime" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "TargetCycleTime" ;
+    cam:required false ;
+    cam:sourceFieldId "14023" .
+
+cam:Product_targetDurationPerUnit a owl:DatatypeProperty ;
+    rdfs:label "targetDurationPerUnit" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "TargetDurationPerUnit" ;
+    cam:required false ;
+    cam:sourceFieldId "14021" .
+
+cam:Product_targetFinalYield a owl:DatatypeProperty ;
+    rdfs:label "targetFinalYield" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "TargetFinalYield" ;
+    cam:required false ;
+    cam:sourceFieldId "14018" .
+
+cam:Product_targetRolledThroughputYield a owl:DatatypeProperty ;
+    rdfs:label "targetRolledThroughputYield" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "TargetRolledThroughputYield" ;
+    cam:required false ;
+    cam:sourceFieldId "14019" .
+
+cam:Product_targetUnitsPerHour a owl:DatatypeProperty ;
+    rdfs:label "targetUnitsPerHour" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "TargetUnitsPerHour" ;
+    cam:required false ;
+    cam:sourceFieldId "14024" .
+
+cam:Product_tcReleaseStatus a owl:DatatypeProperty ;
+    rdfs:label "tcReleaseStatus" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:string ;
+    cam:physicalField "TCReleaseStatus" ;
+    cam:required false ;
+    cam:sourceFieldId "673186786" .
+
+cam:Product_toolPlanMatrix a owl:ObjectProperty ;
+    rdfs:label "toolPlanMatrix" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "ES_ToolPlanMatrixId" ;
+    cam:required false ;
+    cam:sourceFieldId "689965538" .
+
+cam:Product_totalProcessTime a owl:DatatypeProperty ;
+    rdfs:label "totalProcessTime" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "TotalProcessTime" ;
+    cam:required false ;
+    cam:sourceFieldId "17940" .
+
+cam:Product_totalProcessTimeBulk a owl:DatatypeProperty ;
+    rdfs:label "totalProcessTimeBulk" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "TotalProcessTimeBulk" ;
+    cam:required false ;
+    cam:sourceFieldId "17941" .
+
+cam:Product_totalProcessTimeUnit a owl:DatatypeProperty ;
+    rdfs:label "totalProcessTimeUnit" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "TotalProcessTimeUnit" ;
+    cam:required false ;
+    cam:sourceFieldId "17942" .
+
+cam:Product_trainingReqGroup a owl:ObjectProperty ;
+    rdfs:label "trainingReqGroup" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "TrainingReqGroupId" ;
+    cam:required false ;
+    cam:sourceFieldId "8931" .
+
+cam:Product_uniqueSerialNumbers a owl:DatatypeProperty ;
+    rdfs:label "uniqueSerialNumbers" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_UniqueSerialNumbers" ;
+    cam:required false ;
+    cam:sourceFieldId "689965282" .
+
+cam:Product_uom2 a owl:ObjectProperty ;
+    rdfs:label "uom2" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "UOM2Id" ;
+    cam:required false ;
+    cam:sourceFieldId "673186787" .
+
+cam:Product_usageLimit a owl:DatatypeProperty ;
+    rdfs:label "usageLimit" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "UsageLimit" ;
+    cam:required false ;
+    cam:sourceFieldId "679477457" .
+
+cam:Product_usageLimit2 a owl:DatatypeProperty ;
+    rdfs:label "usageLimit2" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "UsageLimit2" ;
+    cam:required false ;
+    cam:sourceFieldId "679477452" .
+
+cam:Product_useContainerNameForSn a owl:DatatypeProperty ;
+    rdfs:label "useContainerNameForSn" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_UseContainerNameForSN" ;
+    cam:required false ;
+    cam:sourceFieldId "689965490" .
+
+cam:Product_validateBulkUid a owl:DatatypeProperty ;
+    rdfs:label "validateBulkUid" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "ES_ValidateBulkUID" ;
+    cam:required false ;
+    cam:sourceFieldId "689969271" .
+
+cam:Product_validateIssueTool a owl:DatatypeProperty ;
+    rdfs:label "validateIssueTool" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:boolean ;
+    cam:physicalField "ES_ValidateIssueTool" ;
+    cam:required false ;
+    cam:sourceFieldId "689969310" .
+
+cam:Product_warningExpiryDuration a owl:DatatypeProperty ;
+    rdfs:label "warningExpiryDuration" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:double ;
+    cam:physicalField "WarningExpiryDuration" ;
+    cam:required false ;
+    cam:sourceFieldId "679477456" .
+
+cam:Product_warningLifetimeLimit a owl:DatatypeProperty ;
+    rdfs:label "warningLifetimeLimit" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "WarningLifetimeLimit" ;
+    cam:required false ;
+    cam:sourceFieldId "679477467" .
+
+cam:Product_warningLifetimeLimit2 a owl:DatatypeProperty ;
+    rdfs:label "warningLifetimeLimit2" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "WarningLifetimeLimit2" ;
+    cam:required false ;
+    cam:sourceFieldId "679477455" .
+
+cam:Product_warningUsageLimit a owl:DatatypeProperty ;
+    rdfs:label "warningUsageLimit" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "WarningUsageLimit" ;
+    cam:required false ;
+    cam:sourceFieldId "679477454" .
+
+cam:Product_warningUsageLimit2 a owl:DatatypeProperty ;
+    rdfs:label "warningUsageLimit2" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "WarningUsageLimit2" ;
+    cam:required false ;
+    cam:sourceFieldId "679477453" .
+
+cam:Product_wipMsgDefMgr a owl:ObjectProperty ;
+    rdfs:label "wipMsgDefMgr" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "WIPMsgDefMgrId" ;
+    cam:required false ;
+    cam:sourceFieldId "4743" .
+
+cam:Product_workflow a owl:ObjectProperty ;
+    rdfs:label "workflow" ;
+    rdfs:domain cam:Product ;
+    cam:physicalField "WorkflowId" ;
+    cam:required false ;
+    cam:sourceFieldId "4768" .
+
+cam:Product_workflowBase a owl:DatatypeProperty ;
+    rdfs:label "workflowBase" ;
+    rdfs:domain cam:Product ;
+    rdfs:range xsd:integer ;
+    cam:physicalField "WorkflowBaseId" ;
+    cam:required false ;
+    cam:sourceFieldId "4769" .
+
+cam:REL_HAS_BEGIN_PRODUCT a owl:ObjectProperty ;
+    rdfs:label "HAS_BEGIN_PRODUCT" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range cam:Product ;
+    cam:cardinality "MANY_TO_ONE" .
+
+cam:REL_HAS_PRODUCT a owl:ObjectProperty ;
+    rdfs:label "HAS_PRODUCT" ;
+    rdfs:domain cam:MfgOrder ;
+    rdfs:range cam:Product ;
+    cam:cardinality "MANY_TO_ONE" .
+
+cam:REL_HAS_SLIT_PRODUCT a owl:ObjectProperty ;
+    rdfs:label "HAS_SLIT_PRODUCT" ;
+    rdfs:domain cam:Product ;
+    rdfs:range cam:Product ;
+    cam:cardinality "MANY_TO_ONE" .
+
+cam:cardinality a owl:AnnotationProperty ;
+    rdfs:label "cardinality" .
+
+cam:physicalField a owl:AnnotationProperty ;
+    rdfs:label "physicalField" .
+
+cam:required a owl:AnnotationProperty ;
+    rdfs:label "required" .
+
+cam:sourceFieldId a owl:AnnotationProperty ;
+    rdfs:label "sourceFieldId" .
+
+cam:MfgOrder a owl:Class ;
+    rdfs:label "MfgOrder"@en .
+
+cam:Product a owl:Class ;
+    rdfs:label "Product"@en .
+

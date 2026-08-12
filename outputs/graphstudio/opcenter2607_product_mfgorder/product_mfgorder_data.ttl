@@ -1,0 +1,125 @@
+@prefix cam: <https://opcenter.siemens.com/ontology/camstar/2607/ProductMfgOrder#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/0006548000000002> a cam:MfgOrder ;
+    rdfs:label "MfgOrder 0006548000000002" ;
+    cam:MfgOrder_changeStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/ChangeStatus/0004888000000370> ;
+    cam:MfgOrder_continueOnFail false ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_externallyControlled false ;
+    cam:MfgOrder_isFrozen false ;
+    cam:MfgOrder_isKittingOrder false ;
+    cam:MfgOrder_name "MO-100076435" ;
+    cam:MfgOrder_orderStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/OrderStatus/001bd08000000005> ;
+    cam:MfgOrder_product <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> ;
+    cam:MfgOrder_productBase "0000000000000000" ;
+    cam:MfgOrder_qty 8e+01 ;
+    cam:MfgOrder_wipMsgDefMgr <https://opcenter.siemens.com/data/camstar/2607/ontology/WIPMsgDefMgr/00049c8000000074> ;
+    cam:REL_HAS_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/0006548000000003> a cam:MfgOrder ;
+    rdfs:label "MfgOrder 0006548000000003" ;
+    cam:MfgOrder_changeStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/ChangeStatus/0004888000000372> ;
+    cam:MfgOrder_continueOnFail false ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_externallyControlled false ;
+    cam:MfgOrder_isFrozen false ;
+    cam:MfgOrder_isKittingOrder false ;
+    cam:MfgOrder_name "MO-100076436" ;
+    cam:MfgOrder_orderStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/OrderStatus/001bd08000000005> ;
+    cam:MfgOrder_product <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> ;
+    cam:MfgOrder_productBase "0000000000000000" ;
+    cam:MfgOrder_qty 9e+01 ;
+    cam:MfgOrder_wipMsgDefMgr <https://opcenter.siemens.com/data/camstar/2607/ontology/WIPMsgDefMgr/00049c8000000075> ;
+    cam:REL_HAS_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/0006548000000004> a cam:MfgOrder ;
+    rdfs:label "MfgOrder 0006548000000004" ;
+    cam:MfgOrder_changeStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/ChangeStatus/0004888000000374> ;
+    cam:MfgOrder_continueOnFail false ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_externallyControlled false ;
+    cam:MfgOrder_isFrozen false ;
+    cam:MfgOrder_isKittingOrder false ;
+    cam:MfgOrder_name "MO-100076437" ;
+    cam:MfgOrder_orderStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/OrderStatus/001bd08000000005> ;
+    cam:MfgOrder_product <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> ;
+    cam:MfgOrder_productBase "0000000000000000" ;
+    cam:MfgOrder_qty 1e+02 ;
+    cam:MfgOrder_wipMsgDefMgr <https://opcenter.siemens.com/data/camstar/2607/ontology/WIPMsgDefMgr/00049c8000000076> ;
+    cam:REL_HAS_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/0006548000000005> a cam:MfgOrder ;
+    rdfs:label "MfgOrder 0006548000000005" ;
+    cam:MfgOrder_changeStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/ChangeStatus/0004888000000376> ;
+    cam:MfgOrder_continueOnFail false ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_externallyControlled false ;
+    cam:MfgOrder_isFrozen false ;
+    cam:MfgOrder_isKittingOrder false ;
+    cam:MfgOrder_name "MO-100076438" ;
+    cam:MfgOrder_orderStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/OrderStatus/001bd08000000005> ;
+    cam:MfgOrder_product <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> ;
+    cam:MfgOrder_productBase "0000000000000000" ;
+    cam:MfgOrder_qty 8.5e+01 ;
+    cam:MfgOrder_wipMsgDefMgr <https://opcenter.siemens.com/data/camstar/2607/ontology/WIPMsgDefMgr/00049c8000000077> ;
+    cam:REL_HAS_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/0006548000000006> a cam:MfgOrder ;
+    rdfs:label "MfgOrder 0006548000000006" ;
+    cam:MfgOrder_changeStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/ChangeStatus/0004888000000378> ;
+    cam:MfgOrder_continueOnFail false ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_externallyControlled false ;
+    cam:MfgOrder_isFrozen false ;
+    cam:MfgOrder_isKittingOrder false ;
+    cam:MfgOrder_name "MO-100076439" ;
+    cam:MfgOrder_orderStatus <https://opcenter.siemens.com/data/camstar/2607/ontology/OrderStatus/001bd08000000005> ;
+    cam:MfgOrder_product <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> ;
+    cam:MfgOrder_productBase "0000000000000000" ;
+    cam:MfgOrder_qty 9.5e+01 ;
+    cam:MfgOrder_wipMsgDefMgr <https://opcenter.siemens.com/data/camstar/2607/ontology/WIPMsgDefMgr/00049c8000000078> ;
+    cam:REL_HAS_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/Product/00062c8000000002> a cam:Product ;
+    rdfs:label "Product 00062c8000000002" ;
+    cam:Product_allowAllRevisionsAsSubstitute false ;
+    cam:Product_changeHistory <https://opcenter.siemens.com/data/camstar/2607/ontology/ChangeStatus/000488800000036c> ;
+    cam:Product_description "滚筒洗衣机 900A 型" ;
+    cam:Product_externallyControlled false ;
+    cam:Product_inheritExposure false ;
+    cam:Product_inspectAll false ;
+    cam:Product_inventoryControlled false ;
+    cam:Product_isFrozen false ;
+    cam:Product_isPhantom false ;
+    cam:Product_lotControlled false ;
+    cam:Product_materialAccumulateExposure false ;
+    cam:Product_materialExposureDuration 0e+00 ;
+    cam:Product_materialMaxReturns -1 ;
+    cam:Product_materialThawingDuration 0e+00 ;
+    cam:Product_mfgOrderRequired false ;
+    cam:Product_objectType "PRODUCT" ;
+    cam:Product_polarized false ;
+    cam:Product_productBase <https://opcenter.siemens.com/data/camstar/2607/ontology/ProductBase/0006188000000002> ;
+    cam:Product_productType <https://opcenter.siemens.com/data/camstar/2607/ontology/ProductType/0006228000000004> ;
+    cam:Product_propagateExposure false ;
+    cam:Product_resetReworkTotalCount false ;
+    cam:Product_revision "A" ;
+    cam:Product_reworkCycleCheck false ;
+    cam:Product_rptMinimumValue 1.0 ;
+    cam:Product_serialControlled false ;
+    cam:Product_startVirtualSn false ;
+    cam:Product_status 1 ;
+    cam:Product_stdStartChildQty2 0e+00 ;
+    cam:Product_stockPointControlled false ;
+    cam:Product_totalProcessTime 0.00 ;
+    cam:Product_totalProcessTimeBulk 0.00 ;
+    cam:Product_totalProcessTimeUnit 0.00 ;
+    cam:Product_uniqueSerialNumbers false ;
+    cam:Product_useContainerNameForSn false ;
+    cam:Product_validateIssueTool false ;
+    cam:Product_wipMsgDefMgr <https://opcenter.siemens.com/data/camstar/2607/ontology/WIPMsgDefMgr/00049c8000000072> ;
+    cam:Product_workflow <https://opcenter.siemens.com/data/camstar/2607/ontology/Workflow/0005aa800000001b> ;
+    cam:Product_workflowBase "0000000000000000" .
+

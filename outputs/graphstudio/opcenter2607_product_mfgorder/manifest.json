@@ -1,0 +1,61 @@
+{
+  "targetGraphmart": "http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56",
+  "classes": [
+    "MfgOrder",
+    "Product"
+  ],
+  "classCount": 2,
+  "propertyCount": 247,
+  "propertiesByClass": {
+    "Product": 158,
+    "MfgOrder": 89
+  },
+  "relationshipCount": 3,
+  "sourceRowCounts": {
+    "Product": 1,
+    "MfgOrder": 5
+  },
+  "primaryKeys": {
+    "Product": "ProductId",
+    "MfgOrder": "MfgOrderId"
+  },
+  "mappedPropertiesByClass": {
+    "Product": 156,
+    "MfgOrder": 88
+  },
+  "unmappedPropertiesByClass": {
+    "Product": [
+      "npiJobBase",
+      "productionBomBase"
+    ],
+    "MfgOrder": [
+      "isWorkflowBase"
+    ]
+  },
+  "relationships": [
+    {
+      "source": "MfgOrder",
+      "name": "HAS_BEGIN_PRODUCT",
+      "target": "Product",
+      "cardinality": "MANY_TO_ONE"
+    },
+    {
+      "source": "MfgOrder",
+      "name": "HAS_PRODUCT",
+      "target": "Product",
+      "cardinality": "MANY_TO_ONE"
+    },
+    {
+      "source": "Product",
+      "name": "HAS_SLIT_PRODUCT",
+      "target": "Product",
+      "cardinality": "MANY_TO_ONE"
+    }
+  ],
+  "ontologyUri": "https://opcenter.siemens.com/ontology/camstar/2607/ProductMfgOrder",
+  "modelTriples": 1677,
+  "dataTriples": 115,
+  "modelFile": "D:\\Deepseek\\camstar\\Knowledge\\outputs\\graphstudio\\opcenter2607_product_mfgorder\\product_mfgorder_ontology.ttl",
+  "dataFile": "D:\\Deepseek\\camstar\\Knowledge\\outputs\\graphstudio\\opcenter2607_product_mfgorder\\product_mfgorder_data.ttl",
+  "zipFile": "D:\\Deepseek\\camstar\\Knowledge\\outputs\\graphstudio\\opcenter2607_product_mfgorder\\product_mfgorder_data.zip"
+}

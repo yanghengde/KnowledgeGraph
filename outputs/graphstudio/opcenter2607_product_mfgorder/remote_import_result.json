@@ -1,0 +1,22 @@
+{
+  "targetGraphmart": "http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56",
+  "modelUri": "https://opcenter.siemens.com/ontology/camstar/2607/ProductMfgOrder",
+  "datasetUri": "http://cambridgesemantics.com/FileBackedLinkedDataSet/e2db684b4b3d4ba0bbf42ea71c132884",
+  "sharedFileConnection": "http://cambridgesemantics.com/File_Connection/localShare",
+  "layerUri": "http://cambridgesemantics.com/Layer/da6aa2a4a3af40c78ba00b3a8f086afd",
+  "stepUri": "http://cambridgesemantics.com/LoadDatasetStep/9c621937f53142b296d01d7ebe6a67c4",
+  "sourceRows": {
+    "Product": 1,
+    "MfgOrder": 5
+  },
+  "loadedDataTriples": 115,
+  "sparqlVerification": {
+    "products": 1,
+    "mfgOrders": 5,
+    "linkedOrders": 5
+  },
+  "status": "Online",
+  "failedLayers": 0,
+  "failedSteps": 0,
+  "failedDatasets": 0
+}
