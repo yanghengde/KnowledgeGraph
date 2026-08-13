@@ -56,7 +56,7 @@ def read_ontology(settings: SyncSettings) -> OntologyInventory:
     )
     try:
         driver.verify_connectivity()
-        with driver.session() as session:
+        with driver.session(database=settings.neo4j_database) as session:
             classes = [
                 dict(record)
                 for record in session.run(

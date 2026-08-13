@@ -24,7 +24,7 @@ def _ontology_catalog(settings: SyncSettings) -> tuple[list[dict[str, Any]], lis
     driver = GraphDatabase.driver(settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password))
     try:
         driver.verify_connectivity()
-        with driver.session() as session:
+        with driver.session(database=settings.neo4j_database) as session:
             classes = [
                 dict(record)
                 for record in session.run(

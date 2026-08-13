@@ -148,10 +148,10 @@ Schema：`graphsync`
 | 编排 | `sync_job`, `sync_scope`, `table_sync_policy`, `source_capability_snapshot`, `incremental_window`, `sync_run`, `sync_batch`, `checkpoint` |
 | 映射 | `catalog_snapshot`, `class_mapping`, `property_mapping`, `relationship_mapping`, `mapping_override` |
 | 业务图谱 | `graph_profile`, `profile_class`, `profile_relationship`, `context_validation`, `pending_reference` |
-| 数据治理 | `data_contract`, `relationship_contract`, `curation_run`, `data_quality_result`；业务投影位于 `camstar_curated` schema |
+| 数据治理 | `data_contract`, `relationship_contract`, `curation_run`, `data_quality_result`；业务投影统一位于 `graphsync` schema |
 | Schema 演进 | `data_contract_field`, `asset_dependency`, `schema_change_request`, `schema_change_item`, `schema_migration_run` |
 | 属性投影 | `attribute_projection_contract`, `attribute_projection_field`, `attribute_projection_preview` |
-| 治理版本 | `curated_release`, `curated_release_activation`, `materialization_batch`；业务快照位于 `camstar_curated.object_version/relationship_version` |
+| 治理版本 | `curated_release`, `curated_release_activation`, `materialization_batch`；业务快照位于 `graphsync.object_version/relationship_version` |
 | 环境发布 | `deployment_environment`, `deployment_release` |
 | 血缘与监控 | `runtime_lineage_event`, `health_check_run`, `health_metric`, `alert_rule`, `alert_event` |
 | 业务动作 | `action_definition`, `action_invocation`, `action_event` |
@@ -163,7 +163,7 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 
 控制面 v7 增加业务图谱配置：完整本体仍可发布为模型层，实例层按核心/上下文/参考/按需对象和核心/上下文/弱关系构建受控闭包。初始草案以 `Product`、`MfgOrder` 为核心种子；关系必须来自实际映射目录并经过审核，弱关系不能驱动扩展。页面中的闭包预览不读取 Camstar 业务行，也不修改 Graph Studio。
 
-控制面 v8 增加 `camstar_curated` 治理层和版本化数据契约。首批契约覆盖 Product、MfgOrder，并把 `ProductId → Product.ProductId`（订单目标产品）与 `BeginProductId → Product.ProductId`（订单起始产品）作为两条独立关系审核。`preview-curation` 只执行有上限的主键、业务键、必填字段、物理映射、增量水位和引用完整性检查；它仅在 PostgreSQL 记录聚合质量证据，不保存源行、不写 curated 业务表，也不写 Graph Studio。
+控制面 v8 增加版本化数据契约。首批契约覆盖 Product、MfgOrder，并把 `ProductId → Product.ProductId`（订单目标产品）与 `BeginProductId → Product.ProductId`（订单起始产品）作为两条独立关系审核。`preview-curation` 只执行有上限的主键、业务键、必填字段、物理映射、增量水位和引用完整性检查；它仅在 PostgreSQL 记录聚合质量证据，不保存源行、不写治理业务表，也不写 Graph Studio。
 
 控制面 v9 增加字段级 Schema 演进中心。每个治理字段使用稳定 `field_key` 管理来源、目标、类型、键角色、生命周期和本体属性；`asset_dependency` 显式记录它对 curated 列、关系、本体属性、Graph Studio 谓词及下游查询/API 的影响。新增、废弃、退役、重命名、改类型、改必填、改键、改来源和改转换都必须先生成兼容性分析，再经过复核和审批。有条件或破坏性变更必须提供迁移方案，破坏性变更还必须提供回滚方案。v9 只审批变更计划，不执行源库 DDL、不改 curated 业务表，也不发布 Graph Studio。
 
@@ -171,7 +171,9 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 
 控制面 v14 增加通用属性投影：任何数据契约都可用“目标关联键 + 来源字段路径”从关联表补充属性，并可选配置声明式多跳 Join、过滤、排序及一对多策略。编译器只接受经过标识符校验的结构化配置，不接受原始 SQL；预览有严格行数上限，物化按主对象键分批查询，同时兼容 SQL Server 和 Oracle。规则修改后自动回到草案，必须经过成功源预览、复核和批准才进入治理版本。
 
-控制面 v15 收敛为单库通用模型：`OpcenterGraph` 同时承载 `graphsync` 控制面与 `camstar_curated` 治理版本，业务实例只使用 `object_version` 和 `relationship_version`。早期 Product/MfgOrder 专属验证表及两条写死的 MfgOrder 演示 Action 已删除。Action 可手工配置或从本地 Camstar OpenAPI 选择性导入；导入项保持禁用草案，真实执行必须通过可信反向代理身份、不同人员复核/批准和全局执行开关。
+控制面 v15 收敛为单库通用模型：`OpcenterGraph` 承载控制面与通用治理版本，业务实例只使用 `object_version` 和 `relationship_version`。早期 Product/MfgOrder 专属验证表及两条写死的 MfgOrder 演示 Action 已删除。Action 可手工配置或从本地 Camstar OpenAPI 选择性导入；导入项保持禁用草案，真实执行必须通过可信反向代理身份、不同人员复核/批准和全局执行开关。
+
+控制面 v16 将 `object_version`、`relationship_version` 及其活动视图统一迁入 `graphsync`，删除 `camstar_curated` schema。Neo4j Enterprise 内新增独立 `graphstudio-model` database：原 `neo4j` database 保留完整 Camstar 源本体，发布库保存可裁剪、改名、补充属性并区分 published/projection/context 关系的目标本体。同步中心新增 G6 本体治理工作台；编辑后的草案必须通过校验、不同人员复核/批准、冻结和激活，RDF 构建才会同时读取活动本体版本与活动数据版本。
 
 `preview-incremental` 会将已规划窗口读取成统一 JSONL 变更包，支持 SQL Server CT、CDC、Oracle Flashback SCN 以及 watermark/append-only。事件包含主键、insert/update/upsert/delete 操作和数据库恢复位置；预览只生成审计产物，不提交 checkpoint，也不写 Graph Studio。
 

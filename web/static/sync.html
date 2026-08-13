@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-11">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-15">
 </head>
 <body>
     <div class="app-shell">
@@ -42,7 +42,7 @@
                         <div>
                             <span class="hero-kicker">PRIMARY WORKFLOW</span>
                             <h2>将 Camstar 数据可靠地发布到 Graph Studio</h2>
-                            <p>SQL Server 提供业务数据，Neo4j 提供本体映射，PostgreSQL 管理任务状态与检查点，Graph Studio 承载最终图谱。</p>
+                            <p>SQL Server/Oracle 提供业务数据，源 Neo4j 提供完整映射，发布 Neo4j 管理目标本体，PostgreSQL 管理治理版本与检查点，Graph Studio 承载最终图谱。</p>
                         </div>
                         <div class="hero-target">
                             <span>目标 Graphmart</span>
@@ -66,13 +66,15 @@
                         <div class="pipeline">
                             <div class="pipeline-node"><i>01</i><strong>Camstar</strong><span>SQL Server 数据</span></div>
                             <b>→</b>
-                            <div class="pipeline-node"><i>02</i><strong>Ontology</strong><span>Neo4j 映射</span></div>
+                            <div class="pipeline-node"><i>02</i><strong>Source Ontology</strong><span>完整 Neo4j 映射</span></div>
                             <b>→</b>
-                            <div class="pipeline-node active"><i>03</i><strong>RDF Batch</strong><span>生成与校验</span></div>
+                            <button class="pipeline-node pipeline-button active" data-go="ontology_governance"><i>03</i><strong>Ontology Governance</strong><span>G6 编辑与版本审批</span></button>
                             <b>→</b>
-                            <div class="pipeline-node"><i>04</i><strong>Graph Studio</strong><span>Dataset 切换</span></div>
+                            <div class="pipeline-node"><i>04</i><strong>RDF Build</strong><span>模型 + 数据版本</span></div>
                             <b>→</b>
-                            <div class="pipeline-node"><i>05</i><strong>Verify</strong><span>SPARQL 验收</span></div>
+                            <div class="pipeline-node"><i>05</i><strong>Graph Studio</strong><span>Dataset 切换</span></div>
+                            <b>→</b>
+                            <div class="pipeline-node"><i>06</i><strong>Verify</strong><span>SPARQL 验收</span></div>
                         </div>
                     </article>
 
@@ -85,6 +87,43 @@
                             <div class="panel-heading"><div><span class="section-kicker">RECENT RUNS</span><h3>最近运行</h3></div><button class="text-btn" data-go="runs">查看全部</button></div>
                             <div id="overviewRuns" class="compact-list loading-list"></div>
                         </article>
+                    </div>
+                </section>
+
+                <section class="page-section" data-section="ontology_governance">
+                    <div class="section-header">
+                        <div><span class="section-kicker">PUBLISH ONTOLOGY</span><h2>本体治理</h2><p>从完整 Camstar 源本体选择对象，在独立 Neo4j 数据库中编辑 Graph Studio 发布模型。RDF 只读取已批准并激活的不可变本体版本。</p></div>
+                        <div class="card-action-buttons">
+                            <button class="btn secondary" id="validatePublishOntology">校验</button>
+                            <button class="btn secondary" id="reviewPublishOntology">提交复核</button>
+                            <button class="btn primary" id="approvePublishOntology">批准并冻结</button>
+                        </div>
+                    </div>
+                    <div id="ontologyGovernanceSummary" class="capability-summary"></div>
+                    <div id="ontologyGovernanceEmpty" class="panel ontology-empty" hidden>
+                        <span class="section-kicker">INITIALIZE</span>
+                        <h3>建立发布本体工作区</h3>
+                        <p>将在当前 Enterprise Neo4j 中创建独立的 graphstudio-model database，并从业务图谱边界导入首批对象。</p>
+                        <button class="btn primary" id="initializePublishOntology">初始化工作区</button>
+                    </div>
+                    <div id="ontologyWorkbench" class="ontology-workbench" hidden>
+                        <aside class="ontology-source-panel panel">
+                            <div class="panel-heading"><div><span class="section-kicker">SOURCE</span><h3>源本体对象</h3></div><button class="mini-btn" id="newCustomOntologyClass">自定义对象</button></div>
+                            <label class="governance-search"><input id="ontologySourceSearch" placeholder="搜索 Product、Workflow…"><button class="mini-btn" id="searchOntologySource">搜索</button></label>
+                            <div id="ontologySourceCandidates" class="ontology-source-list"></div>
+                        </aside>
+                        <article class="ontology-canvas-panel panel">
+                            <div class="panel-heading"><div><span class="section-kicker">G6 MODEL</span><h3 id="ontologyWorkspaceTitle">发布本体草案</h3></div><div class="card-action-buttons"><button class="mini-btn" id="fitOntologyGraph">适应画布</button><button class="mini-btn" id="newOntologyRelationship">新增关系</button></div></div>
+                            <div id="ontologyGovernanceGraph" aria-label="发布本体 G6 画布"></div>
+                        </article>
+                        <aside class="ontology-inspector panel">
+                            <div class="panel-heading"><div><span class="section-kicker">INSPECTOR</span><h3>对象配置</h3></div></div>
+                            <div id="ontologyInspector"><p class="muted-copy">选择画布中的对象，配置目标名称、角色、孤立策略和发布属性。</p></div>
+                        </aside>
+                    </div>
+                    <div class="two-column ontology-ledger">
+                        <article class="panel"><div class="panel-heading"><div><span class="section-kicker">VALIDATION</span><h3>模型检查</h3></div><span id="ontologyValidationCount" class="count-badge">未校验</span></div><div id="ontologyValidationIssues" class="profile-issues"></div></article>
+                        <article class="panel"><div class="panel-heading"><div><span class="section-kicker">RELEASES</span><h3>本体版本</h3></div></div><div id="ontologyReleaseList" class="compact-list"></div></article>
                     </div>
                 </section>
 
@@ -243,6 +282,7 @@
     </dialog>
 
     <div id="toast" class="toast" hidden></div>
-    <script src="/static/sync.js?v=20260813-11"></script>
+    <script src="/static/lib/g6.js"></script>
+    <script src="/static/sync.js?v=20260813-14"></script>
 </body>
 </html>

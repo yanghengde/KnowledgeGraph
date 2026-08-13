@@ -9,6 +9,11 @@
         tablePolicies: [],
         incrementalProbe: null,
         profiles: [],
+        ontologyGovernance: { workspaces: [], graph: { nodes: [], edges: [], properties: [] }, releases: [] },
+        ontologySourceCandidates: [],
+        ontologyValidation: null,
+        selectedOntologyClassUid: null,
+        ontologyPropertyFilter: "",
         activeProfile: null,
         profileCandidates: { classes: [], relationships: [] },
         closurePlan: null,
@@ -25,6 +30,7 @@
         settings: [],
         dialogSubmit: null,
     };
+    let ontologyGovernanceGraph = null;
 
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -59,7 +65,7 @@
     }
 
     function iconCode(icon) {
-        return ({ dashboard: "OV", plug: "CN", schedule: "JB", profile: "BG", projection: "PX", database: "DB", rocket: "DP", pulse: "HL", action: "AC", mapping: "MP", history: "RN", settings: "ST" })[icon] || "•";
+        return ({ dashboard: "OV", plug: "CN", schedule: "JB", ontology: "OG", profile: "BG", projection: "PX", database: "DB", rocket: "DP", pulse: "HL", action: "AC", mapping: "MP", history: "RN", settings: "ST" })[icon] || "•";
     }
 
     function formatDate(value, compact = false) {
@@ -90,6 +96,7 @@
             camstar_sqlserver: "Camstar · SQL Server",
             camstar_oracle: "Camstar · Oracle",
             ontology_neo4j: "Ontology · Neo4j",
+            publish_ontology_neo4j: "Publish Ontology · Neo4j",
             graph_studio: "Graph Studio",
             state_postgresql: "Control Plane · PostgreSQL",
         })[value] || String(value || "").replaceAll("_", " ");
@@ -161,6 +168,226 @@
         runContainer.innerHTML = data.recentRuns.map(item => `
             <div class="compact-row"><div><strong>${escapeHtml(item.job_name)}</strong><small>${formatDate(item.started_at, true)} · ${Number(item.row_count || 0).toLocaleString()} 行</small></div><span class="status-pill ${item.status}">${statusLabel(item.status)}</span></div>
         `).join("") || '<div class="compact-row"><div><strong>尚无运行记录</strong><small>完成首次 dry-run 后会显示在这里</small></div><span class="status-pill unknown">待运行</span></div>';
+    }
+
+    function ontologyRoleColor(role) {
+        return ({ core: "#00b89c", context: "#2f86c9", reference: "#8b6fc5", on_demand: "#d99038", excluded: "#566b73" })[role] || "#2f86c9";
+    }
+
+    async function renderOntologyGraph() {
+        const container = $("#ontologyGovernanceGraph");
+        if (!container || !window.G6) return;
+        if (ontologyGovernanceGraph) {
+            ontologyGovernanceGraph.destroy();
+            ontologyGovernanceGraph = null;
+        }
+        const rawGraphData = state.ontologyGovernance.graph || { nodes: [], edges: [] };
+        const pairCounts = new Map();
+        const graphData = {
+            nodes: rawGraphData.nodes,
+            edges: rawGraphData.edges.map(edge => {
+                const pair = `${edge.source}|${edge.target}`;
+                const index = pairCounts.get(pair) || 0;
+                pairCounts.set(pair, index + 1);
+                return { ...edge, data: { ...edge.data, curveOffset: index === 0 ? -30 : 30 + (index - 1) * 22 } };
+            }),
+        };
+        if (!graphData.nodes.length) {
+            container.innerHTML = '<div class="muted-copy" style="padding:40px;text-align:center">从左侧源本体添加对象，或创建自定义业务对象</div>';
+            return;
+        }
+        container.innerHTML = "";
+        ontologyGovernanceGraph = new G6.Graph({
+            container,
+            width: container.clientWidth,
+            height: container.clientHeight,
+            autoFit: "view",
+            padding: [72, 96, 82, 96],
+            animation: false,
+            behaviors: ["drag-element", "drag-canvas", "zoom-canvas"],
+            layout: { type: "dagre", rankdir: "LR", nodesep: 86, ranksep: 210 },
+            node: {
+                type: "circle",
+                style: {
+                    size: d => d.data?.role === "core" ? 68 : 58,
+                    fill: d => ontologyRoleColor(d.data?.role),
+                    stroke: d => d.id === state.selectedOntologyClassUid ? "#ffffff" : "#32d5b5",
+                    lineWidth: d => d.id === state.selectedOntologyClassUid ? 4 : 2,
+                    labelText: d => d.data?.targetName || d.id,
+                    labelFill: "#e7f4f5", labelFontSize: 12, labelFontWeight: 650,
+                    labelPlacement: "bottom", labelOffsetY: 10,
+                    labelBackground: true, labelBackgroundFill: "#0a1d26",
+                    labelBackgroundRadius: 5, labelPadding: [3, 7],
+                    iconText: d => String(d.data?.targetName || "OB").slice(0, 2).toUpperCase(),
+                    iconFill: "#ffffff", iconFontSize: 14, iconFontWeight: 750,
+                    cursor: "pointer",
+                },
+            },
+            edge: {
+                type: "quadratic",
+                style: {
+                    stroke: d => d.data?.usage === "published_link" ? "#32d5b5" : "#557985",
+                    lineWidth: d => d.data?.strength === "core" ? 3 : 1.5,
+                    lineDash: d => d.data?.usage === "projection_only" ? [5, 5] : undefined,
+                    endArrow: true,
+                    curveOffset: d => d.data?.curveOffset || 0,
+                    labelText: d => d.data?.targetName || "",
+                    labelFill: "#a8c4ca", labelFontSize: 9, labelFontWeight: 600,
+                    labelAutoRotate: false,
+                    labelBackground: true, labelBackgroundFill: "#0b232c",
+                    labelBackgroundRadius: 4, labelPadding: [3, 6],
+                },
+            },
+            data: { nodes: graphData.nodes, edges: graphData.edges },
+        });
+        await ontologyGovernanceGraph.render();
+        ontologyGovernanceGraph.on("node:click", event => {
+            state.selectedOntologyClassUid = event.target.id;
+            renderOntologyInspector();
+            renderOntologyGraph().catch(error => toast(error.message, true));
+        });
+    }
+
+    function renderOntologyInspector() {
+        const container = $("#ontologyInspector");
+        const graph = state.ontologyGovernance.graph || { nodes: [], edges: [], properties: [] };
+        const node = graph.nodes.find(item => item.id === state.selectedOntologyClassUid);
+        if (!node) {
+            container.innerHTML = '<p class="muted-copy">选择画布中的对象，配置目标名称、角色、孤立策略和发布属性。</p>';
+            return;
+        }
+        const data = node.data || {};
+        const properties = graph.properties.filter(item => item.classUid === node.id);
+        const relations = graph.edges.filter(item => item.source === node.id || item.target === node.id);
+        container.innerHTML = `
+            <div class="ontology-inspector-form" data-ontology-class="${escapeHtml(node.id)}">
+                <label><span>目标对象名称</span><input name="targetName" value="${escapeHtml(data.targetName || "")}"></label>
+                <label><span>显示名称</span><input name="label" value="${escapeHtml(data.label || "")}"></label>
+                <label><span>对象角色</span><select name="role">${[["core","核心对象"],["context","上下文对象"],["reference","参考对象"],["on_demand","按需对象"],["excluded","不发布"]].map(([key,text]) => `<option value="${key}" ${data.role === key ? "selected" : ""}>${text}</option>`).join("")}</select></label>
+                <label><span>孤立策略</span><select name="orphanPolicy">${[["reject","拒绝发布"],["quarantine","隔离"],["allow","允许孤立"],["referenced_only","仅被引用时"]].map(([key,text]) => `<option value="${key}" ${data.orphanPolicy === key ? "selected" : ""}>${text}</option>`).join("")}</select></label>
+                <label><span>说明</span><textarea name="description">${escapeHtml(data.description || "")}</textarea></label>
+                <small class="muted-copy">来源：${escapeHtml(data.sourceClass || "自定义业务对象")}</small>
+                <div class="ontology-inspector-actions"><button class="mini-btn" data-action="save-publish-class">保存对象</button><button class="mini-btn danger" data-action="remove-publish-class">移除对象</button><button class="mini-btn" data-action="add-publish-property">新增属性</button></div>
+            </div>
+            <section class="ontology-property-section ontology-published-properties">
+                <div class="ontology-subheading"><strong>发布属性</strong><span>${properties.filter(item => item.published).length}/${properties.length}</span></div>
+                <label class="ontology-property-filter"><span aria-hidden="true">⌕</span><input id="ontologyPropertyFilter" value="${escapeHtml(state.ontologyPropertyFilter)}" placeholder="筛选名称、类型或来源字段"><small id="ontologyPropertyFilterCount"></small></label>
+                <div class="ontology-property-list">${properties.map(prop => `
+                <label class="ontology-property-row" data-property-search="${escapeHtml(`${prop.targetName} ${prop.dataType || "String"} ${prop.sourcePath || ""}`.toLowerCase())}" title="${escapeHtml(prop.sourcePath || "自定义属性")}">
+                    <input type="checkbox" data-publish-property="${escapeHtml(prop.uid)}" ${prop.published ? "checked" : ""}>
+                    <span><strong>${escapeHtml(prop.targetName)}</strong><small><b>${escapeHtml(prop.dataType || "String")}</b><em>${escapeHtml(prop.sourcePath || "无源字段")}</em></small></span>
+                </label>`).join("") || '<p class="muted-copy ontology-list-empty">尚无属性</p>'}</div>
+            </section>
+            <section class="ontology-property-section ontology-relations">
+                <div class="ontology-subheading"><strong>对象关联</strong><span>${relations.length}</span></div>
+                <div class="ontology-relation-list">${relations.map(rel => `
+                    <div class="ontology-release-row"><div><strong>${escapeHtml(rel.data.targetName)}</strong><small>${escapeHtml(rel.data.usage)} · ${escapeHtml(rel.data.strength)}</small></div><button class="mini-btn" data-action="remove-publish-relation" data-relation="${escapeHtml(rel.id)}">删除</button></div>`).join("") || '<p class="muted-copy ontology-list-empty">尚无关联</p>'}</div>
+            </section>`;
+        applyOntologyPropertyFilter();
+    }
+
+    function applyOntologyPropertyFilter() {
+        const input = $("#ontologyPropertyFilter");
+        if (!input) return;
+        const term = input.value.trim().toLowerCase();
+        const rows = $$(".ontology-property-row", $("#ontologyInspector"));
+        let visible = 0;
+        rows.forEach(row => {
+            const matches = !term || row.dataset.propertySearch.includes(term);
+            row.hidden = !matches;
+            if (matches) visible += 1;
+        });
+        const count = $("#ontologyPropertyFilterCount");
+        if (count) count.textContent = term ? `${visible} 项` : "";
+    }
+
+    function renderOntologyGovernance() {
+        const data = state.ontologyGovernance;
+        const workspace = data.currentWorkspace;
+        $("#ontologyGovernanceEmpty").hidden = Boolean(workspace);
+        $("#ontologyWorkbench").hidden = !workspace;
+        $("#ontologyWorkspaceTitle").textContent = workspace?.title || "发布本体草案";
+        const graph = data.graph || { nodes: [], edges: [], properties: [] };
+        $("#ontologyGovernanceSummary").innerHTML = workspace ? `
+            <span>发布库 <strong>${escapeHtml(data.database)}</strong></span>
+            <span>工作区 <strong>${statusLabel(workspace.status)} · r${workspace.revision}</strong></span>
+            <span>对象 <strong>${graph.nodes.length}</strong></span>
+            <span>属性 <strong>${graph.properties.filter(item => item.published).length}</strong></span>
+            <span>关系 <strong>${graph.edges.filter(item => item.data.usage === "published_link").length}</strong></span>
+            <span>活动版本 <strong>${data.activeRelease ? `R${data.activeRelease.release_no}` : "无"}</strong></span>`
+            : '<span>尚未初始化发布本体数据库和工作区</span>';
+        $("#ontologySourceCandidates").innerHTML = state.ontologySourceCandidates.map(item => {
+            const existingNode = graph.nodes.find(node => node.data.sourceClass === item.className);
+            return `<div class="ontology-source-item"><div><strong>${escapeHtml(item.className)}</strong><small>${escapeHtml(item.chineseName || item.layer || "")} · ${item.propertyCount} 属性</small></div><button class="mini-btn" data-action="${existingNode ? "select-publish-class" : "add-source-ontology-class"}" data-source-class="${escapeHtml(item.className)}" ${existingNode ? `data-node-id="${escapeHtml(existingNode.id)}"` : ""}>${existingNode ? "查看" : "加入"}</button></div>`;
+        }).join("") || '<p class="muted-copy" style="padding:12px">搜索源本体对象</p>';
+        $("#ontologyReleaseList").innerHTML = data.releases.map(item => `
+            <div class="ontology-release-row" data-ontology-release="${item.ontology_release_id}"><div><strong>本体 R${item.release_no}</strong><small>${item.class_count} 对象 · ${item.property_count} 属性 · ${item.relationship_count} 关系</small></div><div class="card-action-buttons"><span class="status-pill ${item.status}">${statusLabel(item.status)}</span>${item.status !== "active" ? '<button class="mini-btn" data-action="activate-ontology-release">激活</button>' : ""}</div></div>`).join("") || '<div class="compact-row"><small>尚无冻结版本</small></div>';
+        const validation = state.ontologyValidation;
+        $("#ontologyValidationCount").textContent = validation ? (validation.valid ? "通过" : `${validation.errors.length} 阻断`) : "未校验";
+        $("#ontologyValidationIssues").innerHTML = validation ? [...validation.errors, ...validation.warnings].map(item => `<div class="issue-row ${validation.errors.includes(item) ? "error" : "warning"}"><strong>${escapeHtml(item.code)}</strong><span>${escapeHtml(item.message)}</span></div>`).join("") || '<div class="issue-row success"><strong>通过</strong><span>对象、属性、关系和上下文完整性均通过</span></div>' : '<p class="muted-copy">编辑后运行校验，批准前必须消除全部阻断项。</p>';
+        renderOntologyInspector();
+        renderOntologyGraph().catch(error => toast(error.message, true));
+    }
+
+    function openCustomOntologyClassDialog() {
+        $("#dialogTitle").textContent = "新建业务本体对象";
+        $("#dialogKicker").textContent = "CUSTOM OBJECT TYPE";
+        $("#dialogFields").innerHTML = [
+            field("target_name", "目标对象名称", "", { wide: true }),
+            field("label", "显示名称", ""),
+            field("role", "对象角色", "context", { type: "select", items: [["core","核心对象"],["context","上下文对象"],["reference","参考对象"],["on_demand","按需对象"]] }),
+            field("orphan_policy", "孤立策略", "quarantine", { type: "select", items: [["reject","拒绝发布"],["quarantine","隔离"],["allow","允许孤立"],["referenced_only","仅被引用时"]] }),
+            field("description", "业务说明", "", { type: "textarea", wide: true }),
+        ].join("");
+        state.dialogSubmit = async form => {
+            const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
+            await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes`, { method: "POST", body: JSON.stringify({ source_class: null, target_name: form.get("target_name"), label: form.get("label") || null, description: form.get("description") || null, role: form.get("role"), orphan_policy: form.get("orphan_policy") }) });
+            state.ontologyValidation = null; await loadOntologyGovernance(); toast("自定义本体对象已加入草案");
+        };
+        $("#editDialog").showModal();
+    }
+
+    function openOntologyRelationshipDialog() {
+        const nodes = state.ontologyGovernance.graph.nodes;
+        if (nodes.length < 2) { toast("至少需要两个对象才能建立关系", true); return; }
+        $("#dialogTitle").textContent = "新增发布关系";
+        $("#dialogKicker").textContent = "LINK TYPE";
+        const items = nodes.map(node => [node.id, node.data.targetName]);
+        $("#dialogFields").innerHTML = [
+            field("source_uid", "源对象", nodes[0].id, { type: "select", items }),
+            field("target_uid", "目标对象", nodes[1].id, { type: "select", items }),
+            field("target_name", "Graph Studio 关系名称", "RELATED_TO", { wide: true }),
+            field("source_relationship", "源本体/契约关系", "", { help: "用于匹配治理实例中的 relationship_name" }),
+            field("usage", "使用方式", "published_link", { type: "select", items: [["published_link","作为 Graph Studio 边"],["projection_only","仅用于属性投影"],["context_only","仅用于上下文"],["excluded","不发布"]] }),
+            field("strength", "业务强度", "context", { type: "select", items: [["core","核心关联"],["context","上下文关联"],["weak","弱关联"],["on_demand","按需关联"]] }),
+            field("cardinality", "基数", "many-to-one"),
+            field("required_context", "必需上下文", false, { type: "checkbox", wide: true }),
+        ].join("");
+        state.dialogSubmit = async form => {
+            const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
+            await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/relationships`, { method: "POST", body: JSON.stringify({ sourceUid: form.get("source_uid"), targetUid: form.get("target_uid"), targetName: form.get("target_name"), sourceRelationship: form.get("source_relationship") || null, usage: form.get("usage"), strength: form.get("strength"), cardinality: form.get("cardinality"), requiredContext: form.get("required_context") === "on" }) });
+            state.ontologyValidation = null; await loadOntologyGovernance(); toast("发布关系已加入草案");
+        };
+        $("#editDialog").showModal();
+    }
+
+    function openPublishPropertyDialog(node) {
+        $("#dialogTitle").textContent = `${node.data.targetName} 新增属性`;
+        $("#dialogKicker").textContent = "PUBLISH PROPERTY";
+        $("#dialogFields").innerHTML = [
+            field("target_name", "目标属性名称", "", { wide: true }),
+            field("source_name", "治理数据属性键", ""),
+            field("source_path", "来源路径/血缘", "", { placeholder: "ProductAttribute.DisplayGroup" }),
+            field("data_type", "数据类型", "String", { type: "select", items: [["String","String"],["Integer","Integer"],["Decimal","Decimal"],["Boolean","Boolean"],["DateTime","DateTime"]] }),
+            field("required", "必填属性", false, { type: "checkbox" }),
+            field("description", "说明", "", { type: "textarea", wide: true }),
+        ].join("");
+        state.dialogSubmit = async form => {
+            const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
+            await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes/${encodeURIComponent(node.id)}/properties`, { method: "PUT", body: JSON.stringify({ targetName: form.get("target_name"), sourceName: form.get("source_name") || form.get("target_name"), sourcePath: form.get("source_path") || null, dataType: form.get("data_type"), description: form.get("description") || null, required: form.get("required") === "on", published: true, origin: form.get("source_path") ? "projection" : "custom" }) });
+            state.ontologyValidation = null; await loadOntologyGovernance(); toast("发布属性已保存");
+        };
+        $("#editDialog").showModal();
     }
 
     function renderConnections() {
@@ -992,6 +1219,15 @@
     }
     async function loadOverview() { state.overview = await request("/api/sync/overview"); renderOverview(); }
     async function loadConnections() { state.connections = (await request("/api/sync/connections")).items; renderConnections(); }
+    async function loadOntologyGovernance() {
+        state.ontologyGovernance = await request("/api/sync/ontology-governance?profile_key=opcenter2607-core");
+        renderOntologyGovernance();
+    }
+    async function searchOntologySources() {
+        const q = $("#ontologySourceSearch").value.trim();
+        state.ontologySourceCandidates = (await request(`/api/sync/ontology-governance/source-candidates?q=${encodeURIComponent(q)}&limit=100`)).items;
+        renderOntologyGovernance();
+    }
     async function loadJobs() { state.jobs = (await request("/api/sync/jobs")).items; renderJobs(); }
     async function loadTablePolicies() { state.tablePolicies = (await request("/api/sync/jobs/camstar-full/table-policies")).items; renderTablePolicies(); }
     async function loadIncrementalCapabilities() { state.incrementalProbe = await request("/api/sync/jobs/camstar-full/incremental-capabilities"); renderIncrementalCapabilities(); }
@@ -1037,7 +1273,7 @@
         setAlert();
         try {
             await loadNavigation();
-            await Promise.all([loadConnections(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadAttributeProjections(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
+            await Promise.all([loadConnections(), loadOntologyGovernance(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadAttributeProjections(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
             await loadOverview();
         } catch (error) {
             setAlert(`同步中心加载失败：${error.message}`);
@@ -1076,6 +1312,60 @@
         if (!action) return;
         const connectionCard = action.closest("[data-connection]");
         const jobCard = action.closest("[data-job]");
+        if (action.dataset.action === "select-publish-class") {
+            state.selectedOntologyClassUid = action.dataset.nodeId;
+            renderOntologyInspector();
+            renderOntologyGraph().catch(error => toast(error.message, true));
+            return;
+        }
+        if (action.dataset.action === "add-source-ontology-class") {
+            const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
+            action.disabled = true;
+            try {
+                await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes`, { method: "POST", body: JSON.stringify({ source_class: action.dataset.sourceClass, target_name: action.dataset.sourceClass, role: "context", orphan_policy: "quarantine" }) });
+                state.ontologyValidation = null; await loadOntologyGovernance(); toast(`${action.dataset.sourceClass} 已加入发布本体草案`);
+            } catch (error) { toast(error.message, true); }
+            return;
+        }
+        if (action.dataset.action === "save-publish-class") {
+            const form = action.closest("[data-ontology-class]");
+            const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
+            try {
+                await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes/${encodeURIComponent(form.dataset.ontologyClass)}`, { method: "PUT", body: JSON.stringify({ targetName: $('[name="targetName"]', form).value, label: $('[name="label"]', form).value || null, description: $('[name="description"]', form).value || null, role: $('[name="role"]', form).value, orphanPolicy: $('[name="orphanPolicy"]', form).value }) });
+                state.ontologyValidation = null; await loadOntologyGovernance(); toast("本体对象配置已保存");
+            } catch (error) { toast(error.message, true); }
+            return;
+        }
+        if (action.dataset.action === "remove-publish-class") {
+            const form = action.closest("[data-ontology-class]");
+            const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
+            try {
+                await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes/${encodeURIComponent(form.dataset.ontologyClass)}`, { method: "DELETE" });
+                state.selectedOntologyClassUid = null; state.ontologyValidation = null; await loadOntologyGovernance(); toast("本体对象已从草案移除");
+            } catch (error) { toast(error.message, true); }
+            return;
+        }
+        if (action.dataset.action === "add-publish-property") {
+            const node = state.ontologyGovernance.graph.nodes.find(item => item.id === state.selectedOntologyClassUid);
+            if (node) openPublishPropertyDialog(node);
+            return;
+        }
+        if (action.dataset.action === "remove-publish-relation") {
+            const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
+            try {
+                await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/relationships/${encodeURIComponent(action.dataset.relation)}`, { method: "DELETE" });
+                state.ontologyValidation = null; await loadOntologyGovernance(); toast("发布关系已删除");
+            } catch (error) { toast(error.message, true); }
+            return;
+        }
+        if (action.dataset.action === "activate-ontology-release") {
+            const row = action.closest("[data-ontology-release]");
+            openActorDialog("激活发布本体版本", async actor => {
+                await request(`/api/sync/ontology-governance/releases/${encodeURIComponent(row.dataset.ontologyRelease)}/activate?profile_key=opcenter2607-core`, { method: "POST", body: JSON.stringify({ actor }) });
+                toast("发布本体版本已激活，后续 RDF 将固定使用该版本"); await Promise.all([loadOntologyGovernance(), loadDeployments()]);
+            });
+            return;
+        }
         if (action.dataset.action === "test-connection" && connectionCard) {
             await runConnectionTest(connectionCard.dataset.connection, action); return;
         }
@@ -1289,6 +1579,55 @@
     });
 
     window.addEventListener("hashchange", () => setActiveSection(location.hash.slice(1)));
+    $("#initializePublishOntology").addEventListener("click", () => openActorDialog("初始化发布本体工作区", async actor => {
+        await request("/api/sync/ontology-governance/initialize?profile_key=opcenter2607-core", { method: "POST", body: JSON.stringify({ actor }) });
+        toast("独立发布本体数据库和草案工作区已建立"); await Promise.all([loadOntologyGovernance(), loadConnections()]);
+    }));
+    $("#searchOntologySource").addEventListener("click", () => searchOntologySources().catch(error => toast(error.message, true)));
+    $("#ontologySourceSearch").addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); searchOntologySources().catch(error => toast(error.message, true)); } });
+    $("#newCustomOntologyClass").addEventListener("click", openCustomOntologyClassDialog);
+    $("#newOntologyRelationship").addEventListener("click", openOntologyRelationshipDialog);
+    $("#fitOntologyGraph").addEventListener("click", () => ontologyGovernanceGraph?.fitView());
+    $("#validatePublishOntology").addEventListener("click", async () => {
+        const workspace = state.ontologyGovernance.currentWorkspace;
+        if (!workspace) { toast("请先初始化工作区", true); return; }
+        try {
+            state.ontologyValidation = await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/validate`, { method: "POST" });
+            renderOntologyGovernance(); toast(state.ontologyValidation.valid ? "发布本体校验通过" : `存在 ${state.ontologyValidation.errors.length} 个阻断项`, !state.ontologyValidation.valid);
+        } catch (error) { toast(error.message, true); }
+    });
+    $("#reviewPublishOntology").addEventListener("click", () => {
+        const workspace = state.ontologyGovernance.currentWorkspace;
+        if (!workspace) { toast("请先初始化工作区", true); return; }
+        openActorDialog("提交本体复核", async actor => {
+            state.ontologyValidation = await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/review`, { method: "POST", body: JSON.stringify({ actor }) });
+            toast("本体草案已复核，等待另一人员批准"); await loadOntologyGovernance();
+        });
+    });
+    $("#approvePublishOntology").addEventListener("click", () => {
+        const workspace = state.ontologyGovernance.currentWorkspace;
+        if (!workspace) { toast("请先初始化工作区", true); return; }
+        openActorDialog("批准并冻结本体版本", async actor => {
+            const result = await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/approve`, { method: "POST", body: JSON.stringify({ actor }) });
+            toast(`不可变本体 R${result.releaseNo} 已冻结，激活后进入 RDF 构建`); await loadOntologyGovernance();
+        });
+    });
+    $("#ontologyInspector").addEventListener("change", async event => {
+        const checkbox = event.target.closest("[data-publish-property]");
+        if (!checkbox) return;
+        const graph = state.ontologyGovernance.graph;
+        const prop = graph.properties.find(item => item.uid === checkbox.dataset.publishProperty);
+        const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
+        try {
+            await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes/${encodeURIComponent(prop.classUid)}/properties`, { method: "PUT", body: JSON.stringify({ uid: prop.uid, propertyKey: prop.sourceName || prop.targetName, sourceName: prop.sourceName || prop.targetName, targetName: prop.targetName, sourcePath: prop.sourcePath || null, dataType: prop.dataType || "String", description: prop.description || null, required: Boolean(prop.required), published: checkbox.checked, origin: prop.origin || "source" }) });
+            state.ontologyValidation = null; await loadOntologyGovernance();
+        } catch (error) { checkbox.checked = !checkbox.checked; toast(error.message, true); }
+    });
+    $("#ontologyInspector").addEventListener("input", event => {
+        if (event.target.id !== "ontologyPropertyFilter") return;
+        state.ontologyPropertyFilter = event.target.value;
+        applyOntologyPropertyFilter();
+    });
     $("#testConnectionsPage").addEventListener("click", event => runAllConnectionTests(event.currentTarget));
     $("#editGraphProfile").addEventListener("click", () => openGraphProfileDialog());
     $("#addProfileClass").addEventListener("click", () => openProfileClassDialog({ role: "context", orphan_policy: "quarantine", priority: 100, enabled: true }, true));

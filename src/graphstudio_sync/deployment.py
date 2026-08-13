@@ -12,16 +12,17 @@ from typing import Any
 from urllib.parse import quote
 
 import requests
-from rdflib import Graph, Literal, Namespace, RDF, URIRef
+from rdflib import Graph, Literal, Namespace, OWL, RDF, RDFS, URIRef, XSD
 from sqlalchemy import text
 
 from .config import PROJECT_ROOT, SyncSettings
 from .materialization import content_hash
+from .publish_ontology import active_release as active_ontology_release, release_graph
 from .repository import ControlPlaneRepository
 
 
 DEPLOYMENT_ROOT = PROJECT_ROOT / "outputs" / "graphstudio" / "deployments"
-ONT = Namespace("https://opcenter.siemens.com/ontology/camstar/2607/ProductMfgOrder#")
+ONT = Namespace("https://opcenter.siemens.com/ontology/camstar/2607/publish#")
 GM_SELF = "http://cambridgesemantics.com/ontologies/Graphmarts#Self"
 
 
@@ -75,6 +76,7 @@ def deployment_status(repository: ControlPlaneRepository, profile_key: str) -> d
                 """
                 SELECT deployment.deployment_id, deployment.environment_key,
                        deployment.curated_release_id, deployment.status,
+                       deployment.ontology_release_id,
                        deployment.slot, deployment.artifact_uri,
                        deployment.artifact_hash, deployment.dataset_uri,
                        deployment.layer_uri, deployment.step_uri,
@@ -106,6 +108,7 @@ def deployment_status(repository: ControlPlaneRepository, profile_key: str) -> d
         "environments": environments,
         "deployments": deployments,
         "activeCuratedRelease": dict(active_release) if active_release else None,
+        "activeOntologyRelease": active_ontology_release(repository, profile_key),
     }
 
 
@@ -143,6 +146,9 @@ def build_deployment_plan(
         blockers.append("没有可发布的治理快照")
     elif release["status"] not in {"ready", "active", "superseded"}:
         blockers.append("治理快照尚未通过验证")
+    ontology_release = status.get("activeOntologyRelease")
+    if not ontology_release:
+        blockers.append("没有已激活的发布本体版本")
     lower = [item for item in status["environments"] if item["promotion_order"] < environment["promotion_order"]]
     previous_deployments = status["deployments"]
     for required in lower:
@@ -164,6 +170,7 @@ def build_deployment_plan(
         "profileKey": profile_key,
         "environment": environment,
         "release": release,
+        "ontologyRelease": ontology_release,
         "slot": slot,
         "ready": not blockers,
         "blockers": blockers,
@@ -180,15 +187,71 @@ def build_curated_rdf(
     profile_key: str,
     release_id: uuid.UUID,
 ) -> dict[str, Any]:
+    ontology_meta = active_ontology_release(repository, profile_key)
+    if not ontology_meta:
+        raise RuntimeError("No active publish ontology release")
+    ontology_release_id = str(ontology_meta["ontology_release_id"])
+    model = release_graph(repository.settings, ontology_release_id)
     graph = Graph()
     graph.bind("cam", ONT)
     graph.bind("camdata", Namespace("https://opcenter.siemens.com/data/camstar/2607/ontology/"))
+    graph.bind("owl", OWL)
+    graph.bind("rdfs", RDFS)
+    ontology_uri = URIRef(str(ONT).rstrip("#"))
+    graph.add((ontology_uri, RDF.type, OWL.Ontology))
+    graph.add((ontology_uri, RDFS.label, Literal(f"Governed publish ontology release {ontology_meta['release_no']}")))
+    datatype_map = {
+        "string": XSD.string, "text": XSD.string, "boolean": XSD.boolean,
+        "integer": XSD.integer, "int": XSD.integer, "long": XSD.long,
+        "decimal": XSD.decimal, "double": XSD.double, "float": XSD.float,
+        "date": XSD.date, "datetime": XSD.dateTime, "timestamp": XSD.dateTime,
+    }
+    class_map: dict[str, dict[str, Any]] = {}
+    class_by_uid: dict[str, dict[str, Any]] = {}
+    property_map: dict[str, list[dict[str, Any]]] = {}
+    for entry in model["classes"]:
+        ontology_class = entry["class"]
+        target_name = ontology_class["targetName"]
+        class_by_uid[ontology_class["uid"]] = ontology_class
+        if ontology_class.get("sourceClass"):
+            class_map[ontology_class["sourceClass"]] = ontology_class
+        class_uri = ONT[target_name]
+        graph.add((class_uri, RDF.type, OWL.Class))
+        graph.add((class_uri, RDFS.label, Literal(ontology_class.get("label") or target_name)))
+        published_properties = [item for item in entry["properties"] if item.get("published")]
+        property_map[ontology_class["uid"]] = published_properties
+        for prop in published_properties:
+            predicate = ONT[f"{target_name}_{prop['targetName']}"]
+            graph.add((predicate, RDF.type, OWL.DatatypeProperty))
+            graph.add((predicate, RDFS.domain, class_uri))
+            graph.add((predicate, RDFS.range, datatype_map.get(str(prop.get("dataType") or "string").casefold(), XSD.string)))
+            graph.add((predicate, RDFS.label, Literal(prop["targetName"])))
+    relationship_map: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for entry in model["relationships"]:
+        relation = entry["relation"]
+        if relation.get("usage") != "published_link":
+            continue
+        source = entry["source"]
+        target = entry["target"]
+        predicate = ONT[f"REL_{relation['targetName']}"]
+        graph.add((predicate, RDF.type, OWL.ObjectProperty))
+        graph.add((predicate, RDFS.domain, ONT[source["targetName"]]))
+        graph.add((predicate, RDFS.range, ONT[target["targetName"]]))
+        graph.add((predicate, RDFS.label, Literal(relation["targetName"])))
+        relationship_map[(
+            str(relation.get("sourceRelationship") or relation["targetName"]),
+            str(source.get("sourceClass") or ""),
+            str(target.get("sourceClass") or ""),
+        )] = {
+            "predicate": predicate, "source": source, "target": target,
+        }
+    model_triple_count = len(graph)
     with repository.engine.connect() as connection:
         objects = [dict(row) for row in connection.execute(
             text(
                 """
                 SELECT class_name, object_uri, properties
-                FROM camstar_curated.object_version
+                FROM graphsync.object_version
                 WHERE release_id=:release_id AND profile_key=:profile_key
                   AND record_status='active'
                 ORDER BY class_name, object_uri
@@ -199,32 +262,54 @@ def build_curated_rdf(
         relationships = [dict(row) for row in connection.execute(
             text(
                 """
-                SELECT relationship_name, source_object_uri, target_object_uri
-                FROM camstar_curated.relationship_version
-                WHERE release_id=:release_id AND resolution_status='resolved'
-                ORDER BY relationship_name, source_object_uri
+                SELECT relationship.relationship_name,
+                       relationship.source_object_uri,
+                       relationship.target_object_uri,
+                       source.class_name AS source_class,
+                       target.class_name AS target_class
+                FROM graphsync.relationship_version relationship
+                JOIN graphsync.data_contract source
+                  ON source.contract_key=relationship.source_contract_key
+                JOIN graphsync.data_contract target
+                  ON target.contract_key=relationship.target_contract_key
+                WHERE relationship.release_id=:release_id
+                  AND relationship.resolution_status='resolved'
+                ORDER BY relationship.relationship_name, relationship.source_object_uri
                 """
             ),
             {"release_id": release_id},
         ).mappings()]
+    published_objects = 0
     for item in objects:
+        ontology_class = class_map.get(item["class_name"])
+        if not ontology_class:
+            continue
         subject = URIRef(item["object_uri"])
-        graph.add((subject, RDF.type, ONT[item["class_name"]]))
-        for name, value in sorted((item["properties"] or {}).items()):
+        graph.add((subject, RDF.type, ONT[ontology_class["targetName"]]))
+        values = item["properties"] or {}
+        for prop in property_map.get(ontology_class["uid"], []):
+            source_name = prop.get("sourceName") or prop["targetName"]
+            value = values.get(source_name, values.get(prop["targetName"]))
             if value in (None, ""):
                 continue
-            predicate = ONT[f"{item['class_name']}_{name}"]
+            predicate = ONT[f"{ontology_class['targetName']}_{prop['targetName']}"]
             if isinstance(value, list):
                 for member in value:
                     graph.add((subject, predicate, Literal(member)))
             else:
                 graph.add((subject, predicate, Literal(value)))
+        published_objects += 1
+    published_relationships = 0
     for item in relationships:
+        mapping = relationship_map.get((item["relationship_name"], item["source_class"], item["target_class"]))
+        if not mapping or not item.get("target_object_uri"):
+            continue
         graph.add((
             URIRef(item["source_object_uri"]),
-            ONT[f"REL_{item['relationship_name']}"],
+            mapping["predicate"],
             URIRef(item["target_object_uri"]),
         ))
+        published_relationships += 1
     output_dir = DEPLOYMENT_ROOT / str(release_id)
     output_dir.mkdir(parents=True, exist_ok=True)
     ttl_path = output_dir / "curated_data.ttl"
@@ -248,8 +333,11 @@ def build_curated_rdf(
         "ttlPath": str(ttl_path),
         "zipPath": str(zip_path),
         "tripleCount": len(graph),
-        "objectCount": len(objects),
-        "relationshipCount": len(relationships),
+        "modelTripleCount": model_triple_count,
+        "objectCount": published_objects,
+        "relationshipCount": published_relationships,
+        "ontologyReleaseId": ontology_release_id,
+        "ontologyReleaseNo": ontology_meta["release_no"],
         "artifactHash": content_hash(zip_path.read_bytes().hex()),
     }
 
@@ -280,11 +368,13 @@ def create_deployment(
                 """
                 INSERT INTO graphsync.deployment_release
                     (deployment_id, environment_key, profile_key,
-                     curated_release_id, status, slot, artifact_uri,
+                     curated_release_id, ontology_release_id,
+                     status, slot, artifact_uri,
                      artifact_hash, previous_deployment_id, validation_plan,
                      requested_by)
                 VALUES (:deployment_id, :environment_key, :profile_key,
-                        :release_id, :status, :slot, :artifact_uri,
+                        :release_id, :ontology_release_id,
+                        :status, :slot, :artifact_uri,
                         :artifact_hash, :previous_id,
                         CAST(:validation_plan AS jsonb), :actor)
                 """
@@ -294,6 +384,7 @@ def create_deployment(
                 "environment_key": environment_key,
                 "profile_key": profile_key,
                 "release_id": selected_id,
+                "ontology_release_id": uuid.UUID(artifact["ontologyReleaseId"]),
                 "status": status,
                 "slot": plan["slot"],
                 "artifact_uri": artifact["zipPath"],
@@ -303,6 +394,8 @@ def create_deployment(
                     "expectedObjects": artifact["objectCount"],
                     "expectedRelationships": artifact["relationshipCount"],
                     "tripleCount": artifact["tripleCount"],
+                    "modelTripleCount": artifact["modelTripleCount"],
+                    "ontologyReleaseId": artifact["ontologyReleaseId"],
                     "checks": ["reload_complete", "no_failed_assets", "sparql_counts"],
                 }),
                 "actor": actor,
@@ -322,7 +415,7 @@ def create_deployment(
             {
                 "event_id": uuid.uuid4(), "profile_key": profile_key,
                 "run_id": deployment_id,
-                "source": f"camstar_curated.release:{selected_id}",
+                "source": f"graphsync.release:{selected_id}+ontology:{artifact['ontologyReleaseId']}",
                 "target": f"rdf_artifact:{artifact['zipPath']}",
                 "rows": artifact["objectCount"], "hash": artifact["artifactHash"],
             },

@@ -2,7 +2,7 @@
 
 The preview is intentionally bounded and read-only for Camstar and Graph Studio.
 It records contracts and aggregate quality evidence in PostgreSQL, but never copies
-business rows into ``camstar_curated`` until a separate approved apply path exists.
+business rows into ``graphsync`` until a separate approved apply path exists.
 """
 
 from __future__ import annotations

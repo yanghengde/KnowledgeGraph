@@ -90,10 +90,24 @@ def seed_runtime_connections(
             "kind": "ontology_neo4j",
             "name": "Ontology Neo4j",
             "endpoint": settings.neo4j_uri,
-            "database": None,
+            "database": settings.neo4j_database,
             "username": settings.neo4j_user,
             "secret_ref": "env://NEO4J_PASSWORD",
-            "config": {"role": "mapping_source"},
+            "config": {"role": "mapping_source", "readOnly": True},
+        },
+        {
+            "key": "publish-ontology-neo4j",
+            "kind": "publish_ontology_neo4j",
+            "name": "Graph Studio Publish Ontology",
+            "endpoint": settings.publish_neo4j_uri,
+            "database": settings.publish_neo4j_database,
+            "username": settings.publish_neo4j_user,
+            "secret_ref": (
+                "env://PUBLISH_NEO4J_PASSWORD"
+                if os.getenv("PUBLISH_NEO4J_PASSWORD", "").strip()
+                else "env://NEO4J_PASSWORD"
+            ),
+            "config": {"role": "governed_model_workspace", "editable": True},
         },
         {
             "key": "graph-studio",
@@ -177,8 +191,8 @@ def initialize_control_plane(
             "tables": connection.execute(
                 text("SELECT count(*) FROM information_schema.tables WHERE table_schema='graphsync' AND table_type='BASE TABLE'")
             ).scalar_one(),
-            "curatedTables": connection.execute(
-                text("SELECT count(*) FROM information_schema.tables WHERE table_schema='camstar_curated' AND table_type='BASE TABLE'")
+            "instanceTables": connection.execute(
+                text("SELECT count(*) FROM information_schema.tables WHERE table_schema='graphsync' AND table_name IN ('object_version','relationship_version') AND table_type='BASE TABLE'")
             ).scalar_one(),
             "views": connection.execute(
                 text("SELECT count(*) FROM information_schema.views WHERE table_schema='graphsync'")

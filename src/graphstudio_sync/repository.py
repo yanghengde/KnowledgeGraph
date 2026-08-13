@@ -1717,7 +1717,7 @@ class ControlPlaneRepository:
                         "config": json.dumps(field.get("config") or {}, ensure_ascii=False),
                     },
                 )
-                dependency_key = f"camstar_curated.object_version.properties.{field['target_field']}"
+                dependency_key = f"graphsync.object_version.properties.{field['target_field']}"
                 connection.execute(
                     text(
                         """

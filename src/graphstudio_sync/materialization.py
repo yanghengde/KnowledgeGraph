@@ -265,7 +265,7 @@ def _insert_object_records(
     connection.execute(
         text(
             """
-            INSERT INTO camstar_curated.object_version
+            INSERT INTO graphsync.object_version
                 (release_id, profile_key, contract_key, contract_version,
                  class_name, object_uri, source_primary_key, business_key,
                  source_values, properties, source_hash, source_change_at,
@@ -452,7 +452,7 @@ def execute_materialization(
                             connection.execute(
                                 text(
                                     """
-                                    INSERT INTO camstar_curated.object_version
+                                    INSERT INTO graphsync.object_version
                                         (release_id, profile_key, contract_key, contract_version,
                                          class_name, object_uri, source_primary_key, business_key,
                                          source_values, properties, source_hash, source_change_at,
@@ -461,7 +461,7 @@ def execute_materialization(
                                            class_name, object_uri, source_primary_key, business_key,
                                            source_values, properties, source_hash, source_change_at,
                                            record_status, quality_issues, now()
-                                    FROM camstar_curated.object_version
+                                    FROM graphsync.object_version
                                     WHERE release_id=:previous_release
                                       AND contract_key=:contract_key
                                     """
@@ -497,7 +497,7 @@ def execute_materialization(
                                 with repository.engine.begin() as connection:
                                     uris = [item["objectUri"] for item in upserts] + [item[0] for item in deleted]
                                     if uris:
-                                        connection.execute(text("DELETE FROM camstar_curated.object_version WHERE release_id=:release_id AND contract_key=:contract_key AND object_uri=ANY(:uris)"), {"release_id": release_id, "contract_key": contract["contract_key"], "uris": uris})
+                                        connection.execute(text("DELETE FROM graphsync.object_version WHERE release_id=:release_id AND contract_key=:contract_key AND object_uri=ANY(:uris)"), {"release_id": release_id, "contract_key": contract["contract_key"], "uris": uris})
                                     _insert_object_records(connection, [item for item in upserts if item["objectUri"]], release_id=release_id, profile_key=profile_key, contract=contract)
                                     if deleted:
                                         tombstones = []
@@ -599,7 +599,7 @@ def execute_materialization(
                         for column in source_columns
                     )
                     sql = f"""
-                        INSERT INTO camstar_curated.relationship_version
+                        INSERT INTO graphsync.relationship_version
                             (release_id, relationship_contract_key, relationship_name,
                              source_contract_key, target_contract_key, source_object_uri,
                              target_object_uri, source_reference, resolution_status, source_hash)
@@ -608,8 +608,8 @@ def execute_materialization(
                                target.object_uri, jsonb_build_object({reference_parts}),
                                CASE WHEN target.object_uri IS NULL THEN 'pending' ELSE 'resolved' END,
                                md5(source.object_uri || ':' || coalesce(target.object_uri, ''))
-                        FROM camstar_curated.object_version source
-                        LEFT JOIN camstar_curated.object_version target
+                        FROM graphsync.object_version source
+                        LEFT JOIN graphsync.object_version target
                           ON target.release_id=source.release_id
                          AND target.contract_key=:target_contract
                          AND target.record_status='active'
@@ -634,7 +634,7 @@ def execute_materialization(
                             """
                             SELECT count(*) AS total,
                                    count(*) FILTER (WHERE resolution_status='pending') AS pending
-                            FROM camstar_curated.relationship_version
+                            FROM graphsync.relationship_version
                             WHERE release_id=:release_id
                               AND relationship_contract_key=:relationship_key
                             """
@@ -646,7 +646,7 @@ def execute_materialization(
                         unresolved_required += int(counts["pending"])
 
                 object_totals = connection.execute(
-                    text("SELECT count(*) FILTER (WHERE record_status <> 'deleted') AS objects, count(*) FILTER (WHERE record_status='quarantined') AS quarantine FROM camstar_curated.object_version WHERE release_id=:release_id"),
+                    text("SELECT count(*) FILTER (WHERE record_status <> 'deleted') AS objects, count(*) FILTER (WHERE record_status='quarantined') AS quarantine FROM graphsync.object_version WHERE release_id=:release_id"),
                     {"release_id": release_id},
                 ).mappings().one()
                 totals["objects"] = int(object_totals["objects"] or 0)
@@ -683,7 +683,7 @@ def execute_materialization(
                         if field.get("source_column") and field.get("lifecycle_status") != "retired"
                     }
                     contract_rows = connection.execute(
-                        text("SELECT count(*) FROM camstar_curated.object_version WHERE release_id=:release_id AND contract_key=:contract_key"),
+                        text("SELECT count(*) FROM graphsync.object_version WHERE release_id=:release_id AND contract_key=:contract_key"),
                         {"release_id": release_id, "contract_key": contract["contract_key"]},
                     ).scalar_one()
                     connection.execute(
@@ -702,7 +702,7 @@ def execute_materialization(
                             "id": uuid.uuid4(), "profile_key": profile_key,
                             "run_id": release_id,
                             "source": f"{settings.source_kind}:{contract['source_schema']}.{contract['source_table']}",
-                            "target": f"camstar_curated.object_version:{contract['contract_key']}:{release_id}",
+                            "target": f"graphsync.object_version:{contract['contract_key']}:{release_id}",
                             "fields": canonical_json(field_map), "rows": contract_rows,
                             "hash": release_hash,
                         },

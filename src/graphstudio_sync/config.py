@@ -52,6 +52,11 @@ class SyncSettings:
     neo4j_uri: str
     neo4j_user: str
     neo4j_password: str
+    neo4j_database: str
+    publish_neo4j_uri: str
+    publish_neo4j_user: str
+    publish_neo4j_password: str
+    publish_neo4j_database: str
     source_host: str
     source_port: int
     source_database: str
@@ -81,6 +86,11 @@ class SyncSettings:
             neo4j_uri=_required("NEO4J_URI"),
             neo4j_user=_required("NEO4J_USER"),
             neo4j_password=_required("NEO4J_PASSWORD"),
+            neo4j_database=os.getenv("NEO4J_DATABASE", "neo4j").strip() or "neo4j",
+            publish_neo4j_uri=(os.getenv("PUBLISH_NEO4J_URI", "").strip() or _required("NEO4J_URI")),
+            publish_neo4j_user=(os.getenv("PUBLISH_NEO4J_USER", "").strip() or _required("NEO4J_USER")),
+            publish_neo4j_password=(os.getenv("PUBLISH_NEO4J_PASSWORD", "") or _required("NEO4J_PASSWORD")),
+            publish_neo4j_database=os.getenv("PUBLISH_NEO4J_DATABASE", "graphstudio-model").strip() or "graphstudio-model",
             source_host=_required("SRC_DB_HOST"),
             source_port=int(
                 os.getenv(

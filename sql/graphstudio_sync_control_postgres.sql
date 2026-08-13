@@ -1,9 +1,8 @@
 -- Camstar -> Graph Studio control plane.
--- This schema stores orchestration metadata only; source business data remains
--- in the Camstar SQL Server/Oracle source and published RDF remains in Graph Studio.
+-- This schema stores orchestration metadata and immutable governed projections;
+-- source business data remains in Camstar and published RDF remains in Graph Studio.
 
 CREATE SCHEMA IF NOT EXISTS graphsync;
-CREATE SCHEMA IF NOT EXISTS camstar_curated;
 
 CREATE TABLE IF NOT EXISTS graphsync.schema_version (
     version         integer PRIMARY KEY,
@@ -15,6 +14,7 @@ CREATE TABLE IF NOT EXISTS graphsync.connection_profile (
     connection_key  text PRIMARY KEY,
     kind            text NOT NULL CHECK (kind IN (
                         'camstar_sqlserver', 'camstar_oracle', 'ontology_neo4j',
+                        'publish_ontology_neo4j',
                         'graph_studio', 'state_postgresql'
                     )),
     display_name    text NOT NULL,
@@ -39,6 +39,7 @@ ALTER TABLE graphsync.connection_profile
 ALTER TABLE graphsync.connection_profile
     ADD CONSTRAINT connection_profile_kind_check CHECK (kind IN (
         'camstar_sqlserver', 'camstar_oracle', 'ontology_neo4j',
+        'publish_ontology_neo4j',
         'graph_studio', 'state_postgresql'
     ));
 
@@ -881,7 +882,80 @@ CREATE TABLE IF NOT EXISTS graphsync.materialization_batch (
     UNIQUE (release_id, contract_key, batch_no)
 );
 
-CREATE TABLE IF NOT EXISTS camstar_curated.object_version (
+-- Governed target ontology.  Neo4j stores the editable/released graph while
+-- PostgreSQL owns workflow, approval, activation and audit metadata.
+CREATE TABLE IF NOT EXISTS graphsync.ontology_workspace (
+    workspace_id          uuid PRIMARY KEY,
+    workspace_key         text NOT NULL UNIQUE,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    title                 text NOT NULL,
+    description           text,
+    status                text NOT NULL DEFAULT 'draft' CHECK (status IN (
+                              'draft', 'reviewed', 'frozen', 'retired'
+                          )),
+    revision              integer NOT NULL DEFAULT 1 CHECK (revision >= 1),
+    graph_database        text NOT NULL,
+    source_ontology_hash  text,
+    created_by            text,
+    reviewed_by           text,
+    reviewed_at           timestamptz,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.ontology_release (
+    ontology_release_id   uuid PRIMARY KEY,
+    workspace_id          uuid NOT NULL REFERENCES graphsync.ontology_workspace(workspace_id),
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    release_no            bigint NOT NULL,
+    status                text NOT NULL DEFAULT 'approved' CHECK (status IN (
+                              'approved', 'active', 'superseded', 'retired'
+                          )),
+    graph_database        text NOT NULL,
+    content_hash          text NOT NULL,
+    class_count           integer NOT NULL DEFAULT 0,
+    property_count        integer NOT NULL DEFAULT 0,
+    relationship_count    integer NOT NULL DEFAULT 0,
+    approved_by           text NOT NULL,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    activated_at          timestamptz,
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    UNIQUE (profile_key, release_no),
+    UNIQUE (profile_key, content_hash)
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.ontology_release_activation (
+    profile_key           text PRIMARY KEY REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    active_release_id     uuid NOT NULL REFERENCES graphsync.ontology_release(ontology_release_id),
+    previous_release_id   uuid REFERENCES graphsync.ontology_release(ontology_release_id),
+    activated_at          timestamptz NOT NULL DEFAULT now(),
+    activated_by          text NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_ontology_workspace_profile
+    ON graphsync.ontology_workspace (profile_key, status, updated_at DESC);
+CREATE INDEX IF NOT EXISTS ix_graphsync_ontology_release_profile
+    ON graphsync.ontology_release (profile_key, status, release_no DESC);
+
+-- v16 consolidates the immutable business projection into graphsync.  Move
+-- existing relations by OID so every row, constraint and index is preserved.
+DROP VIEW IF EXISTS camstar_curated.active_relationship;
+DROP VIEW IF EXISTS camstar_curated.active_object;
+
+DO $$
+BEGIN
+    IF to_regclass('camstar_curated.object_version') IS NOT NULL
+       AND to_regclass('graphsync.object_version') IS NULL THEN
+        ALTER TABLE camstar_curated.object_version SET SCHEMA graphsync;
+    END IF;
+    IF to_regclass('camstar_curated.relationship_version') IS NOT NULL
+       AND to_regclass('graphsync.relationship_version') IS NULL THEN
+        ALTER TABLE camstar_curated.relationship_version SET SCHEMA graphsync;
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS graphsync.object_version (
     release_id            uuid NOT NULL REFERENCES graphsync.curated_release(release_id) ON DELETE CASCADE,
     profile_key           text NOT NULL,
     contract_key          text NOT NULL,
@@ -903,11 +977,11 @@ CREATE TABLE IF NOT EXISTS camstar_curated.object_version (
 );
 
 CREATE INDEX IF NOT EXISTS ix_curated_object_lookup
-    ON camstar_curated.object_version (profile_key, contract_key, object_uri);
+    ON graphsync.object_version (profile_key, contract_key, object_uri);
 CREATE INDEX IF NOT EXISTS ix_curated_object_source_key
-    ON camstar_curated.object_version USING gin (source_primary_key jsonb_path_ops);
+    ON graphsync.object_version USING gin (source_primary_key jsonb_path_ops);
 
-CREATE TABLE IF NOT EXISTS camstar_curated.relationship_version (
+CREATE TABLE IF NOT EXISTS graphsync.relationship_version (
     release_id            uuid NOT NULL REFERENCES graphsync.curated_release(release_id) ON DELETE CASCADE,
     relationship_contract_key text NOT NULL,
     relationship_name     text NOT NULL,
@@ -925,24 +999,63 @@ CREATE TABLE IF NOT EXISTS camstar_curated.relationship_version (
 );
 
 CREATE INDEX IF NOT EXISTS ix_curated_relationship_target
-    ON camstar_curated.relationship_version (release_id, target_contract_key, target_object_uri);
+    ON graphsync.relationship_version (release_id, target_contract_key, target_object_uri);
 
-CREATE OR REPLACE VIEW camstar_curated.active_object AS
+-- A partially applied migration may have created both copies.  Merge only
+-- non-conflicting immutable rows, reject conflicting duplicates, then remove
+-- the legacy tables rather than silently choosing one copy.
+DO $$
+BEGIN
+    IF to_regclass('camstar_curated.object_version') IS NOT NULL THEN
+        IF EXISTS (
+            SELECT 1
+            FROM camstar_curated.object_version legacy
+            JOIN graphsync.object_version current
+              USING (release_id, contract_key, object_uri)
+            WHERE to_jsonb(legacy) IS DISTINCT FROM to_jsonb(current)
+        ) THEN
+            RAISE EXCEPTION 'Conflicting object_version rows exist in both schemas';
+        END IF;
+        INSERT INTO graphsync.object_version
+        SELECT * FROM camstar_curated.object_version
+        ON CONFLICT (release_id, contract_key, object_uri) DO NOTHING;
+        DROP TABLE camstar_curated.object_version;
+    END IF;
+    IF to_regclass('camstar_curated.relationship_version') IS NOT NULL THEN
+        IF EXISTS (
+            SELECT 1
+            FROM camstar_curated.relationship_version legacy
+            JOIN graphsync.relationship_version current
+              USING (release_id, relationship_contract_key, source_object_uri)
+            WHERE to_jsonb(legacy) IS DISTINCT FROM to_jsonb(current)
+        ) THEN
+            RAISE EXCEPTION 'Conflicting relationship_version rows exist in both schemas';
+        END IF;
+        INSERT INTO graphsync.relationship_version
+        SELECT * FROM camstar_curated.relationship_version
+        ON CONFLICT (release_id, relationship_contract_key, source_object_uri) DO NOTHING;
+        DROP TABLE camstar_curated.relationship_version;
+    END IF;
+END $$;
+
+CREATE OR REPLACE VIEW graphsync.active_object AS
 SELECT object.*
-FROM camstar_curated.object_version object
+FROM graphsync.object_version object
 JOIN graphsync.curated_release_activation active
   ON active.profile_key=object.profile_key
  AND active.active_release_id=object.release_id
 WHERE object.record_status='active';
 
-CREATE OR REPLACE VIEW camstar_curated.active_relationship AS
+CREATE OR REPLACE VIEW graphsync.active_relationship AS
 SELECT relationship.*
-FROM camstar_curated.relationship_version relationship
+FROM graphsync.relationship_version relationship
 JOIN graphsync.curated_release release USING (release_id)
 JOIN graphsync.curated_release_activation active
   ON active.profile_key=release.profile_key
  AND active.active_release_id=relationship.release_id
 WHERE relationship.resolution_status='resolved';
+
+DROP SCHEMA IF EXISTS camstar_curated;
 
 -- Environment promotion and blue/green Graph Studio deployment ledger.
 CREATE TABLE IF NOT EXISTS graphsync.deployment_environment (
@@ -962,6 +1075,7 @@ CREATE TABLE IF NOT EXISTS graphsync.deployment_release (
     environment_key       text NOT NULL REFERENCES graphsync.deployment_environment(environment_key),
     profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key),
     curated_release_id    uuid NOT NULL REFERENCES graphsync.curated_release(release_id),
+    ontology_release_id   uuid REFERENCES graphsync.ontology_release(ontology_release_id),
     status                text NOT NULL DEFAULT 'planned' CHECK (status IN (
                               'planned', 'approved', 'uploading', 'loading',
                               'verifying', 'active', 'failed', 'rolled_back'
@@ -986,6 +1100,10 @@ CREATE TABLE IF NOT EXISTS graphsync.deployment_release (
 
 CREATE INDEX IF NOT EXISTS ix_graphsync_deployment_env
     ON graphsync.deployment_release (environment_key, profile_key, started_at DESC);
+
+ALTER TABLE graphsync.deployment_release
+    ADD COLUMN IF NOT EXISTS ontology_release_id uuid
+    REFERENCES graphsync.ontology_release(ontology_release_id);
 
 -- Runtime lineage, health metrics and alert lifecycle.
 CREATE TABLE IF NOT EXISTS graphsync.runtime_lineage_event (
@@ -1164,14 +1282,6 @@ CREATE TABLE IF NOT EXISTS graphsync.action_event (
     created_at            timestamptz NOT NULL DEFAULT now()
 );
 
--- v8 proof-of-concept entity tables were replaced by the generic immutable
--- object/relationship stores above.  The DROP targets are explicit and stay
--- inside camstar_curated; Product and MfgOrder contracts remain governed.
-DROP TABLE IF EXISTS camstar_curated.mfg_order_product_link;
-DROP TABLE IF EXISTS camstar_curated.mfg_order;
-DROP TABLE IF EXISTS camstar_curated.product;
-DROP TABLE IF EXISTS camstar_curated.quarantine_record;
-
 CREATE OR REPLACE FUNCTION graphsync.touch_updated_at()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
@@ -1263,6 +1373,11 @@ FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 DROP TRIGGER IF EXISTS trg_deployment_environment_updated ON graphsync.deployment_environment;
 CREATE TRIGGER trg_deployment_environment_updated
 BEFORE UPDATE ON graphsync.deployment_environment
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_ontology_workspace_updated ON graphsync.ontology_workspace;
+CREATE TRIGGER trg_ontology_workspace_updated
+BEFORE UPDATE ON graphsync.ontology_workspace
 FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 
 DROP TRIGGER IF EXISTS trg_alert_rule_updated ON graphsync.alert_rule;
@@ -1372,12 +1487,17 @@ INSERT INTO graphsync.schema_version (version, description)
 VALUES (15, 'Single-database generic curated storage and configurable governed actions')
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (16, 'Unified graphsync instance storage and governed publish ontology workspace')
+ON CONFLICT (version) DO NOTHING;
+
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)
 VALUES
     ('overview',    '总览',     'Overview',    '#overview',    'dashboard', 10, true,  'sync.read'),
     ('connections', '连接管理', 'Connections', '#connections', 'plug',      20, true,  'connection.read'),
     ('jobs',        '同步任务', 'Sync Jobs',   '#jobs',        'schedule',  30, true,  'job.read'),
+    ('ontology_governance','本体治理','Ontology Governance','#ontology_governance','ontology',34,true,'ontology.write'),
     ('profiles',    '业务图谱', 'Graph Profile','#profiles',    'profile',   35, true,  'profile.write'),
     ('projections', '属性投影', 'Attribute Projections','#projections','projection', 36, true, 'projection.write'),
     ('releases',    '治理版本', 'Curated Releases','#releases', 'database',  37, true,  'curation.write'),
@@ -1388,6 +1508,10 @@ VALUES
     ('runs',        '运行记录', 'Runs',        '#runs',        'history',   50, true,  'run.read'),
     ('settings',    '系统设置', 'Settings',    '#settings',    'settings',  60, true,  'setting.write')
 ON CONFLICT (menu_key) DO NOTHING;
+
+UPDATE graphsync.menu_item
+SET route='#ontology_governance', updated_at=now()
+WHERE menu_key='ontology_governance' AND route <> '#ontology_governance';
 
 INSERT INTO graphsync.sync_job
     (job_name, title, description, graphmart_uri, mode, schedule, timezone, enabled, config)
@@ -1458,7 +1582,7 @@ VALUES
      '["ProductId", "ProductBaseId", "ProductRevision", "Description", "Status", "ObjectType", "WorkflowId", "ProductTypeId", "ChangeCount"]'::jsonb,
      '["ProductId"]'::jsonb, NULL, 'core',
      '{"maxErrorRate":0,"maxWarningRate":0.05}'::jsonb,
-     '{"targetStore":"camstar_curated.object_version","businessKeyRequiresReview":true}'::jsonb),
+     '{"targetStore":"graphsync.object_version","businessKeyRequiresReview":true}'::jsonb),
     ('opcenter2607-mfgorder-v1', 'opcenter2607-core', 'MfgOrder',
      'CamstarPRD_SCHEMA', 'MfgOrder', '["MfgOrderId"]'::jsonb,
      '["MfgOrderName"]'::jsonb,
@@ -1466,12 +1590,16 @@ VALUES
      '["MfgOrderId", "MfgOrderName", "ProductId"]'::jsonb,
      'LastChangeDate', 'core',
      '{"maxErrorRate":0,"maxWarningRate":0.05}'::jsonb,
-     '{"targetStore":"camstar_curated.object_version"}'::jsonb)
+     '{"targetStore":"graphsync.object_version"}'::jsonb)
 ON CONFLICT (contract_key) DO NOTHING;
 
 UPDATE graphsync.data_contract
-SET config=(config - 'targetTable') || jsonb_build_object('targetStore', 'camstar_curated.object_version')
+SET config=(config - 'targetTable') || jsonb_build_object('targetStore', 'graphsync.object_version')
 WHERE config ? 'targetTable';
+
+UPDATE graphsync.data_contract
+SET config=jsonb_set(config, '{targetStore}', '"graphsync.object_version"'::jsonb, true)
+WHERE config->>'targetStore'='camstar_curated.object_version';
 
 INSERT INTO graphsync.relationship_contract
     (relationship_contract_key, profile_key, source_contract_key,

@@ -52,6 +52,12 @@ def settings_from_profiles(
     if ontology:
         values["neo4j_uri"] = ontology["endpoint"]
         values["neo4j_user"] = ontology.get("username") or base.neo4j_user
+        values["neo4j_database"] = ontology.get("database_name") or base.neo4j_database
+    publish_ontology = by_key.get("publish-ontology-neo4j")
+    if publish_ontology:
+        values["publish_neo4j_uri"] = publish_ontology["endpoint"]
+        values["publish_neo4j_user"] = publish_ontology.get("username") or base.publish_neo4j_user
+        values["publish_neo4j_database"] = publish_ontology.get("database_name") or base.publish_neo4j_database
     graph_studio = by_key.get("graph-studio")
     if graph_studio:
         config = graph_studio.get("config") or {}
@@ -90,9 +96,30 @@ def _test_neo4j(settings: SyncSettings) -> dict[str, Any]:
     driver = GraphDatabase.driver(settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password))
     try:
         driver.verify_connectivity()
-        with driver.session() as session:
+        with driver.session(database=settings.neo4j_database) as session:
             count = session.run("MATCH (c:OntologyClass) RETURN count(c) AS count").single()["count"]
         return {"ontologyClasses": int(count)}
+    finally:
+        driver.close()
+
+
+def _test_publish_neo4j(settings: SyncSettings) -> dict[str, Any]:
+    driver = GraphDatabase.driver(
+        settings.publish_neo4j_uri,
+        auth=(settings.publish_neo4j_user, settings.publish_neo4j_password),
+    )
+    try:
+        with driver.session(database=settings.publish_neo4j_database) as session:
+            values = session.run(
+                "MATCH (w:PublishWorkspace) "
+                "OPTIONAL MATCH (c:PublishClass) "
+                "RETURN count(DISTINCT w) AS workspaces, count(DISTINCT c) AS classes"
+            ).single()
+        return {
+            "database": settings.publish_neo4j_database,
+            "workspaces": int(values["workspaces"]),
+            "classes": int(values["classes"]),
+        }
     finally:
         driver.close()
 
@@ -152,6 +179,7 @@ def test_connection(
     testers = {
         "camstar-source": _test_source,
         "ontology-neo4j": _test_neo4j,
+        "publish-ontology-neo4j": _test_publish_neo4j,
         "graph-studio": _test_graphstudio,
         "control-postgresql": _test_postgres,
     }

@@ -65,12 +65,13 @@ def test_openapi_import_is_selective_and_only_lists_mutating_operations() -> Non
     assert update["pathParameters"] == ["key"]
 
 
-def test_v15_ddl_drops_proof_of_concept_tables_and_has_no_seed_actions() -> None:
+def test_v16_ddl_consolidates_curated_schema_and_has_no_seed_actions() -> None:
     ddl = DDL_FILE.read_text(encoding="utf-8")
 
-    assert "DROP TABLE IF EXISTS camstar_curated.product" in ddl
-    assert "DROP TABLE IF EXISTS camstar_curated.mfg_order" in ddl
+    assert "ALTER TABLE camstar_curated.object_version SET SCHEMA graphsync" in ddl
+    assert "ALTER TABLE camstar_curated.relationship_version SET SCHEMA graphsync" in ddl
+    assert "DROP SCHEMA IF EXISTS camstar_curated" in ddl
+    assert "CREATE TABLE IF NOT EXISTS graphsync.object_version" in ddl
     assert "CREATE TABLE IF NOT EXISTS camstar_curated.product" not in ddl
     assert "camstar.mfgorder.release" in ddl  # explicit cleanup target
     assert "INSERT INTO graphsync.action_definition" not in ddl
-

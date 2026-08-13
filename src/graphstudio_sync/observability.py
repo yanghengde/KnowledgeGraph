@@ -96,7 +96,7 @@ def collect_health_metrics(repository: ControlPlaneRepository, profile_key: str)
             text(
                 """
                 SELECT count(*)
-                FROM camstar_curated.relationship_version relationship
+                FROM graphsync.relationship_version relationship
                 JOIN graphsync.curated_release release USING (release_id)
                 JOIN graphsync.curated_release_activation active
                   ON active.profile_key=release.profile_key

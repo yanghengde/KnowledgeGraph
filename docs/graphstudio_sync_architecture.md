@@ -156,7 +156,7 @@ flowchart LR
 
 ### 治理后的业务对象层
 
-`camstar_curated` 是 Graph Studio 实例数据的受控来源，不是 Camstar 全库镜像。对象必须先在 `graphsync.data_contract` 中声明物理来源、主键、业务键、投影字段、必填字段、增量时间列、预览上限和目标图层；对象之间的字段连接及业务语义由 `relationship_contract` 单独审批。
+`graphsync.object_version` 与 `graphsync.relationship_version` 是 Graph Studio 实例数据的受控来源，不是 Camstar 全库镜像。对象必须先在 `graphsync.data_contract` 中声明物理来源、主键、业务键、投影字段、必填字段、增量时间列、预览上限和目标图层；对象之间的字段连接及业务语义由 `relationship_contract` 单独审批。
 
 首批纵向切片包含：
 
@@ -201,7 +201,7 @@ flowchart LR
 | 阶段 | 交付物 | 当前状态 | 写入边界 |
 |---|---|---|---|
 | 1. Schema 演进中心 | 字段目录、依赖影响、兼容性判定、复核与审批 | 已完成 | 只写控制面，不改业务投影 |
-| 2. 治理物化 | approved 版本的契约迁移、分批回填、校验、指针回滚 | 已完成实现 | 仅写 `camstar_curated`，不写源库 |
+| 2. 治理物化 | approved 版本的契约迁移、分批回填、校验、指针回滚 | 已完成实现 | 仅写 `graphsync.object_version/relationship_version`，不写源库 |
 | 3. 发布工程 | Dev/UAT/Prod 环境、不可变制品、Graph Studio 蓝绿 Dataset、SPARQL 验收 | 已完成实现 | 验收成功后记录活动部署；环境开关默认关闭 |
 | 4. 可观测与血缘 | 字段级 lineage、SLA、数据新鲜度、质量趋势、告警 | 已完成实现 | 只写审计与指标 |
 | 5. Action Service | 经授权的 Camstar API 写回、幂等、审计、补偿挂钩 | 已完成实现 | 不允许数据库直写；定义与全局开关默认关闭 |
@@ -221,7 +221,13 @@ flowchart LR
 
 ### 单库收敛与通用 Action（控制面 v15）
 
-正式 PostgreSQL 只使用 `OpcenterGraph`：`graphsync` 保存契约、任务、审批和审计，`camstar_curated` 只保存通用不可变对象/关系版本。v8 的 `product`、`mfg_order`、`mfg_order_product_link` 和独立 `quarantine_record` 已删除；隔离状态及问题直接记录在 `object_version.record_status/quality_issues`，避免对象增加时继续增加物理专表。
+正式 PostgreSQL 只使用 `OpcenterGraph.graphsync`：契约、任务、审批、审计以及通用不可变对象/关系版本均位于同一 schema。`camstar_curated` 和 v8 的 `product`、`mfg_order`、`mfg_order_product_link`、独立 `quarantine_record` 已删除；隔离状态及问题直接记录在 `object_version.record_status/quality_issues`，避免对象增加时继续增加物理专表。
+
+### 发布本体治理层（v16）
+
+完整 Camstar 本体与 Graph Studio 目标本体不再共用一个可写图。Neo4j Enterprise 的 `neo4j` database 是只读源本体和物理映射事实来源；独立 `graphstudio-model` database 保存发布本体工作区和不可变版本。PostgreSQL 的 `ontology_workspace`、`ontology_release`、`ontology_release_activation` 管理草案、复核、批准、冻结、激活及回滚指针。
+
+同步中心的 G6 工作台支持从源本体选择对象、创建自定义业务对象、裁剪发布属性、修改目标命名和对象角色，并把关系区分为 `published_link`、`projection_only`、`context_only`、`excluded`。核心对象不得在多对象模型中成为孤立节点；同一对象内属性名、对象目标名必须唯一。RDF 构建不读取正在编辑的工作区，只读取已激活 `ontology_release_id`，并与已激活的数据 `release_id` 一起记录在部署制品中。
 
 Action 定义不再由初始化 SQL 写死。管理员可手工创建，或从 `src/Swagger` 中选择一个具体写操作导入；系统不会为所有对象批量生成 CRUD。每次编辑都会回到禁用草案，按 `draft → reviewed → approved` 治理。生产身份不能由浏览器填写：`ACTION_AUTH_MODE=trusted_headers` 时，只接受可信反向代理携带共享代理凭据注入的用户和角色；默认 `disabled` 模式仅允许预演。补偿 Action 是另一条已批准定义，针对成功调用单独创建补偿 invocation，重新经过角色校验、幂等和审批，成功后把原调用标记为 `compensated`。
 

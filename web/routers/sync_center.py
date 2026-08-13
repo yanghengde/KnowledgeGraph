@@ -45,6 +45,21 @@ from src.graphstudio_sync.materialization import (
 from src.graphstudio_sync.observability import acknowledge_alert, observability_status, run_health_check
 from src.graphstudio_sync.repository import ControlPlaneRepository
 from src.graphstudio_sync.preview import build_full_preview
+from src.graphstudio_sync.publish_ontology import (
+    activate_release as activate_ontology_release,
+    add_class as add_publish_class,
+    add_relationship as add_publish_relationship,
+    approve_workspace as approve_ontology_workspace,
+    initialize_governance,
+    ontology_governance_status,
+    remove_class as remove_publish_class,
+    remove_relationship as remove_publish_relationship,
+    review_workspace as review_ontology_workspace,
+    source_candidates as ontology_source_candidates,
+    update_class as update_publish_class,
+    upsert_property as upsert_publish_property,
+    validate_workspace as validate_ontology_workspace,
+)
 from src.graphstudio_sync.run_manager import execute_dry_run
 from src.graphstudio_sync.schema_evolution import (
     analyze_schema_change,
@@ -83,7 +98,7 @@ def _repo() -> ControlPlaneRepository:
 class ConnectionUpdate(BaseModel):
     kind: Literal[
         "camstar_sqlserver", "camstar_oracle", "ontology_neo4j",
-        "graph_studio", "state_postgresql",
+        "publish_ontology_neo4j", "graph_studio", "state_postgresql",
     ]
     display_name: str = Field(min_length=1, max_length=120)
     endpoint: str = Field(min_length=1, max_length=500)
@@ -141,6 +156,53 @@ class PropertyOverrideUpdate(BaseModel):
 class RelationshipOverrideUpdate(BaseModel):
     source_property: str = Field(min_length=1, max_length=200)
     notes: str | None = Field(default=None, max_length=2000)
+
+
+class OntologyActorRequest(BaseModel):
+    actor: str = Field(min_length=2, max_length=200)
+
+
+class PublishClassCreate(BaseModel):
+    source_class: str | None = Field(default=None, max_length=200)
+    target_name: str = Field(min_length=1, max_length=200)
+    label: str | None = Field(default=None, max_length=300)
+    description: str | None = Field(default=None, max_length=4000)
+    role: Literal["core", "context", "reference", "on_demand", "excluded"] = "context"
+    orphan_policy: Literal["reject", "quarantine", "allow", "referenced_only"] = "quarantine"
+
+
+class PublishClassUpdate(BaseModel):
+    targetName: str = Field(min_length=1, max_length=200)
+    label: str | None = Field(default=None, max_length=300)
+    description: str | None = Field(default=None, max_length=4000)
+    role: Literal["core", "context", "reference", "on_demand", "excluded"] = "context"
+    orphanPolicy: Literal["reject", "quarantine", "allow", "referenced_only"] = "quarantine"
+
+
+class PublishPropertyUpdate(BaseModel):
+    uid: str | None = Field(default=None, max_length=600)
+    propertyKey: str | None = Field(default=None, max_length=300)
+    sourceName: str | None = Field(default=None, max_length=300)
+    targetName: str = Field(min_length=1, max_length=300)
+    sourcePath: str | None = Field(default=None, max_length=1000)
+    dataType: str = Field(default="String", min_length=1, max_length=100)
+    description: str | None = Field(default=None, max_length=4000)
+    required: bool = False
+    published: bool = True
+    origin: Literal["source", "custom", "projection"] = "custom"
+
+
+class PublishRelationshipUpdate(BaseModel):
+    relationshipKey: str | None = Field(default=None, max_length=300)
+    sourceUid: str = Field(min_length=1, max_length=600)
+    targetUid: str = Field(min_length=1, max_length=600)
+    sourceRelationship: str | None = Field(default=None, max_length=300)
+    targetName: str = Field(min_length=1, max_length=300)
+    usage: Literal["published_link", "projection_only", "context_only", "excluded"] = "published_link"
+    strength: Literal["core", "context", "weak", "on_demand"] = "context"
+    cardinality: str = Field(default="many-to-one", max_length=100)
+    requiredContext: bool = False
+    description: str | None = Field(default=None, max_length=4000)
 
 
 class GraphProfileUpdate(BaseModel):
@@ -358,6 +420,7 @@ def update_connection(connection_key: str, request: ConnectionUpdate):
     allowed_kinds = {
         "camstar-source": {"camstar_sqlserver", "camstar_oracle"},
         "ontology-neo4j": {"ontology_neo4j"},
+        "publish-ontology-neo4j": {"publish_ontology_neo4j"},
         "graph-studio": {"graph_studio"},
     }
     if request.kind not in allowed_kinds.get(connection_key, set()):
@@ -993,6 +1056,132 @@ def compensate_camstar_action(
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/ontology-governance")
+def get_ontology_governance(profile_key: str = Query(default="opcenter2607-core")):
+    try:
+        return ontology_governance_status(_settings(), _repo(), profile_key)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Publish ontology unavailable: {exc}") from exc
+
+
+@router.post("/ontology-governance/initialize")
+def initialize_ontology_governance(
+    payload: OntologyActorRequest,
+    profile_key: str = Query(default="opcenter2607-core"),
+):
+    try:
+        return initialize_governance(_settings(), _repo(), profile_key=profile_key, actor=payload.actor)
+    except (KeyError, ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/ontology-governance/source-candidates")
+def get_ontology_source_candidates(q: str = Query(default="", max_length=200), limit: int = Query(default=100, ge=1, le=500)):
+    try:
+        return {"items": ontology_source_candidates(_settings(), q, limit)}
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Source ontology unavailable: {exc}") from exc
+
+
+@router.post("/ontology-governance/workspaces/{workspace_key}/classes")
+def create_publish_class(workspace_key: str, payload: PublishClassCreate):
+    try:
+        return add_publish_class(
+            _settings(), _repo(), workspace_key=workspace_key,
+            **payload.model_dump(),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Source class or workspace not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/ontology-governance/workspaces/{workspace_key}/classes/{class_uid}")
+def edit_publish_class(workspace_key: str, class_uid: str, payload: PublishClassUpdate):
+    try:
+        update_publish_class(_settings(), _repo(), workspace_key, class_uid, payload.model_dump())
+        return {"ok": True}
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Publish class not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.delete("/ontology-governance/workspaces/{workspace_key}/classes/{class_uid}")
+def delete_publish_class(workspace_key: str, class_uid: str):
+    try:
+        remove_publish_class(_settings(), _repo(), workspace_key, class_uid)
+        return {"ok": True}
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/ontology-governance/workspaces/{workspace_key}/classes/{class_uid}/properties")
+def edit_publish_property(workspace_key: str, class_uid: str, payload: PublishPropertyUpdate):
+    try:
+        return upsert_publish_property(
+            _settings(), _repo(), workspace_key, class_uid, payload.model_dump(),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Publish class not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/ontology-governance/workspaces/{workspace_key}/relationships")
+def create_publish_relationship(workspace_key: str, payload: PublishRelationshipUpdate):
+    try:
+        return add_publish_relationship(
+            _settings(), _repo(), workspace_key, payload.model_dump(),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.delete("/ontology-governance/workspaces/{workspace_key}/relationships/{relationship_key}")
+def delete_publish_relationship(workspace_key: str, relationship_key: str):
+    remove_publish_relationship(_settings(), _repo(), workspace_key, relationship_key)
+    return {"ok": True}
+
+
+@router.post("/ontology-governance/workspaces/{workspace_key}/validate")
+def validate_publish_workspace(workspace_key: str):
+    try:
+        return validate_ontology_workspace(_settings(), _repo(), workspace_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Ontology workspace not found") from exc
+
+
+@router.post("/ontology-governance/workspaces/{workspace_key}/review")
+def review_publish_workspace(workspace_key: str, payload: OntologyActorRequest):
+    try:
+        return review_ontology_workspace(_settings(), _repo(), workspace_key, payload.actor)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/ontology-governance/workspaces/{workspace_key}/approve")
+def approve_publish_workspace(workspace_key: str, payload: OntologyActorRequest):
+    try:
+        return approve_ontology_workspace(_settings(), _repo(), workspace_key, payload.actor)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/ontology-governance/releases/{release_id}/activate")
+def activate_publish_ontology_release(
+    release_id: str,
+    payload: OntologyActorRequest,
+    profile_key: str = Query(default="opcenter2607-core"),
+):
+    try:
+        return activate_ontology_release(_repo(), profile_key, uuid.UUID(release_id), payload.actor)
+    except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
