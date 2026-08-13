@@ -164,6 +164,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .capability-chip.danger { color: var(--red); border-color: rgba(255,107,120,.26); background: rgba(255,107,120,.06); }
 .capability-chip.danger strong { color: var(--red); }
 .capability-warning { margin-top: 13px; padding: 10px 12px; border: 1px solid rgba(242,184,75,.24); border-radius: 8px; color: var(--amber); background: rgba(242,184,75,.055); line-height: 1.55; }
+.projection-guidance { margin-top: 13px; padding: 11px 13px; border-left: 2px solid var(--teal); color: var(--muted); background: rgba(32,215,179,.035); line-height: 1.6; }
 .profile-boundary { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 0; padding: 20px; }
 .boundary-cell { min-width: 0; padding: 5px 18px 16px; border-right: 1px solid var(--line); }
 .boundary-cell:first-child { padding-left: 0; }
@@ -205,9 +206,9 @@ tbody tr:hover td { background: rgba(32,215,179,.025); }
 .field-input:focus, .field-select:focus, .dialog-fields input:not([type="checkbox"]):focus, .dialog-fields select:focus, .dialog-fields textarea:focus { border-color: var(--teal-2); }
 .toggle { width: 16px; height: 16px; accent-color: var(--teal); }
 
-.edit-dialog { width: min(620px, 90vw); padding: 0; border: 1px solid var(--line-strong); border-radius: 17px; color: var(--text); background: var(--surface); box-shadow: var(--shadow); }
+.edit-dialog { width: min(720px, 90vw); max-height: 90vh; padding: 0; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 17px; color: var(--text); background: var(--surface); box-shadow: var(--shadow); }
 .edit-dialog::backdrop { background: rgba(0,8,12,.72); backdrop-filter: blur(4px); }
-.edit-dialog form { padding: 0; }
+.edit-dialog form { max-height: 90vh; padding: 0; overflow: auto; }
 .dialog-heading { display: flex; align-items: center; justify-content: space-between; padding: 21px 23px; border-bottom: 1px solid var(--line); }
 .dialog-heading h2 { margin: 5px 0 0; font-size: 18px; }
 .dialog-close { border: 0; color: var(--muted); background: transparent; font-size: 25px; cursor: pointer; }

@@ -19,6 +19,7 @@ from urllib.parse import quote
 
 from sqlalchemy import text
 
+from .attribute_projection import apply_attribute_projections
 from .config import SyncSettings
 from .connections import resolved_settings
 from .preview import _iter_rows
@@ -103,6 +104,7 @@ def build_materialization_plan(
     active_release_id: str | None = None,
     active_source_snapshot: dict[str, Any] | None = None,
     large_table_threshold: int = 5_000_000,
+    attribute_projections: Iterable[dict[str, Any]] = (),
 ) -> dict[str, Any]:
     contracts = list(governance.get("contracts") or [])
     relationships = list(governance.get("relationships") or [])
@@ -135,6 +137,12 @@ def build_materialization_plan(
     ]
     if pending_changes:
         blockers.append(f"存在 {len(pending_changes)} 个尚未完成或回滚的 Schema 变更")
+    projections = [item for item in attribute_projections if item.get("enabled")]
+    for projection in projections:
+        if projection.get("status") != "approved":
+            blockers.append(f"属性投影未批准：{projection['projection_key']}")
+        elif projection.get("preview_status") != "succeeded":
+            blockers.append(f"属性投影尚无成功预览：{projection['projection_key']}")
     policies = {item["class_name"]: item for item in table_policies}
     windows = {item["class_name"]: item for item in incremental_windows}
     contract_plans: list[dict[str, Any]] = []
@@ -190,6 +198,15 @@ def build_materialization_plan(
         "activeReleaseId": active_release_id,
         "contracts": contract_plans,
         "relationships": [item["relationship_contract_key"] for item in relationships],
+        "attributeProjections": [
+            {
+                "projectionKey": item["projection_key"],
+                "targetContractKey": item["target_contract_key"],
+                "version": item["version"],
+                "fieldCount": len(item.get("fields") or []),
+            }
+            for item in projections
+        ],
     }
 
 
@@ -295,6 +312,7 @@ def _chunks(iterator, size: int):
 def _release_plan_from_repository(repository: ControlPlaneRepository, profile_key: str, batch_rows: int) -> tuple[dict[str, Any], dict[str, Any]]:
     governance = repository.governance_profile(profile_key)
     changes = repository.list_schema_changes(profile_key, limit=500)
+    projections = repository.list_attribute_projections(profile_key)
     policies = repository.list_table_policies("camstar-full")
     windows = repository.latest_incremental_windows("camstar-full")
     with repository.engine.connect() as connection:
@@ -311,6 +329,7 @@ def _release_plan_from_repository(repository: ControlPlaneRepository, profile_ke
         active_release_id=str(active_release["active_release_id"]) if active_release else None,
         active_source_snapshot=dict(active_release["source_snapshot"] or {}) if active_release else None,
         large_table_threshold=threshold,
+        attribute_projections=projections,
     )
 
 
@@ -367,6 +386,10 @@ def execute_materialization(
         item["contract_key"]: repository.contract_schema(item["contract_key"])["fields"]
         for item in contracts
     }
+    projections_by_contract: dict[str, list[dict[str, Any]]] = {}
+    for projection in repository.list_attribute_projections(profile_key):
+        if projection.get("enabled") and projection.get("status") == "approved":
+            projections_by_contract.setdefault(projection["target_contract_key"], []).append(projection)
     settings = resolved_settings(base_settings, repository)
     release_id = uuid.uuid4()
     lock_name = f"graphsync:materialize:{profile_key}"
@@ -383,6 +406,10 @@ def execute_materialization(
                     {"profile_key": profile_key},
                 ).scalar_one()
                 versions = {item["contract_key"]: item["version"] for item in contracts}
+                versions["__attributeProjections"] = {
+                    item["projectionKey"]: item["version"]
+                    for item in plan.get("attributeProjections") or []
+                }
                 source_snapshot = {
                     item["className"]: item["incrementalWindow"]
                     for item in plan["contracts"] if item.get("incrementalWindow")
@@ -446,6 +473,7 @@ def execute_materialization(
                             for batch_no, page in enumerate(_chunks(events, plan["batchRows"]), start=1):
                                 batch_id = uuid.uuid4()
                                 upserts: list[dict[str, Any]] = []
+                                upsert_rows: list[dict[str, Any]] = []
                                 deleted: list[tuple[str, dict[str, Any]]] = []
                                 for event in page:
                                     key = {column: (event.get("key") or {}).get(column) for column in contract["primary_key_columns"]}
@@ -455,7 +483,17 @@ def execute_materialization(
                                     else:
                                         if not isinstance(event.get("row"), dict):
                                             raise RuntimeError(f"Incremental {event.get('operation')} has no source row for {contract['class_name']}")
+                                        upsert_rows.append(event["row"])
                                         upserts.append(normalize_object_record(contract, fields, event["row"]))
+                                contract_projections = projections_by_contract.get(contract["contract_key"], [])
+                                if upserts and contract_projections:
+                                    if source is None:
+                                        source = connect_source(settings)
+                                    upserts = apply_attribute_projections(
+                                        source, kind=settings.source_kind,
+                                        projections=contract_projections,
+                                        owner_rows=upsert_rows, records=upserts,
+                                    )
                                 with repository.engine.begin() as connection:
                                     uris = [item["objectUri"] for item in upserts] + [item[0] for item in deleted]
                                     if uris:
@@ -480,6 +518,11 @@ def execute_materialization(
                         *(field["source_column"] for field in fields if field.get("source_column")),
                         *contract["primary_key_columns"],
                         *contract["business_key_columns"],
+                        *(
+                            mapping["targetColumn"]
+                            for projection in projections_by_contract.get(contract["contract_key"], [])
+                            for mapping in projection.get("owner_mapping") or []
+                        ),
                     })
                     iterator = _iter_rows(
                         source,
@@ -493,6 +536,13 @@ def execute_materialization(
                     for batch_no, page in enumerate(_chunks(iterator, plan["batchRows"]), start=1):
                         batch_id = uuid.uuid4()
                         records = [normalize_object_record(contract, fields, row) for row in page]
+                        contract_projections = projections_by_contract.get(contract["contract_key"], [])
+                        if records and contract_projections:
+                            records = apply_attribute_projections(
+                                source, kind=settings.source_kind,
+                                projections=contract_projections,
+                                owner_rows=page, records=records,
+                            )
                         valid = [item for item in records if item["objectUri"]]
                         with repository.engine.begin() as connection:
                             connection.execute(

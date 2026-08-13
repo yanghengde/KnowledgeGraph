@@ -129,6 +129,7 @@ src/graphstudio_sync/
   connections.py     脱敏连接档案与测试
   inventory.py       源库和本体盘点
   catalog.py         本体→物理列编译目录
+  attribute_projection.py  通用关联属性投影
   run_manager.py     幂等锁和运行生命周期
 
 web/routers/sync_center.py   同步管理 API
@@ -149,6 +150,7 @@ Schema：`graphsync`
 | 业务图谱 | `graph_profile`, `profile_class`, `profile_relationship`, `context_validation`, `pending_reference` |
 | 数据治理 | `data_contract`, `relationship_contract`, `curation_run`, `data_quality_result`；业务投影位于 `camstar_curated` schema |
 | Schema 演进 | `data_contract_field`, `asset_dependency`, `schema_change_request`, `schema_change_item`, `schema_migration_run` |
+| 属性投影 | `attribute_projection_contract`, `attribute_projection_field`, `attribute_projection_preview` |
 | 治理版本 | `curated_release`, `curated_release_activation`, `materialization_batch`；业务快照位于 `camstar_curated.object_version/relationship_version` |
 | 环境发布 | `deployment_environment`, `deployment_release` |
 | 血缘与监控 | `runtime_lineage_event`, `health_check_run`, `health_metric`, `alert_rule`, `alert_event` |
@@ -167,6 +169,8 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 
 控制面 v10～v13 完成后续四个阶段：v10 使用主键 keyset 分批构建不可变治理版本，验证后原子切换活动指针；v11 管理 Dev/UAT/Prod 顺序晋级、不可变 RDF 制品、蓝绿槽位和 SPARQL 验收；v12 记录字段运行时血缘、健康指标及告警生命周期；v13 提供只走 Camstar API 的 Action Service，包含角色校验、双人审批、幂等键和审计事件。环境发布、Action 定义和全局 Action 开关均默认关闭，初始化数据库不会修改 Camstar 或 Graph Studio。
 
+控制面 v14 增加通用属性投影：任何数据契约都可用“目标关联键 + 来源字段路径”从关联表补充属性，并可选配置声明式多跳 Join、过滤、排序及一对多策略。编译器只接受经过标识符校验的结构化配置，不接受原始 SQL；预览有严格行数上限，物化按主对象键分批查询，同时兼容 SQL Server 和 Oracle。规则修改后自动回到草案，必须经过成功源预览、复核和批准才进入治理版本。
+
 `preview-incremental` 会将已规划窗口读取成统一 JSONL 变更包，支持 SQL Server CT、CDC、Oracle Flashback SCN 以及 watermark/append-only。事件包含主键、insert/update/upsert/delete 操作和数据库恢复位置；预览只生成审计产物，不提交 checkpoint，也不写 Graph Studio。
 
 “同步任务 → 表级同步策略”可为每个本体类配置全量快照、水位增量、追加增量、CDC 或不导入。超过 `sync.snapshot_row_threshold` 且没有显式策略的表会在抽取前失败，避免误扫亿级表。水位/追加策略必须配置水位列；每个已验证 RDF 分片会写入 `sync_batch`，便于审计和后续断点续跑。
@@ -177,6 +181,7 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 - 发布命令必须使用 PostgreSQL advisory lock，并在 SPARQL 验收成功后才提交 checkpoint。
 - Kubernetes CronJob 模板当前保持 `suspend: true`，完成全量发布 UAT 前不会定时修改 Graphmart。
 - 共享 RDF ZIP 必须放在 Graph Studio 与 Graph Lakehouse 均可访问的 file connection。
+- 属性投影默认禁止覆盖主契约同名字段；只有显式选择“覆盖”或“空值补齐”才允许。同一关联键返回多行时必须选择隔离、确定性排序取值或数组合并。
 - 当前已完成流式基线和策略保护，但 SQL Server CT/CDC LSN、Oracle SCN、删除事件消费及自动断点恢复仍是下一阶段；连接器上线前，`watermark`、`append_only`、`cdc` 会明确阻止预览，绝不会退化为全表扫描。
 - 当前环境实测 SQL Server Change Tracking、CDC 和 Snapshot Isolation 均未启用。DBA 可先运行只读检查 [sql/sqlserver_incremental_prerequisites.sql](sql/sqlserver_incremental_prerequisites.sql)；Oracle 对应检查见 [sql/oracle_incremental_prerequisites.sql](sql/oracle_incremental_prerequisites.sql)。脚本中的启用语句保持注释，不会自动修改源库。
 

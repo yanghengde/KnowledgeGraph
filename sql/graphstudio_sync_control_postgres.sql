@@ -622,12 +622,104 @@ CREATE TABLE IF NOT EXISTS graphsync.data_contract_field (
 CREATE INDEX IF NOT EXISTS ix_graphsync_contract_field_status
     ON graphsync.data_contract_field (contract_key, lifecycle_status, ordinal_position);
 
+-- Generic relational attribute projection.  It can enrich any governed object
+-- from one related table or an approved multi-hop join plan without changing
+-- the canonical Camstar ontology or the source database schema.
+CREATE TABLE IF NOT EXISTS graphsync.attribute_projection_contract (
+    projection_key        text PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    target_contract_key   text NOT NULL REFERENCES graphsync.data_contract(contract_key) ON DELETE CASCADE,
+    title                 text NOT NULL,
+    description           text,
+    version               integer NOT NULL DEFAULT 1 CHECK (version > 0),
+    status                text NOT NULL DEFAULT 'draft' CHECK (status IN (
+                              'draft', 'reviewed', 'approved', 'retired'
+                          )),
+    enabled               boolean NOT NULL DEFAULT true,
+    source_schema         text NOT NULL,
+    source_table          text NOT NULL,
+    source_alias          text NOT NULL DEFAULT 'src',
+    owner_mapping         jsonb NOT NULL,
+    join_plan             jsonb NOT NULL DEFAULT '[]'::jsonb,
+    row_filters           jsonb NOT NULL DEFAULT '[]'::jsonb,
+    cardinality           text NOT NULL DEFAULT 'one' CHECK (cardinality IN ('one', 'many')),
+    multiple_match_policy text NOT NULL DEFAULT 'reject' CHECK (multiple_match_policy IN (
+                              'reject', 'first', 'latest', 'array'
+                          )),
+    missing_policy        text NOT NULL DEFAULT 'null' CHECK (missing_policy IN (
+                              'null', 'quarantine', 'reject'
+                          )),
+    collision_policy      text NOT NULL DEFAULT 'reject' CHECK (collision_policy IN (
+                              'reject', 'overwrite', 'coalesce'
+                          )),
+    order_by              jsonb NOT NULL DEFAULT '[]'::jsonb,
+    preview_row_limit     integer NOT NULL DEFAULT 100 CHECK (preview_row_limit BETWEEN 1 AND 10000),
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    approved_by           text,
+    approved_at           timestamptz
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_attribute_projection_target
+    ON graphsync.attribute_projection_contract (target_contract_key, status, enabled);
+
+ALTER TABLE graphsync.attribute_projection_contract
+    ADD COLUMN IF NOT EXISTS collision_policy text NOT NULL DEFAULT 'reject';
+ALTER TABLE graphsync.attribute_projection_contract
+    DROP CONSTRAINT IF EXISTS attribute_projection_contract_collision_policy_check;
+ALTER TABLE graphsync.attribute_projection_contract
+    ADD CONSTRAINT attribute_projection_contract_collision_policy_check
+    CHECK (collision_policy IN ('reject', 'overwrite', 'coalesce'));
+
+CREATE TABLE IF NOT EXISTS graphsync.attribute_projection_field (
+    projection_key        text NOT NULL REFERENCES graphsync.attribute_projection_contract(projection_key) ON DELETE CASCADE,
+    field_key             text NOT NULL,
+    source_path           text NOT NULL,
+    target_field          text NOT NULL,
+    data_type             text NOT NULL DEFAULT 'String' CHECK (data_type IN (
+                              'String', 'Integer', 'Float', 'Boolean',
+                              'DateTime', 'Date', 'Navigation'
+                          )),
+    required              boolean NOT NULL DEFAULT false,
+    ontology_property     text,
+    lifecycle_status      text NOT NULL DEFAULT 'active' CHECK (lifecycle_status IN (
+                              'experimental', 'active', 'deprecated', 'retired'
+                          )),
+    ordinal_position      integer NOT NULL DEFAULT 100,
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (projection_key, field_key),
+    UNIQUE (projection_key, target_field)
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.attribute_projection_preview (
+    preview_id             uuid PRIMARY KEY,
+    projection_key         text NOT NULL REFERENCES graphsync.attribute_projection_contract(projection_key) ON DELETE CASCADE,
+    projection_version     integer NOT NULL CHECK (projection_version > 0),
+    status                 text NOT NULL CHECK (status IN ('started', 'succeeded', 'failed')),
+    owner_rows             integer NOT NULL DEFAULT 0,
+    matched_rows           integer NOT NULL DEFAULT 0,
+    missing_owners         integer NOT NULL DEFAULT 0,
+    multiple_matches       integer NOT NULL DEFAULT 0,
+    sample                 jsonb NOT NULL DEFAULT '[]'::jsonb,
+    compiled_query_hash    text,
+    error                  jsonb,
+    started_at             timestamptz NOT NULL DEFAULT now(),
+    finished_at            timestamptz
+);
+
+ALTER TABLE graphsync.attribute_projection_preview
+    ADD COLUMN IF NOT EXISTS projection_version integer NOT NULL DEFAULT 1;
+
 CREATE TABLE IF NOT EXISTS graphsync.asset_dependency (
     dependency_id         uuid PRIMARY KEY,
     profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
     upstream_type         text NOT NULL CHECK (upstream_type IN (
                               'data_contract', 'data_contract_field',
-                              'relationship_contract', 'ontology_property'
+                              'relationship_contract', 'ontology_property',
+                              'attribute_projection', 'attribute_projection_field'
                           )),
     upstream_key          text NOT NULL,
     downstream_type       text NOT NULL CHECK (downstream_type IN (
@@ -651,6 +743,14 @@ CREATE TABLE IF NOT EXISTS graphsync.asset_dependency (
 
 CREATE INDEX IF NOT EXISTS ix_graphsync_dependency_upstream
     ON graphsync.asset_dependency (profile_key, upstream_type, upstream_key, active);
+
+ALTER TABLE graphsync.asset_dependency
+    DROP CONSTRAINT IF EXISTS asset_dependency_upstream_type_check;
+ALTER TABLE graphsync.asset_dependency
+    ADD CONSTRAINT asset_dependency_upstream_type_check CHECK (upstream_type IN (
+        'data_contract', 'data_contract_field', 'relationship_contract',
+        'ontology_property', 'attribute_projection', 'attribute_projection_field'
+    ));
 
 CREATE TABLE IF NOT EXISTS graphsync.schema_change_request (
     change_id             uuid PRIMARY KEY,
@@ -1165,6 +1265,16 @@ CREATE TRIGGER trg_data_contract_field_updated
 BEFORE UPDATE ON graphsync.data_contract_field
 FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 
+DROP TRIGGER IF EXISTS trg_attribute_projection_contract_updated ON graphsync.attribute_projection_contract;
+CREATE TRIGGER trg_attribute_projection_contract_updated
+BEFORE UPDATE ON graphsync.attribute_projection_contract
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_attribute_projection_field_updated ON graphsync.attribute_projection_field;
+CREATE TRIGGER trg_attribute_projection_field_updated
+BEFORE UPDATE ON graphsync.attribute_projection_field
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
 DROP TRIGGER IF EXISTS trg_schema_change_request_updated ON graphsync.schema_change_request;
 CREATE TRIGGER trg_schema_change_request_updated
 BEFORE UPDATE ON graphsync.schema_change_request
@@ -1274,6 +1384,10 @@ INSERT INTO graphsync.schema_version (version, description)
 VALUES (13, 'Governed Camstar API actions with idempotency and compensation audit')
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (14, 'Generic related-table attribute projections for any governed object')
+ON CONFLICT (version) DO NOTHING;
+
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)
 VALUES
@@ -1281,6 +1395,7 @@ VALUES
     ('connections', '连接管理', 'Connections', '#connections', 'plug',      20, true,  'connection.read'),
     ('jobs',        '同步任务', 'Sync Jobs',   '#jobs',        'schedule',  30, true,  'job.read'),
     ('profiles',    '业务图谱', 'Graph Profile','#profiles',    'profile',   35, true,  'profile.write'),
+    ('projections', '属性投影', 'Attribute Projections','#projections','projection', 36, true, 'projection.write'),
     ('releases',    '治理版本', 'Curated Releases','#releases', 'database',  37, true,  'curation.write'),
     ('deployments', '环境发布', 'Deployments', '#deployments', 'rocket',    38, true,  'deployment.write'),
     ('observability','血缘监控','Observability','#observability','pulse',   39, true,  'health.read'),

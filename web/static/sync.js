@@ -15,6 +15,7 @@
         governance: { contracts: [], relationships: [], latestRun: null, qualityResults: [] },
         contractSchema: null,
         schemaChanges: [],
+        attributeProjections: [],
         materialization: { plan: null, releases: [] },
         deployments: { environments: [], deployments: [], activeCuratedRelease: null },
         observability: { latestRun: null, metrics: [], alerts: [], lineage: [] },
@@ -58,7 +59,7 @@
     }
 
     function iconCode(icon) {
-        return ({ dashboard: "OV", plug: "CN", schedule: "JB", profile: "BG", database: "DB", rocket: "DP", pulse: "HL", action: "AC", mapping: "MP", history: "RN", settings: "ST" })[icon] || "•";
+        return ({ dashboard: "OV", plug: "CN", schedule: "JB", profile: "BG", projection: "PX", database: "DB", rocket: "DP", pulse: "HL", action: "AC", mapping: "MP", history: "RN", settings: "ST" })[icon] || "•";
     }
 
     function formatDate(value, compact = false) {
@@ -81,7 +82,7 @@
     }
 
     function statusLabel(value) {
-        return ({ online: "在线", offline: "离线", degraded: "降级", unknown: "未检查", disabled: "已停用", succeeded: "成功", failed: "失败", queued: "排队", started: "运行中", extracting: "抽取中", staged: "已暂存", loading: "加载中", verifying: "验证中", cancelled: "已取消", planned: "已规划", ready: "待激活", active: "活动", superseded: "已替代", rolled_back: "已回滚", approved: "已批准", pending_approval: "待审批", executing: "执行中", healthy: "健康", unhealthy: "异常", warning: "警告", critical: "严重", open: "未处理", acknowledged: "已确认", resolved: "已恢复" })[value] || value || "未知";
+        return ({ online: "在线", offline: "离线", degraded: "降级", unknown: "未检查", disabled: "已停用", succeeded: "成功", failed: "失败", queued: "排队", started: "运行中", extracting: "抽取中", staged: "已暂存", loading: "加载中", verifying: "验证中", cancelled: "已取消", planned: "已规划", ready: "待激活", active: "活动", draft: "草案", reviewed: "已复核", retired: "已退役", superseded: "已替代", rolled_back: "已回滚", approved: "已批准", pending_approval: "待审批", executing: "执行中", healthy: "健康", unhealthy: "异常", warning: "警告", critical: "严重", open: "未处理", acknowledged: "已确认", resolved: "已恢复" })[value] || value || "未知";
     }
 
     function connectionKindLabel(value) {
@@ -379,6 +380,31 @@
         }).join("") || '<tr class="empty-row"><td colspan="7">尚无 Schema 变更申请</td></tr>';
     }
 
+    function projectionPolicyLabel(value) {
+        return ({ reject: "拒绝多值", first: "取第一条", latest: "取最新", array: "合并数组" })[value] || value;
+    }
+
+    function renderAttributeProjections() {
+        const items = state.attributeProjections || [];
+        const approved = items.filter(item => item.enabled && item.status === "approved").length;
+        const waiting = items.filter(item => item.enabled && item.status !== "approved").length;
+        $("#projectionCount").textContent = `${items.length} 项`;
+        $("#projectionSummary").innerHTML = `<div class="capability-chips"><span class="capability-chip">已批准 <strong>${approved}</strong></span><span class="capability-chip ${waiting ? "danger" : ""}">待治理 <strong>${waiting}</strong></span><span class="capability-chip">执行方式 <strong>批量参数化 Join</strong></span><span class="capability-chip">源库写入 <strong>禁止</strong></span></div><div class="projection-guidance">扩展表发生独立变化时，应由定时治理版本重新物化；主对象的增量事件会即时刷新对应投影。所有规则均使用字段化配置，不接收原始 SQL。</div>`;
+        $("#projectionRows").innerHTML = items.map(item => {
+            const actions = [
+                '<button class="mini-btn" data-action="edit-projection">编辑</button>',
+                '<button class="mini-btn" data-action="preview-projection">预览</button>',
+            ];
+            if (item.status === "draft" && item.preview_status === "succeeded") actions.push('<button class="mini-btn" data-action="review-projection">复核</button>');
+            if (item.status === "reviewed") actions.push('<button class="mini-btn" data-action="approve-projection">批准</button>');
+            if (item.status === "approved") actions.push('<button class="mini-btn" data-action="retire-projection">退役</button>');
+            const preview = item.preview_status === "succeeded"
+                ? `${Number(item.preview_matched_rows || 0).toLocaleString()} 匹配 / ${Number(item.preview_owner_rows || 0).toLocaleString()} 对象`
+                : statusLabel(item.preview_status);
+            return `<tr data-projection="${escapeHtml(item.projection_key)}"><td><strong>${escapeHtml(item.class_name)}</strong><br><small>${escapeHtml(item.projection_key)} · v${item.version}</small></td><td>${escapeHtml(`${item.source_schema}.${item.source_table}`)}</td><td>${(item.join_plan || []).length} 跳<br><small>${(item.owner_mapping || []).length} 个关联键</small></td><td>${(item.fields || []).length}<br><small>${escapeHtml((item.fields || []).slice(0, 3).map(field => field.target_field).join(", "))}</small></td><td>${escapeHtml(projectionPolicyLabel(item.multiple_match_policy))}</td><td><span class="status-pill ${item.preview_status === "succeeded" ? "online" : "unknown"}">${escapeHtml(preview)}</span></td><td><span class="status-pill ${item.status === "approved" ? "online" : "unknown"}">${escapeHtml(statusLabel(item.status))}</span></td><td><div class="card-action-buttons">${actions.join("")}</div></td></tr>`;
+        }).join("") || '<tr class="empty-row"><td colspan="8">尚无属性投影。点击“新增属性投影”，即可把关联表字段合并到 Product、Workflow 或任意对象。</td></tr>';
+    }
+
     function renderMaterialization() {
         const plan = state.materialization?.plan;
         const blockers = plan?.blockers || [];
@@ -490,6 +516,86 @@
             const result = await request(`/api/sync/profiles/${encodeURIComponent(state.activeProfile.profile.profile_key)}/schema-changes`, { method: "POST", body: JSON.stringify({ contract_key: schema.contract.contract_key, title: form.get("title"), description: form.get("description") || null, migration_strategy: form.get("migration_strategy") || null, rollback_strategy: form.get("rollback_strategy") || null, operations: [{ operation, field_key: adding ? form.get("new_field_key") : form.get("existing_field"), after_state: Object.keys(afterState).length ? afterState : null }] }) });
             toast(result.readyForReview ? `变更分析完成：${compatibilityLabel(result.compatibility)}` : `变更已保存为草案：${result.blockers.join("；")}`, !result.readyForReview);
             await loadSchemaEvolution(schema.contract.contract_key);
+        };
+        $("#editDialog").showModal();
+    }
+
+    function projectionLines(item) {
+        return (item?.fields || []).map(fieldItem => [
+            fieldItem.source_path,
+            fieldItem.target_field,
+            fieldItem.data_type || "String",
+            fieldItem.required ? "required" : "optional",
+        ].join(", ")).join("\n");
+    }
+
+    function openAttributeProjectionDialog(item = null) {
+        const contracts = state.governance?.contracts || [];
+        if (!contracts.length) { toast("请先建立 Camstar 数据契约", true); return; }
+        const target = contracts.find(contract => contract.contract_key === item?.target_contract_key) || contracts[0];
+        const projectionKey = item?.projection_key || `projection-${crypto.randomUUID()}`;
+        $("#dialogTitle").textContent = item ? `编辑 ${item.title}` : "新增通用属性投影";
+        $("#dialogKicker").textContent = "ATTRIBUTE PROJECTION";
+        $("#dialogFields").innerHTML = [
+            field("projection_key", "规则稳定 ID", projectionKey, { wide: true, readonly: Boolean(item), help: "用于版本、审批和血缘追踪；创建后不可修改" }),
+            field("title", "规则名称", item?.title || `${target.class_name} 关联属性`, { wide: true }),
+            field("target_contract_key", "目标本体对象", target.contract_key, { type: "select", items: contracts.map(contract => [contract.contract_key, `${contract.class_name} · ${contract.source_schema}.${contract.source_table}`]) }),
+            field("cardinality", "关联基数", item?.cardinality || "one", { type: "select", items: [["one", "一对一"], ["many", "一对多"]] }),
+            field("source_schema", "关联表 Schema", item?.source_schema || target.source_schema, { placeholder: "dbo / CAMSTAR" }),
+            field("source_table", "关联表", item?.source_table || "", { placeholder: "A_ProductDetails" }),
+            field("source_alias", "根表别名", item?.source_alias || "src", { help: "字段路径使用 别名.列名，例如 src.ProductId" }),
+            field("preview_row_limit", "预览主对象数", item?.preview_row_limit || 200, { type: "number", help: "只读采样上限；不会扫描整个主表" }),
+            field("owner_mapping", "主对象关联键（每行：目标列 = 来源路径）", (item?.owner_mapping || [{ targetColumn: target.primary_key_columns?.[0] || "InstanceId", sourcePath: "src.InstanceId" }]).map(mapping => `${mapping.targetColumn} = ${mapping.sourcePath}`).join("\n"), { type: "textarea", wide: true, help: "支持复合键，一行一个。例如：ProductId = src.ProductId" }),
+            field("field_mappings", "投影字段（每行：来源路径, 目标属性, 类型, 是否必填）", projectionLines(item) || "src.AttributeValue, extendedAttribute, String, optional", { type: "textarea", wide: true, help: "类型：String / Integer / Float / Boolean / DateTime / Date / Navigation；是否必填写 required 或 optional" }),
+            field("multiple_match_policy", "多值处理", item?.multiple_match_policy || "reject", { type: "select", items: [["reject", "发现多条则隔离"], ["first", "按排序取第一条"], ["latest", "按排序取最新一条"], ["array", "合并为数组"]] }),
+            field("missing_policy", "无匹配处理", item?.missing_policy || "null", { type: "select", items: [["null", "保留空值"], ["quarantine", "隔离主对象"], ["reject", "拒绝该对象"]] }),
+            field("collision_policy", "与主表属性同名时", item?.collision_policy || "reject", { type: "select", items: [["reject", "隔离并保留主表值"], ["overwrite", "使用关联表值覆盖"], ["coalesce", "仅主表为空时补齐"]] }),
+            field("join_plan", "高级：多跳 Join JSON", JSON.stringify(item?.join_plan || [], null, 2), { type: "textarea", wide: true, help: '可选。示例：[{"joinType":"left","schema":"dbo","table":"A_Definition","alias":"def","left":"src.DefId","right":"def.InstanceId"}]' }),
+            field("row_filters", "高级：过滤条件 JSON", JSON.stringify(item?.row_filters || [], null, 2), { type: "textarea", wide: true, help: '可选。示例：[{"path":"src.IsActive","operator":"eq","value":1}]' }),
+            field("order_by", "高级：确定性排序 JSON", JSON.stringify(item?.order_by || [], null, 2), { type: "textarea", wide: true, help: 'first/latest 必填。示例：[{"path":"src.LastUpdatedDate","direction":"desc"}]' }),
+            field("description", "业务说明", item?.description || "", { type: "textarea", wide: true }),
+            field("enabled", "启用此投影", item?.enabled !== false, { type: "checkbox", wide: true, help: "启用的规则必须完成源预览、复核和批准后才能物化" }),
+        ].join("");
+        state.dialogSubmit = async form => {
+            const key = String(form.get("projection_key") || "").trim();
+            const ownerMapping = String(form.get("owner_mapping") || "").split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+                const separator = line.indexOf("=");
+                if (separator < 1) throw new Error(`关联键格式错误：${line}`);
+                return { targetColumn: line.slice(0, separator).trim(), sourcePath: line.slice(separator + 1).trim() };
+            });
+            const fields = String(form.get("field_mappings") || "").split(/\r?\n/).map(line => line.trim()).filter(Boolean).map((line, index) => {
+                const parts = line.split(",").map(value => value.trim());
+                if (parts.length < 2) throw new Error(`投影字段格式错误：${line}`);
+                const existing = (item?.fields || []).find(value => value.target_field === parts[1]);
+                return {
+                    field_key: existing?.field_key || `${key}:${parts[1]}`,
+                    source_path: parts[0], target_field: parts[1], data_type: parts[2] || "String",
+                    required: String(parts[3] || "optional").toLowerCase() === "required",
+                    ontology_property: existing?.ontology_property || null,
+                    lifecycle_status: "active", ordinal_position: (index + 1) * 10, config: {},
+                };
+            });
+            const parseJsonArray = name => {
+                let value;
+                try { value = JSON.parse(String(form.get(name) || "[]")); }
+                catch (_) { throw new Error(`${name} 必须是合法 JSON`); }
+                if (!Array.isArray(value)) throw new Error(`${name} 必须是 JSON 数组`);
+                return value;
+            };
+            const payload = {
+                target_contract_key: form.get("target_contract_key"), title: form.get("title"),
+                description: form.get("description") || null,
+                source_schema: form.get("source_schema"), source_table: form.get("source_table"),
+                source_alias: form.get("source_alias") || "src", owner_mapping: ownerMapping,
+                join_plan: parseJsonArray("join_plan"), row_filters: parseJsonArray("row_filters"),
+                cardinality: form.get("cardinality"), multiple_match_policy: form.get("multiple_match_policy"),
+                missing_policy: form.get("missing_policy"), collision_policy: form.get("collision_policy"), order_by: parseJsonArray("order_by"),
+                preview_row_limit: Number(form.get("preview_row_limit")), enabled: form.get("enabled") === "on",
+                fields, config: { ...(item?.config || {}), refreshMode: "release_and_owner_change" },
+            };
+            await request(`/api/sync/profiles/opcenter2607-core/attribute-projections/${encodeURIComponent(key)}`, { method: "PUT", body: JSON.stringify(payload) });
+            toast("属性投影已保存为草案；请先执行只读源预览");
+            await Promise.all([loadAttributeProjections(), loadMaterialization()]);
         };
         $("#editDialog").showModal();
     }
@@ -844,6 +950,10 @@
         ]);
         renderSchemaEvolution();
     }
+    async function loadAttributeProjections() {
+        state.attributeProjections = (await request("/api/sync/profiles/opcenter2607-core/attribute-projections")).items;
+        renderAttributeProjections();
+    }
     async function loadMaterialization() { state.materialization = await request("/api/sync/profiles/opcenter2607-core/materialization"); renderMaterialization(); }
     async function loadDeployments() { state.deployments = await request("/api/sync/profiles/opcenter2607-core/deployments"); renderDeployments(); }
     async function loadObservability() { state.observability = await request("/api/sync/profiles/opcenter2607-core/observability"); renderObservability(); }
@@ -856,7 +966,7 @@
         setAlert();
         try {
             await loadNavigation();
-            await Promise.all([loadConnections(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
+            await Promise.all([loadConnections(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadAttributeProjections(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
             await loadOverview();
         } catch (error) {
             setAlert(`同步中心加载失败：${error.message}`);
@@ -924,6 +1034,31 @@
         if (action.dataset.action === "edit-relationship-contract") {
             const row = action.closest("[data-relationship-contract]");
             openRelationshipContractDialog(state.governance.relationships.find(item => item.relationship_contract_key === row.dataset.relationshipContract)); return;
+        }
+        if (action.dataset.action === "edit-projection") {
+            const row = action.closest("[data-projection]");
+            openAttributeProjectionDialog(state.attributeProjections.find(item => item.projection_key === row.dataset.projection)); return;
+        }
+        if (action.dataset.action === "preview-projection") {
+            const row = action.closest("[data-projection]");
+            action.disabled = true; action.textContent = "预览中…";
+            try {
+                const result = await request(`/api/sync/attribute-projections/${encodeURIComponent(row.dataset.projection)}/preview`, { method: "POST" });
+                toast(`只读预览完成：${result.matchedRows} 条匹配，${result.missingOwners} 个未匹配；未修改源库和 Graph Studio`);
+                await Promise.all([loadAttributeProjections(), loadMaterialization()]);
+            } catch (error) { toast(error.message, true); }
+            finally { action.disabled = false; action.textContent = "预览"; }
+            return;
+        }
+        if (["review-projection", "approve-projection", "retire-projection"].includes(action.dataset.action)) {
+            const row = action.closest("[data-projection]");
+            const nextStatus = ({ "review-projection": "reviewed", "approve-projection": "approved", "retire-projection": "retired" })[action.dataset.action];
+            const title = ({ reviewed: "复核属性投影", approved: "批准属性投影", retired: "退役属性投影" })[nextStatus];
+            openActorDialog(title, async actor => {
+                await request(`/api/sync/attribute-projections/${encodeURIComponent(row.dataset.projection)}/review`, { method: "PUT", body: JSON.stringify({ status: nextStatus, actor }) });
+                toast(`${title}完成`);
+                await Promise.all([loadAttributeProjections(), loadMaterialization()]);
+            }); return;
         }
         if (action.dataset.action === "review-schema-change" || action.dataset.action === "approve-schema-change") {
             const row = action.closest("[data-schema-change]");
@@ -1078,6 +1213,7 @@
     });
     $("#schemaContractSelect").addEventListener("change", event => loadSchemaEvolution(event.currentTarget.value).catch(error => toast(error.message, true)));
     $("#newSchemaChange").addEventListener("click", () => openSchemaChangeDialog());
+    $("#newAttributeProjection").addEventListener("click", () => openAttributeProjectionDialog());
     $("#planMaterialization").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true;
         try {

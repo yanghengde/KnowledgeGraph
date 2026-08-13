@@ -39,6 +39,10 @@ from src.graphstudio_sync.schema_evolution import (
     apply_schema_change,
     rollback_schema_change,
 )
+from src.graphstudio_sync.attribute_projection import (
+    preview_attribute_projection,
+    validate_projection_definition,
+)
 
 
 router = APIRouter(prefix="/api/sync", tags=["Graph Studio Sync"])
@@ -209,6 +213,44 @@ class SchemaChangeCreate(BaseModel):
 
 class SchemaChangeReview(BaseModel):
     status: Literal["reviewed", "approved", "rejected"]
+    actor: str | None = Field(default=None, max_length=200)
+
+
+class AttributeProjectionFieldInput(BaseModel):
+    field_key: str = Field(min_length=1, max_length=300)
+    source_path: str = Field(min_length=3, max_length=400)
+    target_field: str = Field(min_length=1, max_length=200)
+    data_type: Literal["String", "Integer", "Float", "Boolean", "DateTime", "Date", "Navigation"] = "String"
+    required: bool = False
+    ontology_property: str | None = Field(default=None, max_length=500)
+    lifecycle_status: Literal["active", "deprecated", "retired"] = "active"
+    ordinal_position: int = Field(default=10, ge=0, le=100000)
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class AttributeProjectionUpdate(BaseModel):
+    target_contract_key: str = Field(min_length=1, max_length=300)
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=4000)
+    source_schema: str = Field(min_length=1, max_length=200)
+    source_table: str = Field(min_length=1, max_length=200)
+    source_alias: str = Field(default="src", min_length=1, max_length=80)
+    owner_mapping: list[dict[str, Any]] = Field(min_length=1, max_length=20)
+    join_plan: list[dict[str, Any]] = Field(default_factory=list, max_length=20)
+    row_filters: list[dict[str, Any]] = Field(default_factory=list, max_length=50)
+    cardinality: Literal["one", "many"] = "one"
+    multiple_match_policy: Literal["reject", "first", "latest", "array"] = "reject"
+    missing_policy: Literal["null", "quarantine", "reject"] = "null"
+    collision_policy: Literal["reject", "overwrite", "coalesce"] = "reject"
+    order_by: list[dict[str, Any]] = Field(default_factory=list, max_length=20)
+    preview_row_limit: int = Field(default=200, ge=1, le=10000)
+    enabled: bool = True
+    fields: list[AttributeProjectionFieldInput] = Field(min_length=1, max_length=200)
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class AttributeProjectionReview(BaseModel):
+    status: Literal["reviewed", "approved", "retired"]
     actor: str | None = Field(default=None, max_length=200)
 
 
@@ -605,6 +647,75 @@ def rollback_contract_schema_change(change_id: str, request: ActorRequest):
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Schema change request not found") from exc
     except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/profiles/{profile_key}/attribute-projections")
+def attribute_projections(profile_key: str):
+    return {"items": _repo().list_attribute_projections(profile_key)}
+
+
+@router.get("/attribute-projections/{projection_key}")
+def attribute_projection(projection_key: str):
+    try:
+        return _repo().attribute_projection(projection_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Attribute projection not found") from exc
+
+
+@router.put("/profiles/{profile_key}/attribute-projections/{projection_key}")
+def update_attribute_projection(
+    profile_key: str,
+    projection_key: str,
+    request: AttributeProjectionUpdate,
+):
+    repository = _repo()
+    try:
+        schema = repository.contract_schema(request.target_contract_key)
+        if schema["contract"]["profile_key"] != profile_key:
+            raise HTTPException(status_code=422, detail="Data contract does not belong to this graph profile")
+        payload = request.model_dump()
+        validation = validate_projection_definition(
+            payload,
+            payload["fields"],
+            {**schema["contract"], "fields": schema["fields"]},
+        )
+        if not validation["valid"]:
+            raise HTTPException(status_code=422, detail="；".join(validation["errors"]))
+        return repository.upsert_attribute_projection(
+            projection_key=projection_key,
+            profile_key=profile_key,
+            **payload,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Data contract not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/attribute-projections/{projection_key}/preview")
+def preview_projection(projection_key: str):
+    try:
+        return preview_attribute_projection(
+            _settings(), _repo(), projection_key=projection_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Attribute projection not found") from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Projection source preview failed: {exc}") from exc
+
+
+@router.put("/attribute-projections/{projection_key}/review")
+def review_projection(projection_key: str, request: AttributeProjectionReview):
+    try:
+        return _repo().review_attribute_projection(
+            projection_key, status=request.status, actor=request.actor,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Attribute projection not found") from exc
+    except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 

@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-8">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-10">
 </head>
 <body>
     <div class="app-shell">
@@ -156,6 +156,18 @@
                     </article>
                 </section>
 
+                <section class="page-section" data-section="projections">
+                    <div class="section-header">
+                        <div><span class="section-kicker">CONFIGURED ENRICHMENT</span><h2>属性投影</h2><p>把任意关联表中的字段合并到主本体对象。简单场景只需填写关联键与字段映射；多跳关联、过滤和排序可在高级配置中声明。</p></div>
+                        <button class="btn primary" id="newAttributeProjection">新增属性投影</button>
+                    </div>
+                    <div id="projectionSummary" class="capability-summary"></div>
+                    <article class="panel table-panel">
+                        <div class="panel-heading"><div><span class="section-kicker">PROJECTION CONTRACTS</span><h3>通用关联属性规则</h3></div><span id="projectionCount" class="count-badge">0</span></div>
+                        <div class="table-wrap"><table><thead><tr><th>目标对象</th><th>关联来源</th><th>关联层级</th><th>投影字段</th><th>多值策略</th><th>源预览</th><th>状态</th><th>操作</th></tr></thead><tbody id="projectionRows"></tbody></table></div>
+                    </article>
+                </section>
+
                 <section class="page-section" data-section="releases">
                     <div class="section-header">
                         <div><span class="section-kicker">CURATED RELEASES</span><h2>治理版本</h2><p>以不可变快照分批物化 Camstar 数据；验证通过后切换活动指针，回滚无需重扫源库。</p></div>
@@ -230,6 +242,6 @@
     </dialog>
 
     <div id="toast" class="toast" hidden></div>
-    <script src="/static/sync.js?v=20260813-8"></script>
+    <script src="/static/sync.js?v=20260813-10"></script>
 </body>
 </html>
