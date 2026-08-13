@@ -98,6 +98,52 @@ def test_materialization_plan_blocks_profile_scope_without_contracts() -> None:
     assert "发布关系缺少关系契约：Container.HAS_PRODUCT->Product" in plan["blockers"]
 
 
+def test_materialization_plan_ignores_retired_relationship_outside_active_scope() -> None:
+    governance = _governance(relationships=[{
+        "relationship_contract_key": "mfgorder-begin-product-v1",
+        "source_class": "MfgOrder",
+        "relationship_name": "BEGIN_PRODUCT",
+        "target_class": "Product",
+        "status": "retired",
+    }])
+
+    plan = build_materialization_plan(
+        governance,
+        [],
+        profile_key="core",
+        profile_relationships=[],
+    )
+
+    assert plan["ready"] is True
+    assert plan["relationships"] == []
+    assert not any("mfgorder-begin-product-v1" in item for item in plan["blockers"])
+
+
+def test_materialization_plan_still_blocks_unapproved_relationship_in_active_scope() -> None:
+    governance = _governance(relationships=[{
+        "relationship_contract_key": "container-product-v1",
+        "source_class": "Container",
+        "relationship_name": "HAS_PRODUCT",
+        "target_class": "Product",
+        "status": "draft",
+    }])
+
+    plan = build_materialization_plan(
+        governance,
+        [],
+        profile_key="core",
+        profile_relationships=[{
+            "source_class": "Container",
+            "relationship_name": "HAS_PRODUCT",
+            "target_class": "Product",
+            "enabled": True,
+        }],
+    )
+
+    assert plan["ready"] is False
+    assert "关系契约未批准：container-product-v1" in plan["blockers"]
+
+
 def test_physical_key_catalog_supplies_keys_not_exposed_as_ontology_properties() -> None:
     keys = _physical_key_catalog()["Container"]
 

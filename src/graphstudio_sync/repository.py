@@ -795,13 +795,32 @@ class ControlPlaneRepository:
                                configured.max_depth, configured.max_targets_per_source,
                                configured.enabled, configured.review_status,
                                configured.config,
-                               mapping.mapping_status, mapping.cardinality,
-                               mapping.source_property, mapping.physical_column
+                               COALESCE(
+                                   mapping.mapping_status,
+                                   CASE WHEN semantic_contract.relationship_contract_key IS NOT NULL
+                                        THEN 'resolved' ELSE 'unresolved' END
+                               ) AS mapping_status,
+                               mapping.cardinality,
+                               mapping.source_property,
+                               COALESCE(mapping.physical_column,
+                                        semantic_contract.source_columns->>0) AS physical_column
                         FROM graphsync.profile_relationship configured
                         LEFT JOIN graphsync.current_relationship_mapping mapping
                           ON mapping.source_class=configured.source_class
                          AND mapping.relationship_name=configured.relationship_name
                          AND mapping.target_class=configured.target_class
+                        LEFT JOIN graphsync.data_contract source_contract
+                          ON source_contract.profile_key=configured.profile_key
+                         AND source_contract.class_name=configured.source_class
+                        LEFT JOIN graphsync.data_contract target_contract
+                          ON target_contract.profile_key=configured.profile_key
+                         AND target_contract.class_name=configured.target_class
+                        LEFT JOIN graphsync.relationship_contract semantic_contract
+                          ON semantic_contract.profile_key=configured.profile_key
+                         AND semantic_contract.source_contract_key=source_contract.contract_key
+                         AND semantic_contract.relationship_name=configured.relationship_name
+                         AND semantic_contract.target_contract_key=target_contract.contract_key
+                         AND semantic_contract.status <> 'retired'
                         WHERE configured.profile_key=:profile_key
                         ORDER BY configured.source_class,
                                  configured.relationship_name, configured.target_class
@@ -843,23 +862,51 @@ class ControlPlaneRepository:
                 connection.execute(
                     text(
                         """
-                        SELECT mapping.source_class, mapping.relationship_name,
-                               mapping.target_class, mapping.cardinality,
-                               mapping.mapping_status, mapping.source_property,
-                               mapping.physical_column,
+                        WITH candidates AS (
+                            SELECT mapping.source_class, mapping.relationship_name,
+                                   mapping.target_class, mapping.cardinality,
+                                   mapping.mapping_status, mapping.source_property,
+                                   mapping.physical_column
+                            FROM graphsync.current_relationship_mapping mapping
+                            JOIN graphsync.profile_class source_class
+                              ON source_class.profile_key=:profile_key
+                             AND source_class.class_name=mapping.source_class
+                             AND source_class.enabled
+                            UNION ALL
+                            SELECT source.class_name, contract.relationship_name,
+                                   target.class_name, NULL::text, 'resolved', NULL::text,
+                                   contract.source_columns->>0
+                            FROM graphsync.relationship_contract contract
+                            JOIN graphsync.data_contract source
+                              ON source.contract_key=contract.source_contract_key
+                            JOIN graphsync.data_contract target
+                              ON target.contract_key=contract.target_contract_key
+                            JOIN graphsync.profile_class source_class
+                              ON source_class.profile_key=:profile_key
+                             AND source_class.class_name=source.class_name
+                             AND source_class.enabled
+                            WHERE contract.profile_key=:profile_key
+                              AND contract.status <> 'retired'
+                              AND NOT EXISTS (
+                                  SELECT 1 FROM graphsync.current_relationship_mapping mapping
+                                  WHERE mapping.source_class=source.class_name
+                                    AND mapping.relationship_name=contract.relationship_name
+                                    AND mapping.target_class=target.class_name
+                              )
+                        )
+                        SELECT candidates.source_class, candidates.relationship_name,
+                               candidates.target_class, candidates.cardinality,
+                               candidates.mapping_status, candidates.source_property,
+                               candidates.physical_column,
                                (configured.relationship_name IS NOT NULL) AS configured
-                        FROM graphsync.current_relationship_mapping mapping
-                        JOIN graphsync.profile_class source_class
-                          ON source_class.profile_key=:profile_key
-                         AND source_class.class_name=mapping.source_class
-                         AND source_class.enabled
+                        FROM candidates
                         LEFT JOIN graphsync.profile_relationship configured
                           ON configured.profile_key=:profile_key
-                         AND configured.source_class=mapping.source_class
-                         AND configured.relationship_name=mapping.relationship_name
-                         AND configured.target_class=mapping.target_class
-                        ORDER BY configured DESC, mapping.source_class,
-                                 mapping.relationship_name, mapping.target_class
+                         AND configured.source_class=candidates.source_class
+                         AND configured.relationship_name=candidates.relationship_name
+                         AND configured.target_class=candidates.target_class
+                        ORDER BY configured DESC, candidates.source_class,
+                                 candidates.relationship_name, candidates.target_class
                         """
                     ),
                     {"profile_key": profile_key},
@@ -968,6 +1015,18 @@ class ControlPlaneRepository:
                         WHERE source_class=:source_class
                           AND relationship_name=:relationship_name
                           AND target_class=:target_class
+                        UNION ALL
+                        SELECT 1
+                        FROM graphsync.relationship_contract contract
+                        JOIN graphsync.data_contract source
+                          ON source.contract_key=contract.source_contract_key
+                        JOIN graphsync.data_contract target
+                          ON target.contract_key=contract.target_contract_key
+                        WHERE contract.profile_key=:profile_key
+                          AND source.class_name=:source_class
+                          AND contract.relationship_name=:relationship_name
+                          AND target.class_name=:target_class
+                          AND contract.status <> 'retired'
                     )
                     """
                 ),

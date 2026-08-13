@@ -365,8 +365,20 @@ def build_curation_preview(
     """Run bounded quality gates and record evidence without materializing rows."""
 
     bundle = repository.governance_profile(profile_key)
-    contracts = bundle["contracts"]
-    relationships = bundle["relationships"]
+    profile = repository.graph_profile(profile_key)
+    active_classes = {
+        item["class_name"] for item in profile.get("classes", []) if item.get("enabled", True)
+    }
+    active_relationships = {
+        (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
+        for item in profile.get("relationships", []) if item.get("enabled", True)
+    }
+    contracts = [item for item in bundle["contracts"] if item.get("class_name") in active_classes]
+    relationships = [
+        item for item in bundle["relationships"]
+        if (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
+        in active_relationships
+    ]
     if not contracts:
         raise RuntimeError(f"No data contracts configured for business graph profile: {profile_key}")
     run_id = uuid.uuid4()

@@ -112,6 +112,9 @@ def build_materialization_plan(
     relationships = list(governance.get("relationships") or [])
     governed_classes = [item for item in profile_classes if item.get("enabled", True)]
     governed_relationships = [item for item in profile_relationships if item.get("enabled", True)]
+    if governed_classes:
+        governed_class_names = {item.get("class_name") for item in governed_classes}
+        contracts = [item for item in contracts if item.get("class_name") in governed_class_names]
     latest = governance.get("latestRun")
     blockers: list[str] = []
     if not contracts:
@@ -124,6 +127,10 @@ def build_materialization_plan(
         (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
         for item in relationships
     }
+    governed_relationship_identities = {
+        (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
+        for item in governed_relationships
+    }
     for item in governed_relationships:
         identity = (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
         if identity not in contract_relationships:
@@ -131,6 +138,14 @@ def build_materialization_plan(
                 "发布关系缺少关系契约："
                 f"{item.get('source_class')}.{item.get('relationship_name')}->{item.get('target_class')}"
             )
+    # Relationship contracts are versioned and retained for audit.  A retired or
+    # historical contract outside the active profile must not block, nor leak
+    # into, the current data release.
+    relationships = [
+        item for item in relationships
+        if (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
+        in governed_relationship_identities
+    ]
     for contract in contracts:
         if contract.get("status") != "approved":
             blockers.append(f"数据契约未批准：{contract['contract_key']}")

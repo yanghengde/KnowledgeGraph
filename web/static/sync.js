@@ -31,6 +31,8 @@
         closurePlan: null,
         governance: { contracts: [], relationships: [], latestRun: null, qualityResults: [] },
         governanceExceptionFilter: "all",
+        mappingScopeMode: "release",
+        advancedGovernanceMode: "guided",
         contractCandidates: { classes: [], relationships: [] },
         contractSchema: null,
         schemaChanges: [],
@@ -203,6 +205,11 @@
     }
 
     function navigateToSection(section, focusId = null) {
+        const expertFocusIds = new Set(["profileBoundaryPanel", "schemaFieldPanel", "schemaChangePanel", "objectRolePanel", "relationshipScopePanel", "governanceValidationPanel"]);
+        if (section === "governance_advanced" && focusId && expertFocusIds.has(focusId)) {
+            state.advancedGovernanceMode = "expert";
+            renderAdvancedGovernanceMode();
+        }
         setActiveSection(section);
         window.requestAnimationFrame(() => {
             if (!focusId) {
@@ -328,6 +335,37 @@
             return source && target && name && !governedRelationships.has(ontologyRelationKey(source, name, target));
         });
         return { governedClasses, governedRelationships, missingClasses, missingRelationships };
+    }
+
+    function activeGovernanceRelationshipKeys() {
+        const keys = new Set((state.activeProfile?.relationships || [])
+            .filter(item => item.enabled)
+            .map(item => ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
+        (state.ontologyGovernance?.activeReleaseGraph?.relationships || []).forEach(item => {
+            const source = item.source?.targetName || item.source?.sourceClass;
+            const target = item.target?.targetName || item.target?.sourceClass;
+            const name = item.relation?.targetName || item.relation?.sourceRelationship;
+            if (source && target && name) keys.add(ontologyRelationKey(source, name, target));
+        });
+        return keys;
+    }
+
+    function scopedMappingItems() {
+        const catalog = state.mappings?.catalog || {};
+        const allProperties = catalog.unresolvedProperties || [];
+        const allRelationships = catalog.relationshipReview || [];
+        if (state.mappingScopeMode === "all") {
+            return { properties: allProperties, relationships: allRelationships, allProperties, allRelationships };
+        }
+        const classes = activeOntologyClassNames();
+        (state.activeProfile?.classes || []).filter(item => item.enabled).forEach(item => classes.add(item.class_name));
+        const relationshipKeys = activeGovernanceRelationshipKeys();
+        return {
+            properties: allProperties.filter(item => classes.has(item.className)),
+            relationships: allRelationships.filter(item => relationshipKeys.has(ontologyRelationKey(item.sourceClass, item.relationshipName, item.targetClass))),
+            allProperties,
+            allRelationships,
+        };
     }
 
     function renderOntologyResultSummary() {
@@ -1211,18 +1249,24 @@
     function renderMappings() {
         const catalog = state.mappings?.catalog || {};
         const snapshot = catalog.snapshot || {};
+        const scoped = scopedMappingItems();
+        const scopeLabel = state.mappingScopeMode === "release" ? "本次治理" : "全部本体";
+        if ($("#mappingScopeControls")) {
+            $("#mappingScopeControls").innerHTML = [["release", "本次治理"], ["all", "全部本体（专家）"]].map(([key, label]) => `<button class="mini-btn ${state.mappingScopeMode === key ? "active" : ""}" data-action="set-mapping-scope" data-scope="${key}">${label}</button>`).join("");
+            $("#mappingScopeSummary").innerHTML = `<strong>${scopeLabel}范围：</strong> 当前只需处理 ${scoped.properties.length} 个属性、${scoped.relationships.length} 条关系。${state.mappingScopeMode === "release" ? `全库另有 ${scoped.allProperties.length - scoped.properties.length} 个属性、${scoped.allRelationships.length - scoped.relationships.length} 条关系例外，已收进专家视图。` : "当前显示全库编译例外，适合平台管理员集中维护。"}`;
+        }
         $("#mappingMetrics").innerHTML = [
-            ["本体类", snapshot.ontology_class_count ?? "—", `${snapshot.physical_table_count ?? 0} 张表已匹配`],
-            ["本体属性", snapshot.ontology_property_count ?? "—", `${(snapshot.ontology_property_count || 0) - (catalog.unresolvedProperties?.length || 0)} 个已映射`],
-            ["本体关系", snapshot.relationship_count ?? "—", `${catalog.relationshipStatus?.resolved || 0} 条已解析物理关联`],
-            ["映射覆盖率", snapshot.mapping_coverage != null ? `${Number(snapshot.mapping_coverage).toFixed(2)}%` : "—", `${catalog.unresolvedProperties?.length || 0} 个待确认`],
+            ["当前范围", scopeLabel, `${activeOntologyClassNames().size || state.activeProfile?.classes?.length || 0} 个发布对象`],
+            ["待确认属性", scoped.properties.length, state.mappingScopeMode === "release" ? "只统计本次治理对象" : "全库例外"],
+            ["待确认关系", scoped.relationships.length, state.mappingScopeMode === "release" ? "只统计本次发布关系" : "全库例外"],
+            ["全库覆盖率", snapshot.mapping_coverage != null ? `${Number(snapshot.mapping_coverage).toFixed(2)}%` : "—", `${snapshot.physical_table_count ?? 0} 张物理表已匹配`],
         ].map(([label, value, note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
-        const unmapped = catalog.unresolvedProperties || [];
+        const unmapped = scoped.properties;
         $("#unmappedCount").textContent = unmapped.length;
         $("#mappingRows").innerHTML = unmapped.map(item => `
             <tr data-property-key="${escapeHtml(`${item.className}|${item.propertyName}`)}"><td>${escapeHtml(item.className)}</td><td>${escapeHtml(item.propertyName)}</td><td>${escapeHtml(item.dataType)}</td><td>${escapeHtml(item.sourceFieldId || "—")}</td><td><span class="status-pill unknown">待确认</span></td><td><button class="mini-btn" data-action="override-property">处理</button></td></tr>
         `).join("") || '<tr class="empty-row"><td colspan="6">全部属性映射已确认</td></tr>';
-        const relationships = catalog.relationshipReview || [];
+        const relationships = scoped.relationships;
         $("#relationshipReviewCount").textContent = relationships.length;
         $("#relationshipRows").innerHTML = relationships.map(item => `
             <tr data-relationship-key="${escapeHtml(`${item.sourceClass}|${item.relationshipName}|${item.targetClass}`)}"><td>${escapeHtml(item.sourceClass)}</td><td>${escapeHtml(item.relationshipName)}</td><td>${escapeHtml(item.targetClass)}</td><td><span class="status-pill unknown">${item.mappingStatus === "ambiguous" ? "多候选" : "未解析"}</span></td><td title="${escapeHtml((item.candidateProperties || []).join(', '))}">${escapeHtml((item.candidateProperties || []).join(', ') || "—")}</td><td><button class="mini-btn" data-action="override-relationship">选择属性</button></td></tr>
@@ -1251,20 +1295,17 @@
             const key = `${item.severity}|${item.message}`;
             if (seen.has(key)) return;
             seen.add(key);
-            items.push({ id: `exception-${items.length + 1}`, ...item });
+            items.push({ id: `exception-${items.length + 1}`, scope: "当前发布范围", priority: 50, ...item });
         };
         const drift = ontologyGovernanceDrift();
         if (drift.missingClasses.length || drift.missingRelationships.length) {
-            add({ severity: "warning", category: "scope", title: "活动本体与数据治理范围不一致", message: `缺少 ${drift.missingClasses.length} 个对象、${drift.missingRelationships.length} 条关系`, action: "sync-ontology-to-data-governance", actionLabel: "按活动本体补齐" });
+            add({ severity: "blocker", category: "scope", priority: 10, title: "先对齐活动本体范围", message: `本次发布缺少 ${drift.missingClasses.length} 个对象、${drift.missingRelationships.length} 条关系`, action: "sync-ontology-to-data-governance", actionLabel: "自动补齐范围" });
         }
-        (state.materialization?.plan?.blockers || []).forEach(message => add({ severity: "blocker", category: "gate", title: "数据版本发布门禁", message, ...governanceExceptionDestination(message) }));
-        const failedQuality = (state.governance?.qualityResults || []).filter(item => !item.passed);
-        failedQuality.forEach(item => add({ severity: "warning", category: "quality", title: "质量规则证据", message: item.message, route: "governance_advanced", focus: "qualityEvidencePanel", actionLabel: "查看证据" }));
-        const unmapped = state.mappings?.catalog?.unresolvedProperties?.length || 0;
-        const relationshipMapping = state.mappings?.catalog?.relationshipReview?.length || 0;
-        if (unmapped) add({ severity: "warning", category: "mapping", title: "存在属性映射例外", message: `${unmapped} 个属性需要人工确认`, route: "mappings", focus: "propertyMappingPanel", actionLabel: "处理属性映射" });
-        if (relationshipMapping) add({ severity: "warning", category: "mapping", title: "存在关系映射例外", message: `${relationshipMapping} 条关系需要人工确认`, route: "mappings", focus: "relationshipMappingPanel", actionLabel: "处理关系映射" });
-        return items;
+        (state.materialization?.plan?.blockers || []).forEach((message, index) => add({ severity: "blocker", category: "gate", priority: 20 + index, title: "数据版本发布门禁", message, ...governanceExceptionDestination(message) }));
+        const mappingScope = scopedMappingItems();
+        if (mappingScope.properties.length) add({ severity: "warning", category: "mapping", priority: 70, title: "本次治理存在属性映射例外", message: `${mappingScope.properties.length} 个发布属性需要人工确认`, route: "mappings", focus: "propertyMappingPanel", actionLabel: "处理属性映射" });
+        if (mappingScope.relationships.length) add({ severity: "warning", category: "mapping", priority: 71, title: "本次治理存在关系映射例外", message: `${mappingScope.relationships.length} 条发布关系需要人工确认`, route: "mappings", focus: "relationshipMappingPanel", actionLabel: "处理关系映射" });
+        return items.sort((left, right) => left.priority - right.priority);
     }
 
     function quickGovernanceSteps() {
@@ -1273,6 +1314,10 @@
         const profileRelationships = state.activeProfile?.relationships || [];
         const contracts = state.governance?.contracts || [];
         const relationshipContracts = state.governance?.relationships || [];
+        const enabledClassNames = new Set(classes.filter(item => item.enabled).map(item => item.class_name));
+        const enabledRelationshipKeys = new Set(profileRelationships.filter(item => item.enabled).map(item => ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
+        const scopedContracts = contracts.filter(item => enabledClassNames.has(item.class_name));
+        const scopedRelationshipContracts = relationshipContracts.filter(item => enabledRelationshipKeys.has(ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
         const contractClasses = new Set(contracts.map(item => item.class_name));
         const missingContracts = classes.filter(item => item.enabled && !contractClasses.has(item.class_name));
         const contractRelationships = new Set(relationshipContracts.map(item => ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
@@ -1282,8 +1327,8 @@
         const recommendationsReady = contractCoverageReady && classes.length > 0
             && classes.every(item => !item.enabled || item.review_status === "approved")
             && profileRelationships.every(item => !item.enabled || item.review_status === "approved")
-            && contracts.every(item => item.status === "approved")
-            && relationshipContracts.every(item => item.status === "approved");
+            && scopedContracts.every(item => item.status === "approved")
+            && scopedRelationshipContracts.every(item => item.status === "approved");
         const exceptions = collectGovernanceExceptions();
         const blockers = exceptions.filter(item => item.severity === "blocker");
         const previewReady = Boolean(state.governance?.latestRun?.publishable);
@@ -1313,7 +1358,13 @@
         ].map(([label, value, note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
         $("#quickGovernanceProgress").textContent = `${completed}/4 完成`;
         $("#quickGovernanceProgress").classList.toggle("approved", completed === steps.length);
-        $("#quickGovernanceTasks").innerHTML = steps.map((item, index) => `<div class="quick-task ${item.complete ? "complete" : "current"}"><i>${item.complete ? "✓" : index + 1}</i><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.note)}</small></div>${item.complete ? '<span class="status-pill online">已完成</span>' : `<button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.go}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(item.actionLabel)}</button>`}</div>`).join("");
+        const currentStepIndex = steps.findIndex(item => !item.complete);
+        $("#quickGovernanceTasks").innerHTML = steps.map((item, index) => `<div class="quick-task ${item.complete ? "complete" : index === currentStepIndex ? "current" : "queued"}"><i>${item.complete ? "✓" : index + 1}</i><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.note)}</small></div>${item.complete ? '<span class="status-pill online">已完成</span>' : index === currentStepIndex ? `<button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.go}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(item.actionLabel)}</button>` : '<span class="status-pill">排队中</span>'}</div>`).join("");
+        const currentBlocker = blockers[0];
+        $("#quickCurrentBlocker").classList.toggle("clear", !currentBlocker);
+        $("#quickCurrentBlocker").innerHTML = currentBlocker
+            ? `<div class="current-issue-index"><span>当前阻断</span><strong>1 / ${blockers.length}</strong></div><div class="current-issue-copy"><span>${escapeHtml(currentBlocker.scope)}</span><strong>${escapeHtml(currentBlocker.title)}</strong><p>${escapeHtml(currentBlocker.message)}</p></div><button class="btn primary" ${currentBlocker.action ? `data-action="${currentBlocker.action}"` : `data-go="${currentBlocker.route}"${currentBlocker.focus ? ` data-focus="${currentBlocker.focus}"` : ""}`}>${escapeHtml(currentBlocker.actionLabel || "立即处理")}</button>`
+            : '<div class="current-issue-index"><span>发布门禁</span><strong>✓</strong></div><div class="current-issue-copy"><strong>当前没有发布阻断</strong><p>可以继续运行预检；映射提醒不会和发布阻断混在一起。</p></div><button class="btn secondary" data-action="run-quick-governance-preview">运行预检</button>';
         const next = steps.find(item => !item.complete);
         $("#quickGovernanceNext").innerHTML = next ? `<div class="quick-next-card"><span>下一步</span><strong>${escapeHtml(next.title)}</strong><p>${escapeHtml(next.note)}</p><button class="btn primary" ${next.action ? `data-action="${next.action}"` : `data-go="${next.go}"${next.focus ? ` data-focus="${next.focus}"` : ""}`}>${escapeHtml(next.actionLabel)}</button><button class="text-btn" data-go="governance_advanced">需要自定义？进入高级治理</button></div>` : '<div class="quick-next-card complete"><span>治理完成</span><strong>可以生成数据版本</strong><p>所有快速治理步骤均已完成。</p><button class="btn primary" data-go="releases">进入发布中心</button></div>';
         const classDetails = new Map((state.activeProfile?.classes || []).map(item => [item.class_name, item]));
@@ -1335,11 +1386,36 @@
         const blockers = items.filter(item => item.severity === "blocker").length;
         const warnings = items.filter(item => item.severity === "warning").length;
         const autoResolvable = items.filter(item => item.action === "sync-ontology-to-data-governance" || /未批准|尚未批准|仍为草案/.test(item.message)).length;
+        const failedEvidence = (state.governance?.qualityResults || []).filter(item => !item.passed).length;
         $("#governanceExceptionMetrics").innerHTML = [
-            ["发布阻断", blockers, "来自真实物化门禁"], ["治理提醒", warnings, "不一定阻止发布"], ["可自动处理", autoResolvable, "可采用安全推荐"], ["全部事项", items.length, "已按消息去重"],
+            ["当前阻断", blockers ? "1" : "0", blockers ? `其余 ${Math.max(0, blockers - 1)} 项已排队` : "没有阻止发布的问题"], ["阻断队列", blockers, "与快速治理完全一致"], ["治理提醒", warnings, "不计入发布阻断"], ["质量证据", failedEvidence, "作为证据，不重复生成异常"],
         ].map(([label, value, note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
         $("#governanceExceptionFilters").innerHTML = [["all", `全部 ${items.length}`], ["blocker", `阻断 ${blockers}`], ["warning", `提醒 ${warnings}`]].map(([key, label]) => `<button class="mini-btn ${filter === key ? "active" : ""}" data-action="filter-governance-exceptions" data-filter="${key}">${label}</button>`).join("");
-        $("#governanceExceptionList").innerHTML = visible.map(item => `<div class="governance-exception ${item.severity}"><span>${item.severity === "blocker" ? "阻断" : "提醒"}</span><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)}</small></div><button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.route}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(item.actionLabel || "处理")}</button></div>`).join("") || '<div class="exception-empty"><strong>当前筛选下没有异常</strong><span>可以运行发布预检确认最新状态。</span></div>';
+        const current = items.find(item => item.severity === "blocker") || items[0];
+        $("#governanceCurrentIssue").classList.toggle("clear", !current);
+        $("#governanceCurrentIssue").innerHTML = current
+            ? `<div class="current-issue-index"><span>${current.severity === "blocker" ? "当前阻断" : "当前提醒"}</span><strong>${current.severity === "blocker" ? `1 / ${blockers}` : "1"}</strong></div><div class="current-issue-copy"><span>${escapeHtml(current.scope)}</span><strong>${escapeHtml(current.title)}</strong><p>${escapeHtml(current.message)}</p></div><button class="btn primary" ${current.action ? `data-action="${current.action}"` : `data-go="${current.route}"${current.focus ? ` data-focus="${current.focus}"` : ""}`}>${escapeHtml(current.actionLabel || "立即处理")}</button>`
+            : '<div class="current-issue-index"><span>处理队列</span><strong>✓</strong></div><div class="current-issue-copy"><strong>当前发布范围没有待处理事项</strong><p>异常中心和快速治理已使用同一统计口径。</p></div>';
+        let blockerIndex = 0;
+        $("#governanceExceptionList").innerHTML = visible.map(item => {
+            if (item.severity === "blocker") blockerIndex += 1;
+            const isCurrent = item.id === current?.id;
+            return `<div class="governance-exception ${item.severity} ${isCurrent ? "current" : ""}"><span>${isCurrent ? "当前" : item.severity === "blocker" ? `排队 ${blockerIndex}` : "提醒"}</span><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)} · ${escapeHtml(item.scope)}</small></div><button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.route}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(isCurrent ? item.actionLabel || "立即处理" : "查看")}</button></div>`;
+        }).join("") || '<div class="exception-empty"><strong>当前筛选下没有异常</strong><span>可以运行发布预检确认最新状态。</span></div>';
+    }
+
+    function renderAdvancedGovernanceMode() {
+        const section = $('.page-section[data-section="governance_advanced"]');
+        if (!section || !$("#advancedModeControls")) return;
+        const expert = state.advancedGovernanceMode === "expert";
+        section.classList.toggle("guided-mode", !expert);
+        section.classList.toggle("expert-mode", expert);
+        $("#advancedModeControls").innerHTML = [["guided", "任务视图"], ["expert", "专家配置"]]
+            .map(([key, label]) => `<button class="mini-btn ${state.advancedGovernanceMode === key ? "active" : ""}" data-action="set-advanced-governance-mode" data-mode="${key}">${label}</button>`).join("");
+        const issues = collectGovernanceExceptions().slice(0, 5);
+        $("#advancedGovernanceGuide").innerHTML = expert
+            ? '<div class="advanced-guide-copy"><span>专家配置</span><strong>已展开全部高级设置</strong><p>对象边界、字段版本、Schema 变更、关系扩展与底层校验均可直接编辑。</p></div><button class="btn secondary" data-action="set-advanced-governance-mode" data-mode="guided">返回任务视图</button>'
+            : `<div class="panel-heading"><div><span class="section-kicker">GUIDED TASKS</span><h3>只处理当前发布所需配置</h3></div><span class="count-badge">${issues.length} 项</span></div><div class="advanced-guide-list">${issues.map((item, index) => `<div><i>${index + 1}</i><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)}</small></span><button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.route}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(index ? "查看" : item.actionLabel || "处理")}</button></div>`).join("") || '<div class="advanced-guide-empty">当前没有必须人工处理的配置，可以返回快速治理运行预检。</div>'}</div>`;
     }
 
     function renderGraphProfile() {
@@ -1360,7 +1436,7 @@
             ["核心对象", roleCounts.core, "种子与主要业务实体"],
             ["上下文对象", roleCounts.context, "补齐业务语义"],
             ["可扩展关系", relationships.filter(item => item.enabled && item.traverse).length, "弱关联不参与扩展"],
-            ["待处理问题", issues.length, `${issues.filter(item => item.severity === "error").length} 个阻断项`],
+            ["范围配置问题", issues.length, "仅统计对象与关系边界配置"],
         ].map(([label, value, note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
         const closure = state.closurePlan;
         $("#profileBoundary").innerHTML = `
@@ -1382,6 +1458,7 @@
         renderGovernance();
         renderQuickGovernance();
         renderGovernanceExceptions();
+        renderAdvancedGovernanceMode();
     }
 
     function reviewLabel(value) {
@@ -1392,6 +1469,10 @@
         const governance = state.governance || {};
         const contracts = governance.contracts || [];
         const relationships = governance.relationships || [];
+        const activeRelationshipKeys = new Set((state.activeProfile?.relationships || []).filter(item => item.enabled).map(item => ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
+        const visibleRelationships = state.advancedGovernanceMode === "expert"
+            ? relationships
+            : relationships.filter(item => activeRelationshipKeys.has(ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
         const latest = governance.latestRun;
         const gate = $("#curationPublishable");
         gate.className = `count-badge ${latest?.publishable ? "approved" : ""}`;
@@ -1401,7 +1482,7 @@
         `).join("") || '<tr class="empty-row"><td colspan="7">尚未配置数据契约</td></tr>';
         const missingContracts = state.contractCandidates?.classes || [];
         $("#missingDataContracts").innerHTML = missingContracts.map(item => `<div class="missing-contract-item"><div><strong>${escapeHtml(item.class_name)} 缺少数据契约</strong><small>${escapeHtml(`${item.physical_schema}.${item.physical_table}`)} · ${item.properties.length} 个已解析字段；需要确认主键和发布字段后才能生成数据版本。</small></div><button class="mini-btn" data-action="create-data-contract" data-class-name="${escapeHtml(item.class_name)}">创建契约</button></div>`).join("");
-        $("#relationshipContractRows").innerHTML = relationships.map(item => `
+        $("#relationshipContractRows").innerHTML = visibleRelationships.map(item => `
             <tr data-relationship-contract="${escapeHtml(item.relationship_contract_key)}"><td><strong>${escapeHtml(item.relationship_name)}</strong><br><small>v${item.version}</small></td><td>${escapeHtml(item.semantic_role)}</td><td>${escapeHtml((item.source_columns || []).join(", "))}</td><td>${escapeHtml(item.target_class)}.${escapeHtml((item.target_columns || []).join(", "))}</td><td>${item.required_context ? '<span class="status-pill online">必需</span>' : '<span class="status-pill">可选</span>'}</td><td><span class="status-pill ${item.status === "approved" ? "online" : "unknown"}">${escapeHtml(reviewLabel(item.status))}</span></td><td><button class="mini-btn" data-action="edit-relationship-contract">配置</button></td></tr>
         `).join("") || '<tr class="empty-row"><td colspan="7">尚未配置关系契约</td></tr>';
         const missingRelationshipContracts = state.contractCandidates?.relationships || [];
@@ -1412,8 +1493,9 @@
             return `<div class="missing-contract-item"><div><strong>${escapeHtml(`${item.source_class}.${item.relationship_name} → ${item.target_class}`)} 缺少关系契约</strong><small>${escapeHtml(detail)}</small></div>${ready ? `<button class="mini-btn" data-action="create-relationship-contract" data-relationship-key="${escapeHtml(relationshipKey)}">创建契约</button>` : `<button class="mini-btn" data-go="${item.mapping_status !== "resolved" ? "mappings" : "governance_advanced"}" data-focus="${item.mapping_status !== "resolved" ? `relationship:${escapeHtml(relationshipKey)}` : "dataContractPanel"}">${item.mapping_status !== "resolved" ? "处理映射" : "创建对象契约"}</button>`}</div>`;
         }).join("");
         const results = governance.qualityResults || [];
-        $("#qualityResultCount").textContent = latest ? `${results.filter(item => !item.passed).length} 项未通过` : "0";
-        $("#qualityResults").innerHTML = results.map(item => `<div class="profile-issue ${!item.passed && item.severity === "error" ? "error" : ""}"><span>${item.passed ? "通过" : item.severity === "error" ? "阻断" : "提醒"}</span><strong>${escapeHtml(item.message)}</strong><small>${Number(item.failed_rows || 0).toLocaleString()}/${Number(item.checked_rows || 0).toLocaleString()} · ${escapeHtml(item.rule_key)}</small></div>`).join("") || '<div class="profile-empty">运行治理预览后显示质量证据</div>';
+        const visibleResults = state.advancedGovernanceMode === "expert" ? results : results.filter(item => !item.passed);
+        $("#qualityResultCount").textContent = latest ? `${results.filter(item => !item.passed).length} 项未通过${state.advancedGovernanceMode === "expert" ? "" : " · 仅显示失败"}` : "0";
+        $("#qualityResults").innerHTML = visibleResults.map(item => `<div class="profile-issue ${!item.passed && item.severity === "error" ? "error" : ""}"><span>${item.passed ? "通过" : item.severity === "error" ? "阻断" : "提醒"}</span><strong>${escapeHtml(item.message)}</strong><small>${Number(item.failed_rows || 0).toLocaleString()}/${Number(item.checked_rows || 0).toLocaleString()} · ${escapeHtml(item.rule_key)}</small></div>`).join("") || '<div class="profile-empty">运行治理预览后显示质量证据</div>';
         renderSchemaEvolution();
         renderReleaseStatus();
     }
@@ -2230,6 +2312,8 @@
         try {
             await loadNavigation();
             await Promise.all([loadConnections(), loadOntologyGovernance(), loadOntologyDiscoverySourceGraph(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadAttributeProjections(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
+            renderMappings();
+            renderAdvancedGovernanceMode();
             await loadOverview();
         } catch (error) {
             setAlert(`同步中心加载失败：${error.message}`);
@@ -2353,7 +2437,10 @@
                 });
                 updated += 1;
             }
+            const activeClasses = new Set((state.activeProfile.classes || []).filter(item => item.enabled).map(item => item.class_name));
+            const activeRelationships = new Set((state.activeProfile.relationships || []).filter(item => item.enabled).map(item => ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
             for (const item of state.governance.contracts || []) {
+                if (!activeClasses.has(item.class_name)) continue;
                 if (item.status === "approved") continue;
                 await request(`/api/sync/data-contracts/${encodeURIComponent(item.contract_key)}`, {
                     method: "PUT",
@@ -2362,6 +2449,7 @@
                 updated += 1;
             }
             for (const item of state.governance.relationships || []) {
+                if (!activeRelationships.has(ontologyRelationKey(item.source_class, item.relationship_name, item.target_class))) continue;
                 if (item.status === "approved") continue;
                 await request(`/api/sync/relationship-contracts/${encodeURIComponent(item.relationship_contract_key)}`, {
                     method: "PUT",
@@ -2379,9 +2467,11 @@
 
     function openGovernanceRecommendationDialog() {
         const drift = ontologyGovernanceDrift();
+        const activeClassNames = new Set((state.activeProfile?.classes || []).filter(item => item.enabled).map(item => item.class_name));
+        const activeRelationshipKeys = new Set((state.activeProfile?.relationships || []).filter(item => item.enabled).map(item => ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
         const pendingClasses = (state.activeProfile?.classes || []).filter(item => item.enabled && item.review_status !== "approved").length;
-        const pendingContracts = (state.governance?.contracts || []).filter(item => item.status !== "approved").length;
-        const pendingRelationships = (state.governance?.relationships || []).filter(item => item.status !== "approved").length;
+        const pendingContracts = (state.governance?.contracts || []).filter(item => activeClassNames.has(item.class_name) && item.status !== "approved").length;
+        const pendingRelationships = (state.governance?.relationships || []).filter(item => activeRelationshipKeys.has(ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)) && item.status !== "approved").length;
         const contractClasses = new Set((state.governance?.contracts || []).map(item => item.class_name));
         const missingContracts = (state.activeProfile?.classes || []).filter(item => item.enabled && !contractClasses.has(item.class_name)).length;
         $("#dialogTitle").textContent = "采用治理推荐配置";
@@ -2416,6 +2506,19 @@
         if (action.dataset.action === "filter-governance-exceptions") {
             state.governanceExceptionFilter = action.dataset.filter || "all";
             renderGovernanceExceptions();
+            return;
+        }
+        if (action.dataset.action === "set-mapping-scope") {
+            state.mappingScopeMode = action.dataset.scope === "all" ? "all" : "release";
+            renderMappings();
+            toast(state.mappingScopeMode === "release" ? "已只显示本次治理范围的映射例外" : "已进入全库映射专家视图");
+            return;
+        }
+        if (action.dataset.action === "set-advanced-governance-mode") {
+            state.advancedGovernanceMode = action.dataset.mode === "expert" ? "expert" : "guided";
+            renderGovernance();
+            renderAdvancedGovernanceMode();
+            toast(state.advancedGovernanceMode === "expert" ? "已展开专家配置" : "已返回任务视图");
             return;
         }
         if (action.dataset.action === "create-data-contract") {
