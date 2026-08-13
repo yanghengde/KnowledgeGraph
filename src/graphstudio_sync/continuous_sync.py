@@ -23,6 +23,7 @@ def continuous_sync_status(
     job_name: str,
     profile_key: str,
     environment_key: str,
+    route_key: str | None = None,
 ) -> dict[str, Any]:
     jobs = {item["job_name"]: item for item in repository.list_jobs()}
     job = jobs.get(job_name)
@@ -31,7 +32,9 @@ def continuous_sync_status(
     materialization = materialization_status(repository, profile_key)
     deployments = deployment_status(repository, profile_key)
     environment = next(
-        (item for item in deployments["environments"] if item["environment_key"] == environment_key),
+        (item for item in deployments["routes"]
+         if (route_key and item["route_key"] == route_key)
+         or (not route_key and item["environment_key"] == environment_key)),
         None,
     )
     if environment is None:
@@ -70,7 +73,8 @@ def continuous_sync_status(
     if not environment.get("apply_enabled"):
         blockers.append(f"{environment['title']} 的 Graph Studio 写入开关未启用")
     latest_deployment = next(
-        (item for item in deployments["deployments"] if item["environment_key"] == environment_key),
+        (item for item in deployments["deployments"]
+         if item.get("route_key") == environment["route_key"]),
         None,
     )
     return {
@@ -98,6 +102,7 @@ def _execute_continuous_sync_unlocked(
     job_name: str,
     profile_key: str,
     environment_key: str = "dev",
+    route_key: str | None = None,
     actor: str | None = "scheduler",
     apply: bool = False,
 ) -> dict[str, Any]:
@@ -108,7 +113,7 @@ def _execute_continuous_sync_unlocked(
         drift = scan_schema_drift(settings, repository, profile_key=profile_key)
     before = continuous_sync_status(
         repository, job_name=job_name, profile_key=profile_key,
-        environment_key=environment_key,
+        environment_key=environment_key, route_key=route_key,
     )
     if not apply:
         return {"ok": True, "previewOnly": True, "status": before}
@@ -143,7 +148,7 @@ def _execute_continuous_sync_unlocked(
         )
     existing = next((
         item for item in after_materialization["deployments"]
-        if item["environment_key"] == environment_key
+        if item.get("route_key") == before["environment"]["route_key"]
         and str(item["curated_release_id"]) == str(materialized["releaseId"])
         and str(item.get("ontology_release_id")) == str(pinned_ontology["ontology_release_id"])
         and item["status"] == "active"
@@ -153,6 +158,7 @@ def _execute_continuous_sync_unlocked(
     else:
         prepared = create_deployment(
             repository, profile_key=profile_key, environment_key=environment_key,
+            route_key=before["environment"]["route_key"],
             release_id=uuid.UUID(materialized["releaseId"]), actor=actor,
         )
         if prepared["status"] != "approved":
@@ -186,6 +192,7 @@ def execute_continuous_sync(
     job_name: str,
     profile_key: str,
     environment_key: str = "dev",
+    route_key: str | None = None,
     actor: str | None = "scheduler",
     apply: bool = False,
 ) -> dict[str, Any]:
@@ -193,8 +200,9 @@ def execute_continuous_sync(
         return _execute_continuous_sync_unlocked(
             settings, repository, job_name=job_name, profile_key=profile_key,
             environment_key=environment_key, actor=actor, apply=False,
+            route_key=route_key,
         )
-    lock_name = f"graphsync:continuous:{job_name}:{environment_key}"
+    lock_name = f"graphsync:continuous:{job_name}:{route_key or environment_key}"
     with repository.engine.connect() as lock_connection:
         acquired = lock_connection.execute(
             text("SELECT pg_try_advisory_lock(hashtextextended(:name, 0))"),
@@ -206,6 +214,7 @@ def execute_continuous_sync(
             return _execute_continuous_sync_unlocked(
                 settings, repository, job_name=job_name, profile_key=profile_key,
                 environment_key=environment_key, actor=actor, apply=True,
+                route_key=route_key,
             )
         finally:
             lock_connection.execute(

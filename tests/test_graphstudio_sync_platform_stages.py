@@ -7,8 +7,60 @@ from src.graphstudio_sync.deployment import (
     _ensure_model,
     _requires_dataset_replacement,
     _set_layer_enabled,
+    build_deployment_plan,
     release_model_uri,
 )
+
+
+def test_deployment_plan_selects_exact_route_and_only_checks_its_promotion_lane(monkeypatch) -> None:
+    import uuid
+    from types import SimpleNamespace
+    from src.graphstudio_sync import deployment as deployment_module
+
+    release_id = uuid.uuid4()
+    previous_id = uuid.uuid4()
+    routes = [
+        {"route_key": "lane-a-dev", "environment_key": "dev", "target_key": "a", "title": "A DEV", "promotion_order": 10, "apply_enabled": True, "requires_approval": False, "config": {"promotionLane": "a"}},
+        {"route_key": "lane-b-dev", "environment_key": "dev", "target_key": "b-dev", "title": "B DEV", "promotion_order": 10, "apply_enabled": True, "requires_approval": False, "config": {"promotionLane": "b"}},
+        {"route_key": "lane-b-prod", "environment_key": "prod", "target_key": "b-prod", "title": "B PROD", "promotion_order": 30, "apply_enabled": True, "requires_approval": True, "config": {"promotionLane": "b"}},
+    ]
+    status = {
+        "routes": routes,
+        "activeCuratedRelease": {"release_id": release_id, "release_no": 3, "status": "active"},
+        "activeOntologyRelease": {"ontology_release_id": uuid.uuid4(), "release_no": 2},
+        "deployments": [{"deployment_id": previous_id, "route_key": "lane-b-dev", "status": "active", "curated_release_id": release_id, "slot": "blue"}],
+    }
+    monkeypatch.setattr(deployment_module, "deployment_status", lambda _repo, _profile: status)
+
+    plan = build_deployment_plan(
+        SimpleNamespace(), profile_key="core", environment_key="prod", route_key="lane-b-prod",
+    )
+
+    assert plan["ready"] is True
+    assert plan["routeKey"] == "lane-b-prod"
+    assert plan["targetKey"] == "b-prod"
+    assert plan["blockers"] == []
+
+
+def test_deployment_plan_toggles_slot_per_route_not_per_environment(monkeypatch) -> None:
+    import uuid
+    from types import SimpleNamespace
+    from src.graphstudio_sync import deployment as deployment_module
+
+    release_id = uuid.uuid4()
+    route = {"route_key": "core-dev-two", "environment_key": "dev", "target_key": "two", "title": "Second Graphmart", "promotion_order": 10, "apply_enabled": True, "requires_approval": False, "config": {}}
+    monkeypatch.setattr(deployment_module, "deployment_status", lambda _repo, _profile: {
+        "routes": [route],
+        "activeCuratedRelease": {"release_id": release_id, "release_no": 1, "status": "active"},
+        "activeOntologyRelease": {"ontology_release_id": uuid.uuid4(), "release_no": 1},
+        "deployments": [{"deployment_id": uuid.uuid4(), "route_key": route["route_key"], "status": "active", "curated_release_id": release_id, "slot": "blue"}],
+    })
+
+    plan = build_deployment_plan(
+        SimpleNamespace(), profile_key="core", environment_key="dev", route_key=route["route_key"],
+    )
+
+    assert plan["slot"] == "green"
 from src.graphstudio_sync.materialization import (
     apply_transform,
     build_field_backfill_patch,

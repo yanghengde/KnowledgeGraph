@@ -1090,6 +1090,48 @@ CREATE TABLE IF NOT EXISTS graphsync.deployment_environment (
     updated_at            timestamptz NOT NULL DEFAULT now()
 );
 
+-- Graph Studio destinations are independent from promotion environments.  A
+-- business graph profile can be routed to one or more Graphmarts without
+-- changing the governed ontology or duplicating the source configuration.
+CREATE TABLE IF NOT EXISTS graphsync.graphstudio_target (
+    target_key             text PRIMARY KEY,
+    title                  text NOT NULL,
+    connection_key         text NOT NULL DEFAULT 'graph-studio'
+                           REFERENCES graphsync.connection_profile(connection_key),
+    graphmart_uri          text NOT NULL,
+    description            text,
+    enabled                boolean NOT NULL DEFAULT true,
+    config                 jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at             timestamptz NOT NULL DEFAULT now(),
+    updated_at             timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (connection_key, graphmart_uri)
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.publication_route (
+    route_key              text PRIMARY KEY,
+    profile_key            text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    environment_key        text NOT NULL REFERENCES graphsync.deployment_environment(environment_key),
+    target_key             text NOT NULL REFERENCES graphsync.graphstudio_target(target_key),
+    title                  text NOT NULL,
+    promotion_order        integer NOT NULL,
+    apply_enabled          boolean NOT NULL DEFAULT false,
+    requires_approval      boolean NOT NULL DEFAULT true,
+    enabled                boolean NOT NULL DEFAULT true,
+    config                 jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at             timestamptz NOT NULL DEFAULT now(),
+    updated_at             timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (profile_key, environment_key, target_key)
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.target_release_activation (
+    route_key              text PRIMARY KEY REFERENCES graphsync.publication_route(route_key) ON DELETE CASCADE,
+    ontology_release_id    uuid REFERENCES graphsync.ontology_release(ontology_release_id),
+    curated_release_id     uuid REFERENCES graphsync.curated_release(release_id),
+    deployment_id          uuid,
+    activated_at           timestamptz NOT NULL DEFAULT now(),
+    activated_by           text
+);
+
 CREATE TABLE IF NOT EXISTS graphsync.deployment_release (
     deployment_id         uuid PRIMARY KEY,
     environment_key       text NOT NULL REFERENCES graphsync.deployment_environment(environment_key),
@@ -1117,6 +1159,21 @@ CREATE TABLE IF NOT EXISTS graphsync.deployment_release (
     finished_at           timestamptz,
     error                 jsonb
 );
+
+ALTER TABLE graphsync.deployment_release
+    ADD COLUMN IF NOT EXISTS route_key text
+    REFERENCES graphsync.publication_route(route_key);
+
+ALTER TABLE graphsync.target_release_activation
+    DROP CONSTRAINT IF EXISTS target_release_activation_deployment_id_fkey;
+ALTER TABLE graphsync.target_release_activation
+    ADD CONSTRAINT target_release_activation_deployment_id_fkey
+    FOREIGN KEY (deployment_id) REFERENCES graphsync.deployment_release(deployment_id);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_publication_route_profile
+    ON graphsync.publication_route (profile_key, enabled, promotion_order);
+CREATE INDEX IF NOT EXISTS ix_graphsync_deployment_route
+    ON graphsync.deployment_release (route_key, started_at DESC);
 
 CREATE INDEX IF NOT EXISTS ix_graphsync_deployment_env
     ON graphsync.deployment_release (environment_key, profile_key, started_at DESC);
@@ -1583,6 +1640,70 @@ VALUES
      'http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56',
      false, true, '{"purpose":"production","blueGreen":true,"requireUat":true}'::jsonb)
 ON CONFLICT (environment_key) DO NOTHING;
+
+-- Migrate the original environment-bound Graphmart configuration into the
+-- multi-target model.  Identical URIs become one reusable target; each
+-- profile/environment pair receives an explicit publication route.
+INSERT INTO graphsync.graphstudio_target
+    (target_key, title, connection_key, graphmart_uri, description, config)
+SELECT 'graphmart-' || substr(md5(environment.graphmart_uri), 1, 12),
+       'Opcenter2607 Graphmart',
+       'graph-studio', environment.graphmart_uri,
+       '由原 Graph Studio 环境配置自动迁移的发布目标。',
+       jsonb_build_object('migratedFromEnvironment', true)
+FROM graphsync.deployment_environment environment
+GROUP BY environment.graphmart_uri
+ON CONFLICT (connection_key, graphmart_uri) DO UPDATE SET
+    title=CASE
+        WHEN graphsync.graphstudio_target.config->>'migratedFromEnvironment'='true'
+        THEN EXCLUDED.title
+        ELSE graphsync.graphstudio_target.title
+    END,
+    updated_at=now();
+
+INSERT INTO graphsync.publication_route
+    (route_key, profile_key, environment_key, target_key, title,
+     promotion_order, apply_enabled, requires_approval, config)
+SELECT profile.profile_key || '-' || environment.environment_key,
+       profile.profile_key, environment.environment_key, target.target_key,
+       profile.title || ' → ' || environment.title,
+       environment.promotion_order, environment.apply_enabled,
+       environment.requires_approval,
+       jsonb_build_object('migratedFromEnvironment', true)
+FROM graphsync.graph_profile profile
+CROSS JOIN graphsync.deployment_environment environment
+JOIN graphsync.graphstudio_target target
+  ON target.connection_key='graph-studio'
+ AND target.graphmart_uri=environment.graphmart_uri
+WHERE profile.profile_key='opcenter2607-core'
+ON CONFLICT (profile_key, environment_key, target_key) DO NOTHING;
+
+UPDATE graphsync.deployment_release deployment
+SET route_key=route.route_key
+FROM graphsync.publication_route route
+WHERE deployment.route_key IS NULL
+  AND route.profile_key=deployment.profile_key
+  AND route.environment_key=deployment.environment_key;
+
+INSERT INTO graphsync.target_release_activation
+    (route_key, ontology_release_id, curated_release_id,
+     deployment_id, activated_at, activated_by)
+SELECT DISTINCT ON (deployment.route_key)
+       deployment.route_key, deployment.ontology_release_id,
+       deployment.curated_release_id, deployment.deployment_id,
+       coalesce(deployment.finished_at, deployment.started_at),
+       coalesce(deployment.approved_by, deployment.requested_by, 'migration')
+FROM graphsync.deployment_release deployment
+WHERE deployment.route_key IS NOT NULL
+  AND deployment.status='active'
+ORDER BY deployment.route_key,
+         coalesce(deployment.finished_at, deployment.started_at) DESC
+ON CONFLICT (route_key) DO UPDATE SET
+    ontology_release_id=EXCLUDED.ontology_release_id,
+    curated_release_id=EXCLUDED.curated_release_id,
+    deployment_id=EXCLUDED.deployment_id,
+    activated_at=EXCLUDED.activated_at,
+    activated_by=EXCLUDED.activated_by;
 
 INSERT INTO graphsync.profile_class
     (profile_key, class_name, role, orphan_policy, seed_enabled, priority,

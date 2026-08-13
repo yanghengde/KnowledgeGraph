@@ -10,6 +10,8 @@
         incrementalProbe: null,
         continuousSync: null,
         profiles: [],
+        activeProfileKey: "opcenter2607-core",
+        activeRouteKey: null,
         ontologyGovernance: { workspaces: [], graph: { nodes: [], edges: [], properties: [] }, releases: [] },
         ontologySourceCandidates: [],
         ontologyValidation: null,
@@ -78,6 +80,28 @@
     const escapeHtml = (value) => String(value ?? "")
         .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+
+    function activeProfileKey() {
+        return state.activeProfileKey || state.profiles[0]?.profile_key || "opcenter2607-core";
+    }
+
+    function renderModelContextSelectors() {
+        const profileItems = state.profiles || [];
+        const profileOptions = profileItems.map(item => `<option value="${escapeHtml(item.profile_key)}" ${item.profile_key === activeProfileKey() ? "selected" : ""}>${escapeHtml(item.title)}</option>`).join("");
+        [$("#ontologyProfileSelect"), $("#deploymentProfileSelect")].forEach(select => {
+            if (select) select.innerHTML = profileOptions;
+        });
+        const routes = state.deployments?.routes || state.deployments?.environments || [];
+        if (!state.activeRouteKey || !routes.some(item => item.route_key === state.activeRouteKey)) state.activeRouteKey = routes[0]?.route_key || null;
+        const routeSelect = $("#deploymentRouteSelect");
+        if (routeSelect) routeSelect.innerHTML = routes.map(item => `<option value="${escapeHtml(item.route_key)}" ${item.route_key === state.activeRouteKey ? "selected" : ""}>${escapeHtml(item.title)} · ${escapeHtml(item.target_title || item.target_key)}</option>`).join("") || '<option value="">尚未配置发布路由</option>';
+        const activeRoute = routes.find(item => item.route_key === state.activeRouteKey) || routes[0];
+        const targetCount = new Set(routes.map(item => item.target_key)).size;
+        if ($("#ontologyTargetCount")) $("#ontologyTargetCount").textContent = `${targetCount} 个`;
+        if ($("#ontologyTargetSummary")) $("#ontologyTargetSummary").textContent = routes.length ? `${routes.length} 条环境发布路由` : "尚未配置发布路由";
+        if ($("#deploymentTargetTitle")) $("#deploymentTargetTitle").textContent = activeRoute?.target_title || "尚未选择目标";
+        if ($("#deploymentTargetUri")) $("#deploymentTargetUri").textContent = activeRoute?.graphmart_uri || "—";
+    }
 
     async function request(url, options = {}) {
         const response = await fetch(url, {
@@ -1203,6 +1227,7 @@
         renderReleaseStatus();
         renderQuickGovernance();
         renderGovernanceExceptions();
+        renderModelContextSelectors();
     }
 
     function openCustomOntologyClassDialog() {
@@ -1784,8 +1809,8 @@
             return message;
         };
         const environmentState = item => {
-            const plan = state.deploymentPlans[item.environment_key];
-            const latest = data.deployments.find(deployment => deployment.environment_key === item.environment_key && String(deployment.curated_release_id) === String(activeRelease?.release_id));
+            const plan = state.deploymentPlans[item.route_key || item.environment_key];
+            const latest = data.deployments.find(deployment => (deployment.route_key || deployment.environment_key) === (item.route_key || item.environment_key) && String(deployment.curated_release_id) === String(activeRelease?.release_id));
             if (latest?.status === "active") return { key: "complete", label: "已发布", note: `R${activeRelease.release_no} 已写入目标 Graphmart`, latest, plan };
             if (!plan?.ready) return { key: "blocked", label: "尚不可发布", note: plan?.blockers?.[0] || "等待活动数据版本", latest, plan };
             if (!item.apply_enabled) return { key: "current", label: "写入已锁定", note: "先开启此环境的 Graph Studio 写入开关", latest, plan };
@@ -1796,7 +1821,8 @@
             return { key: "current", label: latest?.status === "failed" ? "发布失败，可重试" : statusLabel(latest?.status || "ready"), note: deploymentErrorMessage(latest) || "检查当前发布记录", latest, plan };
         };
         const states = data.environments.map(item => ({ environment: item, ...environmentState(item) }));
-        const current = states.find(item => item.key !== "complete") || states[states.length - 1];
+        const selectedState = states.find(item => item.environment.route_key === state.activeRouteKey);
+        const current = selectedState || states.find(item => item.key !== "complete") || states[states.length - 1];
         const currentAction = current ? (!current.plan?.ready
             ? `<button class="btn secondary" disabled>等待前置环境</button>`
             : !current.environment.apply_enabled
@@ -1815,7 +1841,7 @@
                 : ['<button class="mini-btn" disabled>等待前置环境</button>'];
             if (item.plan?.ready && environment.apply_enabled && !item.latest) buttons.push('<button class="mini-btn" data-action="prepare-deployment">准备制品</button>');
             if (["approved", "failed"].includes(item.latest?.status) && environment.apply_enabled) buttons.push(`<button class="mini-btn" data-action="apply-deployment" data-deployment-id="${escapeHtml(item.latest.deployment_id)}">${item.latest.status === "failed" ? "修复后重试" : "发布到 Graph Studio"}</button>`);
-            return `<article id="environment-${escapeHtml(environment.environment_key)}" class="job-card environment-card ${item.key}" data-environment="${escapeHtml(environment.environment_key)}"><div class="card-top"><div><p>STEP ${index + 1} · ${escapeHtml(environment.environment_key.toUpperCase())}</p><h3>${escapeHtml(environment.title)}</h3></div><span class="status-pill ${item.key === "complete" ? "online" : item.key === "blocked" || !environment.apply_enabled ? "unknown" : "online"}">${escapeHtml(item.label)}</span></div><div class="card-details"><div class="detail-field"><span>目标 Graphmart</span><strong title="${escapeHtml(environment.graphmart_uri)}">${escapeHtml(targetId)}</strong></div><div class="detail-field"><span>写入安全开关</span><strong>${environment.apply_enabled ? "已开启" : "已关闭"}</strong></div><div class="detail-field"><span>发布版本</span><strong>${activeRelease ? `数据 R${activeRelease.release_no}` : "无活动版本"}</strong></div><div class="detail-field"><span>外部门禁</span><strong>${environment.requires_approval ? "等待 OA / 外部回调" : "本环境无需审批"}</strong></div></div><div class="environment-next ${item.key === "complete" ? "success" : item.key === "current" ? "warning" : ""}">${escapeHtml(item.note)}</div><div class="card-actions"><small>蓝绿发布 · 可回滚</small><div class="card-action-buttons">${buttons.join("")}</div></div></article>`;
+            return `<article id="environment-${escapeHtml(environment.route_key || environment.environment_key)}" class="job-card environment-card ${item.key} ${environment.route_key === state.activeRouteKey ? "selected-route" : ""}" data-environment="${escapeHtml(environment.environment_key)}" data-route="${escapeHtml(environment.route_key || "")}"><div class="card-top"><div><p>${escapeHtml(environment.environment_key.toUpperCase())} · ${escapeHtml(environment.target_title || environment.target_key || "Graphmart")}</p><h3>${escapeHtml(environment.title)}</h3></div><span class="status-pill ${item.key === "complete" ? "online" : item.key === "blocked" || !environment.apply_enabled ? "unknown" : "online"}">${escapeHtml(item.label)}</span></div><div class="card-details"><div class="detail-field"><span>目标 Graphmart</span><strong title="${escapeHtml(environment.graphmart_uri)}">${escapeHtml(targetId)}</strong></div><div class="detail-field"><span>写入安全开关</span><strong>${environment.apply_enabled ? "已开启" : "已关闭"}</strong></div><div class="detail-field"><span>发布版本</span><strong>${activeRelease ? `数据 R${activeRelease.release_no}` : "无活动版本"}</strong></div><div class="detail-field"><span>外部门禁</span><strong>${environment.requires_approval ? "等待 OA / 外部回调" : "本环境无需审批"}</strong></div></div><div class="environment-next ${item.key === "complete" ? "success" : item.key === "current" ? "warning" : ""}">${escapeHtml(item.note)}</div><div class="card-actions"><small>蓝绿发布 · 可回滚</small><div class="card-action-buttons">${buttons.join("")}</div></div></article>`;
         }).join("");
         $("#deploymentRows").innerHTML = data.deployments.map(item => {
             let actions = "—";
@@ -1827,6 +1853,7 @@
         }).join("") || '<tr class="empty-row"><td colspan="7">还没有 Graph Studio 发布记录。请从上方当前步骤开始。</td></tr>';
         renderReleaseStatus();
         renderQuickGovernance();
+        renderModelContextSelectors();
     }
 
     function renderObservability() {
@@ -1907,7 +1934,7 @@
                 timeout_seconds: Number(form.get("timeout_seconds")),
                 retry_policy: { maxAttempts: Number(form.get("max_attempts")), retryStatuses: [429, 502, 503, 504] },
                 compensation_action_key: form.get("compensation_action_key") || null,
-                config: { profileKey: "opcenter2607-core", pathParameters: String(form.get("path_parameters") || "").split(",").map(value => value.trim()).filter(Boolean) },
+                config: { profileKey: activeProfileKey(), pathParameters: String(form.get("path_parameters") || "").split(",").map(value => value.trim()).filter(Boolean) },
             };
             await request(`/api/sync/actions/definitions/${encodeURIComponent(key)}`, { method: "PUT", body: JSON.stringify(payload) });
             toast("Action 已保存为草案；真实执行需要可信身份下的复核与独立批准");
@@ -1940,6 +1967,37 @@
         $("#editDialog").showModal();
     }
 
+    function openGraphStudioTargetDialog() {
+        const key = `graphmart-${Date.now().toString(36)}`;
+        $("#dialogTitle").textContent = "新增 Graph Studio 发布目标";
+        $("#dialogKicker").textContent = "GRAPHMART TARGET";
+        $("#dialogFields").innerHTML = [
+            field("target_key", "目标标识", key, { wide: true }),
+            field("title", "显示名称", "", { wide: true, placeholder: "例如：Opcenter2607 正式生产" }),
+            field("graphmart_uri", "Graphmart URI", "", { wide: true, placeholder: "http://cambridgesemantics.com/Graphmart/..." }),
+            field("environment_key", "首条发布环境", "dev", { type: "select", items: [["dev","开发验证"],["uat","业务验收"],["prod","生产"]] }),
+            field("description", "用途说明", "", { type: "textarea", wide: true }),
+        ].join("");
+        state.dialogSubmit = async form => {
+            const targetKey = String(form.get("target_key") || "").trim();
+            const environmentKey = form.get("environment_key");
+            const target = await request(`/api/sync/graphstudio-targets/${encodeURIComponent(targetKey)}`, {
+                method: "PUT",
+                body: JSON.stringify({ title: form.get("title"), graphmart_uri: form.get("graphmart_uri"), description: form.get("description") || null, connection_key: "graph-studio", enabled: true, config: {} }),
+            });
+            const profile = state.profiles.find(item => item.profile_key === activeProfileKey());
+            const routeKey = `${activeProfileKey()}-${environmentKey}-${targetKey}`;
+            await request(`/api/sync/publication-routes/${encodeURIComponent(routeKey)}`, {
+                method: "PUT",
+                body: JSON.stringify({ profile_key: activeProfileKey(), environment_key: environmentKey, target_key: target.target_key, title: `${profile?.title || activeProfileKey()} → ${target.title}`, promotion_order: ({dev:10,uat:20,prod:30})[environmentKey], apply_enabled: false, requires_approval: environmentKey !== "dev", enabled: true, config: {} }),
+            });
+            state.activeRouteKey = routeKey;
+            await loadDeployments();
+            toast("Graph Studio 目标与首条发布路由已创建；写入开关保持关闭");
+        };
+        $("#editDialog").showModal();
+    }
+
     function openDeploymentEnvironmentDialog(item) {
         const nextEnabled = !item.apply_enabled;
         $("#dialogTitle").textContent = `${nextEnabled ? "开启" : "关闭"} ${item.title} Graph Studio 写入`;
@@ -1950,7 +2008,7 @@
         state.dialogBusyLabel = "正在保存环境配置…";
         $("#dialogSave").textContent = state.dialogSubmitLabel;
         state.dialogSubmit = async form => {
-            await request(`/api/sync/deployment-environments/${encodeURIComponent(item.environment_key)}`, { method: "PUT", body: JSON.stringify({ apply_enabled: form.has("apply_enabled") }) });
+            await request(`/api/sync/publication-routes/${encodeURIComponent(item.route_key)}`, { method: "PATCH", body: JSON.stringify({ apply_enabled: form.has("apply_enabled") }) });
             toast(`${item.title} Graph Studio 写入已${form.has("apply_enabled") ? "开启" : "关闭"}；尚未执行发布`);
             await loadDeployments();
         };
@@ -2121,7 +2179,7 @@
                 preview_row_limit: Number(form.get("preview_row_limit")), enabled: form.get("enabled") === "on",
                 fields, config: { ...(item?.config || {}), refreshMode: "release_and_owner_change" },
             };
-            await request(`/api/sync/profiles/opcenter2607-core/attribute-projections/${encodeURIComponent(key)}`, { method: "PUT", body: JSON.stringify(payload) });
+            await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/attribute-projections/${encodeURIComponent(key)}`, { method: "PUT", body: JSON.stringify(payload) });
             toast("属性投影已保存为草案；请先执行只读源预览");
             await Promise.all([loadAttributeProjections(), loadMaterialization()]);
         };
@@ -2528,7 +2586,7 @@
     async function loadOverview() { state.overview = await request("/api/sync/overview"); renderOverview(); }
     async function loadConnections() { state.connections = (await request("/api/sync/connections")).items; renderConnections(); }
     async function loadOntologyGovernance() {
-        state.ontologyGovernance = await request("/api/sync/ontology-governance?profile_key=opcenter2607-core");
+        state.ontologyGovernance = await request(`/api/sync/ontology-governance?profile_key=${encodeURIComponent(activeProfileKey())}`);
         renderOntologyGovernance();
     }
     async function searchOntologySources() {
@@ -2548,14 +2606,18 @@
     }
     async function loadJobs() { state.jobs = (await request("/api/sync/jobs")).items; renderJobs(); }
     async function loadContinuousSync() {
-        state.continuousSync = await request("/api/sync/jobs/camstar-full/continuous-status?profile_key=opcenter2607-core&environment_key=dev");
+        const route = (state.deployments?.routes || []).find(item => item.route_key === state.activeRouteKey)
+            || (state.deployments?.routes || []).find(item => item.environment_key === "dev");
+        const routeQuery = route?.route_key ? `&route_key=${encodeURIComponent(route.route_key)}` : "";
+        state.continuousSync = await request(`/api/sync/jobs/camstar-full/continuous-status?profile_key=${encodeURIComponent(activeProfileKey())}&environment_key=${encodeURIComponent(route?.environment_key || "dev")}${routeQuery}`);
         renderContinuousSync();
     }
     async function loadTablePolicies() { state.tablePolicies = (await request("/api/sync/jobs/camstar-full/table-policies")).items; renderTablePolicies(); }
     async function loadIncrementalCapabilities() { state.incrementalProbe = await request("/api/sync/jobs/camstar-full/incremental-capabilities"); renderIncrementalCapabilities(); }
     async function loadGraphProfiles() {
         state.profiles = (await request("/api/sync/profiles")).items;
-        const profileKey = state.profiles[0]?.profile_key;
+        if (!state.profiles.some(item => item.profile_key === state.activeProfileKey)) state.activeProfileKey = state.profiles[0]?.profile_key || state.activeProfileKey;
+        const profileKey = activeProfileKey();
         if (!profileKey) return;
         [state.activeProfile, state.profileCandidates, state.governance, state.schemaChanges, state.contractCandidates] = await Promise.all([
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}`),
@@ -2581,24 +2643,24 @@
         renderSchemaEvolution();
     }
     async function loadSchemaDrift() {
-        state.schemaDrift = await request("/api/sync/profiles/opcenter2607-core/schema-drift");
+        state.schemaDrift = await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/schema-drift`);
         renderSchemaDrift();
     }
     async function loadAttributeProjections() {
-        state.attributeProjections = (await request("/api/sync/profiles/opcenter2607-core/attribute-projections")).items;
+        state.attributeProjections = (await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/attribute-projections`)).items;
         renderAttributeProjections();
     }
-    async function loadMaterialization() { state.materialization = await request("/api/sync/profiles/opcenter2607-core/materialization"); renderMaterialization(); }
+    async function loadMaterialization() { state.materialization = await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/materialization`); renderMaterialization(); }
     async function loadDeployments() {
-        state.deployments = await request("/api/sync/profiles/opcenter2607-core/deployments");
+        state.deployments = await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/deployments`);
         const plans = await Promise.all((state.deployments.environments || []).map(item =>
-            request(`/api/sync/profiles/opcenter2607-core/deployments/plan/${encodeURIComponent(item.environment_key)}`)
+            request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/deployments/plan/${encodeURIComponent(item.environment_key)}?route_key=${encodeURIComponent(item.route_key || "")}`)
         ));
-        state.deploymentPlans = Object.fromEntries(plans.map(item => [item.environment.environment_key, item]));
+        state.deploymentPlans = Object.fromEntries(plans.map(item => [item.routeKey || item.environment.environment_key, item]));
         renderDeployments();
         renderMaterialization();
     }
-    async function loadObservability() { state.observability = await request("/api/sync/profiles/opcenter2607-core/observability"); renderObservability(); }
+    async function loadObservability() { state.observability = await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/observability`); renderObservability(); }
     async function loadActions() { state.actions = await request("/api/sync/actions"); renderActions(); }
     async function loadMappings() { state.mappings = await request("/api/sync/mappings"); renderMappings(); renderOverview(); }
     async function loadRuns() { state.runs = (await request("/api/sync/runs?limit=100")).items; renderRuns(); }
@@ -2898,7 +2960,7 @@
         if (action.dataset.action === "activate-ontology-release") {
             const row = action.closest("[data-ontology-release]");
             openActorDialog("激活发布本体版本", async actor => {
-                await request(`/api/sync/ontology-governance/releases/${encodeURIComponent(row.dataset.ontologyRelease)}/activate?profile_key=opcenter2607-core`, { method: "POST", body: JSON.stringify({ actor }) });
+                await request(`/api/sync/ontology-governance/releases/${encodeURIComponent(row.dataset.ontologyRelease)}/activate?profile_key=${encodeURIComponent(activeProfileKey())}`, { method: "POST", body: JSON.stringify({ actor }) });
                 toast("发布本体版本已激活，后续 RDF 将固定使用该版本"); await Promise.all([loadOntologyGovernance(), loadDeployments()]);
             });
             return;
@@ -2982,7 +3044,7 @@
         if (action.dataset.action === "activate-release") {
             const row = action.closest("[data-release]");
             openActorDialog("激活治理版本", async actor => {
-                await request(`/api/sync/profiles/opcenter2607-core/releases/${encodeURIComponent(row.dataset.release)}/activate`, { method: "POST", body: JSON.stringify({ actor }) });
+                await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/releases/${encodeURIComponent(row.dataset.release)}/activate`, { method: "POST", body: JSON.stringify({ actor }) });
                 toast("治理版本已原子激活"); await Promise.all([loadMaterialization(), loadDeployments(), loadObservability()]);
             }); return;
         }
@@ -2993,15 +3055,20 @@
         if (action.dataset.action === "configure-deployment-environment") {
             const card = action.closest("[data-environment]");
             const environmentKey = action.dataset.environmentKey || card?.dataset.environment;
-            const environment = state.deployments.environments.find(item => item.environment_key === environmentKey);
+            const routeKey = card?.dataset.route || state.activeRouteKey;
+            const environment = state.deployments.environments.find(item => item.route_key === routeKey)
+                || state.deployments.environments.find(item => item.environment_key === environmentKey);
             if (environment) openDeploymentEnvironmentDialog(environment);
             return;
         }
         if (action.dataset.action === "prepare-deployment") {
             const card = action.closest("[data-environment]");
             const environmentKey = action.dataset.environmentKey || card?.dataset.environment;
+            const routeKey = card?.dataset.route || state.activeRouteKey;
             openActorDialog(`准备 ${environmentKey.toUpperCase()} 不可变发布制品`, async actor => {
-                const result = await request("/api/sync/profiles/opcenter2607-core/deployments", { method: "POST", body: JSON.stringify({ environment_key: environmentKey, actor }) });
+                const route = state.deployments.environments.find(item => item.route_key === routeKey)
+                    || state.deployments.environments.find(item => item.environment_key === environmentKey);
+                const result = await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/deployments`, { method: "POST", body: JSON.stringify({ environment_key: environmentKey, route_key: route?.route_key || null, actor }) });
                 toast(`RDF 制品已准备；${result.status === "approved" ? "下一步确认发布到 Graph Studio" : "等待外部门禁"}`); await loadDeployments();
             }); return;
         }
@@ -3016,7 +3083,8 @@
             const row = action.closest("[data-deployment]");
             const deploymentId = action.dataset.deploymentId || row?.dataset.deployment;
             const deployment = state.deployments.deployments.find(item => item.deployment_id === deploymentId);
-            const environment = state.deployments.environments.find(item => item.environment_key === deployment?.environment_key);
+            const environment = state.deployments.environments.find(item => item.route_key === deployment?.route_key)
+                || state.deployments.environments.find(item => item.environment_key === deployment?.environment_key);
             if (deployment && environment) openDeploymentApplyDialog(deployment, environment);
             return;
         }
@@ -3163,8 +3231,23 @@
             ontologyGovernanceGraph?.fitView();
         }, 230);
     });
+    $("#ontologyProfileSelect").addEventListener("change", async event => {
+        state.activeProfileKey = event.target.value;
+        state.activeRouteKey = null;
+        await Promise.all([loadOntologyGovernance(), loadGraphProfiles(), loadMaterialization(), loadDeployments()]);
+    });
+    $("#deploymentProfileSelect").addEventListener("change", async event => {
+        state.activeProfileKey = event.target.value;
+        state.activeRouteKey = null;
+        await Promise.all([loadOntologyGovernance(), loadGraphProfiles(), loadMaterialization(), loadDeployments()]);
+    });
+    $("#deploymentRouteSelect").addEventListener("change", event => {
+        state.activeRouteKey = event.target.value || null;
+        renderDeployments();
+    });
+    $("#newGraphStudioTarget").addEventListener("click", openGraphStudioTargetDialog);
     $("#initializePublishOntology").addEventListener("click", () => openActorDialog("初始化发布本体工作区", async actor => {
-        await request("/api/sync/ontology-governance/initialize?profile_key=opcenter2607-core", { method: "POST", body: JSON.stringify({ actor }) });
+        await request(`/api/sync/ontology-governance/initialize?profile_key=${encodeURIComponent(activeProfileKey())}`, { method: "POST", body: JSON.stringify({ actor }) });
         toast("独立发布本体数据库和草案工作区已建立"); await Promise.all([loadOntologyGovernance(), loadConnections()]);
     }));
     $("#fitOntologyDiscoveryGraph").addEventListener("click", () => ontologyDiscoveryGraph?.fitView());
@@ -3232,7 +3315,7 @@
         toast("持续同步已开始：正在冻结窗口、治理数据并蓝绿发布");
         const result = await request("/api/sync/jobs/camstar-full/continuous-sync", {
             method: "POST",
-            body: JSON.stringify({ apply: true, profile_key: "opcenter2607-core", environment_key: "dev", actor }),
+            body: JSON.stringify({ apply: true, profile_key: activeProfileKey(), environment_key: (state.deployments.routes || []).find(item => item.route_key === state.activeRouteKey)?.environment_key || "dev", route_key: state.activeRouteKey, actor }),
         });
         toast(result.deployment?.status === "active" ? "新数据版本已发布到 Graph Studio" : "数据版本已生成，等待外部审批后发布");
         await Promise.all([loadContinuousSync(), loadMaterialization(), loadDeployments(), loadRuns(), loadObservability()]);
@@ -3266,7 +3349,7 @@
     $("#scanSchemaDrift").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true; button.textContent = "检测中…";
         try {
-            state.schemaDrift = await request("/api/sync/profiles/opcenter2607-core/schema-drift/scan", { method: "POST" });
+            state.schemaDrift = await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/schema-drift/scan`, { method: "POST" });
             renderSchemaDrift();
             const blockers = state.schemaDrift.summary?.blockers || 0;
             toast(blockers ? `检测完成：发现 ${blockers} 项必须处理的结构变化` : "检测完成：当前发布契约结构稳定", Boolean(blockers));
@@ -3279,23 +3362,23 @@
     $("#planMaterialization").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true;
         try {
-            const result = await request("/api/sync/profiles/opcenter2607-core/materialization", { method: "POST", body: JSON.stringify({ apply: false, activate: false }) });
+            const result = await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/materialization`, { method: "POST", body: JSON.stringify({ apply: false, activate: false }) });
             state.materialization.plan = result.plan; renderMaterialization();
             toast(result.plan.ready ? "物化计划已通过门禁" : `物化仍有 ${result.plan.blockers.length} 项阻断`, !result.plan.ready);
         } catch (error) { toast(error.message, true); }
         finally { button.disabled = false; }
     });
     $("#runMaterialization").addEventListener("click", () => openActorDialog("生成不可变数据版本", async actor => {
-        const result = await request("/api/sync/profiles/opcenter2607-core/materialization", { method: "POST", body: JSON.stringify({ apply: true, activate: false, actor }) });
+        const result = await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/materialization`, { method: "POST", body: JSON.stringify({ apply: true, activate: false, actor }) });
         toast(`治理版本 R${result.releaseNo} 已验证，等待激活`); await Promise.all([loadMaterialization(), loadObservability()]);
     }));
     $("#rollbackRelease").addEventListener("click", () => openActorDialog("回滚治理版本", async actor => {
-        await request("/api/sync/profiles/opcenter2607-core/releases/rollback", { method: "POST", body: JSON.stringify({ actor }) });
+        await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/releases/rollback`, { method: "POST", body: JSON.stringify({ actor }) });
         toast("活动版本已回滚到上一不可变快照"); await Promise.all([loadMaterialization(), loadDeployments(), loadObservability()]);
     }));
     $("#runHealthCheck").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true;
-        try { const result = await request("/api/sync/profiles/opcenter2607-core/health-check", { method: "POST" }); toast(`健康检查完成：${statusLabel(result.status)}`, result.status === "unhealthy"); await loadObservability(); }
+        try { const result = await request(`/api/sync/profiles/${encodeURIComponent(activeProfileKey())}/health-check`, { method: "POST" }); toast(`健康检查完成：${statusLabel(result.status)}`, result.status === "unhealthy"); await loadObservability(); }
         catch (error) { toast(error.message, true); }
         finally { button.disabled = false; }
     });

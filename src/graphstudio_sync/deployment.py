@@ -66,20 +66,39 @@ def _find_uri(value: Any, keys: tuple[str, ...]) -> str | None:
 
 def deployment_status(repository: ControlPlaneRepository, profile_key: str) -> dict[str, Any]:
     with repository.engine.connect() as connection:
-        environments = [dict(row) for row in connection.execute(
+        targets = [dict(row) for row in connection.execute(
             text(
                 """
-                SELECT environment_key, title, promotion_order, graphmart_uri,
-                       apply_enabled, requires_approval, config, updated_at
-                FROM graphsync.deployment_environment
-                ORDER BY promotion_order
+                SELECT target.target_key, target.title, target.connection_key,
+                       target.graphmart_uri, target.description, target.enabled,
+                       target.config, target.updated_at
+                FROM graphsync.graphstudio_target target
+                ORDER BY target.title, target.target_key
                 """
             )
+        ).mappings()]
+        routes = [dict(row) for row in connection.execute(
+            text(
+                """
+                SELECT route.route_key, route.profile_key, route.environment_key,
+                       route.target_key, route.title, route.promotion_order,
+                       route.apply_enabled, route.requires_approval, route.enabled,
+                       route.config, route.updated_at,
+                       target.title AS target_title,
+                       target.graphmart_uri, target.connection_key
+                FROM graphsync.publication_route route
+                JOIN graphsync.graphstudio_target target USING (target_key)
+                WHERE route.profile_key=:profile_key AND route.enabled AND target.enabled
+                ORDER BY route.promotion_order, route.route_key
+                """
+            ),
+            {"profile_key": profile_key},
         ).mappings()]
         deployments = [dict(row) for row in connection.execute(
             text(
                 """
                 SELECT deployment.deployment_id, deployment.environment_key,
+                       deployment.route_key,
                        deployment.curated_release_id, deployment.status,
                        deployment.ontology_release_id,
                        deployment.slot, deployment.artifact_uri,
@@ -110,7 +129,10 @@ def deployment_status(repository: ControlPlaneRepository, profile_key: str) -> d
             {"profile_key": profile_key},
         ).mappings().one_or_none()
     return {
-        "environments": environments,
+        # `environments` is retained as a response alias for older clients.
+        "environments": routes,
+        "routes": routes,
+        "targets": targets,
         "deployments": deployments,
         "activeCuratedRelease": dict(active_release) if active_release else None,
         "activeOntologyRelease": active_ontology_release(repository, profile_key),
@@ -150,16 +172,145 @@ def update_deployment_environment(
     return dict(row)
 
 
+def upsert_graphstudio_target(
+    repository: ControlPlaneRepository,
+    *,
+    target_key: str,
+    title: str,
+    graphmart_uri: str,
+    connection_key: str = "graph-studio",
+    description: str | None = None,
+    enabled: bool = True,
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    with repository.engine.begin() as connection:
+        row = connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.graphstudio_target
+                    (target_key, title, connection_key, graphmart_uri,
+                     description, enabled, config)
+                VALUES (:target_key, :title, :connection_key, :graphmart_uri,
+                        :description, :enabled, CAST(:config AS jsonb))
+                ON CONFLICT (target_key) DO UPDATE SET
+                    title=EXCLUDED.title,
+                    connection_key=EXCLUDED.connection_key,
+                    graphmart_uri=EXCLUDED.graphmart_uri,
+                    description=EXCLUDED.description,
+                    enabled=EXCLUDED.enabled,
+                    config=EXCLUDED.config,
+                    updated_at=now()
+                RETURNING target_key, title, connection_key, graphmart_uri,
+                          description, enabled, config, updated_at
+                """
+            ),
+            {
+                "target_key": target_key,
+                "title": title,
+                "connection_key": connection_key,
+                "graphmart_uri": graphmart_uri,
+                "description": description,
+                "enabled": enabled,
+                "config": json.dumps(config or {}),
+            },
+        ).mappings().one()
+    return dict(row)
+
+
+def upsert_publication_route(
+    repository: ControlPlaneRepository,
+    *,
+    route_key: str,
+    profile_key: str,
+    environment_key: str,
+    target_key: str,
+    title: str,
+    promotion_order: int,
+    apply_enabled: bool = False,
+    requires_approval: bool = True,
+    enabled: bool = True,
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    with repository.engine.begin() as connection:
+        row = connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.publication_route
+                    (route_key, profile_key, environment_key, target_key, title,
+                     promotion_order, apply_enabled, requires_approval, enabled, config)
+                VALUES (:route_key, :profile_key, :environment_key, :target_key,
+                        :title, :promotion_order, :apply_enabled,
+                        :requires_approval, :enabled, CAST(:config AS jsonb))
+                ON CONFLICT (route_key) DO UPDATE SET
+                    profile_key=EXCLUDED.profile_key,
+                    environment_key=EXCLUDED.environment_key,
+                    target_key=EXCLUDED.target_key,
+                    title=EXCLUDED.title,
+                    promotion_order=EXCLUDED.promotion_order,
+                    apply_enabled=EXCLUDED.apply_enabled,
+                    requires_approval=EXCLUDED.requires_approval,
+                    enabled=EXCLUDED.enabled,
+                    config=EXCLUDED.config,
+                    updated_at=now()
+                RETURNING route_key, profile_key, environment_key, target_key,
+                          title, promotion_order, apply_enabled,
+                          requires_approval, enabled, config, updated_at
+                """
+            ),
+            {
+                "route_key": route_key,
+                "profile_key": profile_key,
+                "environment_key": environment_key,
+                "target_key": target_key,
+                "title": title,
+                "promotion_order": promotion_order,
+                "apply_enabled": apply_enabled,
+                "requires_approval": requires_approval,
+                "enabled": enabled,
+                "config": json.dumps(config or {}),
+            },
+        ).mappings().one()
+    return dict(row)
+
+
+def update_publication_route(
+    repository: ControlPlaneRepository,
+    *,
+    route_key: str,
+    apply_enabled: bool,
+) -> dict[str, Any]:
+    with repository.engine.begin() as connection:
+        row = connection.execute(
+            text(
+                """
+                UPDATE graphsync.publication_route
+                SET apply_enabled=:apply_enabled, updated_at=now()
+                WHERE route_key=:route_key
+                RETURNING route_key, profile_key, environment_key, target_key,
+                          title, promotion_order, apply_enabled,
+                          requires_approval, enabled, config, updated_at
+                """
+            ),
+            {"route_key": route_key, "apply_enabled": apply_enabled},
+        ).mappings().one_or_none()
+    if row is None:
+        raise KeyError(route_key)
+    return dict(row)
+
+
 def build_deployment_plan(
     repository: ControlPlaneRepository,
     *,
     profile_key: str,
     environment_key: str,
+    route_key: str | None = None,
     release_id: uuid.UUID | None = None,
 ) -> dict[str, Any]:
     status = deployment_status(repository, profile_key)
     environment = next(
-        (item for item in status["environments"] if item["environment_key"] == environment_key),
+        (item for item in status["routes"]
+         if (route_key and item["route_key"] == route_key)
+         or (not route_key and item["environment_key"] == environment_key)),
         None,
     )
     if environment is None:
@@ -187,11 +338,16 @@ def build_deployment_plan(
     ontology_release = status.get("activeOntologyRelease")
     if not ontology_release:
         blockers.append("没有已激活的发布本体版本")
-    lower = [item for item in status["environments"] if item["promotion_order"] < environment["promotion_order"]]
+    promotion_lane = (environment.get("config") or {}).get("promotionLane", "default")
+    lower = [
+        item for item in status["routes"]
+        if item["promotion_order"] < environment["promotion_order"]
+        and (item.get("config") or {}).get("promotionLane", "default") == promotion_lane
+    ]
     previous_deployments = status["deployments"]
     for required in lower:
         promoted = any(
-            item["environment_key"] == required["environment_key"]
+            item.get("route_key") == required["route_key"]
             and item["status"] == "active"
             and release
             and item["curated_release_id"] == release["release_id"]
@@ -200,12 +356,14 @@ def build_deployment_plan(
         if not promoted:
             blockers.append(f"同一制品尚未通过前置环境：{required['title']}")
     active_in_environment = next(
-        (item for item in previous_deployments if item["environment_key"] == environment_key and item["status"] == "active"),
+        (item for item in previous_deployments if item.get("route_key") == environment["route_key"] and item["status"] == "active"),
         None,
     )
     slot = "green" if active_in_environment and active_in_environment["slot"] == "blue" else "blue"
     return {
         "profileKey": profile_key,
+        "routeKey": environment["route_key"],
+        "targetKey": environment["target_key"],
         "environment": environment,
         "release": release,
         "ontologyRelease": ontology_release,
@@ -408,6 +566,7 @@ def create_deployment(
     *,
     profile_key: str,
     environment_key: str,
+    route_key: str | None = None,
     release_id: uuid.UUID | None = None,
     actor: str | None = None,
 ) -> dict[str, Any]:
@@ -415,6 +574,7 @@ def create_deployment(
         repository,
         profile_key=profile_key,
         environment_key=environment_key,
+        route_key=route_key,
         release_id=release_id,
     )
     if not plan["ready"]:
@@ -428,12 +588,12 @@ def create_deployment(
             text(
                 """
                 INSERT INTO graphsync.deployment_release
-                    (deployment_id, environment_key, profile_key,
+                    (deployment_id, environment_key, route_key, profile_key,
                      curated_release_id, ontology_release_id,
                      status, slot, artifact_uri,
                      artifact_hash, previous_deployment_id, validation_plan,
                      requested_by)
-                VALUES (:deployment_id, :environment_key, :profile_key,
+                VALUES (:deployment_id, :environment_key, :route_key, :profile_key,
                         :release_id, :ontology_release_id,
                         :status, :slot, :artifact_uri,
                         :artifact_hash, :previous_id,
@@ -443,6 +603,7 @@ def create_deployment(
             {
                 "deployment_id": deployment_id,
                 "environment_key": environment_key,
+                "route_key": plan["routeKey"],
                 "profile_key": profile_key,
                 "release_id": selected_id,
                 "ontology_release_id": uuid.UUID(artifact["ontologyReleaseId"]),
@@ -775,10 +936,13 @@ def apply_deployment(
             text(
                 """
                 SELECT deployment.*, environment.graphmart_uri,
-                       environment.apply_enabled, release.source_snapshot,
+                       route.apply_enabled, release.source_snapshot,
                        previous.layer_uri AS previous_layer_uri
                 FROM graphsync.deployment_release deployment
-                JOIN graphsync.deployment_environment environment USING (environment_key)
+                JOIN graphsync.publication_route route
+                  ON route.route_key=deployment.route_key
+                JOIN graphsync.graphstudio_target environment
+                  ON environment.target_key=route.target_key
                 JOIN graphsync.curated_release release
                   ON release.release_id=deployment.curated_release_id
                 LEFT JOIN graphsync.deployment_release previous
@@ -1006,6 +1170,30 @@ def apply_deployment(
         }
         with repository.engine.begin() as connection:
             connection.execute(text("UPDATE graphsync.deployment_release SET status='active', validation_result=CAST(:validation AS jsonb), finished_at=now() WHERE deployment_id=:id"), {"id": deployment_id, "validation": json.dumps(validation, default=str)})
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO graphsync.target_release_activation
+                        (route_key, ontology_release_id, curated_release_id,
+                         deployment_id, activated_at, activated_by)
+                    VALUES (:route_key, :ontology_release_id, :curated_release_id,
+                            :deployment_id, now(), :actor)
+                    ON CONFLICT (route_key) DO UPDATE SET
+                        ontology_release_id=EXCLUDED.ontology_release_id,
+                        curated_release_id=EXCLUDED.curated_release_id,
+                        deployment_id=EXCLUDED.deployment_id,
+                        activated_at=EXCLUDED.activated_at,
+                        activated_by=EXCLUDED.activated_by
+                    """
+                ),
+                {
+                    "route_key": deployment["route_key"],
+                    "ontology_release_id": deployment["ontology_release_id"],
+                    "curated_release_id": deployment["curated_release_id"],
+                    "deployment_id": deployment_id,
+                    "actor": deployment.get("approved_by") or deployment.get("requested_by"),
+                },
+            )
             if deployment["previous_deployment_id"]:
                 connection.execute(text("UPDATE graphsync.deployment_release SET status='rolled_back' WHERE deployment_id=:previous AND status='active'"), {"previous": deployment["previous_deployment_id"]})
             for class_name, snapshot in (deployment["source_snapshot"] or {}).items():

@@ -36,6 +36,9 @@ from src.graphstudio_sync.deployment import (
     build_deployment_plan,
     create_deployment,
     deployment_status,
+    update_publication_route,
+    upsert_graphstudio_target,
+    upsert_publication_route,
     update_deployment_environment,
 )
 from src.graphstudio_sync.incremental import execute_incremental_plan, execute_incremental_probe
@@ -369,6 +372,7 @@ class ContinuousSyncRequest(BaseModel):
     apply: bool = False
     profile_key: str = Field(default="opcenter2607-core", min_length=1, max_length=200)
     environment_key: Literal["dev", "uat", "prod"] = "dev"
+    route_key: str | None = Field(default=None, max_length=300)
     actor: str | None = Field(default="local-console", max_length=200)
 
 
@@ -378,12 +382,34 @@ class ReleaseActivation(BaseModel):
 
 class DeploymentCreate(BaseModel):
     environment_key: Literal["dev", "uat", "prod"] = "dev"
+    route_key: str | None = Field(default=None, max_length=300)
     release_id: uuid.UUID | None = None
     actor: str | None = Field(default=None, max_length=200)
 
 
 class DeploymentEnvironmentUpdate(BaseModel):
     apply_enabled: bool
+
+
+class GraphStudioTargetUpdate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    graphmart_uri: str = Field(min_length=1, max_length=1000)
+    connection_key: str = Field(default="graph-studio", min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=4000)
+    enabled: bool = True
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class PublicationRouteUpdate(BaseModel):
+    profile_key: str = Field(min_length=1, max_length=200)
+    environment_key: Literal["dev", "uat", "prod"]
+    target_key: str = Field(min_length=1, max_length=300)
+    title: str = Field(min_length=1, max_length=300)
+    promotion_order: int = Field(ge=1, le=10000)
+    apply_enabled: bool = False
+    requires_approval: bool = True
+    enabled: bool = True
+    config: dict[str, Any] = Field(default_factory=dict)
 
 
 class ActorRequest(BaseModel):
@@ -565,11 +591,13 @@ def get_continuous_sync_status(
     job_name: str,
     profile_key: str = Query(default="opcenter2607-core"),
     environment_key: Literal["dev", "uat", "prod"] = Query(default="dev"),
+    route_key: str | None = Query(default=None),
 ):
     try:
         return continuous_sync_status(
             _repo(), job_name=job_name, profile_key=profile_key,
             environment_key=environment_key,
+            route_key=route_key,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Sync job, profile or environment not found") from exc
@@ -582,6 +610,7 @@ def run_continuous_sync(job_name: str, request: ContinuousSyncRequest):
             _settings(), _repo(), job_name=job_name,
             profile_key=request.profile_key,
             environment_key=request.environment_key,
+            route_key=request.route_key,
             actor=request.actor, apply=request.apply,
         )
     except KeyError as exc:
@@ -980,11 +1009,52 @@ def get_deployments(profile_key: str):
     return deployment_status(_repo(), profile_key)
 
 
+@router.get("/graphstudio-targets")
+def get_graphstudio_targets(profile_key: str = Query(default="opcenter2607-core")):
+    status = deployment_status(_repo(), profile_key)
+    return {"items": status["targets"], "routes": status["routes"]}
+
+
+@router.put("/graphstudio-targets/{target_key}")
+def put_graphstudio_target(target_key: str, request: GraphStudioTargetUpdate):
+    try:
+        return upsert_graphstudio_target(
+            _repo(), target_key=target_key, **request.model_dump(),
+        )
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/publication-routes/{route_key}")
+def put_publication_route(route_key: str, request: PublicationRouteUpdate):
+    try:
+        return upsert_publication_route(
+            _repo(), route_key=route_key, **request.model_dump(),
+        )
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.patch("/publication-routes/{route_key}")
+def patch_publication_route(route_key: str, request: DeploymentEnvironmentUpdate):
+    try:
+        return update_publication_route(
+            _repo(), route_key=route_key, apply_enabled=request.apply_enabled,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Publication route not found") from exc
+
+
 @router.get("/profiles/{profile_key}/deployments/plan/{environment_key}")
-def get_deployment_plan(profile_key: str, environment_key: str):
+def get_deployment_plan(
+    profile_key: str,
+    environment_key: str,
+    route_key: str | None = Query(default=None),
+):
     try:
         return build_deployment_plan(
             _repo(), profile_key=profile_key, environment_key=environment_key,
+            route_key=route_key or None,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Deployment environment not found") from exc
@@ -1011,6 +1081,7 @@ def prepare_deployment(profile_key: str, request: DeploymentCreate):
         return create_deployment(
             _repo(), profile_key=profile_key,
             environment_key=request.environment_key,
+            route_key=request.route_key,
             release_id=request.release_id, actor=request.actor,
         )
     except KeyError as exc:
