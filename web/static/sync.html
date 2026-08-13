@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-27">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-31">
 </head>
 <body>
     <div class="app-shell">
@@ -188,60 +188,68 @@
                 </section>
 
                 <section class="page-section" data-section="governance_advanced">
-                    <div class="section-tabs" data-section-tabs="advanced_governance"></div>
+                    <div class="governance-nav-stack">
+                        <div class="section-tabs" data-section-tabs="data_governance"></div>
+                        <div class="section-tabs subsection-tabs" data-section-tabs="advanced_governance"></div>
+                    </div>
                     <div class="section-header">
                         <div><span class="section-kicker">ADVANCED GOVERNANCE</span><h2>高级治理</h2><p>面向数据工程师和本体管理员，配置对象角色、关系扩展、数据契约、Schema 演进及上下文预算。快速治理与这里共用同一套版本化配置。</p></div>
                         <div class="card-action-buttons"><button class="btn secondary" id="editGraphProfile">配置边界</button><button class="btn primary" id="planContextClosure">预览上下文闭包</button></div>
                     </div>
                     <div class="advanced-governance-links"><button data-go="projections"><strong>属性投影</strong><small>关联表字段合并到主对象</small></button><button data-go="mappings"><strong>物理映射</strong><small>处理属性与关系映射例外</small></button></div>
                     <div id="profileMetrics" class="metric-grid"></div>
-                    <article class="panel profile-boundary-panel">
+                    <article id="profileBoundaryPanel" class="panel profile-boundary-panel">
                         <div class="panel-heading"><div><span class="section-kicker">CONTROLLED CLOSURE</span><h3 id="profileTitle">Opcenter2607 核心业务图谱</h3></div><span id="profileReviewStatus" class="count-badge">草案</span></div>
                         <div id="profileBoundary" class="profile-boundary"></div>
                     </article>
-                    <article class="panel table-panel" style="margin-top:18px">
+                    <article id="dataContractPanel" class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">DATA GOVERNANCE GATE</span><h3>Camstar 数据契约</h3></div><div class="card-action-buttons"><span id="curationPublishable" class="count-badge">尚未预览</span><button class="mini-btn" id="previewCuration">运行治理预览</button></div></div>
+                        <div id="missingDataContracts" class="missing-contract-list"></div>
                         <div class="table-wrap"><table><thead><tr><th>对象</th><th>物理来源</th><th>主键 / 业务键</th><th>必填字段</th><th>预览上限</th><th>状态</th><th>操作</th></tr></thead><tbody id="dataContractRows"></tbody></table></div>
                     </article>
-                    <article class="panel table-panel" style="margin-top:18px">
-                        <div class="panel-heading"><div><span class="section-kicker">SEMANTIC CONTRACT</span><h3>MfgOrder 产品关系</h3></div><span class="panel-note">ProductId 与 BeginProductId 分开治理</span></div>
+                    <article id="relationshipContractPanel" class="panel table-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">SEMANTIC CONTRACT</span><h3>业务关系契约</h3></div><span class="panel-note">每条关系独立治理源字段、目标键与上下文要求</span></div>
+                        <div id="missingRelationshipContracts" class="missing-contract-list"></div>
                         <div class="table-wrap"><table><thead><tr><th>关系</th><th>业务语义</th><th>源字段</th><th>目标对象</th><th>必需上下文</th><th>状态</th><th>操作</th></tr></thead><tbody id="relationshipContractRows"></tbody></table></div>
                     </article>
-                    <article class="panel table-panel" style="margin-top:18px">
+                    <article id="qualityEvidencePanel" class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">QUALITY EVIDENCE</span><h3>最近治理结果</h3></div><span id="qualityResultCount" class="count-badge">0</span></div>
                         <div id="qualityResults" class="profile-issues"></div>
                     </article>
-                    <article class="panel table-panel" style="margin-top:18px">
+                    <article id="schemaFieldPanel" class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">SCHEMA EVOLUTION</span><h3>字段版本与依赖</h3></div><div class="profile-toolbar"><select id="schemaContractSelect" class="field-select"></select><button class="mini-btn" id="newSchemaChange">新建变更申请</button></div></div>
                         <div id="schemaEvolutionSummary" class="capability-summary"></div>
                         <div class="table-wrap"><table><thead><tr><th>字段</th><th>源列</th><th>类型</th><th>角色</th><th>生命周期</th><th>依赖</th><th>引入版本</th></tr></thead><tbody id="contractFieldRows"></tbody></table></div>
                     </article>
-                    <article class="panel table-panel" style="margin-top:18px">
+                    <article id="schemaChangePanel" class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">CHANGE CONTROL</span><h3>Schema 变更申请</h3></div><span id="schemaChangeCount" class="count-badge">0</span></div>
                         <div class="table-wrap"><table><thead><tr><th>申请</th><th>对象 / 版本</th><th>兼容性</th><th>字段操作</th><th>阻断项</th><th>状态</th><th>操作</th></tr></thead><tbody id="schemaChangeRows"></tbody></table></div>
                     </article>
-                    <article class="panel table-panel" style="margin-top:18px">
+                    <article id="objectRolePanel" class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">OBJECT ROLES</span><h3>对象范围</h3></div><div class="profile-toolbar"><input id="profileClassSearch" class="field-input" placeholder="搜索本体对象"><button class="mini-btn" id="addProfileClass">添加对象</button></div></div>
                         <div class="table-wrap"><table><thead><tr><th>本体对象</th><th>业务角色</th><th>种子</th><th>孤立数据策略</th><th>估算行数</th><th>配置状态</th><th>操作</th></tr></thead><tbody id="profileClassRows"></tbody></table></div>
                     </article>
-                    <article class="panel table-panel" style="margin-top:18px">
+                    <article id="relationshipScopePanel" class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">RELATIONSHIP STRENGTH</span><h3>关系范围</h3></div><button class="mini-btn" id="addProfileRelationship">添加本体关系</button></div>
                         <div class="table-wrap"><table><thead><tr><th>源对象</th><th>关系</th><th>目标对象</th><th>强度</th><th>扩展上下文</th><th>物理映射</th><th>操作</th></tr></thead><tbody id="profileRelationshipRows"></tbody></table></div>
                     </article>
-                    <article class="panel table-panel" style="margin-top:18px">
+                    <article id="governanceValidationPanel" class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">VALIDATION</span><h3>发布前检查</h3></div><span id="profileIssueCount" class="count-badge">0</span></div>
                         <div id="profileIssues" class="profile-issues"></div>
                     </article>
                 </section>
 
                 <section class="page-section" data-section="projections">
-                    <div class="section-tabs" data-section-tabs="advanced_governance"></div>
+                    <div class="governance-nav-stack">
+                        <div class="section-tabs" data-section-tabs="data_governance"></div>
+                        <div class="section-tabs subsection-tabs" data-section-tabs="advanced_governance"></div>
+                    </div>
                     <div class="section-header">
                         <div><span class="section-kicker">CONFIGURED ENRICHMENT</span><h2>属性投影</h2><p>把任意关联表中的字段合并到主本体对象。简单场景只需填写关联键与字段映射；多跳关联、过滤和排序可在高级配置中声明。</p></div>
                         <button class="btn primary" id="newAttributeProjection">新增属性投影</button>
                     </div>
                     <div id="projectionSummary" class="capability-summary"></div>
-                    <article class="panel table-panel">
+                    <article id="projectionContractPanel" class="panel table-panel">
                         <div class="panel-heading"><div><span class="section-kicker">PROJECTION CONTRACTS</span><h3>通用关联属性规则</h3></div><span id="projectionCount" class="count-badge">0</span></div>
                         <div class="table-wrap"><table><thead><tr><th>目标对象</th><th>关联来源</th><th>关联层级</th><th>投影字段</th><th>多值策略</th><th>源预览</th><th>状态</th><th>操作</th></tr></thead><tbody id="projectionRows"></tbody></table></div>
                     </article>
@@ -279,17 +287,20 @@
                 </section>
 
                 <section class="page-section" data-section="mappings">
-                    <div class="section-tabs" data-section-tabs="advanced_governance"></div>
+                    <div class="governance-nav-stack">
+                        <div class="section-tabs" data-section-tabs="data_governance"></div>
+                        <div class="section-tabs subsection-tabs" data-section-tabs="advanced_governance"></div>
+                    </div>
                     <div class="section-header">
                         <div><span class="section-kicker">ONTOLOGY COMPILER</span><h2>映射管理</h2><p>Neo4j 本体类和属性映射到 Camstar 物理表列；不确定项必须显式确认，运行时不盲目猜测。</p></div>
                         <button class="btn primary" id="compileMappings">重新编译映射</button>
                     </div>
                     <div id="mappingMetrics" class="metric-grid"></div>
-                    <article class="panel table-panel">
+                    <article id="propertyMappingPanel" class="panel table-panel">
                         <div class="panel-heading"><div><span class="section-kicker">REVIEW QUEUE</span><h3>待确认映射</h3></div><span id="unmappedCount" class="count-badge">0</span></div>
                         <div class="table-wrap"><table><thead><tr><th>本体类</th><th>属性</th><th>类型</th><th>Source Field ID</th><th>处理状态</th><th>操作</th></tr></thead><tbody id="mappingRows"></tbody></table></div>
                     </article>
-                    <article class="panel table-panel" style="margin-top:18px">
+                    <article id="relationshipMappingPanel" class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">RELATIONSHIP REVIEW</span><h3>待确认关系</h3></div><span id="relationshipReviewCount" class="count-badge">0</span></div>
                         <div class="table-wrap"><table><thead><tr><th>源类</th><th>关系</th><th>目标类</th><th>状态</th><th>候选属性</th><th>操作</th></tr></thead><tbody id="relationshipRows"></tbody></table></div>
                     </article>
@@ -329,6 +340,6 @@
 
     <div id="toast" class="toast" hidden></div>
     <script src="/static/lib/g6.js"></script>
-    <script src="/static/sync.js?v=20260813-33"></script>
+    <script src="/static/sync.js?v=20260813-37"></script>
 </body>
 </html>

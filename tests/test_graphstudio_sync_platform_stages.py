@@ -10,6 +10,7 @@ from src.graphstudio_sync.materialization import (
 )
 from src.graphstudio_sync.observability import _rule_failed
 from src.graphstudio_sync.schema_evolution import _merged_field
+from src.graphstudio_sync.repository import _physical_key_catalog
 
 
 def _contract(**overrides):
@@ -95,6 +96,12 @@ def test_materialization_plan_blocks_profile_scope_without_contracts() -> None:
     assert plan["ready"] is False
     assert "发布对象缺少数据契约：Container" in plan["blockers"]
     assert "发布关系缺少关系契约：Container.HAS_PRODUCT->Product" in plan["blockers"]
+
+
+def test_physical_key_catalog_supplies_keys_not_exposed_as_ontology_properties() -> None:
+    keys = _physical_key_catalog()["Container"]
+
+    assert keys["primary"] == ["ContainerId"]
 
 
 def test_materialization_plan_never_falls_back_to_large_table_scan() -> None:

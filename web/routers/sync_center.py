@@ -264,8 +264,27 @@ class DataContractUpdate(BaseModel):
     publication_layer: Literal["core", "context", "reference", "quarantine"] = "core"
 
 
+class DataContractCreate(BaseModel):
+    class_name: str = Field(min_length=1, max_length=200)
+    primary_key_columns: list[str] = Field(min_length=1, max_length=10)
+    business_key_columns: list[str] = Field(default_factory=list, max_length=20)
+    selected_columns: list[str] = Field(min_length=1, max_length=1000)
+    required_columns: list[str] = Field(default_factory=list, max_length=100)
+    freshness_column: str | None = Field(default=None, max_length=200)
+    preview_row_limit: int = Field(default=100000, ge=1, le=1000000)
+    publication_layer: Literal["core", "context", "reference", "quarantine"] = "core"
+
+
 class RelationshipContractUpdate(BaseModel):
     status: Literal["draft", "reviewed", "approved", "retired"] = "draft"
+    semantic_role: str = Field(min_length=1, max_length=200)
+    required_context: bool = False
+
+
+class RelationshipContractCreate(BaseModel):
+    source_class: str = Field(min_length=1, max_length=200)
+    relationship_name: str = Field(min_length=1, max_length=300)
+    target_class: str = Field(min_length=1, max_length=200)
     semantic_role: str = Field(min_length=1, max_length=200)
     required_context: bool = False
 
@@ -641,6 +660,31 @@ def governance_profile(profile_key: str):
         return _repo().governance_profile(profile_key)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+@router.get("/profiles/{profile_key}/contract-candidates")
+def governance_contract_candidates(profile_key: str):
+    return _repo().governance_contract_candidates(profile_key)
+
+
+@router.post("/profiles/{profile_key}/data-contracts")
+def create_data_contract(profile_key: str, request: DataContractCreate):
+    try:
+        return _repo().create_data_contract(profile_key, **request.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Missing data contract candidate not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/profiles/{profile_key}/relationship-contracts")
+def create_relationship_contract(profile_key: str, request: RelationshipContractCreate):
+    try:
+        return _repo().create_relationship_contract(profile_key, **request.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Missing relationship contract candidate not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.put("/data-contracts/{contract_key}")

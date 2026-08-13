@@ -31,6 +31,7 @@
         closurePlan: null,
         governance: { contracts: [], relationships: [], latestRun: null, qualityResults: [] },
         governanceExceptionFilter: "all",
+        contractCandidates: { classes: [], relationships: [] },
         contractSchema: null,
         schemaChanges: [],
         attributeProjections: [],
@@ -192,8 +193,39 @@
         $$(".page-section").forEach(section => section.classList.toggle("active", section.dataset.section === selected));
         const activeGroup = navigationGroupFor(selected);
         $$(".nav-item[data-navigation-group]").forEach(item => item.classList.toggle("active", item.dataset.navigationGroup === activeGroup));
-        $$("[data-section-tabs] button").forEach(item => item.classList.toggle("active", item.dataset.go === selected));
+        $$('[data-section-tabs]').forEach(container => {
+            const activeTab = container.dataset.sectionTabs === "data_governance" && ["projections", "mappings"].includes(selected)
+                ? "governance_advanced"
+                : selected;
+            $$('button', container).forEach(item => item.classList.toggle("active", item.dataset.go === activeTab));
+        });
         if (location.hash !== `#${selected}`) history.replaceState(null, "", `#${selected}`);
+    }
+
+    function navigateToSection(section, focusId = null) {
+        setActiveSection(section);
+        window.requestAnimationFrame(() => {
+            if (!focusId) {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                return;
+            }
+            const relationshipKey = focusId?.startsWith("relationship:") ? focusId.slice("relationship:".length) : null;
+            const propertyKey = focusId?.startsWith("property:") ? focusId.slice("property:".length) : null;
+            const target = relationshipKey
+                ? $(`[data-relationship-key="${CSS.escape(relationshipKey)}"]`)
+                : propertyKey
+                    ? $(`[data-property-key="${CSS.escape(propertyKey)}"]`)
+                    : document.getElementById(focusId);
+            if (!target) return;
+            target.classList.remove("navigation-focus");
+            void target.offsetWidth;
+            target.classList.add("navigation-focus");
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
+            const label = target.querySelector("h3")?.textContent?.trim()
+                || (relationshipKey ? relationshipKey.replaceAll("|", " → ") : propertyKey?.replace("|", "."));
+            if (label) toast(`已定位到“${label}”，请在高亮区域完成配置`);
+            window.setTimeout(() => target.classList.remove("navigation-focus"), 4800);
+        });
     }
 
     function renderOverview() {
@@ -1199,12 +1231,17 @@
         renderGovernanceExceptions();
     }
 
-    function governanceExceptionRoute(message) {
-        if (/映射|物理/.test(message)) return "mappings";
-        if (/投影/.test(message)) return "projections";
-        if (/增量|CDC|SCN|基线|大表/.test(message)) return "jobs";
-        if (/本体/.test(message)) return "ontology_governance";
-        return "governance_advanced";
+    function governanceExceptionDestination(message) {
+        if (/发布对象缺少数据契约|数据契约/.test(message)) return { route: "governance_advanced", focus: "dataContractPanel", actionLabel: "配置数据契约" };
+        if (/发布关系缺少关系契约|关系契约|关系语义/.test(message)) return { route: "governance_advanced", focus: "relationshipContractPanel", actionLabel: "配置关系契约" };
+        if (/对象角色/.test(message)) return { route: "governance_advanced", focus: "objectRolePanel", actionLabel: "配置对象角色" };
+        if (/质量|预览|发布门禁/.test(message)) return { route: "governance_advanced", focus: "qualityEvidencePanel", actionLabel: "查看质量证据" };
+        if (/Schema 变更/.test(message)) return { route: "governance_advanced", focus: "schemaChangePanel", actionLabel: "处理 Schema 变更" };
+        if (/映射|物理/.test(message)) return { route: "mappings", focus: "propertyMappingPanel", actionLabel: "处理物理映射" };
+        if (/投影/.test(message)) return { route: "projections", focus: "projectionContractPanel", actionLabel: "配置属性投影" };
+        if (/增量|CDC|SCN|基线|大表/.test(message)) return { route: "jobs", focus: null, actionLabel: "配置同步策略" };
+        if (/本体/.test(message)) return { route: "ontology_governance", focus: null, actionLabel: "查看本体治理" };
+        return { route: "governance_advanced", focus: "governanceValidationPanel", actionLabel: "前往检查" };
     }
 
     function collectGovernanceExceptions() {
@@ -1220,13 +1257,13 @@
         if (drift.missingClasses.length || drift.missingRelationships.length) {
             add({ severity: "warning", category: "scope", title: "活动本体与数据治理范围不一致", message: `缺少 ${drift.missingClasses.length} 个对象、${drift.missingRelationships.length} 条关系`, action: "sync-ontology-to-data-governance", actionLabel: "按活动本体补齐" });
         }
-        (state.materialization?.plan?.blockers || []).forEach(message => add({ severity: "blocker", category: "gate", title: "数据版本发布门禁", message, route: governanceExceptionRoute(message), actionLabel: "前往处理" }));
+        (state.materialization?.plan?.blockers || []).forEach(message => add({ severity: "blocker", category: "gate", title: "数据版本发布门禁", message, ...governanceExceptionDestination(message) }));
         const failedQuality = (state.governance?.qualityResults || []).filter(item => !item.passed);
-        failedQuality.forEach(item => add({ severity: "warning", category: "quality", title: "质量规则证据", message: item.message, route: "governance_advanced", actionLabel: "查看证据" }));
+        failedQuality.forEach(item => add({ severity: "warning", category: "quality", title: "质量规则证据", message: item.message, route: "governance_advanced", focus: "qualityEvidencePanel", actionLabel: "查看证据" }));
         const unmapped = state.mappings?.catalog?.unresolvedProperties?.length || 0;
         const relationshipMapping = state.mappings?.catalog?.relationshipReview?.length || 0;
-        if (unmapped) add({ severity: "warning", category: "mapping", title: "存在属性映射例外", message: `${unmapped} 个属性需要人工确认`, route: "mappings", actionLabel: "处理映射" });
-        if (relationshipMapping) add({ severity: "warning", category: "mapping", title: "存在关系映射例外", message: `${relationshipMapping} 条关系需要人工确认`, route: "mappings", actionLabel: "处理关系" });
+        if (unmapped) add({ severity: "warning", category: "mapping", title: "存在属性映射例外", message: `${unmapped} 个属性需要人工确认`, route: "mappings", focus: "propertyMappingPanel", actionLabel: "处理属性映射" });
+        if (relationshipMapping) add({ severity: "warning", category: "mapping", title: "存在关系映射例外", message: `${relationshipMapping} 条关系需要人工确认`, route: "mappings", focus: "relationshipMappingPanel", actionLabel: "处理关系映射" });
         return items;
     }
 
@@ -1254,7 +1291,7 @@
             { key: "scope", title: "同步活动本体范围", note: scopeReady ? "对象与关系已和活动本体一致" : `${drift.missingClasses.length} 个对象、${drift.missingRelationships.length} 条关系待补齐`, complete: scopeReady, action: "sync-ontology-to-data-governance", actionLabel: "自动补齐" },
             contractCoverageReady
                 ? { key: "recommend", title: "采用安全推荐配置", note: recommendationsReady ? "对象、关系和已有契约均已确认" : "按模板确认角色、契约与关系策略", complete: recommendationsReady, action: "apply-governance-recommendations", actionLabel: "采用推荐" }
-                : { key: "recommend", title: "补齐对象与关系契约", note: `${missingContracts.length} 个对象、${missingRelationshipContracts.length} 条关系不能安全推断`, complete: false, go: "governance_advanced", actionLabel: "高级配置" },
+                : { key: "recommend", title: "补齐对象与关系契约", note: `${missingContracts.length} 个对象、${missingRelationshipContracts.length} 条关系不能安全推断`, complete: false, go: "governance_advanced", focus: missingContracts.length ? "dataContractPanel" : "relationshipContractPanel", actionLabel: "高级配置" },
             { key: "exceptions", title: "处理无法自动决定的例外", note: blockers.length ? `${blockers.length} 项发布阻断` : "没有阻断数据版本的问题", complete: blockers.length === 0, go: "governance_exceptions", actionLabel: "查看异常" },
             { key: "preview", title: "运行发布预检", note: previewReady ? "最近预检已通过发布门禁" : "验证主键、业务键、关系与数据质量", complete: previewReady, action: "run-quick-governance-preview", actionLabel: "运行预检" },
         ];
@@ -1276,16 +1313,17 @@
         ].map(([label, value, note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
         $("#quickGovernanceProgress").textContent = `${completed}/4 完成`;
         $("#quickGovernanceProgress").classList.toggle("approved", completed === steps.length);
-        $("#quickGovernanceTasks").innerHTML = steps.map((item, index) => `<div class="quick-task ${item.complete ? "complete" : "current"}"><i>${item.complete ? "✓" : index + 1}</i><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.note)}</small></div>${item.complete ? '<span class="status-pill online">已完成</span>' : `<button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.go}"`}>${escapeHtml(item.actionLabel)}</button>`}</div>`).join("");
+        $("#quickGovernanceTasks").innerHTML = steps.map((item, index) => `<div class="quick-task ${item.complete ? "complete" : "current"}"><i>${item.complete ? "✓" : index + 1}</i><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.note)}</small></div>${item.complete ? '<span class="status-pill online">已完成</span>' : `<button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.go}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(item.actionLabel)}</button>`}</div>`).join("");
         const next = steps.find(item => !item.complete);
-        $("#quickGovernanceNext").innerHTML = next ? `<div class="quick-next-card"><span>下一步</span><strong>${escapeHtml(next.title)}</strong><p>${escapeHtml(next.note)}</p><button class="btn primary" ${next.action ? `data-action="${next.action}"` : `data-go="${next.go}"`}>${escapeHtml(next.actionLabel)}</button><button class="text-btn" data-go="governance_advanced">需要自定义？进入高级治理</button></div>` : '<div class="quick-next-card complete"><span>治理完成</span><strong>可以生成数据版本</strong><p>所有快速治理步骤均已完成。</p><button class="btn primary" data-go="releases">进入发布中心</button></div>';
+        $("#quickGovernanceNext").innerHTML = next ? `<div class="quick-next-card"><span>下一步</span><strong>${escapeHtml(next.title)}</strong><p>${escapeHtml(next.note)}</p><button class="btn primary" ${next.action ? `data-action="${next.action}"` : `data-go="${next.go}"${next.focus ? ` data-focus="${next.focus}"` : ""}`}>${escapeHtml(next.actionLabel)}</button><button class="text-btn" data-go="governance_advanced">需要自定义？进入高级治理</button></div>` : '<div class="quick-next-card complete"><span>治理完成</span><strong>可以生成数据版本</strong><p>所有快速治理步骤均已完成。</p><button class="btn primary" data-go="releases">进入发布中心</button></div>';
         const classDetails = new Map((state.activeProfile?.classes || []).map(item => [item.class_name, item]));
         const contractDetails = new Map((state.governance?.contracts || []).map(item => [item.class_name, item]));
         $("#quickGovernanceObjects").innerHTML = [...releaseClasses].sort().map(name => {
             const configured = classDetails.get(name);
             const contract = contractDetails.get(name);
             const ready = configured?.review_status === "approved" && contract?.status === "approved";
-            return `<div class="quick-object-card ${ready ? "complete" : "warning"}"><span>${escapeHtml(roleLabel(configured?.role || "context"))}</span><strong>${escapeHtml(name)}</strong><small>${!configured ? "尚未纳入数据治理" : !contract ? "缺少数据契约" : ready ? "推荐配置已确认" : "配置待确认"}</small><button class="mini-btn" data-go="governance_advanced">${ready ? "查看" : "配置"}</button></div>`;
+            const focus = !configured ? "objectRolePanel" : !contract ? "dataContractPanel" : configured.review_status !== "approved" ? "objectRolePanel" : "dataContractPanel";
+            return `<div class="quick-object-card ${ready ? "complete" : "warning"}"><span>${escapeHtml(roleLabel(configured?.role || "context"))}</span><strong>${escapeHtml(name)}</strong><small>${!configured ? "尚未纳入数据治理" : !contract ? "缺少数据契约" : ready ? "推荐配置已确认" : "配置待确认"}</small><button class="mini-btn" data-go="governance_advanced" data-focus="${focus}">${ready ? "查看" : "配置"}</button></div>`;
         }).join("") || '<div class="profile-empty">活动本体中尚无发布对象</div>';
     }
 
@@ -1301,7 +1339,7 @@
             ["发布阻断", blockers, "来自真实物化门禁"], ["治理提醒", warnings, "不一定阻止发布"], ["可自动处理", autoResolvable, "可采用安全推荐"], ["全部事项", items.length, "已按消息去重"],
         ].map(([label, value, note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
         $("#governanceExceptionFilters").innerHTML = [["all", `全部 ${items.length}`], ["blocker", `阻断 ${blockers}`], ["warning", `提醒 ${warnings}`]].map(([key, label]) => `<button class="mini-btn ${filter === key ? "active" : ""}" data-action="filter-governance-exceptions" data-filter="${key}">${label}</button>`).join("");
-        $("#governanceExceptionList").innerHTML = visible.map(item => `<div class="governance-exception ${item.severity}"><span>${item.severity === "blocker" ? "阻断" : "提醒"}</span><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)}</small></div><button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.route}"`}>${escapeHtml(item.actionLabel || "处理")}</button></div>`).join("") || '<div class="exception-empty"><strong>当前筛选下没有异常</strong><span>可以运行发布预检确认最新状态。</span></div>';
+        $("#governanceExceptionList").innerHTML = visible.map(item => `<div class="governance-exception ${item.severity}"><span>${item.severity === "blocker" ? "阻断" : "提醒"}</span><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)}</small></div><button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.route}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(item.actionLabel || "处理")}</button></div>`).join("") || '<div class="exception-empty"><strong>当前筛选下没有异常</strong><span>可以运行发布预检确认最新状态。</span></div>';
     }
 
     function renderGraphProfile() {
@@ -1361,9 +1399,18 @@
         $("#dataContractRows").innerHTML = contracts.map(item => `
             <tr data-contract="${escapeHtml(item.contract_key)}"><td><strong>${escapeHtml(item.class_name)}</strong><br><small>v${item.version}</small></td><td>${escapeHtml(`${item.source_schema}.${item.source_table}`)}</td><td>${escapeHtml((item.primary_key_columns || []).join(", "))}<br><small>${escapeHtml((item.business_key_columns || []).join(", ") || "未配置业务键")}</small></td><td title="${escapeHtml((item.required_columns || []).join(', '))}">${escapeHtml((item.required_columns || []).join(", ") || "—")}</td><td>${Number(item.preview_row_limit).toLocaleString()} 行</td><td><span class="status-pill ${item.status === "approved" ? "online" : "unknown"}">${escapeHtml(reviewLabel(item.status))}</span></td><td><button class="mini-btn" data-action="edit-data-contract">配置</button></td></tr>
         `).join("") || '<tr class="empty-row"><td colspan="7">尚未配置数据契约</td></tr>';
+        const missingContracts = state.contractCandidates?.classes || [];
+        $("#missingDataContracts").innerHTML = missingContracts.map(item => `<div class="missing-contract-item"><div><strong>${escapeHtml(item.class_name)} 缺少数据契约</strong><small>${escapeHtml(`${item.physical_schema}.${item.physical_table}`)} · ${item.properties.length} 个已解析字段；需要确认主键和发布字段后才能生成数据版本。</small></div><button class="mini-btn" data-action="create-data-contract" data-class-name="${escapeHtml(item.class_name)}">创建契约</button></div>`).join("");
         $("#relationshipContractRows").innerHTML = relationships.map(item => `
             <tr data-relationship-contract="${escapeHtml(item.relationship_contract_key)}"><td><strong>${escapeHtml(item.relationship_name)}</strong><br><small>v${item.version}</small></td><td>${escapeHtml(item.semantic_role)}</td><td>${escapeHtml((item.source_columns || []).join(", "))}</td><td>${escapeHtml(item.target_class)}.${escapeHtml((item.target_columns || []).join(", "))}</td><td>${item.required_context ? '<span class="status-pill online">必需</span>' : '<span class="status-pill">可选</span>'}</td><td><span class="status-pill ${item.status === "approved" ? "online" : "unknown"}">${escapeHtml(reviewLabel(item.status))}</span></td><td><button class="mini-btn" data-action="edit-relationship-contract">配置</button></td></tr>
         `).join("") || '<tr class="empty-row"><td colspan="7">尚未配置关系契约</td></tr>';
+        const missingRelationshipContracts = state.contractCandidates?.relationships || [];
+        $("#missingRelationshipContracts").innerHTML = missingRelationshipContracts.map(item => {
+            const ready = item.mapping_status === "resolved" && item.source_contract_key && item.target_contract_key;
+            const detail = item.mapping_status !== "resolved" ? "物理关系映射尚未解析" : !item.source_contract_key || !item.target_contract_key ? "请先创建源对象与目标对象的数据契约" : `${item.physical_column} → ${(item.target_columns || []).join(", ")}`;
+            const relationshipKey = `${item.source_class}|${item.relationship_name}|${item.target_class}`;
+            return `<div class="missing-contract-item"><div><strong>${escapeHtml(`${item.source_class}.${item.relationship_name} → ${item.target_class}`)} 缺少关系契约</strong><small>${escapeHtml(detail)}</small></div>${ready ? `<button class="mini-btn" data-action="create-relationship-contract" data-relationship-key="${escapeHtml(relationshipKey)}">创建契约</button>` : `<button class="mini-btn" data-go="${item.mapping_status !== "resolved" ? "mappings" : "governance_advanced"}" data-focus="${item.mapping_status !== "resolved" ? `relationship:${escapeHtml(relationshipKey)}` : "dataContractPanel"}">${item.mapping_status !== "resolved" ? "处理映射" : "创建对象契约"}</button>`}</div>`;
+        }).join("");
         const results = governance.qualityResults || [];
         $("#qualityResultCount").textContent = latest ? `${results.filter(item => !item.passed).length} 项未通过` : "0";
         $("#qualityResults").innerHTML = results.map(item => `<div class="profile-issue ${!item.passed && item.severity === "error" ? "error" : ""}"><span>${item.passed ? "通过" : item.severity === "error" ? "阻断" : "提醒"}</span><strong>${escapeHtml(item.message)}</strong><small>${Number(item.failed_rows || 0).toLocaleString()}/${Number(item.checked_rows || 0).toLocaleString()} · ${escapeHtml(item.rule_key)}</small></div>`).join("") || '<div class="profile-empty">运行治理预览后显示质量证据</div>';
@@ -2041,6 +2088,75 @@
         $("#editDialog").showModal();
     }
 
+    function openCreateDataContractDialog(className) {
+        const item = (state.contractCandidates?.classes || []).find(candidate => candidate.class_name === className);
+        if (!item) return;
+        const properties = item.properties || [];
+        const columns = [...new Set(properties.map(property => property.physical_column).filter(Boolean))];
+        const likelyPrimary = item.suggested_primary_key_columns?.[0] || columns.find(column => column.toLowerCase() === `${className}Id`.toLowerCase()) || columns.find(column => /id$/i.test(column)) || columns[0] || "";
+        const likelyBusiness = item.suggested_business_key_columns?.[0] || columns.find(column => /(^|_)name$/i.test(column) || column.toLowerCase() === `${className}Name`.toLowerCase()) || "";
+        const likelyFreshness = columns.find(column => /lastchangedate|modifieddate|updatedat/i.test(column)) || "";
+        $("#dialogTitle").textContent = `创建 ${className} 数据契约`;
+        $("#dialogKicker").textContent = "DATA CONTRACT WIZARD";
+        $("#dialogFields").innerHTML = [
+            `<div class="dialog-operation-note"><strong>物理来源：${escapeHtml(`${item.physical_schema}.${item.physical_table}`)}</strong><br><br>系统只列出已解析的物理字段。请确认主键；字段范围默认包含全部已解析字段，后续可通过 Schema 演进增减。</div>`,
+            field("primary_key", "主键字段", likelyPrimary, { type: "select", items: columns.map(value => [value, value]) }),
+            field("business_key", "业务键（可选）", likelyBusiness, { type: "select", items: [["", "不设置"], ...columns.map(value => [value, value])] }),
+            field("freshness_column", "增量水位字段（可选）", likelyFreshness, { type: "select", items: [["", "不设置"], ...columns.map(value => [value, value])] }),
+            field("publication_layer", "发布层级", ["core", "context", "reference"].includes(item.role) ? item.role : "context", { type: "select", items: [["core", "核心层"], ["context", "上下文层"], ["reference", "参考层"], ["quarantine", "隔离层"]] }),
+            field("selected_columns", "发布字段（每行一个）", columns.join("\n"), { type: "textarea", wide: true, help: `当前 ${columns.length} 个已解析字段` }),
+        ].join("");
+        state.dialogSubmitLabel = "创建草案契约";
+        $("#dialogSave").textContent = state.dialogSubmitLabel;
+        state.dialogSubmit = async form => {
+            const selected = String(form.get("selected_columns") || "").split(/[\n,]/).map(value => value.trim()).filter(Boolean);
+            const primary = form.get("primary_key");
+            if (!selected.includes(primary)) selected.unshift(primary);
+            await request(`/api/sync/profiles/${encodeURIComponent(state.activeProfile.profile.profile_key)}/data-contracts`, {
+                method: "POST",
+                body: JSON.stringify({
+                    class_name: className,
+                    primary_key_columns: [primary],
+                    business_key_columns: form.get("business_key") ? [form.get("business_key")] : [],
+                    selected_columns: selected,
+                    required_columns: [primary],
+                    freshness_column: form.get("freshness_column") || null,
+                    preview_row_limit: 100000,
+                    publication_layer: form.get("publication_layer"),
+                }),
+            });
+            await Promise.all([loadGraphProfiles(), loadMaterialization()]);
+            toast(`${className} 数据契约草案已创建，请检查后确认`);
+            navigateToSection("governance_advanced", "dataContractPanel");
+        };
+        $("#editDialog").showModal();
+    }
+
+    function openCreateRelationshipContractDialog(key) {
+        const [sourceClass, relationshipName, targetClass] = key.split("|");
+        const item = (state.contractCandidates?.relationships || []).find(candidate => candidate.source_class === sourceClass && candidate.relationship_name === relationshipName && candidate.target_class === targetClass);
+        if (!item) return;
+        $("#dialogTitle").textContent = `创建 ${relationshipName} 关系契约`;
+        $("#dialogKicker").textContent = "RELATIONSHIP CONTRACT WIZARD";
+        $("#dialogFields").innerHTML = [
+            `<div class="dialog-operation-note"><strong>${escapeHtml(`${sourceClass}.${item.physical_column} → ${targetClass}.${(item.target_columns || []).join(", ")}`)}</strong><br><br>关系已具备已解析的物理外键映射，将以草案状态创建，确认后才进入正式数据版本。</div>`,
+            field("semantic_role", "业务语义", relationshipName.replaceAll("_", " "), { wide: true }),
+            field("required_context", "必需上下文", item.required_context, { type: "checkbox", wide: true, help: "缺少该关系时是否阻止对象进入正式图谱" }),
+        ].join("");
+        state.dialogSubmitLabel = "创建草案契约";
+        $("#dialogSave").textContent = state.dialogSubmitLabel;
+        state.dialogSubmit = async form => {
+            await request(`/api/sync/profiles/${encodeURIComponent(state.activeProfile.profile.profile_key)}/relationship-contracts`, {
+                method: "POST",
+                body: JSON.stringify({ source_class: sourceClass, relationship_name: relationshipName, target_class: targetClass, semantic_role: form.get("semantic_role"), required_context: form.get("required_context") === "on" }),
+            });
+            await Promise.all([loadGraphProfiles(), loadMaterialization()]);
+            toast(`${relationshipName} 关系契约草案已创建，请检查后确认`);
+            navigateToSection("governance_advanced", "relationshipContractPanel");
+        };
+        $("#editDialog").showModal();
+    }
+
     async function loadNavigation() {
         const payload = await request("/api/sync/navigation?include_disabled=true");
         state.navigation = payload.items;
@@ -2074,11 +2190,12 @@
         state.profiles = (await request("/api/sync/profiles")).items;
         const profileKey = state.profiles[0]?.profile_key;
         if (!profileKey) return;
-        [state.activeProfile, state.profileCandidates, state.governance, state.schemaChanges] = await Promise.all([
+        [state.activeProfile, state.profileCandidates, state.governance, state.schemaChanges, state.contractCandidates] = await Promise.all([
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}`),
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/candidates`),
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/governance`),
             request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/schema-changes`).then(payload => payload.items),
+            request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/contract-candidates`),
         ]);
         const currentContract = state.contractSchema?.contract?.contract_key;
         const contractKey = state.governance.contracts.some(item => item.contract_key === currentContract)
@@ -2293,12 +2410,20 @@
 
     document.addEventListener("click", async (event) => {
         const go = event.target.closest("[data-go]");
-        if (go) { location.hash = go.dataset.go; setActiveSection(go.dataset.go); return; }
+        if (go) { navigateToSection(go.dataset.go, go.dataset.focus || null); return; }
         const action = event.target.closest("[data-action]");
         if (!action) return;
         if (action.dataset.action === "filter-governance-exceptions") {
             state.governanceExceptionFilter = action.dataset.filter || "all";
             renderGovernanceExceptions();
+            return;
+        }
+        if (action.dataset.action === "create-data-contract") {
+            openCreateDataContractDialog(action.dataset.className);
+            return;
+        }
+        if (action.dataset.action === "create-relationship-contract") {
+            openCreateRelationshipContractDialog(action.dataset.relationshipKey);
             return;
         }
         if (action.dataset.action === "apply-governance-recommendations") {
@@ -2606,7 +2731,10 @@
         }
     });
 
-    window.addEventListener("hashchange", () => setActiveSection(location.hash.slice(1)));
+    window.addEventListener("hashchange", () => {
+        setActiveSection(location.hash.slice(1));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
     window.addEventListener("storage", event => {
         if (![ONTOLOGY_PRIORITY_STORAGE_KEY, "camstar_priority_node_sizes_v1"].includes(event.key)) return;
         renderOntologyDiscovery();
