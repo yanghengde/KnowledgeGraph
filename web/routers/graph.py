@@ -68,10 +68,12 @@ def _graph_overview_cached():
         # Nodes
         result = session.run("""
             MATCH (c:OntologyClass)
+            OPTIONAL MATCH (c)-[:HAS_PROPERTY]->(property:OntologyProperty)
             RETURN c.name AS name,
                    c.chineseName AS chineseName,
                    c.description AS description,
-                   c.layer AS layer
+                   c.layer AS layer,
+                   count(DISTINCT property) AS propertyCount
             ORDER BY c.name
         """)
         nodes = []
@@ -87,6 +89,7 @@ def _graph_overview_cached():
                     "chineseName": r["chineseName"] or "",
                     "description": r["description"] or "",
                     "layer": r["layer"] or "Config",
+                    "propertyCount": int(r["propertyCount"] or 0),
                     "module": module,
                     "type": "class",
                 }

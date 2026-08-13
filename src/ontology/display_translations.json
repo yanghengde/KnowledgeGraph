@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "revision": 1785570319,
-  "updatedAt": 1786537311601,
+  "revision": 1785570320,
+  "updatedAt": 1786613204006,
   "translations": {
     "nodeDescriptions": {
       "A_AdHocWIPDataSetup": {
@@ -2037,8 +2037,8 @@
         "en": "SPC Violation"
       },
       "Spec": {
-        "zh": "规范（Spec）描述了在工作流中的步骤处进行的处理。它引用了许多其他建模组件，包括工序、设置、数据收集定义和资源。规范还包括详细的调度和...",
-        "en": "A specification (Spec) describes the processing that takes place at a Step within a Workflow. It references many other Modeling components including an Operation, Setup, Data Collection Definitions and Resources. Specs also include detailed scheduling and"
+        "zh": "规范（Spec）描述了工作流中某个步骤（Step）内所执行的加工处理。它引用了许多其他建模组件，包括操作（Operation）、设置（Setup）、数据采集定义（Data Collection Definitions）和资源（Resources）。规范还包含详细的排程和加工参数信息。规范被工作流中的某个步骤引用（使用）。多个工作流步骤可以使用同一个规范。规范用于定义要执行的加工处理。操作（Operation）用于定义物料在工厂中流动或移动的规则。有关排程详细信息，请参阅操作定义。",
+        "en": "A specification (Spec) describes the processing that takes place at a Step within a Workflow. It references many other Modeling components including an Operation, Setup, Data Collection Definitions and Resources. Specs also include detailed scheduling and processing parameter information. A Spec is referenced (used) by a Step within a Workflow. Many Workflow Steps can use one Spec. A Spec is used to define the processing that is to be performed. An Operation is used to define (rules for) the flow or movement of Material through the Factory. See the Operation Definition for Scheduling Details information."
       },
       "SpecBase": {
         "zh": "规范（Spec）描述了在工作流中的步骤处进行的处理。它引用了许多其他建模组件，包括工序、设置、数据收集定义和资源。规范还包括详细的调度和处理参数信息。工作流中的步骤引用（使用）规范。许多工作流步骤可以使用一个规范。规范用于定义要执行的处理。工序用于定义物料通过工厂的流程或移动（规则）。",
@@ -30923,11 +30923,11 @@
         "en": "i) Set whether the collection of number of strips during track out and move out is allowed."
       },
       "Spec.allowOtherResource": {
-        "zh": "允许执行上次移动的资源以外的其他资源。",
+        "zh": "允许使用除执行上次移动的资源之外的其他资源",
         "en": "Allow other resource than the resource that performed last movement"
       },
       "Spec.allowOverrides": {
-        "zh": "允许覆盖。",
+        "zh": "允许覆盖",
         "en": "Allow Overrides"
       },
       "Spec.allowRejectsRecording": {
@@ -30935,11 +30935,11 @@
         "en": "i) Set whether the operation allows reject recording."
       },
       "Spec.allowReprocess": {
-        "zh": "允许容器重复移动通过/进入此Spec。通常用于在先前测试无效时通过自动化测试设备重新运行容器。",
+        "zh": "允许容器重复通过/进入此规范。通常用于在先前测试无效时，将容器重新运行通过自动化测试设备",
         "en": "Allow a Container to be Moved through/into this Spec repeatedly. Commonly used to rerun a Container through automated testing equipment if the previous test was invalid"
       },
       "Spec.allowReworkTo": {
-        "zh": "确定引用此Spec的步骤是否可以是返工事务的To-Step。",
+        "zh": "确定引用此规范的步骤能否作为返工事务（Rework Transaction）的目标步骤",
         "en": "Determines if a Step that references this Spec can be the To-Step for a Rework Transaction"
       },
       "Spec.allowReworkableRejectQty": {
@@ -30959,7 +30959,7 @@
         "en": "Flag indicating whether to automatically create the first insertion right after the lot moves into a WIP step."
       },
       "Spec.autoFillDataPointHistoryValue": {
-        "zh": "此布尔值用于从上一条最新记录自动填充数据收集值。",
+        "zh": "此布尔值用于自动填充来自上一条最新记录的数据采集值",
         "en": "This Boolean is to auto filling data collection values from previous latest record"
       },
       "Spec.autoMoveOut": {
@@ -31003,7 +31003,7 @@
         "en": "i) Named data object. ii) Provides a valid list of bin types. iii) E.g. BIN or BUCKET."
       },
       "Spec.changeHistory": {
-        "zh": "每个建模实体都包含 Change Status。它用于记录当前的变更（维护）状态（例如，特定 Product Definition 的维护正在进行中），并跟踪最后一次更改的人员和时间。这应该可扩展为随时间变化的完整历史记录。",
+        "zh": "每个建模实体都包含更改状态。它用于记录当前的更改（维护）状态（即，特定产品定义当前正在进行维护）并跟踪最后更改的人员和时间。这应可扩展为随时间变化的完整历史记录。",
         "en": "Every modeling entity includes a Change Status. It is used to record the current Change (Maintenance) Status (i.e., maintenance is currently in progress for a specific Product Definition) and to track who made the last change and when. This should be extendible to a complete history over time."
       },
       "Spec.checkPrinting": {
@@ -31027,7 +31027,7 @@
         "en": "The WIP location to withdraw the material to during Material Withdrawal transaction."
       },
       "Spec.description": {
-        "zh": "此实体的描述。如果未指定，默认为此实体的名称。",
+        "zh": "此实体的描述。如果未指定，则默认为此实体的名称",
         "en": "Description of this entity. Defaults to the name of this entity if not specified"
       },
       "Spec.dispatchPlan": {
@@ -31035,15 +31035,15 @@
         "en": "Plan used for dispatching lots for Track In at a step."
       },
       "Spec.documentSet": {
-        "zh": "对提供与此Spec处理相关附加信息的文档的引用。该文档可以在操作员请求时作为引用此Spec的服务的一部分显示。",
+        "zh": "引用一份文档，该文档提供与此规范加工相关的附加信息。该文档可以在引用此规范的服务中（操作员请求时）显示。",
         "en": "Reference to a Document that provides additional information relating to processing with this Spec. This Document may be displayed (upon Operator request) as part of a service that is referencing this Spec."
       },
       "Spec.eco": {
-        "zh": "工程变更单。",
+        "zh": "工程变更单",
         "en": "Engineering Change Order"
       },
       "Spec.electronicProcedure": {
-        "zh": "提供在Spec处执行一系列任务（Tasks）的框架。",
+        "zh": "提供在此规范处执行一系列任务的框架。",
         "en": "Provides the framework for executing a series of Tasks at the Spec."
       },
       "Spec.electronicProcedureBase": {
@@ -31055,7 +31055,7 @@
         "en": "Setup used to trigger custom logic written in a DLL (i.e. Custom Proc) during an execution of a Shop Floor service. The ExternalInterface Custom Proc will be called if the respective enable flag is set to true during the execution of a Shop Floor service."
       },
       "Spec.filterTags": {
-        "zh": "FilterTags 技术字段。",
+        "zh": "筛选标签",
         "en": "FilterTags"
       },
       "Spec.holdLotIfLimitsNotFound": {
@@ -31063,7 +31063,7 @@
         "en": "i) Flag to hold the lot if limits criteria could not be found."
       },
       "Spec.iconId": {
-        "zh": "与此 Base Entity 关联的图标的标识符。",
+        "zh": "与此基础实体关联的图标的标识符",
         "en": "Identifier for the icon associated with this Base Entity"
       },
       "Spec.inputCarrierFamily": {
@@ -31071,7 +31071,7 @@
         "en": "The expected input Carrier Family during TrackInLot."
       },
       "Spec.isFrozen": {
-        "zh": "确定是否允许对此实例进行更改。",
+        "zh": "确定是否允许更改此实例",
         "en": "Determines if changes are allowed to this instance"
       },
       "Spec.isSubCon": {
@@ -31123,11 +31123,11 @@
         "en": "Max Lots Per User"
       },
       "Spec.maxQueueTime": {
-        "zh": "此值在当前版本的InSite中未实现。此值确定使用此Spec的步骤中容器可以保持排队状态的最大时间长度。MaximumQueueTimeAction的值确定如果排队时间超过此值要采取的操作。",
+        "zh": "此功能在 InSite 当前版本中未实现。此值确定容器在使用此规范的步骤处可处于排队中状态的最长时间。MaximumQueueTimeAction 的值确定队列中时间超过此值时要采取的操作。",
         "en": "This is not implemented in the current version of InSite. This value determines the maximum length of time a Container can remain in an in-queue state at the Step that uses this Spec. The value for MaximumQueueTimeAction determines the action to take if the in-queue time exceeds this value."
       },
       "Spec.maxQueueTimeAction": {
-        "zh": "此值在当前版本的InSite中未实现。此值用于确定对于排队时间超过允许的队列时间（MaxQueueTime）的容器启动服务（事务）时采取的操作。此选项的值为：0 = 不采取操作 1 = 向操作员警告 2 = 向操作员警告并要求密码才能继续 3 = 将容器置于保留状态 4 = 不允许事务继续 这些值及其关联操作旨在匹配字段验证的值和操作。此操作适用于将容器从排队状态更改为处理中状态的任何服务。",
+        "zh": "此功能在 InSite 当前版本中未实现。此值用于确定当服务（事务）针对队列中时间超过允许排队时间（MaxQueueTime）的容器启动时要采取的操作。此选项的值为：0 = 不采取操作 1 = 向操作员发出警告 2 = 向操作员发出警告并需要密码才能继续 3 = 将容器置于保持状态 4 = 不允许事务继续。这些值及其相关操作旨在与字段验证的值和操作匹配。此操作适用于任何将容器从排队中状态更改为进行中状态的服务。",
         "en": "This is not implemented in the current version of InSite. This value is used to determine the action to take when a Service (transaction) is started for a Container that has been in-queue longer than the allowable queue time (MaxQueueTime). The values for this option are: 0 = No action 1 = Warning to Operator 2 = Warning to Operator requiring a password to continue 3 = Place container on Hold 4 = Do not allow transaction to continue These values and their associated actions are intended to match the values and actions for field validations. This action applies to any service that changes a Container from an In-Queue to an In-Process state."
       },
       "Spec.notRequiredBinsLocation": {
@@ -31135,7 +31135,7 @@
         "en": "The location to move NOTREQUIRED bins to after they are split from the main lot. This is used by the ASPEN process when NOTREQUIRED bins exist."
       },
       "Spec.notes": {
-        "zh": "与此对象关联的注释和评论。",
+        "zh": "与此对象相关的注释和备注。",
         "en": "Notations and comments associated with this object."
       },
       "Spec.objectCategory": {
@@ -31147,11 +31147,11 @@
         "en": "i) This field will be automatically updated. ii) System identification for the spec."
       },
       "Spec.operation": {
-        "zh": "执行此工作的操作。创建新步骤（使用此Spec）时，此值用作默认操作。如果指定，则必须是有效（已定义）的操作。",
+        "zh": "此工作要执行的操作。使用此规格创建新步骤时，此值用作默认操作。如果指定，必须是有效（已定义）的操作。",
         "en": "Operation where this work is to be performed. This value is used as the default Operation when a new Step is created (using this Spec). If specified, this must be a valid (defined) Operation"
       },
       "Spec.optional": {
-        "zh": "指定步骤是否被视为可选且可以跳过。",
+        "zh": "指定该步骤是否被视为可选并可跳过。",
         "en": "Specifies whether the step is considered optional and can be skipped"
       },
       "Spec.outputCarrierFamily": {
@@ -31163,7 +31163,7 @@
         "en": "Flag indicating whether PDA Limits verification is required."
       },
       "Spec.postProductionAction": {
-        "zh": "当已配置生产后程序的制造订单完成生产时要执行的操作：1 - EnableProcedure 2 - RequireProcedure",
+        "zh": "当制造订单配置了生产后程序时，生产完成后的操作：1 - 启用程序 2 - 要求程序",
         "en": "What to do when production completed for an Mfg Order with a configured post-production procedure 1 - EnableProcedure 2 - RequireProcedure"
       },
       "Spec.processCode": {
@@ -31171,7 +31171,7 @@
         "en": "i) Defines valid process codes. ii) Each code is used to represent an Aspen process code. iii) The Aspen process code is actually a step in a route. iv) The process code can be repeated within the same route."
       },
       "Spec.recipeFile": {
-        "zh": "大多数建模实体包含对文档的引用。在此上下文中，文档用于提供扩展（非结构化）信息，例如产品图纸、扫描图像、相关的现有制造规范或操作程序。每个文档（CDO）实例包括外部文档的标识符（即文件名或URL）和对用于呈现文档的程序的引用。文档还用于定义要下载到机器的配方文件。在这种情况下，呈现文档意味着将其呈现（下载）给机器。",
+        "zh": "大多数建模实体包含对文档的引用。文档在此上下文中用于提供扩展（非结构化）信息，例如产品图纸、扫描图像、相关的现有制造规范或操作程序。每个文档实例（CDO）包含外部文档的标识符（即文件名或 URL）以及用于呈现文档的程序的引用。文档还用于定义要下载到机器的配方文件。在这种情况下，呈现文档意味着将其呈现（下载）到机器。",
         "en": "Most Modeling entities include a reference to a document. Documents are used in this context to provide extended (unstructured) information, such as product drawings, scanned images, relating existing manufacturing specifications, or operating procedures. Each instance of a document (CDO) includes an identifier for the external document (i.e., a file name or a URL) and a reference to the program used for presenting the document. Documents are also used to define recipe files for downloading to machines. In this case, presenting the Document means presenting it (downloading it) to a machine."
       },
       "Spec.recipeFileBase": {
@@ -31187,7 +31187,7 @@
         "en": "Flag indicating whether to check for any Max Time Window to initiate for a lot."
       },
       "Spec.requirePreProductionProcedure": {
-        "zh": "标识在预生产程序完成之前容器移动被阻止的步骤。",
+        "zh": "标识容器移动被阻止的步骤，直到预生产程序完成。",
         "en": "Identifies step at which container movement blocked until Pre-Production Procedure is complete."
       },
       "Spec.requireTrackInQty": {
@@ -31195,11 +31195,11 @@
         "en": "i) Sets whether the track in quantity is required."
       },
       "Spec.resourceGroup": {
-        "zh": "此Spec有效的资源列表。",
+        "zh": "此规格有效的资源列表。",
         "en": "The list of resources that are valid for this spec."
       },
       "Spec.revision": {
-        "zh": "修订版本（在基础实体上下文中唯一）",
+        "zh": "修订版（在基础实体上下文中唯一）",
         "en": "Revision (unique within the context of the base entity)"
       },
       "Spec.runNumberSetup": {
@@ -31211,7 +31211,7 @@
         "en": "Flag used to indicate whether or not lots processing (or to be processed) in the same equipment must belong to the same parent lot"
       },
       "Spec.schedulingDetail": {
-        "zh": "此规范的调度详细信息。",
+        "zh": "此规格的排程详细信息。",
         "en": "Scheduling Details for this specificaiton."
       },
       "Spec.scsFieldEnable": {
@@ -31235,12 +31235,12 @@
         "en": "Flag indicating whether to set the lot's Qty from the wafers' records. The Good Qty will be used if it is greater than 0. Otherwise the NDPW will be used."
       },
       "Spec.setup": {
-        "zh": "此规格要使用的设置详情的引用。如果指定，必须是有效（已定义）的设置。",
+        "zh": "要与此规格一起使用的设置详细信息的引用。如果指定，必须是有效（已定义）的设置。",
         "en": "Reference to the Setup details to use with this Spec. If specified, this must be a valid (defined) Setup."
       },
       "Spec.setupAccess": {
-        "zh": "用于验证用户对特定建模记录的访问权限。必须首先将一个或多个 Setup Access 分配给 Role。每个建模记录将有一个 Setup Access。当建模记录被事务处理时，系统将比较其 Setup Access。",
-        "en": "This is used to verify the user's access to a particular modeling record. One or more Setup Access must first be assigned to a Role. Each modeling record will have one Setup Access. When a modeling record in transacted the system will compare its Setup Ac"
+        "zh": "用于验证用户对特定建模记录的访问权限。必须首先将一个或多个设置访问权限分配给角色。每个建模记录将有一个设置访问权限。当建模记录被事务处理时，系统会将其设置访问权限与分配给用户的角色所拥有的设置访问权限进行比较。如果建模记录没有设置访问权限，或者用户在其分配的角色中拥有该设置访问权限，则允许事务。",
+        "en": "This is used to verify the user's access to a particular modeling record. One or more Setup Access must first be assigned to a Role. Each modeling record will have one Setup Access. When a modeling record in transacted the system will compare its Setup Access against the Setup Access assigned to the Roles that are assigned to the user. Transaction is allowed if the modeling record has no Setup Access or if the user has the Setup Access in one of the assigned Roles."
       },
       "Spec.setupBase": {
         "zh": "多态换线基准 revision 字段 → SetupBase",
@@ -31287,7 +31287,7 @@
         "en": "Physical field ss_VerifyMfgLine"
       },
       "Spec.status": {
-        "zh": "确定此实例的当前状态（活动、非活动）。有效值及其含义为：1 = 活动 2 = 非活动。注意，对于活动与非活动修订版本，没有强制执行的验证（规则）。",
+        "zh": "确定此实例的当前状态（活动、非活动）。有效值及其含义：1 = 活动 2 = 非活动。注意：对于活动与非活动修订版，没有验证（强制规则）。",
         "en": "Determines the current status (Active, In-Active) of this instance. Valid values and their meanings are: 1 = Active 2 = Inactive Note there are no validations (rules enforced) concerning active vs. inactive revisions."
       },
       "Spec.stepLogic": {
@@ -31299,7 +31299,7 @@
         "en": "Flag indicating whether Test IQC is required."
       },
       "Spec.trainingReqGroup": {
-        "zh": "培训要求组。",
+        "zh": "培训要求组",
         "en": "TrainingRequirement Group"
       },
       "Spec.uom": {
@@ -31319,15 +31319,15 @@
         "en": "UTA Prefix"
       },
       "Spec.validateActiveMfgOrder": {
-        "zh": "此字段启用或禁用分配给资源的活动生产订单的验证过程。启用后，将在过程中验证容器的生产订单。",
+        "zh": "此字段启用或禁用分配给资源的活动制造订单的验证过程。启用后，将在过程中验证容器的制造订单。",
         "en": "This field enables or disables the validation process for active mfg order assigned to the resource. When enabled, the container's mfg order will be validated during the process."
       },
       "Spec.validateLotSamplingComplete": {
-        "zh": "如果为 True，则验证批次抽样是否已完成",
+        "zh": "如果为 True，则验证批次抽样是否已完成。",
         "en": "If True Validates that the Lot Sampling has been completed"
       },
       "Spec.validateMaterialConsumption": {
-        "zh": "此标志确定是否应对此规格强制执行材料消耗检查",
+        "zh": "此标志确定是否应对此规格强制执行物料消耗检查。",
         "en": "This flag determines if the material consumption check should be enforced for this spec"
       },
       "Spec.verifyStepCycleTime": {
@@ -31335,15 +31335,15 @@
         "en": "Flag indicating whether to check the StepCycleTimeSetup."
       },
       "Spec.verifyToolPlan": {
-        "zh": "物理字段 ES_VerifyToolPlan",
-        "en": "Physical field ES_VerifyToolPlan"
+        "zh": "控制是否将资源的工具计划与容器的工具计划进行验证。",
+        "en": "Controls whether a Resource will have the Tool Plan verified against the Container's Tool Plan"
       },
       "Spec.verifyWafersGoodQty": {
         "zh": "指示是否将晶圆的总良品数量与移出数量进行核对的标志。如果不一致，则不允许移出。",
         "en": "Flag indicating whether to verify the total Good Qty of the wafers against the move out quantity. If different do not allow move out."
       },
       "Spec.warningQueueTime": {
-        "zh": "此功能在当前版本的 InSite 中未实现。此值指定容器在触发警告之前可保持排队状态的时间长度。",
+        "zh": "此功能在当前版本的 InSite 中未实现。此值指定容器在触发警告之前可以保持在排队状态的时间长度。",
         "en": "This is not implemented in the current version of InSite. This value specifies the length of time a Container can remain in an in-queue state before a warning is to be triggered."
       },
       "Spec.wipDataSetup": {
@@ -31351,7 +31351,7 @@
         "en": "WIP Data Setup"
       },
       "Spec.wipMsgDefMgr": {
-        "zh": "WIP消息定义，包含适用于此实体的所有WIP消息的WIP消息键列表。",
+        "zh": "WIP 消息定义，包含适用于此实体的所有 WIP 消息的 WIP 消息键列表。",
         "en": "WIP Message Definition which contains a list of WIP message keys that contain all of the WIP messages that apply to this entity."
       },
       "Spec.yieldOffDefects": {
@@ -35725,6 +35725,102 @@
       "zifOutboundDestination.zifUrl": {
         "zh": "物理字段 zifURL",
         "en": "Physical field zifURL"
+      },
+      "Spec.autoClose": {
+        "zh": "用于告知 MoveTxn 在容器移动到目标规范时是否关闭容器的标志。",
+        "en": "Flag used to inform the MoveTxn whether to Close the Container when it is moved to the destination Spec."
+      },
+      "Spec.autoComponentIssue": {
+        "zh": "标志，指示在提供资源且检测到至少一个 IssueDetails 时，是否在 MoveTxn 期间自动触发组件发放（ComponentIssue）。注意：Service.ProcessMaterialConsumption = true 将被处理。目前只有 MoveStd 将此标志设为 true。",
+        "en": "Flag indicating whether to automatically trigger the ComponentIssue during a MoveTxn when a Resource is provided and at least one IssueDetails is detected. NOTE that the Service.ProcessMaterialConsumption = true will be process. Currently only MoveStd has this flag set to true."
+      },
+      "Spec.autoDisassociate": {
+        "zh": "用于告知 MoveTxn 在容器移动到目标规范时是否将所有子项与容器解除关联的标志。",
+        "en": "Flag used to inform the MoveTxn whether to Disassociate all children from the Container when it is moved to the destination Spec."
+      },
+      "Spec.computerGroup": {
+        "zh": "如果指定，事务期间传入的计算机名称必须存在于该组中。在满足以下所有条件时将进行验证：i) 传入了计算机名称。ii) 计算机组已分配给 VerifyContainer 的规范。iii) VerifyComputerName 服务标志设为 true。如果发生以下任一情况，验证期间将引发错误：i) 计算机名称未配置为计算机。ii) 在组中未找到计算机名称。",
+        "en": "If specified, the Computer Name passed in during a transaction must exist in this group. Verification will be done if all of the following are met: i) Computer Name is passed in. ii) Computer Group is assigned to the VerifyContainer's Spec. iii) The VerifyComputerName service flag is set to true. Error will be raised during verification if any of this occurs: i) Computer Name is not configured as a Computer. ii) Computer Name not found in the group."
+      },
+      "Spec.defaultIssueDifferenceReason": {
+        "zh": "描述所需数量与实际发放数量之间差异的原因。如果在 ComponentIssue 中未提供 IssueDifferenceReason，则将使用此字段。",
+        "en": "Describes the reason for the difference between the required quantity and the actual quantity issued. This field will be used by ComponentIssue if an IssueDifferenceReason is not provided."
+      },
+      "Spec.defaultSubstitutionReason": {
+        "zh": "记录实际使用的产品与指定使用的产品不同的原因。如果在 ComponentIssue 中未为替代品提供 SubstitutionReason，则将使用此字段。",
+        "en": "Records the reason that the product actually used differed from the product specified for use. This field will be used by ComponentIssue if a SubstitutionReason is not provided for substitutes."
+      },
+      "Spec.isCarrierAutoMode": {
+        "zh": "载具自动装载/卸载枚举：1 - 移入 2 - 移动",
+        "en": "Carrier Automatic Load/Unload Enum: 1 - Move In 2 - Move"
+      },
+      "Spec.isDisableEProcValidation": {
+        "zh": "通用布尔值",
+        "en": "Generic Boolean"
+      },
+      "Spec.isLoadCarrier": {
+        "zh": "指定在移动事务中应将容器自动装载到载具上",
+        "en": "Specifies that containers should be automatically loaded to a carrier on the Move transaction"
+      },
+      "Spec.isMaterialIssue": {
+        "zh": "此标志在 ResourceComponentSetup 或 ComponentIssue 事务时使用。如果存在解冻要求且容器尚未达到解冻时长，则不允许该事务。同样，如果存在暴露要求且容器已超过暴露时长，则该事务将失败。",
+        "en": "This flag is used when ResourceComponentSetup or ComponentIssue is transacted. The transaction will not be allowed if there is a thawing requirement and the container has yet to reach the thawing duration. Likewise the transaction will fail if there is an exposure requirement and container has exceeded the exposure duration."
+      },
+      "Spec.isMaterialReturn": {
+        "zh": "此标志在容器移动到规范时使用。注意：逻辑使用目标规范的属性。容器的产品的 MaterialMaxReturns 将用于验证是否允许移动到此类规范。一旦批次超过该值（仅当 > 0 时考虑），容器将不允许移动到该规范。如果未违反，则如果其产品的 MaterialAccumulateExposure 设为 true 且存在 MaterialWithdrawalDate 值，则累加容器的 MaterialTotalExposure。然后，容器的 MaterialTotalReturns 将增加 1，MaterialWithdrawalDate 置空，MaterialExposureOffset 设为 0。",
+        "en": "This flag is used when a container Moves to a Spec. Note that the destination Spec's attribute is used for the logic. The container's Product's MaterialMaxReturns will be used to verify whether a move to such a Spec is allowed. Once the lot hits beyond the value (considered only if > 0), the container will not be allowed to move to the Spec. If not violated, the container's MaterialTotalExposure will be accumulated if its Product's MaterialAccumulateExposure is set to true and there is a MaterialWithdrawalDate value. Then, the container's MaterialTotalReturns will be incremented by 1, the MaterialWithdrawalDate nullified and the MaterialExposureOffset set to 0."
+      },
+      "Spec.isMaterialWithdraw": {
+        "zh": "此标志在容器移出规范时使用，用于表示物料暴露时长的开始。仅当容器的 MaterialWithdrawalDate 为 null 时，才会将其设置为移动事务日期。否则，MaterialWithdrawalDate 与移动事务日期之间的差值将更新到容器的 MaterialExposureOffset。此偏移用于表示暴露的临时停止。",
+        "en": "This flag is used when a container Moves out of a Spec and is used to represent the start of the material's exposure duration. The container's MaterialWithdrawalDate will be set to the Move transaction date only if it is null. Otherwise the difference between the MaterialWithdrawalDate and the Move transaction date will be updated to the container's MaterialExposureOffset. This offset is used to represent a temporary stoppage of the exposure."
+      },
+      "Spec.isRecordCarrierThruput": {
+        "zh": "控制当容器装载到载具时，是否在此规范记录载具吞吐量",
+        "en": "To control whether Carrier Thruput is recorded at this Spec when container is loaded to carrier"
+      },
+      "Spec.isRequiresResource": {
+        "zh": "某些事务（MoveIn、Move 等）处理时是否必需资源？",
+        "en": "Is a resource required for certain transactions (MoveIn, Move, etc) to be processed?"
+      },
+      "Spec.isUnloadCarrier": {
+        "zh": "指定在 MoveIn 或 Move 事务中自动从载具卸载容器",
+        "en": "Specifies to automatically unload containers from a carrier on the MoveIn or Move transaction"
+      },
+      "Spec.isValidateCarrierMaintenance": {
+        "zh": "控制当容器在此规范装载到空载具时是否验证维护",
+        "en": "To control whether maintenance is validated when a container is loaded to an empty Carrier at this Spec"
+      },
+      "Spec.isVerifyRecipe": {
+        "zh": "标志，用于要求在此规范上进行配方验证",
+        "en": "A flag to require Recipe verification on the Spec"
+      },
+      "Spec.mfgLine": {
+        "zh": "规范所属的制造线。对于制造线验证，此值是必需的，以便在验证前将逻辑与容器的制造线进行比较。如果未设置（即 null），则假定该规范用于容器当前运行的制造线。这将允许同一工作流用于多条制造线。",
+        "en": "The Manufacturing Line the spec is assigned to. For Mfg Line verification, this value is required for the logic to compare against the Container's Mfg Line before verification takes place. If not set (i.e. null) the Spec is assumed to be used for the Mfg Line the Container is running in. This will allow the same workflow to be used for multiple Mfg Lines."
+      },
+      "Spec.productConversionRequirement": {
+        "zh": "指示产品转换所需的要求。有效值包括：i) NULL - 空字符串表示无需转换，且 Verify Container Product Conversion 服务标志设为 true。ii) MANUAL - 在 Verify Container Product Conversion 服务标志设为 true 的情况下，必须在 Move 事务前手动完成转换。iii) AUTO - 在 Verify Container Product Conversion 服务标志设为 true 的情况下，将在 Move 事务期间自动完成转换。",
+        "en": "Indicate the requirement needed for Product Conversion. Valid values include: i) NULL - Empty string indicating no conversion required and the Verify Container Product Conversion service flag set to true. ii) MANUAL - Conversion must be manually done before a Move transaction with the Verify Container Product Conversion service flag set to true. iii) AUTO - Conversion will be automatically done during a Move transaction with the Verify Container Product Conversion service flag set to true."
+      },
+      "Spec.recordTdaDetailsHistory": {
+        "zh": "用于指示在 Move 事务期间是否将 TDA 详细信息存储在历史记录中的标志。TDA 详细信息使用 TDA 事务映射确定。历史记录存储在 TDA 详细信息历史记录中，它是 History Mainline 的子实体列表。",
+        "en": "Flag used to indicate whether TDA Details will be stored in history during a Move transaction. TDA Details is determined using the TDA Txn Map. History is stored in TDA Details History, a sub-entity list of History Mainline."
+      },
+      "Spec.thruputRequirement": {
+        "zh": "指示容器执行 Move 事务时对 Thruput 的要求。有效值包括：i) OPTIONAL - 不要求 Thruput。ii) AUTO - 在 Move 前自动触发 Thruput。始终执行全数量 thruput。iii) MANUALPARTIAL - 要求 Thruput，但不需要容器的全数量 thruput。如果未检测到数量 thruput，将在 Move 期间引发错误。iv) MANUALFULL - 要求 Thruput，并且容器的数量必须完全 thruput。如果数量 thruput 不完整，将在 Move 期间引发错误。ProcessThruputRequirement 服务标志必须设为 true。目前 MoveStd 和 Rework 已将其设为 true。",
+        "en": "Indicate the requirement for Thruput when a container is executing a move transaction. Valid values include: i) OPTIONAL - Thruput is not required. ii) AUTO - Thruput will be automatically triggered before move. Always full quantity thruput is done. iii) MANUALPARTIAL - Thruput is required but does not need to have the full container's quantity thruput. Error will be raised during move if no quantity thruput detected. iv) MANUALFULL - Thruput is required and the container's quantity must be fully thruput. Error will be raised during move if quantity thruput is not full. The ProcessThruputRequirement service flag must be set to true. Currently MoveStd and Rework is having it set to true."
+      },
+      "Spec.validateSamplingOverallResult": {
+        "zh": "如果设为 True，则验证整体批次抽样结果是否已提交。",
+        "en": "If set to True, validates that the overall Lot Sampling result has been submitted"
+      },
+      "Spec.verifyMfgLine": {
+        "zh": "用于从容器的当前步骤触发制造生产线验证逻辑的标志。",
+        "en": "Flag used to trigger the Mfg Line verification logic from the Container's current step."
+      },
+      "Spec.verifyYieldLimits": {
+        "zh": "指示是否使用基于 YieldLimits 标准的设置来验证限制的标志。",
+        "en": "Flag indicating whether to verify the limits using the YieldLimits criteria based setup."
       }
     }
   },
@@ -35740,6 +35836,15 @@
       "syncedAt": 1786537311601,
       "matchedDescriptions": 9,
       "updatedDescriptions": 9,
+      "manualDescriptionsPreserved": 0
+    },
+    "Spec": {
+      "source": "Camstar Designer",
+      "sourceCDOName": "Spec",
+      "sourceCDODefId": "1820",
+      "syncedAt": 1786613204006,
+      "matchedDescriptions": 59,
+      "updatedDescriptions": 59,
       "manualDescriptionsPreserved": 0
     }
   }

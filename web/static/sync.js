@@ -53,6 +53,10 @@
     };
     let ontologyGovernanceGraph = null;
     let ontologyDiscoveryGraph = null;
+    let ontologyTooltipActiveGraph = null;
+    let ontologyTooltipActiveNodeId = null;
+    let ontologyTooltipActiveRadius = 0;
+    let ontologyTooltipPointerGuardBound = false;
 
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -402,6 +406,80 @@
         return ({ core: "#00b89c", context: "#2f86c9", reference: "#8b6fc5", on_demand: "#d99038", excluded: "#566b73" })[role] || "#2f86c9";
     }
 
+    const ONTOLOGY_ROLE_LABELS = { core: "核心对象", context: "上下文对象", reference: "参考对象", on_demand: "按需对象", excluded: "不发布" };
+    const ONTOLOGY_ORPHAN_LABELS = { reject: "拒绝孤立", quarantine: "隔离孤立", allow: "允许孤立", referenced_only: "仅被引用时" };
+
+    function hideOntologyNodeTooltip() {
+        ontologyTooltipActiveGraph = null;
+        ontologyTooltipActiveNodeId = null;
+        ontologyTooltipActiveRadius = 0;
+        const tooltip = $("#ontologyNodeTooltip");
+        if (!tooltip) return;
+        tooltip.classList.add("hidden");
+        tooltip.setAttribute("aria-hidden", "true");
+    }
+
+    function showOntologyNodeTooltip(event, details) {
+        const tooltip = $("#ontologyNodeTooltip");
+        const clientX = event.client?.x ?? event.clientX;
+        const clientY = event.client?.y ?? event.clientY;
+        if (!tooltip || !Number.isFinite(clientX) || !Number.isFinite(clientY)) {
+            hideOntologyNodeTooltip();
+            return;
+        }
+        const meta = (details.meta || []).filter(item => item?.value !== undefined && item?.value !== null && item.value !== "");
+        tooltip.innerHTML = `<div class="ontology-node-tooltip-head"><div><strong>${escapeHtml(details.title)}</strong><small>${escapeHtml(details.technical || "")}</small></div><span class="ontology-node-tooltip-state ${escapeHtml(details.stateClass || "")}">${escapeHtml(details.state || "本体对象")}</span></div><div class="ontology-node-tooltip-meta">${meta.map(item => `<span><small>${escapeHtml(item.label)}</small><b>${escapeHtml(String(item.value))}</b></span>`).join("")}</div><p class="ontology-node-tooltip-description">${escapeHtml(details.description || "暂无对象说明")}</p>`;
+        tooltip.classList.remove("hidden");
+        tooltip.setAttribute("aria-hidden", "false");
+        const gap = 16;
+        const width = tooltip.offsetWidth || 310;
+        const height = tooltip.offsetHeight || 160;
+        const left = Math.max(12, Math.min(clientX + gap, window.innerWidth - width - 12));
+        const preferredTop = clientY - 10;
+        const top = Math.max(12, Math.min(preferredTop, window.innerHeight - height - 12));
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+    }
+
+    function bindOntologyNodeTooltip(graph, container, resolveDetails, resolveRadius) {
+        const show = event => {
+            const nodeId = event.target?.id;
+            const node = nodeId ? graph.getNodeData(nodeId) : null;
+            const details = node ? resolveDetails(node) : null;
+            if (details) {
+                ontologyTooltipActiveGraph = graph;
+                ontologyTooltipActiveNodeId = nodeId;
+                ontologyTooltipActiveRadius = resolveRadius(node);
+                showOntologyNodeTooltip(event, details);
+            }
+            else hideOntologyNodeTooltip();
+        };
+        graph.on("node:pointerenter", show);
+        graph.on("node:pointermove", show);
+        graph.on("node:pointerleave", hideOntologyNodeTooltip);
+        graph.on("edge:pointerenter", hideOntologyNodeTooltip);
+        graph.on("canvas:pointermove", hideOntologyNodeTooltip);
+        container.onpointerleave = hideOntologyNodeTooltip;
+        if (!ontologyTooltipPointerGuardBound) {
+            ontologyTooltipPointerGuardBound = true;
+            document.addEventListener("pointermove", event => {
+                if (!ontologyTooltipActiveGraph || !ontologyTooltipActiveNodeId) return;
+                try {
+                    const canvas = ontologyTooltipActiveGraph.getCanvasByClient({ x: event.clientX, y: event.clientY });
+                    const position = ontologyTooltipActiveGraph.getElementPosition(ontologyTooltipActiveNodeId);
+                    const canvasX = Array.isArray(canvas) ? canvas[0] : canvas.x;
+                    const canvasY = Array.isArray(canvas) ? canvas[1] : canvas.y;
+                    if (!Number.isFinite(canvasX) || !Number.isFinite(canvasY)
+                        || Math.hypot(canvasX - position[0], canvasY - position[1]) > ontologyTooltipActiveRadius + 8) {
+                        hideOntologyNodeTooltip();
+                    }
+                } catch (_) {
+                    hideOntologyNodeTooltip();
+                }
+            }, { capture: true, passive: true });
+        }
+    }
+
     function ontologyDiscoveryDialect() {
         return state.connections.some(item => item.enabled && item.kind === "camstar_oracle") ? "oracle" : "sqlserver";
     }
@@ -501,6 +579,7 @@
     async function renderOntologyDiscoveryGraph() {
         const container = $("#ontologyDiscoveryGraph");
         if (!container || !window.G6) return;
+        hideOntologyNodeTooltip();
         if (ontologyDiscoveryGraph) {
             ontologyDiscoveryGraph.destroy();
             ontologyDiscoveryGraph = null;
@@ -653,6 +732,24 @@
             data: { nodes: graphNodes, edges: graphEdges },
         });
         await ontologyDiscoveryGraph.render();
+        bindOntologyNodeTooltip(ontologyDiscoveryGraph, container, node => {
+            const data = node.data || {};
+            const stateLabel = data.selected ? "当前选择" : data.existing ? "已在发布草案" : data.followed ? "旧图谱关注" : "源本体对象";
+            const stateClass = data.existing ? "published" : data.followed ? "followed" : "";
+            return {
+                title: data.chineseName || data.displayLabel || data.label || node.id,
+                technical: node.id,
+                state: stateLabel,
+                stateClass,
+                meta: [
+                    { label: "本体模块", value: data.module || "other" },
+                    { label: "对象层级", value: data.layer || "Config" },
+                    { label: "属性数量", value: Number.isFinite(Number(data.propertyCount)) ? `${Number(data.propertyCount)} 个` : "—" },
+                    { label: "关联数量", value: `${degree.get(node.id) || 0} 条` },
+                ],
+                description: data.description || (data.chineseName ? `${data.chineseName}（${node.id}）` : "源 Camstar 本体对象，点击后可查看并加入 Graph Studio 发布本体。"),
+            };
+        }, node => node.data?.followed || node.data?.core ? 38 : 26);
         ontologyDiscoveryGraph.on("node:click", event => toggleOntologyDiscoveryClass(event.target.id));
     }
 
@@ -865,6 +962,7 @@
     async function renderOntologyGraph() {
         const container = $("#ontologyGovernanceGraph");
         if (!container || !window.G6) return;
+        hideOntologyNodeTooltip();
         if (ontologyGovernanceGraph) {
             ontologyGovernanceGraph.destroy();
             ontologyGovernanceGraph = null;
@@ -929,6 +1027,24 @@
             data: { nodes: graphData.nodes, edges: graphData.edges },
         });
         await ontologyGovernanceGraph.render();
+        bindOntologyNodeTooltip(ontologyGovernanceGraph, container, node => {
+            const data = node.data || {};
+            const properties = rawGraphData.properties?.filter(item => item.classUid === node.id) || [];
+            const relations = rawGraphData.edges.filter(item => item.source === node.id || item.target === node.id);
+            return {
+                title: data.label || data.targetName || node.id,
+                technical: data.sourceClass && data.sourceClass !== data.targetName ? `${data.targetName} ← ${data.sourceClass}` : data.targetName || node.id,
+                state: data.released ? "已发布" : "本次草案",
+                stateClass: data.released ? "published" : "",
+                meta: [
+                    { label: "对象角色", value: ONTOLOGY_ROLE_LABELS[data.role] || data.role || "未配置" },
+                    { label: "孤立策略", value: ONTOLOGY_ORPHAN_LABELS[data.orphanPolicy] || data.orphanPolicy || "未配置" },
+                    { label: "发布属性", value: `${properties.filter(item => item.published).length}/${properties.length}` },
+                    { label: "对象关联", value: `${relations.length} 条` },
+                ],
+                description: data.description || `来源：${data.sourceClass || "自定义业务对象"}。点击节点可在右侧继续配置。`,
+            };
+        }, node => node.data?.role === "core" ? 34 : 29);
         ontologyGovernanceGraph.on("node:click", event => {
             state.selectedOntologyClassUid = event.target.id;
             const selectedNode = state.ontologyGovernance.graph.nodes.find(item => item.id === event.target.id);
@@ -2427,7 +2543,7 @@
         if (state.ontologyGovernanceStage === "discover") renderOntologyDiscoveryGraph().catch(error => toast(error.message, true));
     }
     async function loadOntologyDiscoverySourceGraph() {
-        state.ontologyDiscoverySourceGraph = await request("/api/graph/overview");
+        state.ontologyDiscoverySourceGraph = await request("/api/graph/overview?details=v2");
         renderOntologyDiscovery();
     }
     async function loadJobs() { state.jobs = (await request("/api/sync/jobs")).items; renderJobs(); }
