@@ -822,6 +822,26 @@ CREATE TABLE IF NOT EXISTS graphsync.schema_migration_run (
     error                 jsonb
 );
 
+-- Live physical-schema observations are evidence only.  Candidate columns are
+-- never added to a publication contract until an explicit Schema change is
+-- reviewed and applied.
+CREATE TABLE IF NOT EXISTS graphsync.source_schema_observation (
+    observation_id        uuid PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    contract_key          text NOT NULL REFERENCES graphsync.data_contract(contract_key) ON DELETE CASCADE,
+    source_schema         text NOT NULL,
+    source_table          text NOT NULL,
+    observed_at           timestamptz NOT NULL DEFAULT now(),
+    schema_hash           text NOT NULL,
+    status                text NOT NULL CHECK (status IN ('stable', 'drifted', 'failed')),
+    columns               jsonb NOT NULL DEFAULT '[]'::jsonb,
+    drift                 jsonb NOT NULL DEFAULT '{}'::jsonb,
+    error                 jsonb
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_schema_observation_latest
+    ON graphsync.source_schema_observation (profile_key, contract_key, observed_at DESC);
+
 -- Immutable curated releases.  A release is populated and verified in isolation;
 -- activation only moves a small pointer and therefore provides an inexpensive
 -- rollback even when the source tables contain hundreds of millions of rows.
@@ -1491,6 +1511,10 @@ INSERT INTO graphsync.schema_version (version, description)
 VALUES (16, 'Unified graphsync instance storage and governed publish ontology workspace')
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (17, 'Continuous publication, live schema drift evidence and narrow field backfill')
+ON CONFLICT (version) DO NOTHING;
+
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)
 VALUES
@@ -1650,7 +1674,10 @@ LEFT JOIN LATERAL (
     ORDER BY mapping.property_name
     LIMIT 1
 ) property ON true
-ON CONFLICT (contract_key, field_key) DO NOTHING;
+-- Existing installations may already contain a manually governed field with a
+-- different stable key but the same target name.  Either uniqueness identity
+-- means the seed is already represented and must not overwrite user work.
+ON CONFLICT DO NOTHING;
 
 INSERT INTO graphsync.asset_dependency
     (dependency_id, profile_key, upstream_type, upstream_key,

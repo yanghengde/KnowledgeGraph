@@ -1609,8 +1609,26 @@ class ControlPlaneRepository:
                     {"change_ids": change_ids},
                 )
             )
+            migrations = _rows(
+                connection.execute(
+                    text(
+                        """
+                        SELECT migration_run_id, change_id, status, preview_only,
+                               started_at, finished_at, affected_rows, checkpoint,
+                               verification, error
+                        FROM graphsync.schema_migration_run
+                        WHERE change_id = ANY(:change_ids)
+                        ORDER BY change_id, started_at DESC
+                        """
+                    ),
+                    {"change_ids": change_ids},
+                )
+            )
         for change in changes:
             change["items"] = [item for item in items if item["change_id"] == change["change_id"]]
+            change["migrations"] = [
+                item for item in migrations if item["change_id"] == change["change_id"]
+            ]
         return changes
 
     def record_schema_change(

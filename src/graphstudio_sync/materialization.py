@@ -103,6 +103,7 @@ def build_materialization_plan(
     incremental_windows: Iterable[dict[str, Any]] = (),
     active_release_id: str | None = None,
     active_source_snapshot: dict[str, Any] | None = None,
+    active_contract_versions: dict[str, Any] | None = None,
     large_table_threshold: int = 5_000_000,
     attribute_projections: Iterable[dict[str, Any]] = (),
     profile_classes: Iterable[dict[str, Any]] = (),
@@ -110,6 +111,7 @@ def build_materialization_plan(
 ) -> dict[str, Any]:
     contracts = list(governance.get("contracts") or [])
     relationships = list(governance.get("relationships") or [])
+    schema_changes = list(schema_changes)
     governed_classes = [item for item in profile_classes if item.get("enabled", True)]
     governed_relationships = [item for item in profile_relationships if item.get("enabled", True)]
     if governed_classes:
@@ -179,13 +181,53 @@ def build_materialization_plan(
             blockers.append(f"属性投影尚无成功预览：{projection['projection_key']}")
     policies = {item["class_name"]: item for item in table_policies}
     windows = {item["class_name"]: item for item in incremental_windows}
+    active_versions = dict(active_contract_versions or {})
     contract_plans: list[dict[str, Any]] = []
     for item in contracts:
         approximate = int(item.get("approximate_rows") or 0)
         policy = policies.get(item["class_name"])
         strategy = (policy or {}).get("effective_strategy") or (policy or {}).get("strategy") or "snapshot"
         extraction_mode = "keyset_snapshot"
-        if approximate > large_table_threshold:
+        current_version = int(item["version"])
+        previous_version = int(active_versions.get(item["contract_key"]) or 0)
+        applied_changes = [
+            change for change in schema_changes
+            if change.get("contract_key") == item["contract_key"]
+            and change.get("status") == "applied"
+            and previous_version < int(change.get("target_version") or 0) <= current_version
+        ]
+        backfill_items = [
+            operation
+            for change in sorted(applied_changes, key=lambda value: int(value.get("target_version") or 0))
+            for operation in (change.get("items") or [])
+        ]
+        remove_fields = sorted({
+            str((operation.get("before_state") or {}).get("target_field"))
+            for operation in backfill_items
+            if operation.get("operation") in {"retire_field", "rename_field"}
+            and (operation.get("before_state") or {}).get("target_field")
+        })
+        affected_field_keys = sorted({
+            str(operation.get("field_key"))
+            for operation in backfill_items
+            if operation.get("operation") not in {"deprecate_field", "retire_field"}
+            and operation.get("field_key")
+        })
+        field_backfill = None
+        if active_release_id and previous_version and previous_version < current_version:
+            extraction_mode = "field_backfill"
+            field_backfill = {
+                "fromVersion": previous_version,
+                "toVersion": current_version,
+                "changeIds": [str(change["change_id"]) for change in applied_changes],
+                "affectedFieldKeys": affected_field_keys,
+                "removeTargetFields": remove_fields,
+            }
+            if not applied_changes:
+                blockers.append(
+                    f"数据契约 {item['contract_key']} 已从 v{previous_version} 升级到 v{current_version}，但找不到已应用的迁移记录"
+                )
+        elif approximate > large_table_threshold:
             if not policy or policy.get("requires_review"):
                 blockers.append(f"亿级/大表尚未显式配置同步策略：{item['class_name']}（约 {approximate} 行）")
             elif strategy == "snapshot":
@@ -219,6 +261,7 @@ def build_materialization_plan(
                     }
                     if extraction_mode == "verified_incremental_package" else None
                 ),
+                "fieldBackfill": field_backfill,
             }
         )
     return {
@@ -230,6 +273,12 @@ def build_materialization_plan(
         "activation": "verified_pointer_switch",
         "rollback": "restore_previous_release_pointer",
         "activeReleaseId": active_release_id,
+        "activeContractVersions": active_versions,
+        "schemaChangeIds": sorted({
+            change_id
+            for contract in contract_plans
+            for change_id in ((contract.get("fieldBackfill") or {}).get("changeIds") or [])
+        }),
         "contracts": contract_plans,
         "relationships": [item["relationship_contract_key"] for item in relationships],
         "attributeProjections": [
@@ -283,6 +332,66 @@ def normalize_object_record(
         "sourceChangeAt": _jsonable(row.get(contract.get("freshness_column"))) if contract.get("freshness_column") else None,
         "recordStatus": "quarantined" if issues else "active",
         "qualityIssues": issues,
+    }
+
+
+def _field_source_columns(field: dict[str, Any]) -> set[str]:
+    """Return every physical column referenced by one governed transform."""
+
+    columns = {str(field["source_column"])} if field.get("source_column") else set()
+    expression = str(field.get("transform_expression") or "")
+    command, separator, argument = expression.partition(":")
+    if not separator:
+        return columns
+    command = command.strip().casefold()
+    if command in {"source", "trim", "upper", "lower"} and argument.strip():
+        columns.add(argument.strip())
+    elif command == "coalesce":
+        columns.update(value.strip() for value in argument.split(",") if value.strip())
+    return columns
+
+
+def build_field_backfill_patch(
+    contract: dict[str, Any],
+    fields: Iterable[dict[str, Any]],
+    row: dict[str, Any],
+) -> dict[str, Any]:
+    """Build a narrow property patch without re-reading an entire source row."""
+
+    primary_key = {
+        column: _jsonable(row.get(column))
+        for column in contract["primary_key_columns"]
+    }
+    uri = object_uri(contract["class_name"], primary_key)
+    properties: dict[str, Any] = {}
+    source_values: dict[str, Any] = {}
+    issues: list[str] = []
+    for field in fields:
+        for source_column in _field_source_columns(field):
+            source_values[source_column] = _jsonable(row.get(source_column))
+        value = apply_transform(
+            field.get("transform_expression"), row, field.get("source_column"),
+        )
+        if value in (None, "") and field.get("default_expression"):
+            value = apply_transform(
+                f"constant:{field['default_expression']}", row, None,
+            )
+        value = _jsonable(value)
+        if field.get("required") and value in (None, ""):
+            issues.append(f"required.{field['field_key']}")
+        if value not in (None, ""):
+            properties[field["target_field"]] = value
+    payload = {
+        "sourcePrimaryKey": primary_key,
+        "sourceValues": source_values,
+        "properties": properties,
+    }
+    return {
+        "objectUri": uri,
+        "sourceValues": source_values,
+        "properties": properties,
+        "qualityIssues": issues,
+        "patchHash": content_hash(payload),
     }
 
 
@@ -352,7 +461,7 @@ def _release_plan_from_repository(repository: ControlPlaneRepository, profile_ke
     windows = repository.latest_incremental_windows("camstar-full")
     with repository.engine.connect() as connection:
         active_release = connection.execute(
-            text("SELECT active.active_release_id, release.source_snapshot FROM graphsync.curated_release_activation active JOIN graphsync.curated_release release ON release.release_id=active.active_release_id WHERE active.profile_key=:profile_key"),
+            text("SELECT active.active_release_id, release.source_snapshot, release.contract_versions FROM graphsync.curated_release_activation active JOIN graphsync.curated_release release ON release.release_id=active.active_release_id WHERE active.profile_key=:profile_key"),
             {"profile_key": profile_key},
         ).mappings().one_or_none()
         threshold = int(connection.execute(
@@ -363,6 +472,7 @@ def _release_plan_from_repository(repository: ControlPlaneRepository, profile_ke
         table_policies=policies, incremental_windows=windows,
         active_release_id=str(active_release["active_release_id"]) if active_release else None,
         active_source_snapshot=dict(active_release["source_snapshot"] or {}) if active_release else None,
+        active_contract_versions=dict(active_release["contract_versions"] or {}) if active_release else None,
         large_table_threshold=threshold,
         attribute_projections=projections,
         profile_classes=graph_profile.get("classes") or [],
@@ -456,10 +566,11 @@ def execute_materialization(
                         """
                         INSERT INTO graphsync.curated_release
                             (release_id, profile_key, release_no, status, preview_only,
-                             quality_run_id, contract_versions, source_snapshot,
-                             requested_by)
+                             quality_run_id, contract_versions, schema_change_ids,
+                             source_snapshot, requested_by)
                         VALUES (:release_id, :profile_key, :release_no, 'extracting', false,
                                 :quality_run_id, CAST(:versions AS jsonb),
+                                CAST(:schema_change_ids AS jsonb),
                                 CAST(:source_snapshot AS jsonb), :actor)
                         """
                     ),
@@ -469,6 +580,7 @@ def execute_materialization(
                         "release_no": release_no,
                         "quality_run_id": governance["latestRun"]["curation_run_id"],
                         "versions": canonical_json(versions),
+                        "schema_change_ids": canonical_json(plan.get("schemaChangeIds") or []),
                         "source_snapshot": canonical_json(source_snapshot),
                         "actor": actor,
                     },
@@ -480,6 +592,182 @@ def execute_materialization(
                 for contract in contracts:
                     fields = fields_by_contract[contract["contract_key"]]
                     contract_plan = next(item for item in plan["contracts"] if item["contractKey"] == contract["contract_key"])
+                    if contract_plan["extractionMode"] == "field_backfill":
+                        previous_release = uuid.UUID(plan["activeReleaseId"])
+                        backfill = contract_plan.get("fieldBackfill") or {}
+                        affected_keys = set(backfill.get("affectedFieldKeys") or [])
+                        affected_fields = [
+                            field for field in fields
+                            if field.get("field_key") in affected_keys
+                            and field.get("lifecycle_status") != "retired"
+                        ]
+                        remove_targets = sorted({
+                            *(backfill.get("removeTargetFields") or []),
+                            *(field["target_field"] for field in affected_fields),
+                        })
+                        with repository.engine.begin() as connection:
+                            connection.execute(
+                                text(
+                                    """
+                                    INSERT INTO graphsync.object_version
+                                        (release_id, profile_key, contract_key, contract_version,
+                                         class_name, object_uri, source_primary_key, business_key,
+                                         source_values, properties, source_hash, source_change_at,
+                                         record_status, quality_issues, loaded_at)
+                                    SELECT :release_id, profile_key, contract_key, :contract_version,
+                                           class_name, object_uri, source_primary_key, business_key,
+                                           source_values, properties, source_hash, source_change_at,
+                                           record_status, quality_issues, now()
+                                    FROM graphsync.object_version
+                                    WHERE release_id=:previous_release
+                                      AND contract_key=:contract_key
+                                    """
+                                ),
+                                {
+                                    "release_id": release_id,
+                                    "previous_release": previous_release,
+                                    "contract_key": contract["contract_key"],
+                                    "contract_version": contract["version"],
+                                },
+                            )
+                            if remove_targets:
+                                connection.execute(
+                                    text(
+                                        """
+                                        UPDATE graphsync.object_version
+                                        SET properties=properties - CAST(:targets AS text[])
+                                        WHERE release_id=:release_id
+                                          AND contract_key=:contract_key
+                                        """
+                                    ),
+                                    {
+                                        "release_id": release_id,
+                                        "contract_key": contract["contract_key"],
+                                        "targets": remove_targets,
+                                    },
+                                )
+                        if affected_fields:
+                            if source is None:
+                                source = connect_source(settings)
+                            columns = sorted({
+                                *contract["primary_key_columns"],
+                                *(
+                                    column
+                                    for field in affected_fields
+                                    for column in _field_source_columns(field)
+                                ),
+                            })
+                            iterator = _iter_rows(
+                                source,
+                                kind=settings.source_kind,
+                                schema=contract["source_schema"],
+                                table=contract["source_table"],
+                                columns=columns,
+                                primary_keys=contract["primary_key_columns"],
+                                fetch_size=plan["batchRows"],
+                            )
+                            for batch_no, page in enumerate(
+                                _chunks(iterator, plan["batchRows"]), start=1,
+                            ):
+                                patches = [
+                                    build_field_backfill_patch(
+                                        contract, affected_fields, row,
+                                    )
+                                    for row in page
+                                ]
+                                with repository.engine.begin() as connection:
+                                    connection.execute(
+                                        text(
+                                            """
+                                            UPDATE graphsync.object_version
+                                            SET properties=properties || CAST(:properties AS jsonb),
+                                                source_values=source_values || CAST(:source_values AS jsonb),
+                                                source_hash=md5(source_hash || :patch_hash),
+                                                quality_issues=CASE
+                                                    WHEN CAST(:has_issues AS boolean)
+                                                    THEN quality_issues || CAST(:quality_issues AS jsonb)
+                                                    ELSE quality_issues
+                                                END,
+                                                record_status=CASE
+                                                    WHEN CAST(:has_issues AS boolean)
+                                                    THEN 'quarantined' ELSE record_status
+                                                END,
+                                                loaded_at=now()
+                                            WHERE release_id=:release_id
+                                              AND contract_key=:contract_key
+                                              AND object_uri=:object_uri
+                                            """
+                                        ),
+                                        [
+                                            {
+                                                "release_id": release_id,
+                                                "contract_key": contract["contract_key"],
+                                                "object_uri": patch["objectUri"],
+                                                "properties": canonical_json(patch["properties"]),
+                                                "source_values": canonical_json(patch["sourceValues"]),
+                                                "patch_hash": patch["patchHash"],
+                                                "quality_issues": canonical_json(patch["qualityIssues"]),
+                                                "has_issues": bool(patch["qualityIssues"]),
+                                            }
+                                            for patch in patches
+                                        ],
+                                    )
+                                    connection.execute(
+                                        text(
+                                            """
+                                            INSERT INTO graphsync.materialization_batch
+                                                (batch_id, release_id, contract_key, batch_no,
+                                                 status, rows_read, rows_written,
+                                                 rows_quarantined, content_hash, finished_at)
+                                            VALUES (:batch, :release, :contract, :batch_no,
+                                                    'verified', :rows, :written,
+                                                    :quarantine, :hash, now())
+                                            """
+                                        ),
+                                        {
+                                            "batch": uuid.uuid4(),
+                                            "release": release_id,
+                                            "contract": contract["contract_key"],
+                                            "batch_no": batch_no,
+                                            "rows": len(page),
+                                            "written": len(patches),
+                                            "quarantine": sum(bool(item["qualityIssues"]) for item in patches),
+                                            "hash": content_hash([item["patchHash"] for item in patches]),
+                                        },
+                                    )
+                                totals["read"] += len(page)
+                                totals["batches"] += 1
+                        elif remove_targets:
+                            with repository.engine.begin() as connection:
+                                affected_rows = connection.execute(
+                                    text(
+                                        """
+                                        SELECT count(*) FROM graphsync.object_version
+                                        WHERE release_id=:release AND contract_key=:contract
+                                        """
+                                    ),
+                                    {"release": release_id, "contract": contract["contract_key"]},
+                                ).scalar_one()
+                                connection.execute(
+                                    text(
+                                        """
+                                        INSERT INTO graphsync.materialization_batch
+                                            (batch_id, release_id, contract_key, batch_no,
+                                             status, rows_read, rows_written,
+                                             rows_quarantined, content_hash, finished_at)
+                                        VALUES (:batch, :release, :contract, 1, 'verified',
+                                                0, :written, 0, :hash, now())
+                                        """
+                                    ),
+                                    {
+                                        "batch": uuid.uuid4(), "release": release_id,
+                                        "contract": contract["contract_key"],
+                                        "written": affected_rows,
+                                        "hash": content_hash(remove_targets),
+                                    },
+                                )
+                            totals["batches"] += 1
+                        continue
                     if contract_plan["extractionMode"] == "verified_incremental_package":
                         previous_release = uuid.UUID(plan["activeReleaseId"])
                         change_path = Path(contract_plan["incrementalWindow"]["changeFile"])
@@ -552,7 +840,7 @@ def execute_materialization(
                     if source is None:
                         source = connect_source(settings)
                     columns = sorted({
-                        *(field["source_column"] for field in fields if field.get("source_column")),
+                        *(column for field in fields for column in _field_source_columns(field)),
                         *contract["primary_key_columns"],
                         *contract["business_key_columns"],
                         *(
@@ -713,6 +1001,30 @@ def execute_materialization(
                         "summary": canonical_json(summary),
                     },
                 )
+                if plan.get("schemaChangeIds"):
+                    connection.execute(
+                        text(
+                            """
+                            UPDATE graphsync.schema_migration_run migration
+                            SET verification=coalesce(migration.verification, '{}'::jsonb)
+                                || jsonb_build_object(
+                                    'immutableBackfillPending', false,
+                                    'backfillReleaseId', CAST(:release_id AS text),
+                                    'backfillReleaseNo', CAST(:release_no AS bigint),
+                                    'verifiedAt', to_jsonb(now())
+                                )
+                            FROM graphsync.schema_change_request change
+                            WHERE migration.change_id=change.change_id
+                              AND change.change_id=ANY(CAST(:change_ids AS uuid[]))
+                              AND migration.status='succeeded'
+                            """
+                        ),
+                        {
+                            "release_id": release_id,
+                            "release_no": release_no,
+                            "change_ids": plan["schemaChangeIds"],
+                        },
+                    )
                 for contract in contracts:
                     field_map = {
                         field["source_column"]: field["target_field"]

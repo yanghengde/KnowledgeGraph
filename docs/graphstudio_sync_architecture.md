@@ -128,9 +128,16 @@ flowchart LR
 
 - Kubernetes 环境优先 CronJob，设置 `concurrencyPolicy: Forbid`；非 K8s 使用 systemd timer 或 Windows Task Scheduler。
 - Runner 仍需要 PostgreSQL advisory lock，因为调度器重试和手工触发仍可能重叠。
+- 生产数据入口使用 `continuous-publish`；只有 Graph Studio 蓝绿切换和 SPARQL 验收均成功后才提交源 checkpoint。若失败，恢复上一活动层并保留本次失败制品供审计/重试。
 - 密码放入 Kubernetes Secret/Vault，生产不使用镜像内 `.env`。
 - 输出结构化日志和 metrics：run 时长、源行数、RDF 三元组数、失败阶段、数据新鲜度。
 - 告警条件：连续失败、超过 SLA 未成功、行数异常变化、本体/Schema hash 未审批变更。
+
+### 稳定模型与变化模型
+
+- **稳定模型通道**：活动本体版本在整个运行期间被固定，只处理 Camstar 数据变化；按 CT/CDC、Oracle SCN 或已批准 watermark 策略抽取，生成不可变治理数据版本并蓝绿发布。
+- **模型变化通道**：物理 Schema 观测只产生候选和阻断，不自动把源库新列加入本体。批准字段变更后，物化器复制上一不可变版本，并按主键只读取受影响列完成字段级回填。
+- 字段删除先进入 deprecated；存在关系、谓词、查询、API 或看板依赖时禁止直接退役。类型、键和来源变化必须有迁移与回滚计划。
 
 ## 管理界面
 

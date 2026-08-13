@@ -10,6 +10,10 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field, model_validator
 
 from src.graphstudio_sync.config import SyncSettings
+from src.graphstudio_sync.continuous_sync import (
+    continuous_sync_status,
+    execute_continuous_sync,
+)
 from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
 from src.graphstudio_sync.curation import build_curation_preview
@@ -68,6 +72,7 @@ from src.graphstudio_sync.schema_evolution import (
     apply_schema_change,
     rollback_schema_change,
 )
+from src.graphstudio_sync.schema_drift import latest_schema_drift, scan_schema_drift
 from src.graphstudio_sync.attribute_projection import (
     preview_attribute_projection,
     validate_projection_definition,
@@ -360,6 +365,13 @@ class MaterializationRequest(BaseModel):
     actor: str | None = Field(default=None, max_length=200)
 
 
+class ContinuousSyncRequest(BaseModel):
+    apply: bool = False
+    profile_key: str = Field(default="opcenter2607-core", min_length=1, max_length=200)
+    environment_key: Literal["dev", "uat", "prod"] = "dev"
+    actor: str | None = Field(default="local-console", max_length=200)
+
+
 class ReleaseActivation(BaseModel):
     actor: str | None = Field(default=None, max_length=200)
 
@@ -546,6 +558,36 @@ def incremental_preview(job_name: str):
         raise HTTPException(status_code=404, detail="Sync job not found") from exc
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Incremental preview failed: {exc}") from exc
+
+
+@router.get("/jobs/{job_name}/continuous-status")
+def get_continuous_sync_status(
+    job_name: str,
+    profile_key: str = Query(default="opcenter2607-core"),
+    environment_key: Literal["dev", "uat", "prod"] = Query(default="dev"),
+):
+    try:
+        return continuous_sync_status(
+            _repo(), job_name=job_name, profile_key=profile_key,
+            environment_key=environment_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job, profile or environment not found") from exc
+
+
+@router.post("/jobs/{job_name}/continuous-sync")
+def run_continuous_sync(job_name: str, request: ContinuousSyncRequest):
+    try:
+        return execute_continuous_sync(
+            _settings(), _repo(), job_name=job_name,
+            profile_key=request.profile_key,
+            environment_key=request.environment_key,
+            actor=request.actor, apply=request.apply,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Sync job, profile or environment not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/jobs/{job_name}/dry-run")
@@ -736,6 +778,21 @@ def contract_schema(contract_key: str):
 @router.get("/profiles/{profile_key}/schema-changes")
 def schema_changes(profile_key: str, limit: int = Query(default=100, ge=1, le=500)):
     return {"items": _repo().list_schema_changes(profile_key, limit=limit)}
+
+
+@router.get("/profiles/{profile_key}/schema-drift")
+def schema_drift_status(profile_key: str):
+    return latest_schema_drift(_repo(), profile_key=profile_key)
+
+
+@router.post("/profiles/{profile_key}/schema-drift/scan")
+def scan_contract_schema_drift(profile_key: str):
+    try:
+        return scan_schema_drift(_settings(), _repo(), profile_key=profile_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Graph profile not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/profiles/{profile_key}/schema-changes")

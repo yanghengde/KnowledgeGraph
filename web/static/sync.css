@@ -211,6 +211,18 @@ tr.navigation-focus td { background: rgba(32,215,179,.13); color: #effffc; }
 
 .connection-grid, .job-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
 .connection-card, .job-card { padding: 20px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.continuous-sync-panel { margin-bottom: 18px; }
+.continuous-sync-summary { display: flex; align-items: center; gap: 14px; padding: 18px 20px; flex-wrap: wrap; }
+.continuous-sync-summary > b { color: var(--muted); font-weight: 500; }
+.continuous-stage { display: flex; align-items: center; gap: 10px; min-width: 150px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(7,31,41,.7); }
+.continuous-stage i { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(35,210,180,.14); color: var(--accent); font-style: normal; font-weight: 800; }
+.continuous-stage span { display: grid; gap: 3px; }
+.continuous-stage small, .continuous-schedule small { color: var(--muted); }
+.continuous-schedule { margin-left: auto; display: grid; gap: 3px; min-width: 130px; }
+.continuous-schedule span { color: var(--muted); font-size: 10px; }
+.continuous-blockers { flex-basis: 100%; display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
+.continuous-blockers span { padding: 7px 10px; border: 1px solid rgba(255,107,122,.25); border-radius: 8px; color: #ff9aa6; background: rgba(255,77,99,.07); font-size: 10px; }
+.continuous-ready-note { flex-basis: 100%; color: var(--muted); font-size: 10px; padding-top: 4px; }
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .card-top h3 { margin: 0 0 5px; font-size: 15px; }
 .card-top p { margin: 0; color: var(--dim); font-size: 9px; text-transform: uppercase; letter-spacing: .09em; }
@@ -642,6 +654,10 @@ tbody tr:hover td { background: rgba(32,215,179,.025); }
 }
 
 @media (max-width: 900px) {
+    .continuous-sync-summary { align-items: stretch; }
+    .continuous-stage { flex: 1 1 160px; }
+    .continuous-sync-summary > b { display: none; }
+    .continuous-schedule { margin-left: 0; flex: 1 1 100%; }
     .publish-guide { grid-template-columns: 1fr; }
     .publish-guide-action { min-width: 0; }
     .publish-guide-steps { grid-template-columns: repeat(2, minmax(0,1fr)); }

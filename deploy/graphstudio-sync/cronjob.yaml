@@ -22,9 +22,11 @@ spec:
             - name: sync
               image: registry.example.com/camstar-ontology:latest
               imagePullPolicy: IfNotPresent
-              # Runs fresh quality evidence, then builds and activates an immutable
-              # curated release. It never writes Camstar or Graph Studio.
-              command: ["python", "scripts/graphstudio_sync.py", "continuous-cycle", "--job", "camstar-full", "--profile", "opcenter2607-core", "--apply", "--actor", "k8s-cronjob"]
+              # Pins the active ontology, freezes one incremental source window,
+              # builds an immutable data release, switches the Graph Studio
+              # blue/green layer, verifies counts, then commits the checkpoint.
+              # It never writes the Camstar database.
+              command: ["python", "scripts/graphstudio_sync.py", "continuous-publish", "--job", "camstar-full", "--profile", "opcenter2607-core", "--environment", "dev", "--apply", "--actor", "k8s-cronjob"]
               envFrom:
                 - secretRef:
                     name: camstar-graphstudio-sync-secrets

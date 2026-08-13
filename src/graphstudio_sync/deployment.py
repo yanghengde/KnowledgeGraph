@@ -391,6 +391,12 @@ def build_curated_rdf(
         "modelTripleCount": model_triple_count,
         "objectCount": published_objects,
         "relationshipCount": published_relationships,
+        "publishedClassUris": sorted({
+            str(ONT[item["targetName"]]) for item in class_map.values()
+        }),
+        "publishedRelationshipUris": sorted({
+            str(item["predicate"]) for item in relationship_map.values()
+        }),
         "ontologyReleaseId": ontology_release_id,
         "ontologyReleaseNo": ontology_meta["release_no"],
         "artifactHash": artifact_hash,
@@ -454,6 +460,8 @@ def create_deployment(
                     "modelUri": artifact["modelUri"],
                     "modelPath": artifact["modelPath"],
                     "ontologyReleaseId": artifact["ontologyReleaseId"],
+                    "publishedClassUris": artifact["publishedClassUris"],
+                    "publishedRelationshipUris": artifact["publishedRelationshipUris"],
                     "checks": ["reload_complete", "no_failed_assets", "sparql_counts"],
                 }),
                 "actor": actor,
@@ -696,6 +704,66 @@ def _ensure_load_step(
     return step_uri
 
 
+def _set_layer_enabled(
+    session: requests.Session,
+    base: str,
+    *,
+    encoded_graphmart: str,
+    layer_uri: str,
+    enabled: bool,
+) -> None:
+    """Enable or disable one layer without changing unrelated Graphmart layers."""
+    action = "enableLayers" if enabled else "disableLayers"
+    _require(
+        session.patch(
+            f"{base}/api/graphmarts/{encoded_graphmart}/{action}",
+            json=[layer_uri],
+            timeout=60,
+        ),
+        f"{'Enable' if enabled else 'Disable'} Graph Studio layer",
+    )
+
+
+def _reload_graphmart(
+    session: requests.Session,
+    base: str,
+    *,
+    encoded_graphmart: str,
+    timeout_seconds: int = 600,
+) -> dict[str, Any]:
+    _require(
+        session.post(
+            f"{base}/api/graphmarts/{encoded_graphmart}/reload",
+            json={"inDesignMode": True, "deployOnActivation": True},
+            timeout=180,
+        ),
+        "Reload graphmart",
+    )
+    deadline = time.monotonic() + timeout_seconds
+    graph_status: dict[str, Any] = {}
+    while time.monotonic() < deadline:
+        graph_status = _require(
+            session.get(
+                f"{base}/api/graphmarts/{encoded_graphmart}/status",
+                params={"detail": "true"},
+                timeout=60,
+            ),
+            "Read graphmart status",
+        )
+        if graph_status.get("isComplete") and not graph_status.get("dirty"):
+            break
+        time.sleep(2)
+    else:
+        raise RuntimeError(f"Graph Studio reload did not finish within {timeout_seconds} seconds")
+    if (
+        graph_status.get("failedLayers")
+        or graph_status.get("failedSteps")
+        or graph_status.get("failedDatasets")
+    ):
+        raise RuntimeError(f"Graph Studio reload contains failed assets: {graph_status}")
+    return graph_status
+
+
 def apply_deployment(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -707,11 +775,14 @@ def apply_deployment(
             text(
                 """
                 SELECT deployment.*, environment.graphmart_uri,
-                       environment.apply_enabled, release.source_snapshot
+                       environment.apply_enabled, release.source_snapshot,
+                       previous.layer_uri AS previous_layer_uri
                 FROM graphsync.deployment_release deployment
                 JOIN graphsync.deployment_environment environment USING (environment_key)
                 JOIN graphsync.curated_release release
                   ON release.release_id=deployment.curated_release_id
+                LEFT JOIN graphsync.deployment_release previous
+                  ON previous.deployment_id=deployment.previous_deployment_id
                 WHERE deployment_id=:deployment_id
                 """
             ),
@@ -736,7 +807,12 @@ def apply_deployment(
         # an immutable Graph Studio model.
         validation_plan["replaceExistingDataset"] = True
     model_path_value = validation_plan.get("modelPath")
-    if legacy_artifact or not model_path_value or not Path(model_path_value).is_file():
+    if (
+        legacy_artifact
+        or not validation_plan.get("publishedClassUris")
+        or not model_path_value
+        or not Path(model_path_value).is_file()
+    ):
         artifact = build_curated_rdf(
             repository,
             profile_key=deployment["profile_key"],
@@ -751,6 +827,8 @@ def apply_deployment(
             "modelUri": artifact["modelUri"],
             "modelPath": artifact["modelPath"],
             "ontologyReleaseId": artifact["ontologyReleaseId"],
+            "publishedClassUris": artifact["publishedClassUris"],
+            "publishedRelationshipUris": artifact["publishedRelationshipUris"],
             "checks": ["model_registered", "reload_complete", "no_failed_assets", "sparql_counts"],
         })
         deployment["artifact_uri"] = artifact["zipPath"]
@@ -807,6 +885,8 @@ def apply_deployment(
     dataset_uri = deployment.get("dataset_uri")
     layer_uri = deployment.get("layer_uri")
     step_uri = deployment.get("step_uri")
+    previous_layer_uri = deployment.get("previous_layer_uri")
+    layer_switched = False
     try:
         model_uri = validation_plan["modelUri"]
         _ensure_model(session, base, model_uri=model_uri, model_path=model_path)
@@ -861,28 +941,38 @@ def apply_deployment(
                 text("UPDATE graphsync.deployment_release SET status='loading', step_uri=:step WHERE deployment_id=:id"),
                 {"id": deployment_id, "step": step_uri},
             )
-        _require(session.post(f"{base}/api/graphmarts/{encoded_graphmart}/reload", json={"inDesignMode": True, "deployOnActivation": True}, timeout=180), "Reload graphmart")
-        deadline = time.monotonic() + 600
-        graph_status: dict[str, Any] = {}
-        while time.monotonic() < deadline:
-            graph_status = _require(session.get(f"{base}/api/graphmarts/{encoded_graphmart}/status", params={"detail": "true"}, timeout=60), "Read graphmart status")
-            if graph_status.get("isComplete") and not graph_status.get("dirty"):
-                break
-            time.sleep(2)
-        else:
-            raise RuntimeError("Graph Studio reload did not finish within 600 seconds")
-        if graph_status.get("failedLayers") or graph_status.get("failedSteps") or graph_status.get("failedDatasets"):
-            raise RuntimeError(f"Graph Studio reload contains failed assets: {graph_status}")
-        sparql = """
-            PREFIX cam: <https://opcenter.siemens.com/ontology/camstar/2607/ProductMfgOrder#>
-            SELECT (COUNT(DISTINCT ?product) AS ?products)
-                   (COUNT(DISTINCT ?order) AS ?mfgOrders)
-                   (COUNT(DISTINCT ?linkedOrder) AS ?linkedOrders)
-            WHERE {
-              OPTIONAL { ?product a cam:Product . }
-              OPTIONAL { ?order a cam:MfgOrder . }
-              OPTIONAL { ?linkedOrder cam:REL_ORDERED_PRODUCT ?target . }
-            }
+        _set_layer_enabled(
+            session, base, encoded_graphmart=encoded_graphmart,
+            layer_uri=layer_uri, enabled=True,
+        )
+        if previous_layer_uri and previous_layer_uri != layer_uri:
+            _set_layer_enabled(
+                session, base, encoded_graphmart=encoded_graphmart,
+                layer_uri=previous_layer_uri, enabled=False,
+            )
+            layer_switched = True
+        graph_status = _reload_graphmart(
+            session, base, encoded_graphmart=encoded_graphmart,
+        )
+        class_uris = list(validation_plan.get("publishedClassUris") or [])
+        relationship_uris = list(validation_plan.get("publishedRelationshipUris") or [])
+        if not class_uris:
+            raise RuntimeError("Deployment validation plan has no published class URIs")
+        class_values = " ".join(f"<{value}>" for value in class_uris)
+        relationship_select = (
+            "{ SELECT (COUNT(*) AS ?relationships) WHERE { "
+            f"VALUES ?predicate {{ {' '.join(f'<{value}>' for value in relationship_uris)} }} "
+            "?source ?predicate ?target . } }"
+            if relationship_uris else "BIND(0 AS ?relationships)"
+        )
+        sparql = f"""
+            SELECT ?objects ?relationships WHERE {{
+              {{ SELECT (COUNT(DISTINCT ?subject) AS ?objects) WHERE {{
+                  VALUES ?type {{ {class_values} }}
+                  ?subject a ?type .
+              }} }}
+              {relationship_select}
+            }}
         """
         query_response = session.post(
             f"{base}/sparql/graphmart/{encoded_graphmart}",
@@ -896,10 +986,24 @@ def apply_deployment(
             raise RuntimeError("SPARQL acceptance returned no aggregate row")
         counts = {key: int(value.get("value", 0)) for key, value in bindings[0].items()}
         expected_objects = int((deployment["validation_plan"] or {}).get("expectedObjects", 0))
-        actual_objects = counts.get("products", 0) + counts.get("mfgOrders", 0)
+        actual_objects = counts.get("objects", 0)
+        expected_relationships = int((deployment["validation_plan"] or {}).get("expectedRelationships", 0))
+        actual_relationships = counts.get("relationships", 0)
         if actual_objects < expected_objects:
             raise RuntimeError(f"SPARQL object count {actual_objects} is below expected {expected_objects}")
-        validation = {"reload": graph_status, "sparql": counts, "passed": True}
+        if actual_relationships < expected_relationships:
+            raise RuntimeError(
+                f"SPARQL relationship count {actual_relationships} is below expected {expected_relationships}"
+            )
+        validation = {
+            "reload": graph_status,
+            "sparql": counts,
+            "layerSwitch": {
+                "enabled": layer_uri,
+                "disabled": previous_layer_uri if layer_switched else None,
+            },
+            "passed": True,
+        }
         with repository.engine.begin() as connection:
             connection.execute(text("UPDATE graphsync.deployment_release SET status='active', validation_result=CAST(:validation AS jsonb), finished_at=now() WHERE deployment_id=:id"), {"id": deployment_id, "validation": json.dumps(validation, default=str)})
             if deployment["previous_deployment_id"]:
@@ -907,21 +1011,42 @@ def apply_deployment(
             for class_name, snapshot in (deployment["source_snapshot"] or {}).items():
                 if not snapshot.get("runId") or not snapshot.get("upperBound"):
                     continue
+                schema_hash = connection.execute(
+                    text(
+                        """
+                        SELECT observation.schema_hash
+                        FROM graphsync.source_schema_observation observation
+                        JOIN graphsync.data_contract contract
+                          ON contract.contract_key=observation.contract_key
+                        WHERE observation.profile_key=:profile
+                          AND contract.class_name=:class_name
+                        ORDER BY observation.observed_at DESC
+                        LIMIT 1
+                        """
+                    ),
+                    {"profile": deployment["profile_key"], "class_name": class_name},
+                ).scalar_one_or_none()
                 connection.execute(
                     text(
                         """
                         INSERT INTO graphsync.checkpoint
                             (job_name, partition_key, committed_watermark,
-                             committed_run_id, committed_at)
+                             committed_run_id, source_schema_hash, committed_at)
                         VALUES ('camstar-full', :partition_key,
-                                CAST(:watermark AS jsonb), :run_id, now())
+                                CAST(:watermark AS jsonb), :run_id, :schema_hash, now())
                         ON CONFLICT (job_name, partition_key) DO UPDATE SET
                             committed_watermark=EXCLUDED.committed_watermark,
                             committed_run_id=EXCLUDED.committed_run_id,
+                            source_schema_hash=EXCLUDED.source_schema_hash,
                             committed_at=now()
                         """
                     ),
-                    {"partition_key": class_name, "watermark": json.dumps(snapshot["upperBound"], default=str), "run_id": uuid.UUID(snapshot["runId"])},
+                    {
+                        "partition_key": class_name,
+                        "watermark": json.dumps(snapshot["upperBound"], default=str),
+                        "run_id": uuid.UUID(snapshot["runId"]),
+                        "schema_hash": schema_hash,
+                    },
                 )
                 connection.execute(
                     text("UPDATE graphsync.incremental_window SET status='committed' WHERE window_id=:window_id AND status='verified'"),
@@ -934,6 +1059,24 @@ def apply_deployment(
         return {"deploymentId": str(deployment_id), "status": "active", "datasetUri": dataset_uri, "layerUri": layer_uri, "stepUri": step_uri, "validation": validation}
     except Exception as exc:
         message = str(exc)
+        compensation: dict[str, Any] = {"attempted": False}
+        if layer_switched and previous_layer_uri and layer_uri:
+            compensation["attempted"] = True
+            try:
+                _set_layer_enabled(
+                    session, base, encoded_graphmart=encoded_graphmart,
+                    layer_uri=previous_layer_uri, enabled=True,
+                )
+                _set_layer_enabled(
+                    session, base, encoded_graphmart=encoded_graphmart,
+                    layer_uri=layer_uri, enabled=False,
+                )
+                compensation["reload"] = _reload_graphmart(
+                    session, base, encoded_graphmart=encoded_graphmart,
+                )
+                compensation["restored"] = True
+            except Exception as compensation_exc:  # pragma: no cover - external recovery path
+                compensation.update({"restored": False, "error": str(compensation_exc)})
         if "acl limited predicate" in message and "Graphmarts#model" in message:
             message = (
                 "Graph Studio 拒绝关联本体模型：API 账号缺少目标 Graphmart 的 Modify（Add/Edit）权限，"
@@ -962,6 +1105,7 @@ def apply_deployment(
                         "message": message,
                         "retryable": True,
                         "stage": "graphstudio_apply",
+                        "compensation": compensation,
                         "resources": {
                             "datasetUri": dataset_uri,
                             "layerUri": layer_uri,

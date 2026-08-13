@@ -6,10 +6,12 @@ from src.graphstudio_sync.deployment import (
     _ensure_dataset,
     _ensure_model,
     _requires_dataset_replacement,
+    _set_layer_enabled,
     release_model_uri,
 )
 from src.graphstudio_sync.materialization import (
     apply_transform,
+    build_field_backfill_patch,
     build_materialization_plan,
     canonical_json,
     normalize_object_record,
@@ -132,6 +134,32 @@ def test_dataset_replacement_remains_pending_after_force_delete_failure() -> Non
     assert _requires_dataset_replacement(plan, error) is True
     assert _requires_dataset_replacement({**plan, "replaceExistingDataset": True}, {}) is True
     assert _requires_dataset_replacement(plan, {}) is False
+
+
+class _LayerSession:
+    def __init__(self):
+        self.calls = []
+
+    def patch(self, url, **kwargs):
+        self.calls.append((url, kwargs))
+        return _GraphStudioResponse({"updated": True})
+
+
+def test_layer_switch_targets_only_the_requested_layer() -> None:
+    session = _LayerSession()
+    layer_uri = "http://example.com/layer/green"
+
+    _set_layer_enabled(
+        session,
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+        layer_uri=layer_uri,
+        enabled=False,
+    )
+
+    url, kwargs = session.calls[0]
+    assert url.endswith("/api/graphmarts/urn%3Agraphmart/disableLayers")
+    assert kwargs["json"] == [layer_uri]
 
 
 def _contract(**overrides):
@@ -304,6 +332,54 @@ def test_materialization_plan_uses_verified_incremental_package_for_large_table(
 
     assert plan["ready"] is True
     assert plan["contracts"][0]["extractionMode"] == "verified_incremental_package"
+
+
+def test_materialization_plan_uses_narrow_backfill_after_contract_upgrade() -> None:
+    governance = _governance(
+        contracts=[_contract(version=4, approximate_rows=100_000_000)],
+        latestRun={"publishable": True, "contract_versions": {"objects": {"product-v1": 4}}},
+    )
+    change = {
+        "change_id": "11111111-1111-1111-1111-111111111111",
+        "contract_key": "product-v1",
+        "status": "applied",
+        "target_version": 4,
+        "items": [{
+            "operation": "add_field",
+            "field_key": "product-v1:brand-name",
+            "before_state": None,
+            "after_state": {"target_field": "brandName"},
+        }],
+    }
+
+    plan = build_materialization_plan(
+        governance, [change], profile_key="core",
+        active_release_id="22222222-2222-2222-2222-222222222222",
+        active_contract_versions={"product-v1": 3},
+    )
+
+    contract = plan["contracts"][0]
+    assert plan["ready"] is True
+    assert contract["extractionMode"] == "field_backfill"
+    assert contract["fieldBackfill"]["affectedFieldKeys"] == ["product-v1:brand-name"]
+    assert plan["schemaChangeIds"] == [change["change_id"]]
+
+
+def test_field_backfill_patch_only_contains_changed_properties() -> None:
+    patch = build_field_backfill_patch(
+        _contract(),
+        [{
+            "field_key": "product-v1:brand-name",
+            "source_column": "BrandName",
+            "target_field": "brandName",
+            "required": False,
+        }],
+        {"ProductId": 7, "BrandName": "Acme", "Description": "not selected"},
+    )
+
+    assert patch["properties"] == {"brandName": "Acme"}
+    assert patch["sourceValues"] == {"BrandName": "Acme"}
+    assert "Description" not in patch["sourceValues"]
 
 
 @pytest.mark.parametrize(

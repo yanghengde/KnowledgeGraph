@@ -11,6 +11,7 @@ from typing import Any
 from sqlalchemy import create_engine, text
 
 from .config import SyncSettings
+from .continuous_sync import execute_continuous_sync
 from .catalog import compile_catalog
 from .curation import build_curation_preview
 from .deployment import create_deployment, deployment_status
@@ -162,6 +163,16 @@ def main(argv: list[str] | None = None) -> int:
     continuous_parser.add_argument("--apply", action="store_true")
     continuous_parser.add_argument("--actor", default="scheduler")
     continuous_parser.add_argument("--output", type=Path)
+    publish_cycle_parser = subparsers.add_parser(
+        "continuous-publish",
+        help="Run the complete data lane through a blue-green Graph Studio deployment",
+    )
+    publish_cycle_parser.add_argument("--job", default="camstar-full")
+    publish_cycle_parser.add_argument("--profile", default="opcenter2607-core")
+    publish_cycle_parser.add_argument("--environment", choices=("dev", "uat", "prod"), default="dev")
+    publish_cycle_parser.add_argument("--apply", action="store_true")
+    publish_cycle_parser.add_argument("--actor", default="scheduler")
+    publish_cycle_parser.add_argument("--output", type=Path)
     materialize_parser = subparsers.add_parser(
         "materialize-curated",
         help="Plan or build an immutable curated release; writes require --apply",
@@ -271,6 +282,12 @@ def main(argv: list[str] | None = None) -> int:
             "curation": curation_result,
             "materialization": materialized,
         }
+    elif args.command == "continuous-publish":
+        repository = ControlPlaneRepository(settings)
+        payload = execute_continuous_sync(
+            settings, repository, job_name=args.job, profile_key=args.profile,
+            environment_key=args.environment, actor=args.actor, apply=args.apply,
+        )
     elif args.command == "materialize-curated":
         repository = ControlPlaneRepository(settings)
         payload = execute_materialization(

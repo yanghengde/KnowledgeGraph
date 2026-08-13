@@ -91,8 +91,10 @@ python scripts/graphstudio_sync.py preview-curation --profile opcenter2607-core
 python scripts/graphstudio_sync.py curation-cycle --profile opcenter2607-core
 # 仅在全部契约/关系/质量门禁通过后才会物化和激活；否则返回失败且不写业务快照
 python scripts/graphstudio_sync.py curation-cycle --profile opcenter2607-core --apply --actor scheduler
-# 生产 CronJob 入口：探测/冻结/抽取增量窗口，再刷新治理门禁和活动版本
+# 仅生成并激活治理数据版本，不发布 Graph Studio
 python scripts/graphstudio_sync.py continuous-cycle --job camstar-full --profile opcenter2607-core --apply --actor scheduler
+# 生产 CronJob 入口：冻结增量窗口 → 治理数据版本 → Graph Studio 蓝绿切换 → 验收 → 提交 checkpoint
+python scripts/graphstudio_sync.py continuous-publish --job camstar-full --profile opcenter2607-core --environment dev --apply --actor scheduler
 python scripts/graphstudio_sync.py materialize-curated --profile opcenter2607-core
 python scripts/graphstudio_sync.py materialize-curated --profile opcenter2607-core --apply --activate --actor <user>
 python scripts/graphstudio_sync.py release-status --profile opcenter2607-core
@@ -149,7 +151,7 @@ Schema：`graphsync`
 | 映射 | `catalog_snapshot`, `class_mapping`, `property_mapping`, `relationship_mapping`, `mapping_override` |
 | 业务图谱 | `graph_profile`, `profile_class`, `profile_relationship`, `context_validation`, `pending_reference` |
 | 数据治理 | `data_contract`, `relationship_contract`, `curation_run`, `data_quality_result`；业务投影统一位于 `graphsync` schema |
-| Schema 演进 | `data_contract_field`, `asset_dependency`, `schema_change_request`, `schema_change_item`, `schema_migration_run` |
+| Schema 演进 | `data_contract_field`, `asset_dependency`, `schema_change_request`, `schema_change_item`, `schema_migration_run`, `source_schema_observation` |
 | 属性投影 | `attribute_projection_contract`, `attribute_projection_field`, `attribute_projection_preview` |
 | 治理版本 | `curated_release`, `curated_release_activation`, `materialization_batch`；业务快照位于 `graphsync.object_version/relationship_version` |
 | 环境发布 | `deployment_environment`, `deployment_release` |
@@ -174,6 +176,8 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 控制面 v15 收敛为单库通用模型：`OpcenterGraph` 承载控制面与通用治理版本，业务实例只使用 `object_version` 和 `relationship_version`。早期 Product/MfgOrder 专属验证表及两条写死的 MfgOrder 演示 Action 已删除。Action 可手工配置或从本地 Camstar OpenAPI 选择性导入；导入项保持禁用草案，真实执行必须通过可信反向代理身份、不同人员复核/批准和全局执行开关。
 
 控制面 v16 将 `object_version`、`relationship_version` 及其活动视图统一迁入 `graphsync`，删除 `camstar_curated` schema。Neo4j Enterprise 内新增独立 `graphstudio-model` database：原 `neo4j` database 保留完整 Camstar 源本体，发布库保存可裁剪、改名、补充属性并区分 published/projection/context 关系的目标本体。同步中心新增 G6 本体治理工作台；编辑后的草案必须通过校验、不同人员复核/批准、冻结和激活，RDF 构建才会同时读取活动本体版本与活动数据版本。
+
+控制面 v17 将“持续数据”和“模型变化”拆成两条独立通道。稳定本体使用 `continuous-publish` 冻结增量窗口、生成不可变数据版本、蓝绿切换 Graph Studio Layer，并且仅在 SPARQL 验收成功后提交 checkpoint；失败会恢复上一活动层。字段新增、废弃、改名、改类型或改来源时，系统先保存 Camstar 物理 Schema 观测，再生成受控 Schema 变更。迁移后只按主键和受影响源列执行字段级回填，不因一列变化重扫和重写整张亿级表；发布记录同时绑定本体版本、数据契约版本、Schema 变更 ID 与源 Schema hash。
 
 `preview-incremental` 会将已规划窗口读取成统一 JSONL 变更包，支持 SQL Server CT、CDC、Oracle Flashback SCN 以及 watermark/append-only。事件包含主键、insert/update/upsert/delete 操作和数据库恢复位置；预览只生成审计产物，不提交 checkpoint，也不写 Graph Studio。
 

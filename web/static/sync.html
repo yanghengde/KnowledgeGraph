@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-33">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-34">
 </head>
 <body>
     <div class="app-shell">
@@ -138,8 +138,13 @@
                 <section class="page-section" data-section="jobs">
                     <div class="section-tabs" data-section-tabs="ingestion"></div>
                     <div class="section-header">
-                        <div><span class="section-kicker">ORCHESTRATION</span><h2>同步任务</h2><p>配置同步模式、Cron 表达式、时区及产物保留策略。生产调度由外部 CronJob 触发。</p></div>
+                        <div><span class="section-kicker">CONTINUOUS DATA LANE</span><h2>持续同步</h2><p>活动本体保持不变时，冻结增量窗口、生成不可变数据版本并蓝绿发布到 Graph Studio。生产调度由外部 CronJob 触发。</p></div>
+                        <button class="btn primary" id="runContinuousSync">立即同步到开发验证</button>
                     </div>
+                    <article class="panel continuous-sync-panel">
+                        <div class="panel-heading"><div><span class="section-kicker">DATA-ONLY PIPELINE</span><h3>数据通道状态</h3></div><span id="continuousSyncReady" class="count-badge">正在检查</span></div>
+                        <div id="continuousSyncSummary" class="continuous-sync-summary"></div>
+                    </article>
                     <div id="jobGrid" class="job-grid"></div>
                     <article class="panel capability-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">SOURCE CAPABILITIES</span><h3>数据库增量能力</h3></div><div class="card-action-buttons"><button class="mini-btn" id="probeIncremental">重新检测</button><button class="mini-btn" id="planIncremental">规划增量窗口</button><button class="mini-btn" id="previewIncremental">生成增量预览</button></div></div>
@@ -148,6 +153,28 @@
                     <article class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">TABLE STRATEGIES</span><h3>表级同步策略</h3></div><span id="tablePolicyRiskCount" class="count-badge">0 个待审核</span></div>
                         <div class="table-wrap table-policy-wrap"><table><thead><tr><th>本体类 / 表</th><th>估算行数</th><th>同步策略</th><th>原生增量</th><th>批大小</th><th>状态</th><th>操作</th></tr></thead><tbody id="tablePolicyRows"></tbody></table></div>
+                    </article>
+                </section>
+
+                <section class="page-section" data-section="model_changes">
+                    <div class="section-tabs" data-section-tabs="data_governance"></div>
+                    <div class="section-header">
+                        <div><span class="section-kicker">MODEL CHANGE LANE</span><h2>模型变更</h2><p>先检测 Camstar 物理结构，再通过版本化变更申请调整字段。活动本体和当前 Graph Studio 数据在新版本完成回填前保持不变。</p></div>
+                        <button class="btn primary" id="scanSchemaDrift">检测物理结构变化</button>
+                    </div>
+                    <div id="schemaDriftMetrics" class="metric-grid"></div>
+                    <article class="panel table-panel">
+                        <div class="panel-heading"><div><span class="section-kicker">SOURCE SCHEMA DRIFT</span><h3>物理结构差异</h3></div><span id="schemaDriftState" class="count-badge">尚未检测</span></div>
+                        <div class="table-wrap"><table><thead><tr><th>对象 / 来源</th><th>变化</th><th>字段</th><th>影响</th><th>建议</th></tr></thead><tbody id="schemaDriftRows"></tbody></table></div>
+                    </article>
+                    <article id="schemaFieldPanel" class="panel table-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">SCHEMA EVOLUTION</span><h3>字段版本与依赖</h3></div><div class="profile-toolbar"><select id="schemaContractSelect" class="field-select"></select><button class="mini-btn" id="newSchemaChange">新建变更申请</button></div></div>
+                        <div id="schemaEvolutionSummary" class="capability-summary"></div>
+                        <div class="table-wrap"><table><thead><tr><th>字段</th><th>源列</th><th>类型</th><th>角色</th><th>生命周期</th><th>依赖</th><th>引入版本</th></tr></thead><tbody id="contractFieldRows"></tbody></table></div>
+                    </article>
+                    <article id="schemaChangePanel" class="panel table-panel" style="margin-top:18px">
+                        <div class="panel-heading"><div><span class="section-kicker">CHANGE & BACKFILL</span><h3>变更申请与历史回填</h3></div><span id="schemaChangeCount" class="count-badge">0</span></div>
+                        <div class="table-wrap"><table><thead><tr><th>申请</th><th>对象 / 版本</th><th>兼容性</th><th>字段操作</th><th>回填状态</th><th>状态</th><th>操作</th></tr></thead><tbody id="schemaChangeRows"></tbody></table></div>
                     </article>
                 </section>
 
@@ -218,15 +245,6 @@
                     <article id="qualityEvidencePanel" class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">QUALITY EVIDENCE</span><h3>最近治理结果</h3></div><span id="qualityResultCount" class="count-badge">0</span></div>
                         <div id="qualityResults" class="profile-issues"></div>
-                    </article>
-                    <article id="schemaFieldPanel" class="panel table-panel advanced-expert-panel" style="margin-top:18px">
-                        <div class="panel-heading"><div><span class="section-kicker">SCHEMA EVOLUTION</span><h3>字段版本与依赖</h3></div><div class="profile-toolbar"><select id="schemaContractSelect" class="field-select"></select><button class="mini-btn" id="newSchemaChange">新建变更申请</button></div></div>
-                        <div id="schemaEvolutionSummary" class="capability-summary"></div>
-                        <div class="table-wrap"><table><thead><tr><th>字段</th><th>源列</th><th>类型</th><th>角色</th><th>生命周期</th><th>依赖</th><th>引入版本</th></tr></thead><tbody id="contractFieldRows"></tbody></table></div>
-                    </article>
-                    <article id="schemaChangePanel" class="panel table-panel advanced-expert-panel" style="margin-top:18px">
-                        <div class="panel-heading"><div><span class="section-kicker">CHANGE CONTROL</span><h3>Schema 变更申请</h3></div><span id="schemaChangeCount" class="count-badge">0</span></div>
-                        <div class="table-wrap"><table><thead><tr><th>申请</th><th>对象 / 版本</th><th>兼容性</th><th>字段操作</th><th>阻断项</th><th>状态</th><th>操作</th></tr></thead><tbody id="schemaChangeRows"></tbody></table></div>
                     </article>
                     <article id="objectRolePanel" class="panel table-panel advanced-expert-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">OBJECT ROLES</span><h3>对象范围</h3></div><div class="profile-toolbar"><input id="profileClassSearch" class="field-input" placeholder="搜索本体对象"><button class="mini-btn" id="addProfileClass">添加对象</button></div></div>
@@ -346,6 +364,6 @@
 
     <div id="toast" class="toast" hidden></div>
     <script src="/static/lib/g6.js"></script>
-    <script src="/static/sync.js?v=20260813-41"></script>
+    <script src="/static/sync.js?v=20260813-42"></script>
 </body>
 </html>

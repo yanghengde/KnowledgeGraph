@@ -8,6 +8,7 @@
         jobs: [],
         tablePolicies: [],
         incrementalProbe: null,
+        continuousSync: null,
         profiles: [],
         ontologyGovernance: { workspaces: [], graph: { nodes: [], edges: [], properties: [] }, releases: [] },
         ontologySourceCandidates: [],
@@ -36,6 +37,7 @@
         contractCandidates: { classes: [], relationships: [] },
         contractSchema: null,
         schemaChanges: [],
+        schemaDrift: { scanned: false, summary: {}, items: [] },
         attributeProjections: [],
         materialization: { plan: null, releases: [] },
         deployments: { environments: [], deployments: [], activeCuratedRelease: null },
@@ -56,9 +58,9 @@
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
     const NAVIGATION_GROUPS = [
         { key: "overview", label: "总览", icon: "OV", sections: ["overview"] },
-        { key: "ingestion", label: "数据接入", icon: "IN", sections: ["connections", "jobs"], tabs: [["connections", "连接与凭据"], ["jobs", "任务与增量策略"]] },
+        { key: "ingestion", label: "数据接入", icon: "IN", sections: ["connections", "jobs"], tabs: [["connections", "连接与凭据"], ["jobs", "持续同步"]] },
         { key: "ontology_governance", label: "本体治理", icon: "OG", sections: ["ontology_governance"] },
-        { key: "data_governance", label: "数据治理", icon: "DG", sections: ["profiles", "governance_exceptions", "governance_advanced", "projections", "mappings"], tabs: [["profiles", "快速治理"], ["governance_exceptions", "异常中心"], ["governance_advanced", "高级治理"]] },
+        { key: "data_governance", label: "数据治理", icon: "DG", sections: ["profiles", "governance_exceptions", "model_changes", "governance_advanced", "projections", "mappings"], tabs: [["profiles", "快速治理"], ["governance_exceptions", "异常中心"], ["model_changes", "模型变更"], ["governance_advanced", "高级治理"]] },
         { key: "publishing", label: "发布中心", icon: "PB", sections: ["releases", "deployments"], tabs: [["releases", "数据版本"], ["deployments", "环境发布"]] },
         { key: "monitoring", label: "运行监控", icon: "MO", sections: ["observability", "runs"], tabs: [["observability", "健康与血缘"], ["runs", "运行记录"]] },
     ];
@@ -206,7 +208,7 @@
     }
 
     function navigateToSection(section, focusId = null) {
-        const expertFocusIds = new Set(["profileBoundaryPanel", "schemaFieldPanel", "schemaChangePanel", "objectRolePanel", "relationshipScopePanel", "governanceValidationPanel"]);
+        const expertFocusIds = new Set(["profileBoundaryPanel", "objectRolePanel", "relationshipScopePanel", "governanceValidationPanel"]);
         if (section === "governance_advanced" && focusId && expertFocusIds.has(focusId)) {
             state.advancedGovernanceMode = "expert";
             renderAdvancedGovernanceMode();
@@ -1176,6 +1178,28 @@
                 <div class="card-actions"><small>${item.enabled ? "任务已启用" : "任务已停用"}</small><div class="card-action-buttons"><button class="mini-btn" data-action="dry-run-job">执行盘点</button><button class="mini-btn" data-action="preview-job">生成 RDF 预览</button><button class="mini-btn" data-action="edit-job">配置任务</button></div></div>
             </article>`).join("");
         renderTablePolicies();
+        renderContinuousSync();
+    }
+
+    function renderContinuousSync() {
+        const status = state.continuousSync;
+        if (!status) {
+            $("#continuousSyncReady").textContent = "正在检查";
+            $("#continuousSyncSummary").innerHTML = '<p class="muted-copy">正在读取活动本体、数据版本和发布状态…</p>';
+            return;
+        }
+        $("#continuousSyncReady").textContent = status.ready ? "可运行" : `${status.blockers.length} 项阻断`;
+        $("#continuousSyncReady").className = `count-badge ${status.ready ? "online" : "failed"}`;
+        const ontology = status.activeOntologyRelease;
+        const curated = status.activeCuratedRelease;
+        const deployment = status.latestDeployment;
+        $("#continuousSyncSummary").innerHTML = `
+            <div class="continuous-stage"><i>1</i><span><small>固定本体</small><strong>${ontology ? `R${ontology.release_no}` : "未激活"}</strong></span></div>
+            <b>→</b><div class="continuous-stage"><i>2</i><span><small>活动数据</small><strong>${curated ? `R${curated.release_no}` : "尚无版本"}</strong></span></div>
+            <b>→</b><div class="continuous-stage"><i>3</i><span><small>Graph Studio</small><strong>${deployment ? statusLabel(deployment.status) : "尚未发布"}</strong></span></div>
+            <div class="continuous-schedule"><small>Cron</small><strong>${escapeHtml(status.job.schedule || "仅手动")}</strong><span>${escapeHtml(status.job.timezone)}</span></div>
+            ${status.blockers.length ? `<div class="continuous-blockers">${status.blockers.map(item => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : '<div class="continuous-ready-note">只生成新数据版本；运行期间本体版本发生变化会自动停止 Graph Studio 发布。</div>'}`;
+        $("#runContinuousSync").disabled = !status.ready;
     }
 
     function renderTablePolicies() {
@@ -1281,7 +1305,7 @@
         if (/发布关系缺少关系契约|关系契约|关系语义/.test(message)) return { route: "governance_advanced", focus: "relationshipContractPanel", actionLabel: "配置关系契约" };
         if (/对象角色/.test(message)) return { route: "governance_advanced", focus: "objectRolePanel", actionLabel: "配置对象角色" };
         if (/质量|预览|发布门禁/.test(message)) return { route: "governance_advanced", focus: "qualityEvidencePanel", actionLabel: "查看质量证据" };
-        if (/Schema 变更/.test(message)) return { route: "governance_advanced", focus: "schemaChangePanel", actionLabel: "处理 Schema 变更" };
+        if (/Schema 变更/.test(message)) return { route: "model_changes", focus: "schemaChangePanel", actionLabel: "处理 Schema 变更" };
         if (/映射|物理/.test(message)) return { route: "mappings", focus: "propertyMappingPanel", actionLabel: "处理物理映射" };
         if (/投影/.test(message)) return { route: "projections", focus: "projectionContractPanel", actionLabel: "配置属性投影" };
         if (/增量|CDC|SCN|基线|大表/.test(message)) return { route: "jobs", focus: null, actionLabel: "配置同步策略" };
@@ -1415,7 +1439,7 @@
             .map(([key, label]) => `<button class="mini-btn ${state.advancedGovernanceMode === key ? "active" : ""}" data-action="set-advanced-governance-mode" data-mode="${key}">${label}</button>`).join("");
         const issues = collectGovernanceExceptions().slice(0, 5);
         $("#advancedGovernanceGuide").innerHTML = expert
-            ? '<div class="advanced-guide-copy"><span>专家配置</span><strong>已展开全部高级设置</strong><p>对象边界、字段版本、Schema 变更、关系扩展与底层校验均可直接编辑。</p></div><button class="btn secondary" data-action="set-advanced-governance-mode" data-mode="guided">返回任务视图</button>'
+            ? '<div class="advanced-guide-copy"><span>专家配置</span><strong>已展开全部高级设置</strong><p>对象边界、关系扩展与底层校验均可直接编辑；字段版本已独立到“模型变更”。</p></div><button class="btn secondary" data-action="set-advanced-governance-mode" data-mode="guided">返回任务视图</button>'
             : `<div class="panel-heading"><div><span class="section-kicker">GUIDED TASKS</span><h3>只处理当前发布所需配置</h3></div><span class="count-badge">${issues.length} 项</span></div><div class="advanced-guide-list">${issues.map((item, index) => `<div><i>${index + 1}</i><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)}</small></span><button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.route}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(index ? "查看" : item.actionLabel || "处理")}</button></div>`).join("") || '<div class="advanced-guide-empty">当前没有必须人工处理的配置，可以返回快速治理运行预检。</div>'}</div>`;
     }
 
@@ -1528,10 +1552,44 @@
         const changes = state.schemaChanges || [];
         $("#schemaChangeCount").textContent = `${changes.length} 项`;
         $("#schemaChangeRows").innerHTML = changes.map(item => {
-            const blockers = item.impact_summary?.blockers || [];
+            const migration = item.migrations?.[0];
+            const verification = migration?.verification || {};
+            const backfill = !migration ? "尚未执行" : verification.immutableBackfillPending ? "等待数据版本回填" : verification.backfillReleaseNo ? `数据 R${verification.backfillReleaseNo} 已回填` : schemaStatusLabel(migration.status);
             const actions = item.status === "analysis_ready" ? '<button class="mini-btn" data-action="review-schema-change">复核</button>' : item.status === "reviewed" ? '<button class="mini-btn" data-action="approve-schema-change">批准</button>' : item.status === "approved" ? '<button class="mini-btn" data-action="apply-schema-change">执行迁移</button>' : item.status === "applied" ? '<button class="mini-btn" data-action="rollback-schema-change">回滚</button>' : "—";
-            return `<tr data-schema-change="${escapeHtml(item.change_id)}"><td><strong>${escapeHtml(item.title)}</strong><br><small>${formatDate(item.created_at, true)}</small></td><td>${escapeHtml(item.contract_key)}<br><small>v${item.base_version} → v${item.target_version}</small></td><td><span class="status-pill ${item.compatibility === "non_breaking" ? "online" : item.compatibility === "breaking" ? "failed" : "unknown"}">${escapeHtml(compatibilityLabel(item.compatibility))}</span></td><td>${item.items?.length || 0}</td><td>${blockers.length ? `<span class="status-pill failed">${blockers.length} 项</span>` : "—"}</td><td>${escapeHtml(schemaStatusLabel(item.status))}</td><td>${actions}</td></tr>`;
+            return `<tr data-schema-change="${escapeHtml(item.change_id)}"><td><strong>${escapeHtml(item.title)}</strong><br><small>${formatDate(item.created_at, true)}</small></td><td>${escapeHtml(item.contract_key)}<br><small>v${item.base_version} → v${item.target_version}</small></td><td><span class="status-pill ${item.compatibility === "non_breaking" ? "online" : item.compatibility === "breaking" ? "failed" : "unknown"}">${escapeHtml(compatibilityLabel(item.compatibility))}</span></td><td>${item.items?.length || 0}</td><td><span class="status-pill ${verification.immutableBackfillPending ? "unknown" : verification.backfillReleaseNo ? "online" : ""}">${escapeHtml(backfill)}</span></td><td>${escapeHtml(schemaStatusLabel(item.status))}</td><td>${actions}</td></tr>`;
         }).join("") || '<tr class="empty-row"><td colspan="7">尚无 Schema 变更申请</td></tr>';
+    }
+
+    function renderSchemaDrift() {
+        const payload = state.schemaDrift || { scanned: false, summary: {}, items: [] };
+        const summary = payload.summary || {};
+        $("#schemaDriftState").textContent = payload.scanned ? (summary.blockers ? `${summary.blockers} 项阻断` : "结构稳定") : "尚未检测";
+        $("#schemaDriftState").className = `count-badge ${summary.blockers ? "failed" : payload.scanned ? "online" : ""}`;
+        $("#schemaDriftMetrics").innerHTML = [
+            ["已检测对象", summary.contracts || 0, "当前数据契约范围"],
+            ["结构稳定", summary.stable || 0, "可继续持续同步"],
+            ["破坏性漂移", summary.blockers || 0, "必须先处理"],
+            ["可选新字段", summary.candidates || 0, "不会自动加入本体"],
+        ].map(item => `<article class="metric-card"><span>${item[0]}</span><strong>${item[1]}</strong><small>${item[2]}</small></article>`).join("");
+        const allChanges = (payload.items || []).flatMap(item => (item.changes || []).map(change => ({ ...change, contract: item })));
+        const actionable = allChanges.filter(item => item.kind !== "candidate_column");
+        const candidateGroups = Array.from(allChanges.filter(item => item.kind === "candidate_column").reduce((groups, item) => {
+            const key = item.contract.contractKey;
+            const group = groups.get(key) || { contract: item.contract, columns: [] };
+            group.columns.push(item.column);
+            groups.set(key, group);
+            return groups;
+        }, new Map()).values());
+        const actionableRows = actionable.map(item => {
+            const operation = ({ add_field: "可创建新增字段申请", deprecate_field: "建议先废弃字段", change_type: "需要类型迁移" })[item.suggestedOperation] || "继续质量监控";
+            return `<tr><td><strong>${escapeHtml(item.contract.className)}</strong><br><small>${escapeHtml(item.contract.source)}</small></td><td>${escapeHtml(({ missing_source_column: "物理列消失", type_changed: "源类型变化", contract_type_mismatch: "契约类型待对齐", nullable_relaxed: "可空性变化", candidate_column: "发现新列" })[item.kind] || item.kind)}</td><td><strong>${escapeHtml(item.column)}</strong><br><small>${escapeHtml(item.fieldKey || "")}</small></td><td><span class="status-pill ${item.severity === "blocking" ? "failed" : item.severity === "warning" ? "unknown" : ""}">${escapeHtml(item.severity === "blocking" ? "阻断" : item.severity === "warning" ? "提醒" : "候选")}</span><br><small>${escapeHtml(item.message)}</small></td><td>${escapeHtml(operation)}</td></tr>`;
+        });
+        const candidateRows = candidateGroups.map(item => {
+            const preview = item.columns.slice(0, 6).join(", ");
+            const remaining = Math.max(0, item.columns.length - 6);
+            return `<tr><td><strong>${escapeHtml(item.contract.className)}</strong><br><small>${escapeHtml(item.contract.source)}</small></td><td>发现新列</td><td><strong>${item.columns.length} 个候选字段</strong><br><small>${escapeHtml(preview)}${remaining ? ` 等 +${remaining}` : ""}</small></td><td><span class="status-pill online">候选</span><br><small>仅提示，不会自动加入本体或发布范围</small></td><td>需要时再创建字段变更申请</td></tr>`;
+        });
+        $("#schemaDriftRows").innerHTML = [...actionableRows, ...candidateRows].join("") || `<tr class="empty-row"><td colspan="5">${payload.scanned ? "当前契约与 Camstar 物理结构一致" : "点击“检测物理结构变化”开始只读检查"}</td></tr>`;
     }
 
     function projectionPolicyLabel(value) {
@@ -2373,6 +2431,10 @@
         renderOntologyDiscovery();
     }
     async function loadJobs() { state.jobs = (await request("/api/sync/jobs")).items; renderJobs(); }
+    async function loadContinuousSync() {
+        state.continuousSync = await request("/api/sync/jobs/camstar-full/continuous-status?profile_key=opcenter2607-core&environment_key=dev");
+        renderContinuousSync();
+    }
     async function loadTablePolicies() { state.tablePolicies = (await request("/api/sync/jobs/camstar-full/table-policies")).items; renderTablePolicies(); }
     async function loadIncrementalCapabilities() { state.incrementalProbe = await request("/api/sync/jobs/camstar-full/incremental-capabilities"); renderIncrementalCapabilities(); }
     async function loadGraphProfiles() {
@@ -2402,6 +2464,10 @@
         ]);
         renderSchemaEvolution();
     }
+    async function loadSchemaDrift() {
+        state.schemaDrift = await request("/api/sync/profiles/opcenter2607-core/schema-drift");
+        renderSchemaDrift();
+    }
     async function loadAttributeProjections() {
         state.attributeProjections = (await request("/api/sync/profiles/opcenter2607-core/attribute-projections")).items;
         renderAttributeProjections();
@@ -2426,7 +2492,8 @@
         setAlert();
         try {
             await loadNavigation();
-            await Promise.all([loadConnections(), loadOntologyGovernance(), loadOntologyDiscoverySourceGraph(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadAttributeProjections(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
+            await Promise.all([loadConnections(), loadOntologyGovernance(), loadOntologyDiscoverySourceGraph(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadSchemaDrift(), loadAttributeProjections(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
+            await loadContinuousSync();
             renderMappings();
             renderAdvancedGovernanceMode();
             renderMaterialization();
@@ -3045,6 +3112,15 @@
         applyOntologyPropertyFilter();
     });
     $("#testConnectionsPage").addEventListener("click", event => runAllConnectionTests(event.currentTarget));
+    $("#runContinuousSync").addEventListener("click", () => openActorDialog("运行持续同步并发布到开发验证", async actor => {
+        toast("持续同步已开始：正在冻结窗口、治理数据并蓝绿发布");
+        const result = await request("/api/sync/jobs/camstar-full/continuous-sync", {
+            method: "POST",
+            body: JSON.stringify({ apply: true, profile_key: "opcenter2607-core", environment_key: "dev", actor }),
+        });
+        toast(result.deployment?.status === "active" ? "新数据版本已发布到 Graph Studio" : "数据版本已生成，等待外部审批后发布");
+        await Promise.all([loadContinuousSync(), loadMaterialization(), loadDeployments(), loadRuns(), loadObservability()]);
+    }));
     $("#editGraphProfile").addEventListener("click", () => openGraphProfileDialog());
     $("#addProfileClass").addEventListener("click", () => openProfileClassDialog({ role: "context", orphan_policy: "quarantine", priority: 100, enabled: true }, true));
     $("#addProfileRelationship").addEventListener("click", () => openProfileRelationshipDialog(null, true));
@@ -3071,6 +3147,16 @@
     });
     $("#schemaContractSelect").addEventListener("change", event => loadSchemaEvolution(event.currentTarget.value).catch(error => toast(error.message, true)));
     $("#newSchemaChange").addEventListener("click", () => openSchemaChangeDialog());
+    $("#scanSchemaDrift").addEventListener("click", async event => {
+        const button = event.currentTarget; button.disabled = true; button.textContent = "检测中…";
+        try {
+            state.schemaDrift = await request("/api/sync/profiles/opcenter2607-core/schema-drift/scan", { method: "POST" });
+            renderSchemaDrift();
+            const blockers = state.schemaDrift.summary?.blockers || 0;
+            toast(blockers ? `检测完成：发现 ${blockers} 项必须处理的结构变化` : "检测完成：当前发布契约结构稳定", Boolean(blockers));
+        } catch (error) { toast(error.message, true); }
+        finally { button.disabled = false; button.textContent = "检测物理结构变化"; }
+    });
     $("#newAttributeProjection").addEventListener("click", () => openAttributeProjectionDialog());
     $("#newActionDefinition").addEventListener("click", () => openActionDefinitionDialog());
     $("#importOpenApiAction").addEventListener("click", () => openOpenApiImportDialog().catch(error => toast(error.message, true)));
