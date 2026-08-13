@@ -30,6 +30,7 @@
         profileCandidates: { classes: [], relationships: [] },
         closurePlan: null,
         governance: { contracts: [], relationships: [], latestRun: null, qualityResults: [] },
+        governanceExceptionFilter: "all",
         contractSchema: null,
         schemaChanges: [],
         attributeProjections: [],
@@ -53,7 +54,7 @@
         { key: "overview", label: "总览", icon: "OV", sections: ["overview"] },
         { key: "ingestion", label: "数据接入", icon: "IN", sections: ["connections", "jobs"], tabs: [["connections", "连接与凭据"], ["jobs", "任务与增量策略"]] },
         { key: "ontology_governance", label: "本体治理", icon: "OG", sections: ["ontology_governance"] },
-        { key: "data_governance", label: "数据治理", icon: "DG", sections: ["profiles", "projections", "mappings"], tabs: [["profiles", "对象与关系契约"], ["projections", "属性投影"], ["mappings", "映射异常"]] },
+        { key: "data_governance", label: "数据治理", icon: "DG", sections: ["profiles", "governance_exceptions", "governance_advanced", "projections", "mappings"], tabs: [["profiles", "快速治理"], ["governance_exceptions", "异常中心"], ["governance_advanced", "高级治理"]] },
         { key: "publishing", label: "发布中心", icon: "PB", sections: ["releases", "deployments"], tabs: [["releases", "数据版本"], ["deployments", "环境发布"]] },
         { key: "monitoring", label: "运行监控", icon: "MO", sections: ["observability", "runs"], tabs: [["observability", "健康与血缘"], ["runs", "运行记录"]] },
     ];
@@ -61,6 +62,9 @@
         { key: "actions", label: "业务动作", icon: "AC" },
         { key: "settings", label: "系统设置", icon: "ST" },
     ];
+    const SECTION_TAB_GROUPS = {
+        advanced_governance: [["governance_advanced", "高级治理概览"], ["projections", "属性投影"], ["mappings", "物理映射"]],
+    };
     const escapeHtml = (value) => String(value ?? "")
         .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
@@ -173,7 +177,8 @@
     function renderSectionTabs() {
         $$('[data-section-tabs]').forEach(container => {
             const group = NAVIGATION_GROUPS.find(item => item.key === container.dataset.sectionTabs);
-            container.innerHTML = (group?.tabs || []).map(([key, label]) => `<button type="button" data-go="${key}">${escapeHtml(label)}</button>`).join("");
+            const tabs = SECTION_TAB_GROUPS[container.dataset.sectionTabs] || group?.tabs || [];
+            container.innerHTML = tabs.map(([key, label]) => `<button type="button" data-go="${key}">${escapeHtml(label)}</button>`).join("");
         });
     }
 
@@ -1007,6 +1012,8 @@
         renderOntologyWorkflowControls();
         renderOntologyGovernanceStage();
         renderReleaseStatus();
+        renderQuickGovernance();
+        renderGovernanceExceptions();
     }
 
     function openCustomOntologyClassDialog() {
@@ -1188,6 +1195,113 @@
         $("#relationshipRows").innerHTML = relationships.map(item => `
             <tr data-relationship-key="${escapeHtml(`${item.sourceClass}|${item.relationshipName}|${item.targetClass}`)}"><td>${escapeHtml(item.sourceClass)}</td><td>${escapeHtml(item.relationshipName)}</td><td>${escapeHtml(item.targetClass)}</td><td><span class="status-pill unknown">${item.mappingStatus === "ambiguous" ? "多候选" : "未解析"}</span></td><td title="${escapeHtml((item.candidateProperties || []).join(', '))}">${escapeHtml((item.candidateProperties || []).join(', ') || "—")}</td><td><button class="mini-btn" data-action="override-relationship">选择属性</button></td></tr>
         `).join("") || '<tr class="empty-row"><td colspan="6">全部关系映射已确认</td></tr>';
+        renderQuickGovernance();
+        renderGovernanceExceptions();
+    }
+
+    function governanceExceptionRoute(message) {
+        if (/映射|物理/.test(message)) return "mappings";
+        if (/投影/.test(message)) return "projections";
+        if (/增量|CDC|SCN|基线|大表/.test(message)) return "jobs";
+        if (/本体/.test(message)) return "ontology_governance";
+        return "governance_advanced";
+    }
+
+    function collectGovernanceExceptions() {
+        const items = [];
+        const seen = new Set();
+        const add = item => {
+            const key = `${item.severity}|${item.message}`;
+            if (seen.has(key)) return;
+            seen.add(key);
+            items.push({ id: `exception-${items.length + 1}`, ...item });
+        };
+        const drift = ontologyGovernanceDrift();
+        if (drift.missingClasses.length || drift.missingRelationships.length) {
+            add({ severity: "warning", category: "scope", title: "活动本体与数据治理范围不一致", message: `缺少 ${drift.missingClasses.length} 个对象、${drift.missingRelationships.length} 条关系`, action: "sync-ontology-to-data-governance", actionLabel: "按活动本体补齐" });
+        }
+        (state.materialization?.plan?.blockers || []).forEach(message => add({ severity: "blocker", category: "gate", title: "数据版本发布门禁", message, route: governanceExceptionRoute(message), actionLabel: "前往处理" }));
+        const failedQuality = (state.governance?.qualityResults || []).filter(item => !item.passed);
+        failedQuality.forEach(item => add({ severity: "warning", category: "quality", title: "质量规则证据", message: item.message, route: "governance_advanced", actionLabel: "查看证据" }));
+        const unmapped = state.mappings?.catalog?.unresolvedProperties?.length || 0;
+        const relationshipMapping = state.mappings?.catalog?.relationshipReview?.length || 0;
+        if (unmapped) add({ severity: "warning", category: "mapping", title: "存在属性映射例外", message: `${unmapped} 个属性需要人工确认`, route: "mappings", actionLabel: "处理映射" });
+        if (relationshipMapping) add({ severity: "warning", category: "mapping", title: "存在关系映射例外", message: `${relationshipMapping} 条关系需要人工确认`, route: "mappings", actionLabel: "处理关系" });
+        return items;
+    }
+
+    function quickGovernanceSteps() {
+        const drift = ontologyGovernanceDrift();
+        const classes = state.activeProfile?.classes || [];
+        const profileRelationships = state.activeProfile?.relationships || [];
+        const contracts = state.governance?.contracts || [];
+        const relationshipContracts = state.governance?.relationships || [];
+        const contractClasses = new Set(contracts.map(item => item.class_name));
+        const missingContracts = classes.filter(item => item.enabled && !contractClasses.has(item.class_name));
+        const contractRelationships = new Set(relationshipContracts.map(item => ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
+        const missingRelationshipContracts = profileRelationships.filter(item => item.enabled && !contractRelationships.has(ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
+        const scopeReady = !drift.missingClasses.length && !drift.missingRelationships.length;
+        const contractCoverageReady = !missingContracts.length && !missingRelationshipContracts.length;
+        const recommendationsReady = contractCoverageReady && classes.length > 0
+            && classes.every(item => !item.enabled || item.review_status === "approved")
+            && profileRelationships.every(item => !item.enabled || item.review_status === "approved")
+            && contracts.every(item => item.status === "approved")
+            && relationshipContracts.every(item => item.status === "approved");
+        const exceptions = collectGovernanceExceptions();
+        const blockers = exceptions.filter(item => item.severity === "blocker");
+        const previewReady = Boolean(state.governance?.latestRun?.publishable);
+        return [
+            { key: "scope", title: "同步活动本体范围", note: scopeReady ? "对象与关系已和活动本体一致" : `${drift.missingClasses.length} 个对象、${drift.missingRelationships.length} 条关系待补齐`, complete: scopeReady, action: "sync-ontology-to-data-governance", actionLabel: "自动补齐" },
+            contractCoverageReady
+                ? { key: "recommend", title: "采用安全推荐配置", note: recommendationsReady ? "对象、关系和已有契约均已确认" : "按模板确认角色、契约与关系策略", complete: recommendationsReady, action: "apply-governance-recommendations", actionLabel: "采用推荐" }
+                : { key: "recommend", title: "补齐对象与关系契约", note: `${missingContracts.length} 个对象、${missingRelationshipContracts.length} 条关系不能安全推断`, complete: false, go: "governance_advanced", actionLabel: "高级配置" },
+            { key: "exceptions", title: "处理无法自动决定的例外", note: blockers.length ? `${blockers.length} 项发布阻断` : "没有阻断数据版本的问题", complete: blockers.length === 0, go: "governance_exceptions", actionLabel: "查看异常" },
+            { key: "preview", title: "运行发布预检", note: previewReady ? "最近预检已通过发布门禁" : "验证主键、业务键、关系与数据质量", complete: previewReady, action: "run-quick-governance-preview", actionLabel: "运行预检" },
+        ];
+    }
+
+    function renderQuickGovernance() {
+        if (!$("#quickGovernanceMetrics")) return;
+        const active = state.ontologyGovernance?.activeRelease;
+        const releaseClasses = activeOntologyClassNames();
+        const exceptions = collectGovernanceExceptions();
+        const blockers = exceptions.filter(item => item.severity === "blocker");
+        const steps = quickGovernanceSteps();
+        const completed = steps.filter(item => item.complete).length;
+        $("#quickGovernanceMetrics").innerHTML = [
+            ["活动本体", active ? `R${active.release_no}` : "无", active ? `${active.class_count} 对象 · ${active.relationship_count} 关系` : "请先激活本体版本"],
+            ["治理进度", `${completed}/4`, "按推荐流程完成"],
+            ["发布阻断", blockers.length, blockers.length ? "必须处理后才能生成数据版本" : "当前无阻断"],
+            ["数据版本", state.deployments?.activeCuratedRelease ? `R${state.deployments.activeCuratedRelease.release_no}` : "未生成", "与本体版本独立管理"],
+        ].map(([label, value, note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
+        $("#quickGovernanceProgress").textContent = `${completed}/4 完成`;
+        $("#quickGovernanceProgress").classList.toggle("approved", completed === steps.length);
+        $("#quickGovernanceTasks").innerHTML = steps.map((item, index) => `<div class="quick-task ${item.complete ? "complete" : "current"}"><i>${item.complete ? "✓" : index + 1}</i><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.note)}</small></div>${item.complete ? '<span class="status-pill online">已完成</span>' : `<button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.go}"`}>${escapeHtml(item.actionLabel)}</button>`}</div>`).join("");
+        const next = steps.find(item => !item.complete);
+        $("#quickGovernanceNext").innerHTML = next ? `<div class="quick-next-card"><span>下一步</span><strong>${escapeHtml(next.title)}</strong><p>${escapeHtml(next.note)}</p><button class="btn primary" ${next.action ? `data-action="${next.action}"` : `data-go="${next.go}"`}>${escapeHtml(next.actionLabel)}</button><button class="text-btn" data-go="governance_advanced">需要自定义？进入高级治理</button></div>` : '<div class="quick-next-card complete"><span>治理完成</span><strong>可以生成数据版本</strong><p>所有快速治理步骤均已完成。</p><button class="btn primary" data-go="releases">进入发布中心</button></div>';
+        const classDetails = new Map((state.activeProfile?.classes || []).map(item => [item.class_name, item]));
+        const contractDetails = new Map((state.governance?.contracts || []).map(item => [item.class_name, item]));
+        $("#quickGovernanceObjects").innerHTML = [...releaseClasses].sort().map(name => {
+            const configured = classDetails.get(name);
+            const contract = contractDetails.get(name);
+            const ready = configured?.review_status === "approved" && contract?.status === "approved";
+            return `<div class="quick-object-card ${ready ? "complete" : "warning"}"><span>${escapeHtml(roleLabel(configured?.role || "context"))}</span><strong>${escapeHtml(name)}</strong><small>${!configured ? "尚未纳入数据治理" : !contract ? "缺少数据契约" : ready ? "推荐配置已确认" : "配置待确认"}</small><button class="mini-btn" data-go="governance_advanced">${ready ? "查看" : "配置"}</button></div>`;
+        }).join("") || '<div class="profile-empty">活动本体中尚无发布对象</div>';
+    }
+
+    function renderGovernanceExceptions() {
+        if (!$("#governanceExceptionList")) return;
+        const items = collectGovernanceExceptions();
+        const filter = state.governanceExceptionFilter;
+        const visible = filter === "all" ? items : items.filter(item => item.severity === filter);
+        const blockers = items.filter(item => item.severity === "blocker").length;
+        const warnings = items.filter(item => item.severity === "warning").length;
+        const autoResolvable = items.filter(item => item.action === "sync-ontology-to-data-governance" || /未批准|尚未批准|仍为草案/.test(item.message)).length;
+        $("#governanceExceptionMetrics").innerHTML = [
+            ["发布阻断", blockers, "来自真实物化门禁"], ["治理提醒", warnings, "不一定阻止发布"], ["可自动处理", autoResolvable, "可采用安全推荐"], ["全部事项", items.length, "已按消息去重"],
+        ].map(([label, value, note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
+        $("#governanceExceptionFilters").innerHTML = [["all", `全部 ${items.length}`], ["blocker", `阻断 ${blockers}`], ["warning", `提醒 ${warnings}`]].map(([key, label]) => `<button class="mini-btn ${filter === key ? "active" : ""}" data-action="filter-governance-exceptions" data-filter="${key}">${label}</button>`).join("");
+        $("#governanceExceptionList").innerHTML = visible.map(item => `<div class="governance-exception ${item.severity}"><span>${item.severity === "blocker" ? "阻断" : "提醒"}</span><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)}</small></div><button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.route}"`}>${escapeHtml(item.actionLabel || "处理")}</button></div>`).join("") || '<div class="exception-empty"><strong>当前筛选下没有异常</strong><span>可以运行发布预检确认最新状态。</span></div>';
     }
 
     function renderGraphProfile() {
@@ -1202,7 +1316,7 @@
             && relationships.every(item => item.review_status === "approved");
         $("#profileTitle").textContent = profile.title;
         $("#profileReviewStatus").className = `count-badge ${approved ? "approved" : ""}`;
-        $("#profileReviewStatus").textContent = approved ? "可进入发布审批" : "草案 / 待审核";
+        $("#profileReviewStatus").textContent = approved ? "高级配置已确认" : "存在待确认配置";
         const roleCounts = Object.fromEntries(["core", "context", "reference", "on_demand"].map(role => [role, classes.filter(item => item.enabled && item.role === role).length]));
         $("#profileMetrics").innerHTML = [
             ["核心对象", roleCounts.core, "种子与主要业务实体"],
@@ -1220,7 +1334,7 @@
         const query = ($("#profileClassSearch")?.value || "").trim().toLowerCase();
         const filteredClasses = classes.filter(item => !query || item.class_name.toLowerCase().includes(query) || String(item.chinese_name || "").toLowerCase().includes(query));
         $("#profileClassRows").innerHTML = filteredClasses.map(item => `
-            <tr data-profile-class="${escapeHtml(item.class_name)}"><td><strong>${escapeHtml(item.class_name)}</strong><br><small>${escapeHtml(item.physical_table || "物理映射待解析")}</small></td><td>${escapeHtml(roleLabel(item.role))}</td><td>${item.seed_enabled ? '<span class="status-pill online">是</span>' : "—"}</td><td>${escapeHtml(orphanLabel(item.orphan_policy))}</td><td>${Number(item.approximate_rows || 0).toLocaleString()}</td><td><span class="status-pill ${item.review_status === "approved" ? "online" : "unknown"}">${item.review_status === "approved" ? "已批准" : "待审核"}</span></td><td><button class="mini-btn" data-action="edit-profile-class">配置</button></td></tr>
+            <tr data-profile-class="${escapeHtml(item.class_name)}"><td><strong>${escapeHtml(item.class_name)}</strong><br><small>${escapeHtml(item.physical_table || "物理映射待解析")}</small></td><td>${escapeHtml(roleLabel(item.role))}</td><td>${item.seed_enabled ? '<span class="status-pill online">是</span>' : "—"}</td><td>${escapeHtml(orphanLabel(item.orphan_policy))}</td><td>${Number(item.approximate_rows || 0).toLocaleString()}</td><td><span class="status-pill ${item.review_status === "approved" ? "online" : "unknown"}">${item.review_status === "approved" ? "已确认" : "待确认"}</span></td><td><button class="mini-btn" data-action="edit-profile-class">配置</button></td></tr>
         `).join("") || '<tr class="empty-row"><td colspan="7">没有符合条件的对象</td></tr>';
         $("#profileRelationshipRows").innerHTML = relationships.map(item => `
             <tr data-profile-relationship="${escapeHtml(`${item.source_class}|${item.relationship_name}|${item.target_class}`)}"><td>${escapeHtml(item.source_class)}</td><td>${escapeHtml(item.relationship_name)}</td><td>${escapeHtml(item.target_class)}</td><td>${escapeHtml(strengthLabel(item.strength))}</td><td>${item.traverse ? '<span class="status-pill online">扩展</span>' : '<span class="status-pill">不扩展</span>'}</td><td><span class="status-pill ${item.mapping_status === "resolved" ? "online" : "unknown"}">${item.mapping_status === "resolved" ? "已解析" : "待映射"}</span></td><td><button class="mini-btn" data-action="edit-profile-relationship">配置</button></td></tr>
@@ -1228,10 +1342,12 @@
         $("#profileIssueCount").textContent = `${issues.length} 项`;
         $("#profileIssues").innerHTML = issues.map(item => `<div class="profile-issue ${item.severity}"><span>${item.severity === "error" ? "阻断" : "提醒"}</span><strong>${escapeHtml(item.message)}</strong><small>${escapeHtml(item.rule)}</small></div>`).join("") || '<div class="profile-empty">业务图谱配置检查通过</div>';
         renderGovernance();
+        renderQuickGovernance();
+        renderGovernanceExceptions();
     }
 
     function reviewLabel(value) {
-        return ({ draft: "草案", reviewed: "已复核", approved: "已批准", retired: "已退役" })[value] || value;
+        return ({ draft: "待配置", reviewed: "待确认", approved: "已确认", retired: "已退役" })[value] || value;
     }
 
     function renderGovernance() {
@@ -1321,6 +1437,8 @@
         $("#releaseRows").innerHTML = releases.map(item => `<tr data-release="${escapeHtml(item.release_id)}"><td><strong>R${item.release_no}</strong><br><small>${String(item.release_id).slice(0, 8)}</small></td><td><span class="status-pill ${item.is_active || item.status === "ready" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${item.is_active ? "活动" : escapeHtml(statusLabel(item.status))}</span></td><td>${Number(item.object_count || 0).toLocaleString()}</td><td>${Number(item.relationship_count || 0).toLocaleString()}</td><td>${Number(item.quarantine_count || 0).toLocaleString()}</td><td>${formatDate(item.started_at, true)}</td><td>${item.status === "ready" ? '<button class="mini-btn" data-action="activate-release">激活</button>' : "—"}</td></tr>`).join("") || '<tr class="empty-row"><td colspan="7">尚无数据版本；请先在“数据治理”处理上方门禁，再执行物化</td></tr>';
         renderReleaseStatus();
         renderOntologyWorkflowControls();
+        renderQuickGovernance();
+        renderGovernanceExceptions();
     }
 
     function renderDeployments() {
@@ -1333,6 +1451,7 @@
             return `<tr data-deployment="${escapeHtml(item.deployment_id)}"><td>${escapeHtml(item.environment_key.toUpperCase())}</td><td>${String(item.curated_release_id).slice(0, 8)}</td><td>${escapeHtml(item.slot)}</td><td>${item.artifact_hash ? String(item.artifact_hash).slice(0, 10) : "—"}</td><td><span class="status-pill ${item.status === "active" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${escapeHtml(statusLabel(item.status))}</span></td><td>${formatDate(item.started_at, true)}</td><td>${actions}</td></tr>`;
         }).join("") || '<tr class="empty-row"><td colspan="7">活动数据版本产生后，才能准备发布制品</td></tr>';
         renderReleaseStatus();
+        renderQuickGovernance();
     }
 
     function renderObservability() {
@@ -1610,7 +1729,7 @@
             field("freshness_column", "增量时间列", item.freshness_column || "", { help: "为空表示尚未确认可靠水位列" }),
             field("preview_row_limit", "治理预览行数上限", item.preview_row_limit, { type: "number" }),
             field("publication_layer", "目标层", item.publication_layer, { type: "select", items: [["core", "核心层"], ["context", "上下文层"], ["reference", "参考层"], ["quarantine", "隔离层"]] }),
-            field("status", "审核状态", item.status, { type: "select", items: [["draft", "草案"], ["reviewed", "已复核"], ["approved", "已批准"], ["retired", "已退役"]] }),
+            field("status", "配置状态", item.status, { type: "select", items: [["draft", "待配置"], ["reviewed", "待确认"], ["approved", "已确认"], ["retired", "已退役"]] }),
         ].join("");
         const parseColumns = value => String(value || "").split(",").map(column => column.trim()).filter(Boolean);
         state.dialogSubmit = async form => {
@@ -1628,7 +1747,7 @@
             field("target", "目标对象与字段", `${item.target_class}.${(item.target_columns || []).join(",")}`, { readonly: true, wide: true }),
             field("semantic_role", "业务语义", item.semantic_role, { wide: true }),
             field("required_context", "作为必需上下文", item.required_context, { type: "checkbox", help: "缺少或无法解析目标时阻止进入正式图谱" }),
-            field("status", "审核状态", item.status, { type: "select", items: [["draft", "草案"], ["reviewed", "已复核"], ["approved", "已批准"], ["retired", "已退役"]] }),
+            field("status", "配置状态", item.status, { type: "select", items: [["draft", "待配置"], ["reviewed", "待确认"], ["approved", "已确认"], ["retired", "已退役"]] }),
         ].join("");
         state.dialogSubmit = async form => {
             await request(`/api/sync/relationship-contracts/${encodeURIComponent(item.relationship_contract_key)}`, { method: "PUT", body: JSON.stringify({ status: form.get("status"), semantic_role: form.get("semantic_role"), required_context: form.get("required_context") === "on" }) });
@@ -1668,7 +1787,7 @@
             field("priority", "加载优先级", item.priority ?? 100, { type: "number" }),
             field("seed_enabled", "作为闭包种子", item.seed_enabled || false, { type: "checkbox", help: "只有核心对象可以作为种子" }),
             field("enabled", "启用此对象", item.enabled !== false, { type: "checkbox" }),
-            field("review_status", "审核状态", item.review_status || "draft", { type: "select", items: [["draft", "草案"], ["reviewed", "已复核"], ["approved", "已批准"]] }),
+            field("review_status", "配置状态", item.review_status || "draft", { type: "select", items: [["draft", "待配置"], ["reviewed", "待确认"], ["approved", "已确认"]] }),
         ].join("");
         state.dialogSubmit = async form => {
             const className = form.get("class_name");
@@ -1694,7 +1813,7 @@
             field("traverse", "用于上下文扩展", item?.traverse || false, { type: "checkbox", help: "弱关联不能开启；仅已解析的物理关系可执行" }),
             field("required_context", "作为必需上下文", item?.required_context || false, { type: "checkbox", help: "缺失时会按对象的孤立策略处理" }),
             field("enabled", "启用此关系", item?.enabled !== false, { type: "checkbox" }),
-            field("review_status", "审核状态", item?.review_status || "draft", { type: "select", items: [["draft", "草案"], ["reviewed", "已复核"], ["approved", "已批准"]] }),
+            field("review_status", "配置状态", item?.review_status || "draft", { type: "select", items: [["draft", "待配置"], ["reviewed", "待确认"], ["approved", "已确认"]] }),
         ].join("");
         state.dialogSubmit = async form => {
             const [sourceClass, relationshipName, targetClass] = form.get("relationship_key").split("|");
@@ -2073,7 +2192,7 @@
                         strength: item.relation?.strength || "context",
                         required_context: Boolean(item.relation?.requiredContext),
                         traverse: item.relation?.usage === "published_link",
-                        direction: "outbound",
+                        direction: "outgoing",
                         max_depth: 1,
                         max_targets_per_source: 200,
                         enabled: true,
@@ -2090,11 +2209,107 @@
         }
     }
 
+    async function applyGovernanceRecommendations(button) {
+        const profileKey = state.activeProfile?.profile?.profile_key;
+        if (!profileKey) throw new Error("数据治理配置尚未加载");
+        const previous = button.textContent;
+        button.disabled = true;
+        button.textContent = "正在应用…";
+        let updated = 0;
+        try {
+            if (ontologyGovernanceDrift().missingClasses.length || ontologyGovernanceDrift().missingRelationships.length) {
+                await syncActiveOntologyToDataGovernance(button);
+            }
+            for (const item of state.activeProfile.classes || []) {
+                if (!item.enabled || item.review_status === "approved") continue;
+                await request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/classes/${encodeURIComponent(item.class_name)}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ role: item.role, orphan_policy: item.orphan_policy, seed_enabled: item.seed_enabled, max_instances_per_run: item.max_instances_per_run, priority: item.priority, enabled: item.enabled, review_status: "approved" }),
+                });
+                updated += 1;
+            }
+            for (const item of state.activeProfile.relationships || []) {
+                if (!item.enabled || item.review_status === "approved" || item.mapping_status !== "resolved") continue;
+                await request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/relationships/${encodeURIComponent(item.source_class)}/${encodeURIComponent(item.relationship_name)}/${encodeURIComponent(item.target_class)}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ strength: item.strength, required_context: item.required_context, traverse: item.traverse, direction: item.direction, max_depth: item.max_depth, max_targets_per_source: item.max_targets_per_source, enabled: item.enabled, review_status: "approved" }),
+                });
+                updated += 1;
+            }
+            for (const item of state.governance.contracts || []) {
+                if (item.status === "approved") continue;
+                await request(`/api/sync/data-contracts/${encodeURIComponent(item.contract_key)}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ status: "approved", business_key_columns: item.business_key_columns || [], required_columns: item.required_columns || [], freshness_column: item.freshness_column || null, preview_row_limit: item.preview_row_limit, publication_layer: item.publication_layer }),
+                });
+                updated += 1;
+            }
+            for (const item of state.governance.relationships || []) {
+                if (item.status === "approved") continue;
+                await request(`/api/sync/relationship-contracts/${encodeURIComponent(item.relationship_contract_key)}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ status: "approved", semantic_role: item.semantic_role, required_context: item.required_context }),
+                });
+                updated += 1;
+            }
+            await Promise.all([loadGraphProfiles(), loadMaterialization()]);
+            toast(`已应用 ${updated} 项安全推荐；无法自动决定的事项保留在异常中心`);
+        } finally {
+            button.disabled = false;
+            button.textContent = previous;
+        }
+    }
+
+    function openGovernanceRecommendationDialog() {
+        const drift = ontologyGovernanceDrift();
+        const pendingClasses = (state.activeProfile?.classes || []).filter(item => item.enabled && item.review_status !== "approved").length;
+        const pendingContracts = (state.governance?.contracts || []).filter(item => item.status !== "approved").length;
+        const pendingRelationships = (state.governance?.relationships || []).filter(item => item.status !== "approved").length;
+        const contractClasses = new Set((state.governance?.contracts || []).map(item => item.class_name));
+        const missingContracts = (state.activeProfile?.classes || []).filter(item => item.enabled && !contractClasses.has(item.class_name)).length;
+        $("#dialogTitle").textContent = "采用治理推荐配置";
+        $("#dialogKicker").textContent = "SAFE RECOMMENDATIONS";
+        $("#dialogFields").innerHTML = `<div class="dialog-operation-note"><strong>只应用系统能够安全确定的配置</strong><br><br>将补齐 ${drift.missingClasses.length} 个对象和 ${drift.missingRelationships.length} 条可解析关系，确认 ${pendingClasses} 个对象角色、${pendingContracts} 个已有数据契约和 ${pendingRelationships} 个关系契约。<br><br>${missingContracts ? `另有 ${missingContracts} 个对象缺少数据契约，需要进入高级治理确认主键与字段范围。<br><br>` : ""}不会自动创建无法确认的物理映射，不会执行数据物化，也不会发布到 Graph Studio。所有无法安全决定的事项会继续保留在异常中心。</div>`;
+        state.dialogSubmitLabel = "应用推荐配置";
+        state.dialogBusyLabel = "正在应用推荐…";
+        $("#dialogSave").textContent = state.dialogSubmitLabel;
+        state.dialogSubmit = async () => applyGovernanceRecommendations($("#dialogSave"));
+        $("#editDialog").showModal();
+    }
+
+    async function runGovernancePreview(button) {
+        const previous = button.textContent;
+        button.disabled = true;
+        button.textContent = "检查中…";
+        try {
+            const result = await request(`/api/sync/profiles/${encodeURIComponent(state.activeProfile.profile.profile_key)}/curation-preview`, { method: "POST" });
+            await Promise.all([loadGraphProfiles(), loadMaterialization()]);
+            toast(result.publishable ? "发布预检通过，可以生成数据版本" : `预检完成：${result.summary.failedErrors} 个阻断项`, !result.publishable);
+        } finally {
+            button.disabled = false;
+            button.textContent = previous;
+        }
+    }
+
     document.addEventListener("click", async (event) => {
         const go = event.target.closest("[data-go]");
         if (go) { location.hash = go.dataset.go; setActiveSection(go.dataset.go); return; }
         const action = event.target.closest("[data-action]");
         if (!action) return;
+        if (action.dataset.action === "filter-governance-exceptions") {
+            state.governanceExceptionFilter = action.dataset.filter || "all";
+            renderGovernanceExceptions();
+            return;
+        }
+        if (action.dataset.action === "apply-governance-recommendations") {
+            openGovernanceRecommendationDialog();
+            return;
+        }
+        if (action.dataset.action === "run-quick-governance-preview") {
+            try { await runGovernancePreview(action); }
+            catch (error) { toast(`发布预检失败：${error.message}`, true); }
+            return;
+        }
         if (action.dataset.action === "sync-ontology-to-data-governance") {
             try { await syncActiveOntologyToDataGovernance(action); }
             catch (error) { toast(`治理范围同步失败：${error.message}`, true); }
@@ -2483,14 +2698,16 @@
         } catch (error) { toast(error.message, true); }
         finally { button.disabled = false; button.textContent = "预览上下文闭包"; }
     });
-    $("#previewCuration").addEventListener("click", async event => {
-        const button = event.currentTarget; button.disabled = true; button.textContent = "检查中…";
+    $("#previewCuration").addEventListener("click", event => runGovernancePreview(event.currentTarget).catch(error => toast(error.message, true)));
+    $("#quickPreviewCuration").addEventListener("click", event => runGovernancePreview(event.currentTarget).catch(error => toast(error.message, true)));
+    $("#exceptionPreviewCuration").addEventListener("click", event => runGovernancePreview(event.currentTarget).catch(error => toast(error.message, true)));
+    $("#refreshGovernanceExceptions").addEventListener("click", async event => {
+        const button = event.currentTarget; button.disabled = true; button.textContent = "刷新中…";
         try {
-            const result = await request(`/api/sync/profiles/${encodeURIComponent(state.activeProfile.profile.profile_key)}/curation-preview`, { method: "POST" });
-            await loadGraphProfiles();
-            toast(result.publishable ? "治理门禁通过，可进入发布审批" : `治理预览完成：${result.summary.failedErrors} 个阻断项，尚不可发布`, !result.publishable);
+            await Promise.all([loadGraphProfiles(), loadMaterialization(), loadMappings()]);
+            toast("异常状态已按最新本体、映射和发布门禁刷新");
         } catch (error) { toast(error.message, true); }
-        finally { button.disabled = false; button.textContent = "运行治理预览"; }
+        finally { button.disabled = false; button.textContent = "刷新检查"; }
     });
     $("#schemaContractSelect").addEventListener("change", event => loadSchemaEvolution(event.currentTarget.value).catch(error => toast(error.message, true)));
     $("#newSchemaChange").addEventListener("click", () => openSchemaChangeDialog());
@@ -2506,7 +2723,7 @@
         } catch (error) { toast(error.message, true); }
         finally { button.disabled = false; }
     });
-    $("#runMaterialization").addEventListener("click", () => openActorDialog("执行已审批物化", async actor => {
+    $("#runMaterialization").addEventListener("click", () => openActorDialog("生成不可变数据版本", async actor => {
         const result = await request("/api/sync/profiles/opcenter2607-core/materialization", { method: "POST", body: JSON.stringify({ apply: true, activate: false, actor }) });
         toast(`治理版本 R${result.releaseNo} 已验证，等待激活`); await Promise.all([loadMaterialization(), loadObservability()]);
     }));

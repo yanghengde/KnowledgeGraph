@@ -75,6 +75,28 @@ def test_materialization_plan_blocks_approved_unapplied_schema_change() -> None:
     assert any("Schema 变更" in item for item in plan["blockers"])
 
 
+def test_materialization_plan_blocks_profile_scope_without_contracts() -> None:
+    plan = build_materialization_plan(
+        _governance(),
+        [],
+        profile_key="core",
+        profile_classes=[
+            {"class_name": "Product", "enabled": True},
+            {"class_name": "Container", "enabled": True},
+        ],
+        profile_relationships=[{
+            "source_class": "Container",
+            "relationship_name": "HAS_PRODUCT",
+            "target_class": "Product",
+            "enabled": True,
+        }],
+    )
+
+    assert plan["ready"] is False
+    assert "发布对象缺少数据契约：Container" in plan["blockers"]
+    assert "发布关系缺少关系契约：Container.HAS_PRODUCT->Product" in plan["blockers"]
+
+
 def test_materialization_plan_never_falls_back_to_large_table_scan() -> None:
     governance = _governance(contracts=[_contract(approximate_rows=100_000_000)])
 

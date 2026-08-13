@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-26">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-27">
 </head>
 <body>
     <div class="app-shell">
@@ -154,9 +154,46 @@
                 <section class="page-section" data-section="profiles">
                     <div class="section-tabs" data-section-tabs="data_governance"></div>
                     <div class="section-header">
-                        <div><span class="section-kicker">DATA GOVERNANCE</span><h2>数据治理</h2><p>对象与关系范围以上游已激活本体版本为准；在这里补充物理数据契约、业务键、质量规则和上下文扩展策略。</p></div>
+                        <div><span class="section-kicker">QUICK GOVERNANCE</span><h2>快速治理</h2><p>系统根据活动本体、物理映射和数据量生成推荐配置。日常操作只需要同步范围、采用推荐、处理例外并运行预检。</p></div>
+                        <div class="card-action-buttons"><button class="btn secondary" data-go="governance_exceptions">查看异常</button><button class="btn primary" id="quickPreviewCuration">运行发布预检</button></div>
+                    </div>
+                    <div id="quickGovernanceMetrics" class="metric-grid"></div>
+                    <div class="quick-governance-layout">
+                        <article class="panel quick-governance-progress">
+                            <div class="panel-heading"><div><span class="section-kicker">GUIDED WORKFLOW</span><h3>完成四步即可生成数据版本</h3></div><span id="quickGovernanceProgress" class="count-badge">正在检查</span></div>
+                            <div id="quickGovernanceTasks" class="quick-task-list"></div>
+                        </article>
+                        <aside class="panel quick-governance-next">
+                            <div class="panel-heading"><div><span class="section-kicker">NEXT ACTION</span><h3>推荐操作</h3></div></div>
+                            <div id="quickGovernanceNext"></div>
+                        </aside>
+                    </div>
+                    <article class="panel quick-object-panel">
+                        <div class="panel-heading"><div><span class="section-kicker">RELEASE SCOPE</span><h3>本次治理对象</h3></div><button class="mini-btn" data-go="governance_advanced">进入高级治理</button></div>
+                        <div id="quickGovernanceObjects" class="quick-object-grid"></div>
+                    </article>
+                </section>
+
+                <section class="page-section" data-section="governance_exceptions">
+                    <div class="section-tabs" data-section-tabs="data_governance"></div>
+                    <div class="section-header">
+                        <div><span class="section-kicker">GOVERNANCE EXCEPTIONS</span><h2>异常中心</h2><p>只展示无法由系统安全决定的事项。发布阻断以数据版本物化计划为唯一事实来源，每个异常都提供明确去向。</p></div>
+                        <div class="card-action-buttons"><button class="btn secondary" id="refreshGovernanceExceptions">刷新检查</button><button class="btn primary" id="exceptionPreviewCuration">重新运行预检</button></div>
+                    </div>
+                    <div id="governanceExceptionMetrics" class="metric-grid"></div>
+                    <article class="panel exception-center-panel">
+                        <div class="panel-heading"><div><span class="section-kicker">ACTION QUEUE</span><h3>待处理事项</h3></div><div id="governanceExceptionFilters" class="exception-filters"></div></div>
+                        <div id="governanceExceptionList" class="governance-exception-list"></div>
+                    </article>
+                </section>
+
+                <section class="page-section" data-section="governance_advanced">
+                    <div class="section-tabs" data-section-tabs="advanced_governance"></div>
+                    <div class="section-header">
+                        <div><span class="section-kicker">ADVANCED GOVERNANCE</span><h2>高级治理</h2><p>面向数据工程师和本体管理员，配置对象角色、关系扩展、数据契约、Schema 演进及上下文预算。快速治理与这里共用同一套版本化配置。</p></div>
                         <div class="card-action-buttons"><button class="btn secondary" id="editGraphProfile">配置边界</button><button class="btn primary" id="planContextClosure">预览上下文闭包</button></div>
                     </div>
+                    <div class="advanced-governance-links"><button data-go="projections"><strong>属性投影</strong><small>关联表字段合并到主对象</small></button><button data-go="mappings"><strong>物理映射</strong><small>处理属性与关系映射例外</small></button></div>
                     <div id="profileMetrics" class="metric-grid"></div>
                     <article class="panel profile-boundary-panel">
                         <div class="panel-heading"><div><span class="section-kicker">CONTROLLED CLOSURE</span><h3 id="profileTitle">Opcenter2607 核心业务图谱</h3></div><span id="profileReviewStatus" class="count-badge">草案</span></div>
@@ -185,7 +222,7 @@
                     </article>
                     <article class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">OBJECT ROLES</span><h3>对象范围</h3></div><div class="profile-toolbar"><input id="profileClassSearch" class="field-input" placeholder="搜索本体对象"><button class="mini-btn" id="addProfileClass">添加对象</button></div></div>
-                        <div class="table-wrap"><table><thead><tr><th>本体对象</th><th>业务角色</th><th>种子</th><th>孤立数据策略</th><th>估算行数</th><th>审核状态</th><th>操作</th></tr></thead><tbody id="profileClassRows"></tbody></table></div>
+                        <div class="table-wrap"><table><thead><tr><th>本体对象</th><th>业务角色</th><th>种子</th><th>孤立数据策略</th><th>估算行数</th><th>配置状态</th><th>操作</th></tr></thead><tbody id="profileClassRows"></tbody></table></div>
                     </article>
                     <article class="panel table-panel" style="margin-top:18px">
                         <div class="panel-heading"><div><span class="section-kicker">RELATIONSHIP STRENGTH</span><h3>关系范围</h3></div><button class="mini-btn" id="addProfileRelationship">添加本体关系</button></div>
@@ -198,7 +235,7 @@
                 </section>
 
                 <section class="page-section" data-section="projections">
-                    <div class="section-tabs" data-section-tabs="data_governance"></div>
+                    <div class="section-tabs" data-section-tabs="advanced_governance"></div>
                     <div class="section-header">
                         <div><span class="section-kicker">CONFIGURED ENRICHMENT</span><h2>属性投影</h2><p>把任意关联表中的字段合并到主本体对象。简单场景只需填写关联键与字段映射；多跳关联、过滤和排序可在高级配置中声明。</p></div>
                         <button class="btn primary" id="newAttributeProjection">新增属性投影</button>
@@ -214,7 +251,7 @@
                     <div class="section-tabs" data-section-tabs="publishing"></div>
                     <div class="section-header">
                         <div><span class="section-kicker">CURATED DATA RELEASES</span><h2>数据版本</h2><p>这里保存的是依据活动本体版本物化的 Camstar 数据快照，与“本体 R1”相互独立；验证通过后才切换活动指针。</p></div>
-                        <div class="card-action-buttons"><button class="btn secondary" id="planMaterialization">预览物化计划</button><button class="btn primary" id="runMaterialization">执行已审批物化</button></div>
+                        <div class="card-action-buttons"><button class="btn secondary" id="planMaterialization">预览物化计划</button><button class="btn primary" id="runMaterialization">生成数据版本</button></div>
                     </div>
                     <div id="materializationPlan" class="capability-summary"></div>
                     <article class="panel table-panel"><div class="panel-heading"><div><span class="section-kicker">VERSION LEDGER</span><h3>不可变治理快照</h3></div><button class="mini-btn" id="rollbackRelease">回滚到上一版本</button></div><div class="table-wrap"><table><thead><tr><th>版本</th><th>状态</th><th>对象</th><th>关系</th><th>隔离</th><th>开始时间</th><th>操作</th></tr></thead><tbody id="releaseRows"></tbody></table></div></article>
@@ -242,7 +279,7 @@
                 </section>
 
                 <section class="page-section" data-section="mappings">
-                    <div class="section-tabs" data-section-tabs="data_governance"></div>
+                    <div class="section-tabs" data-section-tabs="advanced_governance"></div>
                     <div class="section-header">
                         <div><span class="section-kicker">ONTOLOGY COMPILER</span><h2>映射管理</h2><p>Neo4j 本体类和属性映射到 Camstar 物理表列；不确定项必须显式确认，运行时不盲目猜测。</p></div>
                         <button class="btn primary" id="compileMappings">重新编译映射</button>
@@ -292,6 +329,6 @@
 
     <div id="toast" class="toast" hidden></div>
     <script src="/static/lib/g6.js"></script>
-    <script src="/static/sync.js?v=20260813-31"></script>
+    <script src="/static/sync.js?v=20260813-33"></script>
 </body>
 </html>

@@ -105,13 +105,32 @@ def build_materialization_plan(
     active_source_snapshot: dict[str, Any] | None = None,
     large_table_threshold: int = 5_000_000,
     attribute_projections: Iterable[dict[str, Any]] = (),
+    profile_classes: Iterable[dict[str, Any]] = (),
+    profile_relationships: Iterable[dict[str, Any]] = (),
 ) -> dict[str, Any]:
     contracts = list(governance.get("contracts") or [])
     relationships = list(governance.get("relationships") or [])
+    governed_classes = [item for item in profile_classes if item.get("enabled", True)]
+    governed_relationships = [item for item in profile_relationships if item.get("enabled", True)]
     latest = governance.get("latestRun")
     blockers: list[str] = []
     if not contracts:
         blockers.append("业务图谱没有数据契约")
+    contract_classes = {item["class_name"] for item in contracts}
+    for item in governed_classes:
+        if item["class_name"] not in contract_classes:
+            blockers.append(f"发布对象缺少数据契约：{item['class_name']}")
+    contract_relationships = {
+        (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
+        for item in relationships
+    }
+    for item in governed_relationships:
+        identity = (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
+        if identity not in contract_relationships:
+            blockers.append(
+                "发布关系缺少关系契约："
+                f"{item.get('source_class')}.{item.get('relationship_name')}->{item.get('target_class')}"
+            )
     for contract in contracts:
         if contract.get("status") != "approved":
             blockers.append(f"数据契约未批准：{contract['contract_key']}")
@@ -311,6 +330,7 @@ def _chunks(iterator, size: int):
 
 def _release_plan_from_repository(repository: ControlPlaneRepository, profile_key: str, batch_rows: int) -> tuple[dict[str, Any], dict[str, Any]]:
     governance = repository.governance_profile(profile_key)
+    graph_profile = repository.graph_profile(profile_key)
     changes = repository.list_schema_changes(profile_key, limit=500)
     projections = repository.list_attribute_projections(profile_key)
     policies = repository.list_table_policies("camstar-full")
@@ -330,6 +350,8 @@ def _release_plan_from_repository(repository: ControlPlaneRepository, profile_ke
         active_source_snapshot=dict(active_release["source_snapshot"] or {}) if active_release else None,
         large_table_threshold=threshold,
         attribute_projections=projections,
+        profile_classes=graph_profile.get("classes") or [],
+        profile_relationships=graph_profile.get("relationships") or [],
     )
 
 
