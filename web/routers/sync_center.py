@@ -13,13 +13,32 @@ from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
 from src.graphstudio_sync.curation import build_curation_preview
+from src.graphstudio_sync.actions import approve_action, execute_action, list_actions, plan_action
+from src.graphstudio_sync.deployment import (
+    apply_deployment,
+    approve_deployment,
+    build_deployment_plan,
+    create_deployment,
+    deployment_status,
+)
 from src.graphstudio_sync.incremental import execute_incremental_plan, execute_incremental_probe
 from src.graphstudio_sync.incremental_preview import build_incremental_preview
 from src.graphstudio_sync.graph_profile import plan_context_closure, validate_graph_profile
+from src.graphstudio_sync.materialization import (
+    activate_release,
+    execute_materialization,
+    materialization_status,
+    rollback_release,
+)
+from src.graphstudio_sync.observability import acknowledge_alert, observability_status, run_health_check
 from src.graphstudio_sync.repository import ControlPlaneRepository
 from src.graphstudio_sync.preview import build_full_preview
 from src.graphstudio_sync.run_manager import execute_dry_run
-from src.graphstudio_sync.schema_evolution import analyze_schema_change
+from src.graphstudio_sync.schema_evolution import (
+    analyze_schema_change,
+    apply_schema_change,
+    rollback_schema_change,
+)
 
 
 router = APIRouter(prefix="/api/sync", tags=["Graph Studio Sync"])
@@ -191,6 +210,34 @@ class SchemaChangeCreate(BaseModel):
 class SchemaChangeReview(BaseModel):
     status: Literal["reviewed", "approved", "rejected"]
     actor: str | None = Field(default=None, max_length=200)
+
+
+class MaterializationRequest(BaseModel):
+    apply: bool = False
+    activate: bool = False
+    actor: str | None = Field(default=None, max_length=200)
+
+
+class ReleaseActivation(BaseModel):
+    actor: str | None = Field(default=None, max_length=200)
+
+
+class DeploymentCreate(BaseModel):
+    environment_key: Literal["dev", "uat", "prod"] = "dev"
+    release_id: uuid.UUID | None = None
+    actor: str | None = Field(default=None, max_length=200)
+
+
+class ActorRequest(BaseModel):
+    actor: str | None = Field(default=None, max_length=200)
+
+
+class ActionPlanRequest(BaseModel):
+    payload: dict[str, Any]
+    actor: str = Field(min_length=1, max_length=200)
+    actor_roles: list[str] = Field(default_factory=list, max_length=100)
+    idempotency_key: str = Field(min_length=8, max_length=300)
+    dry_run: bool = True
 
 
 @router.get("/overview")
@@ -535,6 +582,179 @@ def review_schema_change(change_id: str, request: SchemaChangeReview):
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Schema change request not found") from exc
+
+
+@router.post("/schema-changes/{change_id}/apply")
+def apply_contract_schema_change(change_id: str, request: ActorRequest):
+    try:
+        return apply_schema_change(
+            _repo(), change_id=uuid.UUID(change_id), actor=request.actor,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Schema change request not found") from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/schema-changes/{change_id}/rollback")
+def rollback_contract_schema_change(change_id: str, request: ActorRequest):
+    try:
+        return rollback_schema_change(
+            _repo(), change_id=uuid.UUID(change_id), actor=request.actor,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Schema change request not found") from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/profiles/{profile_key}/materialization")
+def get_materialization_status(profile_key: str):
+    try:
+        return materialization_status(_repo(), profile_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+@router.post("/profiles/{profile_key}/materialization")
+def materialize_profile(profile_key: str, request: MaterializationRequest):
+    try:
+        return execute_materialization(
+            _settings(), _repo(), profile_key=profile_key,
+            apply=request.apply, activate=request.activate, actor=request.actor,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/profiles/{profile_key}/releases/{release_id}/activate")
+def activate_curated_release(profile_key: str, release_id: str, request: ReleaseActivation):
+    try:
+        return activate_release(
+            _repo(), profile_key=profile_key,
+            release_id=uuid.UUID(release_id), actor=request.actor,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Curated release not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/profiles/{profile_key}/releases/rollback")
+def rollback_curated_release(profile_key: str, request: ReleaseActivation):
+    try:
+        return rollback_release(_repo(), profile_key=profile_key, actor=request.actor)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/profiles/{profile_key}/deployments")
+def get_deployments(profile_key: str):
+    return deployment_status(_repo(), profile_key)
+
+
+@router.get("/profiles/{profile_key}/deployments/plan/{environment_key}")
+def get_deployment_plan(profile_key: str, environment_key: str):
+    try:
+        return build_deployment_plan(
+            _repo(), profile_key=profile_key, environment_key=environment_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Deployment environment not found") from exc
+
+
+@router.post("/profiles/{profile_key}/deployments")
+def prepare_deployment(profile_key: str, request: DeploymentCreate):
+    try:
+        return create_deployment(
+            _repo(), profile_key=profile_key,
+            environment_key=request.environment_key,
+            release_id=request.release_id, actor=request.actor,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Deployment environment or release not found") from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/deployments/{deployment_id}/approve")
+def approve_graph_deployment(deployment_id: str, request: ActorRequest):
+    try:
+        return approve_deployment(_repo(), uuid.UUID(deployment_id), request.actor)
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/deployments/{deployment_id}/apply")
+def apply_graph_deployment(deployment_id: str):
+    try:
+        return apply_deployment(_settings(), _repo(), deployment_id=uuid.UUID(deployment_id))
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Deployment not found") from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/profiles/{profile_key}/observability")
+def get_observability(profile_key: str):
+    return observability_status(_repo(), profile_key)
+
+
+@router.post("/profiles/{profile_key}/health-check")
+def execute_health_check(profile_key: str):
+    try:
+        return run_health_check(_repo(), profile_key)
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/alerts/{alert_id}/acknowledge")
+def acknowledge_health_alert(alert_id: str, request: ActorRequest):
+    try:
+        return acknowledge_alert(_repo(), uuid.UUID(alert_id), request.actor)
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/actions")
+def actions():
+    return list_actions(_repo())
+
+
+@router.post("/actions/{action_key}/plan")
+def plan_camstar_action(action_key: str, request: ActionPlanRequest):
+    try:
+        return plan_action(_repo(), action_key=action_key, **request.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Action definition not found") from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/actions/invocations/{invocation_id}/approve")
+def approve_camstar_action(invocation_id: str, request: ActorRequest):
+    if not request.actor:
+        raise HTTPException(status_code=422, detail="Approver is required")
+    try:
+        return approve_action(_repo(), uuid.UUID(invocation_id), request.actor)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Action invocation not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/actions/invocations/{invocation_id}/execute")
+def execute_camstar_action(invocation_id: str):
+    try:
+        return execute_action(_settings(), _repo(), invocation_id=uuid.UUID(invocation_id))
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Action invocation not found") from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/mappings")

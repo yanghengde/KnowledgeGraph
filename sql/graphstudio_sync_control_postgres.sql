@@ -721,6 +721,304 @@ CREATE TABLE IF NOT EXISTS graphsync.schema_migration_run (
     error                 jsonb
 );
 
+-- Immutable curated releases.  A release is populated and verified in isolation;
+-- activation only moves a small pointer and therefore provides an inexpensive
+-- rollback even when the source tables contain hundreds of millions of rows.
+CREATE TABLE IF NOT EXISTS graphsync.curated_release (
+    release_id            uuid PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    release_no            bigint NOT NULL,
+    status                text NOT NULL DEFAULT 'planned' CHECK (status IN (
+                              'planned', 'extracting', 'verifying', 'ready',
+                              'active', 'superseded', 'failed', 'rolled_back'
+                          )),
+    preview_only          boolean NOT NULL DEFAULT true,
+    quality_run_id        uuid REFERENCES graphsync.curation_run(curation_run_id) ON DELETE SET NULL,
+    contract_versions     jsonb NOT NULL DEFAULT '{}'::jsonb,
+    schema_change_ids     jsonb NOT NULL DEFAULT '[]'::jsonb,
+    source_snapshot       jsonb NOT NULL DEFAULT '{}'::jsonb,
+    source_rows_read      bigint NOT NULL DEFAULT 0,
+    object_count          bigint NOT NULL DEFAULT 0,
+    relationship_count    bigint NOT NULL DEFAULT 0,
+    quarantine_count      bigint NOT NULL DEFAULT 0,
+    content_hash          text,
+    summary               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    error                 jsonb,
+    requested_by          text,
+    started_at            timestamptz NOT NULL DEFAULT now(),
+    finished_at           timestamptz,
+    UNIQUE (profile_key, release_no)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_curated_release_status
+    ON graphsync.curated_release (profile_key, status, release_no DESC);
+
+CREATE TABLE IF NOT EXISTS graphsync.curated_release_activation (
+    profile_key           text PRIMARY KEY REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    active_release_id     uuid NOT NULL REFERENCES graphsync.curated_release(release_id),
+    previous_release_id   uuid REFERENCES graphsync.curated_release(release_id),
+    activated_at          timestamptz NOT NULL DEFAULT now(),
+    activated_by          text
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.materialization_batch (
+    batch_id              uuid PRIMARY KEY,
+    release_id            uuid NOT NULL REFERENCES graphsync.curated_release(release_id) ON DELETE CASCADE,
+    contract_key          text NOT NULL REFERENCES graphsync.data_contract(contract_key),
+    batch_no              integer NOT NULL,
+    status                text NOT NULL CHECK (status IN (
+                              'started', 'written', 'verified', 'failed'
+                          )),
+    lower_key             jsonb,
+    upper_key             jsonb,
+    rows_read             bigint NOT NULL DEFAULT 0,
+    rows_written          bigint NOT NULL DEFAULT 0,
+    rows_quarantined      bigint NOT NULL DEFAULT 0,
+    content_hash          text,
+    started_at            timestamptz NOT NULL DEFAULT now(),
+    finished_at           timestamptz,
+    error                 jsonb,
+    UNIQUE (release_id, contract_key, batch_no)
+);
+
+CREATE TABLE IF NOT EXISTS camstar_curated.object_version (
+    release_id            uuid NOT NULL REFERENCES graphsync.curated_release(release_id) ON DELETE CASCADE,
+    profile_key           text NOT NULL,
+    contract_key          text NOT NULL,
+    contract_version      integer NOT NULL,
+    class_name            text NOT NULL,
+    object_uri            text NOT NULL,
+    source_primary_key    jsonb NOT NULL,
+    business_key          jsonb NOT NULL DEFAULT '{}'::jsonb,
+    source_values         jsonb NOT NULL,
+    properties            jsonb NOT NULL,
+    source_hash           text NOT NULL,
+    source_change_at      timestamptz,
+    record_status         text NOT NULL DEFAULT 'active' CHECK (record_status IN (
+                              'active', 'quarantined', 'deleted'
+                          )),
+    quality_issues        jsonb NOT NULL DEFAULT '[]'::jsonb,
+    loaded_at             timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (release_id, contract_key, object_uri)
+);
+
+CREATE INDEX IF NOT EXISTS ix_curated_object_lookup
+    ON camstar_curated.object_version (profile_key, contract_key, object_uri);
+CREATE INDEX IF NOT EXISTS ix_curated_object_source_key
+    ON camstar_curated.object_version USING gin (source_primary_key jsonb_path_ops);
+
+CREATE TABLE IF NOT EXISTS camstar_curated.relationship_version (
+    release_id            uuid NOT NULL REFERENCES graphsync.curated_release(release_id) ON DELETE CASCADE,
+    relationship_contract_key text NOT NULL,
+    relationship_name     text NOT NULL,
+    source_contract_key   text NOT NULL,
+    target_contract_key   text NOT NULL,
+    source_object_uri     text NOT NULL,
+    target_object_uri     text,
+    source_reference      jsonb NOT NULL,
+    resolution_status     text NOT NULL CHECK (resolution_status IN (
+                              'resolved', 'pending', 'quarantined'
+                          )),
+    source_hash           text NOT NULL,
+    loaded_at             timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (release_id, relationship_contract_key, source_object_uri)
+);
+
+CREATE INDEX IF NOT EXISTS ix_curated_relationship_target
+    ON camstar_curated.relationship_version (release_id, target_contract_key, target_object_uri);
+
+CREATE OR REPLACE VIEW camstar_curated.active_object AS
+SELECT object.*
+FROM camstar_curated.object_version object
+JOIN graphsync.curated_release_activation active
+  ON active.profile_key=object.profile_key
+ AND active.active_release_id=object.release_id
+WHERE object.record_status='active';
+
+CREATE OR REPLACE VIEW camstar_curated.active_relationship AS
+SELECT relationship.*
+FROM camstar_curated.relationship_version relationship
+JOIN graphsync.curated_release release USING (release_id)
+JOIN graphsync.curated_release_activation active
+  ON active.profile_key=release.profile_key
+ AND active.active_release_id=relationship.release_id
+WHERE relationship.resolution_status='resolved';
+
+-- Environment promotion and blue/green Graph Studio deployment ledger.
+CREATE TABLE IF NOT EXISTS graphsync.deployment_environment (
+    environment_key       text PRIMARY KEY,
+    title                 text NOT NULL,
+    promotion_order       integer NOT NULL,
+    graphmart_uri         text NOT NULL,
+    apply_enabled         boolean NOT NULL DEFAULT false,
+    requires_approval     boolean NOT NULL DEFAULT true,
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.deployment_release (
+    deployment_id         uuid PRIMARY KEY,
+    environment_key       text NOT NULL REFERENCES graphsync.deployment_environment(environment_key),
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key),
+    curated_release_id    uuid NOT NULL REFERENCES graphsync.curated_release(release_id),
+    status                text NOT NULL DEFAULT 'planned' CHECK (status IN (
+                              'planned', 'approved', 'uploading', 'loading',
+                              'verifying', 'active', 'failed', 'rolled_back'
+                          )),
+    slot                   text NOT NULL CHECK (slot IN ('blue', 'green')),
+    artifact_uri          text,
+    artifact_hash         text,
+    model_uri             text,
+    dataset_uri           text,
+    catalog_entry         text,
+    layer_uri             text,
+    step_uri              text,
+    previous_deployment_id uuid REFERENCES graphsync.deployment_release(deployment_id),
+    validation_plan       jsonb NOT NULL DEFAULT '{}'::jsonb,
+    validation_result     jsonb NOT NULL DEFAULT '{}'::jsonb,
+    approved_by           text,
+    requested_by          text,
+    started_at            timestamptz NOT NULL DEFAULT now(),
+    finished_at           timestamptz,
+    error                 jsonb
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_deployment_env
+    ON graphsync.deployment_release (environment_key, profile_key, started_at DESC);
+
+-- Runtime lineage, health metrics and alert lifecycle.
+CREATE TABLE IF NOT EXISTS graphsync.runtime_lineage_event (
+    lineage_event_id      uuid PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    run_type              text NOT NULL CHECK (run_type IN (
+                              'curation', 'materialization', 'deployment', 'action'
+                          )),
+    run_id                uuid NOT NULL,
+    source_asset          text NOT NULL,
+    target_asset          text NOT NULL,
+    field_mappings        jsonb NOT NULL DEFAULT '{}'::jsonb,
+    row_count             bigint NOT NULL DEFAULT 0,
+    content_hash          text,
+    occurred_at           timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_runtime_lineage_profile
+    ON graphsync.runtime_lineage_event (profile_key, occurred_at DESC);
+
+CREATE TABLE IF NOT EXISTS graphsync.health_check_run (
+    health_run_id         uuid PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    status                text NOT NULL CHECK (status IN ('healthy', 'degraded', 'unhealthy', 'failed')),
+    started_at            timestamptz NOT NULL DEFAULT now(),
+    finished_at           timestamptz,
+    summary               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    error                 jsonb
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.health_metric (
+    metric_id             uuid PRIMARY KEY,
+    health_run_id         uuid NOT NULL REFERENCES graphsync.health_check_run(health_run_id) ON DELETE CASCADE,
+    metric_key            text NOT NULL,
+    scope_type            text NOT NULL DEFAULT 'profile',
+    scope_key             text NOT NULL,
+    value_numeric         numeric,
+    value_text            text,
+    unit                   text,
+    status                text NOT NULL CHECK (status IN ('healthy', 'warning', 'critical', 'unknown')),
+    message               text NOT NULL,
+    details               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    measured_at           timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.alert_rule (
+    rule_key              text PRIMARY KEY,
+    profile_key           text REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    metric_key            text NOT NULL,
+    operator              text NOT NULL CHECK (operator IN ('gt', 'gte', 'lt', 'lte', 'eq', 'missing')),
+    threshold             numeric,
+    severity              text NOT NULL CHECK (severity IN ('warning', 'critical')),
+    consecutive_failures  integer NOT NULL DEFAULT 1 CHECK (consecutive_failures > 0),
+    enabled               boolean NOT NULL DEFAULT true,
+    channels              jsonb NOT NULL DEFAULT '[]'::jsonb,
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.alert_event (
+    alert_event_id        uuid PRIMARY KEY,
+    rule_key              text NOT NULL REFERENCES graphsync.alert_rule(rule_key),
+    health_run_id         uuid REFERENCES graphsync.health_check_run(health_run_id),
+    status                text NOT NULL CHECK (status IN ('open', 'acknowledged', 'resolved')),
+    severity              text NOT NULL CHECK (severity IN ('warning', 'critical')),
+    fingerprint           text NOT NULL,
+    message               text NOT NULL,
+    details               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    opened_at             timestamptz NOT NULL DEFAULT now(),
+    acknowledged_at       timestamptz,
+    resolved_at           timestamptz,
+    acknowledged_by      text
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_graphsync_open_alert
+    ON graphsync.alert_event (rule_key, fingerprint)
+    WHERE status IN ('open', 'acknowledged');
+
+-- Governed Camstar API actions.  No action definition contains database SQL;
+-- mutations must travel through the configured Camstar service endpoint.
+CREATE TABLE IF NOT EXISTS graphsync.action_definition (
+    action_key            text PRIMARY KEY,
+    title                 text NOT NULL,
+    description           text,
+    object_class          text NOT NULL,
+    endpoint_path         text NOT NULL,
+    http_method           text NOT NULL CHECK (http_method IN ('POST', 'PUT', 'PATCH', 'DELETE')),
+    input_schema          jsonb NOT NULL DEFAULT '{}'::jsonb,
+    allowed_roles         jsonb NOT NULL DEFAULT '[]'::jsonb,
+    approval_required     boolean NOT NULL DEFAULT true,
+    enabled               boolean NOT NULL DEFAULT false,
+    timeout_seconds       integer NOT NULL DEFAULT 60 CHECK (timeout_seconds BETWEEN 1 AND 600),
+    retry_policy          jsonb NOT NULL DEFAULT '{"maxAttempts":1}'::jsonb,
+    compensation_action_key text REFERENCES graphsync.action_definition(action_key),
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.action_invocation (
+    invocation_id         uuid PRIMARY KEY,
+    action_key            text NOT NULL REFERENCES graphsync.action_definition(action_key),
+    idempotency_key       text NOT NULL UNIQUE,
+    actor                 text NOT NULL,
+    actor_roles           jsonb NOT NULL DEFAULT '[]'::jsonb,
+    status                text NOT NULL CHECK (status IN (
+                              'planned', 'pending_approval', 'approved', 'executing',
+                              'succeeded', 'failed', 'compensating', 'compensated', 'rejected'
+                          )),
+    dry_run               boolean NOT NULL DEFAULT true,
+    request_payload       jsonb NOT NULL,
+    request_hash          text NOT NULL,
+    response_summary      jsonb,
+    approved_by           text,
+    approved_at           timestamptz,
+    started_at            timestamptz NOT NULL DEFAULT now(),
+    finished_at           timestamptz,
+    error                 jsonb
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_action_invocation
+    ON graphsync.action_invocation (action_key, started_at DESC);
+
+CREATE TABLE IF NOT EXISTS graphsync.action_event (
+    action_event_id       uuid PRIMARY KEY,
+    invocation_id         uuid NOT NULL REFERENCES graphsync.action_invocation(invocation_id) ON DELETE CASCADE,
+    event_type            text NOT NULL,
+    actor                 text,
+    details               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now()
+);
+
 -- Curated tables contain only governance-approved projections. The initial
 -- implementation creates the contract-shaped targets but preview runs do not
 -- write business rows into them.
@@ -872,6 +1170,21 @@ CREATE TRIGGER trg_schema_change_request_updated
 BEFORE UPDATE ON graphsync.schema_change_request
 FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
 
+DROP TRIGGER IF EXISTS trg_deployment_environment_updated ON graphsync.deployment_environment;
+CREATE TRIGGER trg_deployment_environment_updated
+BEFORE UPDATE ON graphsync.deployment_environment
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_alert_rule_updated ON graphsync.alert_rule;
+CREATE TRIGGER trg_alert_rule_updated
+BEFORE UPDATE ON graphsync.alert_rule
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
+DROP TRIGGER IF EXISTS trg_action_definition_updated ON graphsync.action_definition;
+CREATE TRIGGER trg_action_definition_updated
+BEFORE UPDATE ON graphsync.action_definition
+FOR EACH ROW EXECUTE FUNCTION graphsync.touch_updated_at();
+
 CREATE OR REPLACE VIEW graphsync.latest_job_run AS
 SELECT DISTINCT ON (job_name)
        job_name, run_id, status, trigger_type, started_at, finished_at,
@@ -945,6 +1258,22 @@ INSERT INTO graphsync.schema_version (version, description)
 VALUES (9, 'Schema evolution requests, field lifecycle and dependency impact')
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (10, 'Immutable curated releases, batched materialization and pointer rollback')
+ON CONFLICT (version) DO NOTHING;
+
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (11, 'Environment promotion and blue-green Graph Studio deployment ledger')
+ON CONFLICT (version) DO NOTHING;
+
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (12, 'Runtime field lineage, health metrics and alert lifecycle')
+ON CONFLICT (version) DO NOTHING;
+
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (13, 'Governed Camstar API actions with idempotency and compensation audit')
+ON CONFLICT (version) DO NOTHING;
+
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)
 VALUES
@@ -952,6 +1281,10 @@ VALUES
     ('connections', '连接管理', 'Connections', '#connections', 'plug',      20, true,  'connection.read'),
     ('jobs',        '同步任务', 'Sync Jobs',   '#jobs',        'schedule',  30, true,  'job.read'),
     ('profiles',    '业务图谱', 'Graph Profile','#profiles',    'profile',   35, true,  'profile.write'),
+    ('releases',    '治理版本', 'Curated Releases','#releases', 'database',  37, true,  'curation.write'),
+    ('deployments', '环境发布', 'Deployments', '#deployments', 'rocket',    38, true,  'deployment.write'),
+    ('observability','血缘监控','Observability','#observability','pulse',   39, true,  'health.read'),
+    ('actions',     '业务动作', 'Actions',     '#actions',     'action',    40, true,  'action.plan'),
     ('mappings',    '映射管理', 'Mappings',    '#mappings',    'mapping',   40, true,  'mapping.read'),
     ('runs',        '运行记录', 'Runs',        '#runs',        'history',   50, true,  'run.read'),
     ('settings',    '系统设置', 'Settings',    '#settings',    'settings',  60, true,  'setting.write')
@@ -988,6 +1321,21 @@ VALUES (
     '{"ontologyLayer":"complete","instanceMode":"controlled_context_closure","reviewRequired":true}'::jsonb
 )
 ON CONFLICT (profile_key) DO NOTHING;
+
+INSERT INTO graphsync.deployment_environment
+    (environment_key, title, promotion_order, graphmart_uri,
+     apply_enabled, requires_approval, config)
+VALUES
+    ('dev', '开发验证', 10,
+     'http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56',
+     false, false, '{"purpose":"integration","blueGreen":true}'::jsonb),
+    ('uat', '业务验收', 20,
+     'http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56',
+     false, true, '{"purpose":"business_acceptance","blueGreen":true}'::jsonb),
+    ('prod', '生产', 30,
+     'http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56',
+     false, true, '{"purpose":"production","blueGreen":true,"requireUat":true}'::jsonb)
+ON CONFLICT (environment_key) DO NOTHING;
 
 INSERT INTO graphsync.profile_class
     (profile_key, class_name, role, orphan_policy, seed_enabled, priority,
@@ -1085,6 +1433,51 @@ WHERE contract.config ? 'targetTable'
 ON CONFLICT (profile_key, upstream_type, upstream_key, downstream_type, downstream_key)
 DO UPDATE SET active=true, last_seen_at=now(), metadata=EXCLUDED.metadata;
 
+INSERT INTO graphsync.alert_rule
+    (rule_key, profile_key, metric_key, operator, threshold, severity,
+     consecutive_failures, enabled, channels, config)
+VALUES
+    ('opcenter-release-age', 'opcenter2607-core', 'curated.release_age_minutes',
+     'gt', 1440, 'warning', 1, true, '[]'::jsonb,
+     '{"description":"治理快照超过24小时未更新"}'::jsonb),
+    ('opcenter-release-missing', 'opcenter2607-core', 'curated.release_age_minutes',
+     'missing', NULL, 'critical', 1, true, '[]'::jsonb,
+     '{"description":"尚无活动治理快照"}'::jsonb),
+    ('opcenter-unresolved-relations', 'opcenter2607-core', 'curated.unresolved_relationships',
+     'gt', 0, 'critical', 1, true, '[]'::jsonb,
+     '{"description":"核心关系存在未解析目标"}'::jsonb),
+    ('opcenter-failed-schema-changes', 'opcenter2607-core', 'schema.failed_changes',
+     'gt', 0, 'warning', 1, true, '[]'::jsonb,
+     '{"description":"Schema 变更执行失败"}'::jsonb),
+    ('opcenter-deployment-health', 'opcenter2607-core', 'deployment.failed_recent',
+     'gt', 0, 'critical', 1, true, '[]'::jsonb,
+     '{"description":"最近 Graph Studio 发布失败"}'::jsonb)
+ON CONFLICT (rule_key) DO NOTHING;
+
+INSERT INTO graphsync.action_definition
+    (action_key, title, description, object_class, endpoint_path, http_method,
+     input_schema, allowed_roles, approval_required, enabled, retry_policy, config)
+VALUES
+    ('camstar.mfgorder.update', '更新制造订单',
+     '通过 Camstar 业务 API 更新 MfgOrder；默认禁用，完成接口与权限验收后才能启用。',
+     'MfgOrder', '/api/mfgorders/{MfgOrderId}', 'PATCH',
+     '{"type":"object","required":["MfgOrderId","changes"],"properties":{"MfgOrderId":{"type":"string"},"changes":{"type":"object"}}}'::jsonb,
+     '["camstar_operator","camstar_admin"]'::jsonb, true, false,
+     '{"maxAttempts":1,"retryStatuses":[429,502,503,504]}'::jsonb,
+     '{"pathParameters":["MfgOrderId"],"writeBoundary":"camstar_api_only","profileKey":"opcenter2607-core"}'::jsonb),
+    ('camstar.mfgorder.release', '下达制造订单',
+     '通过 Camstar 业务 API 下达 MfgOrder；必须独立审批。',
+     'MfgOrder', '/api/mfgorders/{MfgOrderId}/release', 'POST',
+     '{"type":"object","required":["MfgOrderId"],"properties":{"MfgOrderId":{"type":"string"}}}'::jsonb,
+     '["camstar_planner","camstar_admin"]'::jsonb, true, false,
+     '{"maxAttempts":1,"retryStatuses":[429,502,503,504]}'::jsonb,
+     '{"pathParameters":["MfgOrderId"],"writeBoundary":"camstar_api_only","profileKey":"opcenter2607-core"}'::jsonb)
+ON CONFLICT (action_key) DO UPDATE SET
+    config=graphsync.action_definition.config || EXCLUDED.config,
+    input_schema=EXCLUDED.input_schema,
+    allowed_roles=EXCLUDED.allowed_roles,
+    retry_policy=EXCLUDED.retry_policy;
+
 INSERT INTO graphsync.asset_dependency
     (dependency_id, profile_key, upstream_type, upstream_key,
      downstream_type, downstream_key, dependency_kind, discovered_by, metadata)
@@ -1142,6 +1535,10 @@ VALUES
     ('sync.default_batch_rows', '10000'::jsonb, '流式导出每批最大行数', true),
     ('sync.target_shard_bytes', '67108864'::jsonb, '单个 RDF 分片目标字节数', true),
     ('sync.reference_validation_row_limit', '1000000'::jsonb, '内存引用完整性校验的目标类行数上限', true),
+    ('curation.materialization_batch_rows', '10000'::jsonb, '治理物化每批最大行数', true),
+    ('curation.release_retention', '3'::jsonb, '每个业务图谱保留的成功治理快照数', true),
+    ('health.release_max_age_minutes', '1440'::jsonb, '治理快照最大允许陈旧分钟数', true),
+    ('actions.apply_enabled', 'false'::jsonb, '全局 Camstar Action 实际执行开关', true),
     ('sync.retention_success', '3'::jsonb, '成功产物保留数', true),
     ('catalog.retention_ready', '5'::jsonb, '映射目录 ready 快照保留数', true),
     ('ui.default_language', '"zh-CN"'::jsonb, '同步中心默认语言', true)

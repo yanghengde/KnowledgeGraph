@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-7">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-8">
 </head>
 <body>
     <div class="app-shell">
@@ -156,6 +156,33 @@
                     </article>
                 </section>
 
+                <section class="page-section" data-section="releases">
+                    <div class="section-header">
+                        <div><span class="section-kicker">CURATED RELEASES</span><h2>治理版本</h2><p>以不可变快照分批物化 Camstar 数据；验证通过后切换活动指针，回滚无需重扫源库。</p></div>
+                        <div class="card-action-buttons"><button class="btn secondary" id="planMaterialization">预览物化计划</button><button class="btn primary" id="runMaterialization">执行已审批物化</button></div>
+                    </div>
+                    <div id="materializationPlan" class="capability-summary"></div>
+                    <article class="panel table-panel"><div class="panel-heading"><div><span class="section-kicker">VERSION LEDGER</span><h3>不可变治理快照</h3></div><button class="mini-btn" id="rollbackRelease">回滚到上一版本</button></div><div class="table-wrap"><table><thead><tr><th>版本</th><th>状态</th><th>对象</th><th>关系</th><th>隔离</th><th>开始时间</th><th>操作</th></tr></thead><tbody id="releaseRows"></tbody></table></div></article>
+                </section>
+
+                <section class="page-section" data-section="deployments">
+                    <div class="section-header"><div><span class="section-kicker">PROMOTION PIPELINE</span><h2>环境发布</h2><p>同一不可变制品按 Dev → UAT → Prod 晋级，使用蓝绿图层和验收门禁，旧图层保留用于回滚。</p></div></div>
+                    <div id="environmentCards" class="job-grid"></div>
+                    <article class="panel table-panel" style="margin-top:18px"><div class="panel-heading"><div><span class="section-kicker">DEPLOYMENT LEDGER</span><h3>发布记录</h3></div></div><div class="table-wrap"><table><thead><tr><th>环境</th><th>治理版本</th><th>槽位</th><th>制品</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="deploymentRows"></tbody></table></div></article>
+                </section>
+
+                <section class="page-section" data-section="observability">
+                    <div class="section-header"><div><span class="section-kicker">LINEAGE & HEALTH</span><h2>血缘监控</h2><p>跟踪字段从 Camstar 到治理层、RDF 和 Graph Studio 的运行时血缘，并持续检查新鲜度、关系完整性和发布健康。</p></div><button class="btn primary" id="runHealthCheck">运行健康检查</button></div>
+                    <div id="healthMetrics" class="metric-grid"></div>
+                    <div class="two-column"><article class="panel"><div class="panel-heading"><div><span class="section-kicker">ALERTS</span><h3>告警</h3></div></div><div id="alertList" class="profile-issues"></div></article><article class="panel"><div class="panel-heading"><div><span class="section-kicker">RUNTIME LINEAGE</span><h3>最近血缘</h3></div></div><div id="lineageList" class="profile-issues"></div></article></div>
+                </section>
+
+                <section class="page-section" data-section="actions">
+                    <div class="section-header"><div><span class="section-kicker">CAMSTAR ACTION SERVICE</span><h2>业务动作</h2><p>所有写操作只走 Camstar API，包含角色校验、双人审批、幂等键、执行审计和补偿挂钩；数据库直写被禁止。</p></div><span id="actionGlobalState" class="count-badge">实际执行关闭</span></div>
+                    <div id="actionCards" class="job-grid"></div>
+                    <article class="panel table-panel" style="margin-top:18px"><div class="panel-heading"><div><span class="section-kicker">AUDIT</span><h3>Action 调用记录</h3></div></div><div class="table-wrap"><table><thead><tr><th>Action</th><th>申请人</th><th>模式</th><th>幂等键</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="actionInvocationRows"></tbody></table></div></article>
+                </section>
+
                 <section class="page-section" data-section="mappings">
                     <div class="section-header">
                         <div><span class="section-kicker">ONTOLOGY COMPILER</span><h2>映射管理</h2><p>Neo4j 本体类和属性映射到 Camstar 物理表列；不确定项必须显式确认，运行时不盲目猜测。</p></div>
@@ -203,6 +230,6 @@
     </dialog>
 
     <div id="toast" class="toast" hidden></div>
-    <script src="/static/sync.js?v=20260813-7"></script>
+    <script src="/static/sync.js?v=20260813-8"></script>
 </body>
 </html>

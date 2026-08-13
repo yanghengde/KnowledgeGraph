@@ -7,7 +7,13 @@ Graph Studio updates belongs to the separately approved migration phase.
 from __future__ import annotations
 
 from collections import Counter
+import json
+import uuid
 from typing import Any, Iterable
+
+from sqlalchemy import text
+
+from .repository import ControlPlaneRepository
 
 
 COMPATIBILITY_RANK = {"non_breaking": 0, "conditional": 1, "breaking": 2}
@@ -205,3 +211,207 @@ def analyze_schema_change(
         "blockers": blockers,
         "readyForReview": bool(analyzed) and not blockers,
     }
+
+
+FIELD_COLUMNS = {
+    "source_column", "target_field", "data_type", "nullable", "required",
+    "field_role", "lifecycle_status", "ordinal_position",
+    "introduced_version", "deprecated_version", "transform_expression",
+    "default_expression", "ontology_property", "sensitivity", "searchable",
+    "sortable", "config",
+}
+
+
+def _merged_field(before: dict[str, Any] | None, after: dict[str, Any] | None, operation: str, target_version: int) -> dict[str, Any] | None:
+    value = {key: item for key, item in (before or {}).items() if key in FIELD_COLUMNS}
+    after = after or {}
+    if operation == "add_field":
+        value = {
+            "source_column": None, "target_field": "", "data_type": "String",
+            "nullable": True, "required": False, "field_role": "attribute",
+            "lifecycle_status": "active", "ordinal_position": 100,
+            "introduced_version": target_version, "deprecated_version": None,
+            "transform_expression": None, "default_expression": None,
+            "ontology_property": None, "sensitivity": "internal",
+            "searchable": True, "sortable": True, "config": {},
+            **{key: item for key, item in after.items() if key in FIELD_COLUMNS},
+        }
+    elif operation == "deprecate_field":
+        value.update({"lifecycle_status": "deprecated", "deprecated_version": target_version})
+    elif operation == "retire_field":
+        value.update({"lifecycle_status": "retired", "deprecated_version": value.get("deprecated_version") or target_version})
+    elif operation == "rename_field":
+        value["target_field"] = after["target_field"]
+    elif operation == "change_type":
+        value["data_type"] = after["data_type"]
+    elif operation == "change_required":
+        required = bool(after.get("required"))
+        value.update({"required": required, "nullable": not required})
+        if "default_expression" in after:
+            value["default_expression"] = after["default_expression"]
+    elif operation == "change_key":
+        value["field_role"] = after["field_role"]
+    elif operation == "change_source":
+        value["source_column"] = after.get("source_column")
+    elif operation == "change_transform":
+        value["transform_expression"] = after.get("transform_expression")
+    else:
+        raise ValueError(f"Unsupported schema operation: {operation}")
+    return value
+
+
+def _update_contract_projection(connection, contract_key: str, target_version: int) -> None:
+    fields = [dict(row) for row in connection.execute(
+        text("SELECT source_column, required, field_role, lifecycle_status FROM graphsync.data_contract_field WHERE contract_key=:key ORDER BY ordinal_position"),
+        {"key": contract_key},
+    ).mappings()]
+    available = [item for item in fields if item["lifecycle_status"] != "retired" and item["source_column"]]
+    selected = [item["source_column"] for item in available]
+    primary = [item["source_column"] for item in available if item["field_role"] == "primary_key"]
+    business = [item["source_column"] for item in available if item["field_role"] == "business_key"]
+    required = [item["source_column"] for item in available if item["required"]]
+    freshness = next((item["source_column"] for item in available if item["field_role"] == "freshness"), None)
+    if not primary:
+        raise ValueError("Schema migration cannot remove every primary key field")
+    connection.execute(
+        text(
+            """
+            UPDATE graphsync.data_contract
+            SET version=:version, selected_columns=CAST(:selected AS jsonb),
+                primary_key_columns=CAST(:primary AS jsonb),
+                business_key_columns=CAST(:business AS jsonb),
+                required_columns=CAST(:required AS jsonb),
+                freshness_column=:freshness
+            WHERE contract_key=:key
+            """
+        ),
+        {"version": target_version, "selected": json.dumps(selected), "primary": json.dumps(primary), "business": json.dumps(business), "required": json.dumps(required), "freshness": freshness, "key": contract_key},
+    )
+
+
+def apply_schema_change(
+    repository: ControlPlaneRepository,
+    *,
+    change_id: uuid.UUID,
+    actor: str | None,
+) -> dict[str, Any]:
+    run_id = uuid.uuid4()
+    with repository.engine.begin() as connection:
+        change = connection.execute(
+            text("SELECT * FROM graphsync.schema_change_request WHERE change_id=:id FOR UPDATE"),
+            {"id": change_id},
+        ).mappings().one_or_none()
+        if change is None:
+            raise KeyError(str(change_id))
+        if change["status"] != "approved":
+            raise ValueError("Only an approved Schema change can be applied")
+        current_version = connection.execute(
+            text("SELECT version FROM graphsync.data_contract WHERE contract_key=:key FOR UPDATE"),
+            {"key": change["contract_key"]},
+        ).scalar_one()
+        if int(current_version) != int(change["base_version"]):
+            raise ValueError(f"Data contract version changed from v{change['base_version']} to v{current_version}; rebase the request")
+        connection.execute(
+            text("INSERT INTO graphsync.schema_migration_run (migration_run_id, change_id, status, preview_only, checkpoint) VALUES (:run, :change, 'started', false, CAST(:checkpoint AS jsonb))"),
+            {"run": run_id, "change": change_id, "checkpoint": json.dumps({"actor": actor, "baseVersion": change["base_version"]})},
+        )
+        connection.execute(text("UPDATE graphsync.schema_change_request SET status='applying' WHERE change_id=:id"), {"id": change_id})
+        items = [dict(row) for row in connection.execute(
+            text("SELECT * FROM graphsync.schema_change_item WHERE change_id=:id ORDER BY sequence_no"),
+            {"id": change_id},
+        ).mappings()]
+        for item in items:
+            merged = _merged_field(item["before_state"], item["after_state"], item["operation"], int(change["target_version"]))
+            if item["operation"] == "add_field":
+                connection.execute(
+                    text(
+                        """
+                        INSERT INTO graphsync.data_contract_field
+                            (contract_key, field_key, source_column, target_field,
+                             data_type, nullable, required, field_role,
+                             lifecycle_status, ordinal_position, introduced_version,
+                             deprecated_version, transform_expression,
+                             default_expression, ontology_property, sensitivity,
+                             searchable, sortable, config)
+                        VALUES (:contract_key, :field_key, :source_column, :target_field,
+                                :data_type, :nullable, :required, :field_role,
+                                :lifecycle_status, :ordinal_position, :introduced_version,
+                                :deprecated_version, :transform_expression,
+                                :default_expression, :ontology_property, :sensitivity,
+                                :searchable, :sortable, CAST(:config AS jsonb))
+                        """
+                    ),
+                    {"contract_key": change["contract_key"], "field_key": item["field_key"], **merged, "config": json.dumps(merged.get("config") or {})},
+                )
+            else:
+                connection.execute(
+                    text(
+                        """
+                        UPDATE graphsync.data_contract_field SET
+                            source_column=:source_column, target_field=:target_field,
+                            data_type=:data_type, nullable=:nullable,
+                            required=:required, field_role=:field_role,
+                            lifecycle_status=:lifecycle_status,
+                            ordinal_position=:ordinal_position,
+                            introduced_version=:introduced_version,
+                            deprecated_version=:deprecated_version,
+                            transform_expression=:transform_expression,
+                            default_expression=:default_expression,
+                            ontology_property=:ontology_property,
+                            sensitivity=:sensitivity, searchable=:searchable,
+                            sortable=:sortable, config=CAST(:config AS jsonb)
+                        WHERE contract_key=:contract_key AND field_key=:field_key
+                        """
+                    ),
+                    {"contract_key": change["contract_key"], "field_key": item["field_key"], **merged, "config": json.dumps(merged.get("config") or {})},
+                )
+            connection.execute(
+                text("UPDATE graphsync.asset_dependency SET active=false, last_seen_at=now() WHERE profile_key=:profile AND upstream_type='data_contract_field' AND upstream_key=:field AND downstream_type='curated_column'"),
+                {"profile": change["profile_key"], "field": item["field_key"]},
+            )
+            if merged["lifecycle_status"] != "retired":
+                target_table = connection.execute(text("SELECT config->>'targetTable' FROM graphsync.data_contract WHERE contract_key=:key"), {"key": change["contract_key"]}).scalar_one()
+                connection.execute(
+                    text("INSERT INTO graphsync.asset_dependency (dependency_id, profile_key, upstream_type, upstream_key, downstream_type, downstream_key, dependency_kind, discovered_by, metadata) VALUES (:id, :profile, 'data_contract_field', :field, 'curated_column', :target, 'hard', 'compiler', CAST(:metadata AS jsonb)) ON CONFLICT (profile_key, upstream_type, upstream_key, downstream_type, downstream_key) DO UPDATE SET active=true, last_seen_at=now()"),
+                    {"id": uuid.uuid4(), "profile": change["profile_key"], "field": item["field_key"], "target": f"{target_table}.{merged['target_field']}", "metadata": json.dumps({"schemaChangeId": str(change_id)})},
+                )
+        _update_contract_projection(connection, change["contract_key"], int(change["target_version"]))
+        connection.execute(text("UPDATE graphsync.schema_change_request SET status='applied', applied_at=now() WHERE change_id=:id"), {"id": change_id})
+        connection.execute(text("UPDATE graphsync.schema_migration_run SET status='succeeded', affected_rows=:rows, verification=CAST(:verification AS jsonb), finished_at=now() WHERE migration_run_id=:run"), {"run": run_id, "rows": len(items), "verification": json.dumps({"contractVersion": change["target_version"], "fieldOperations": len(items), "immutableBackfillPending": True})})
+    return {"changeId": str(change_id), "migrationRunId": str(run_id), "status": "applied", "contractVersion": change["target_version"], "fieldOperations": len(items), "nextGate": "materialize_immutable_release"}
+
+
+def rollback_schema_change(
+    repository: ControlPlaneRepository,
+    *,
+    change_id: uuid.UUID,
+    actor: str | None,
+) -> dict[str, Any]:
+    run_id = uuid.uuid4()
+    with repository.engine.begin() as connection:
+        change = connection.execute(text("SELECT * FROM graphsync.schema_change_request WHERE change_id=:id FOR UPDATE"), {"id": change_id}).mappings().one_or_none()
+        if change is None:
+            raise KeyError(str(change_id))
+        if change["status"] != "applied":
+            raise ValueError("Only an applied Schema change can be rolled back")
+        active_use = connection.execute(
+            text("SELECT count(*) FROM graphsync.curated_release release JOIN graphsync.curated_release_activation active ON active.active_release_id=release.release_id WHERE release.profile_key=:profile AND (release.contract_versions->>:contract_key)::integer=:version"),
+            {"profile": change["profile_key"], "contract_key": change["contract_key"], "version": change["target_version"]},
+        ).scalar_one()
+        if active_use:
+            raise ValueError("Active curated release uses this Schema version; roll back the curated release first")
+        items = [dict(row) for row in connection.execute(text("SELECT * FROM graphsync.schema_change_item WHERE change_id=:id ORDER BY sequence_no DESC"), {"id": change_id}).mappings()]
+        for item in items:
+            if item["operation"] == "add_field":
+                connection.execute(text("DELETE FROM graphsync.data_contract_field WHERE contract_key=:contract AND field_key=:field"), {"contract": change["contract_key"], "field": item["field_key"]})
+                connection.execute(text("UPDATE graphsync.asset_dependency SET active=false WHERE profile_key=:profile AND upstream_key=:field"), {"profile": change["profile_key"], "field": item["field_key"]})
+            else:
+                before = {key: value for key, value in (item["before_state"] or {}).items() if key in FIELD_COLUMNS}
+                connection.execute(
+                    text("UPDATE graphsync.data_contract_field SET source_column=:source_column, target_field=:target_field, data_type=:data_type, nullable=:nullable, required=:required, field_role=:field_role, lifecycle_status=:lifecycle_status, ordinal_position=:ordinal_position, introduced_version=:introduced_version, deprecated_version=:deprecated_version, transform_expression=:transform_expression, default_expression=:default_expression, ontology_property=:ontology_property, sensitivity=:sensitivity, searchable=:searchable, sortable=:sortable, config=CAST(:config AS jsonb) WHERE contract_key=:contract_key AND field_key=:field_key"),
+                    {"contract_key": change["contract_key"], "field_key": item["field_key"], **before, "config": json.dumps(before.get("config") or {})},
+                )
+        _update_contract_projection(connection, change["contract_key"], int(change["base_version"]))
+        connection.execute(text("UPDATE graphsync.schema_change_request SET status='rolled_back' WHERE change_id=:id"), {"id": change_id})
+        connection.execute(text("INSERT INTO graphsync.schema_migration_run (migration_run_id, change_id, status, preview_only, affected_rows, checkpoint, verification, finished_at) VALUES (:run, :change, 'rolled_back', false, :rows, CAST(:checkpoint AS jsonb), CAST(:verification AS jsonb), now())"), {"run": run_id, "change": change_id, "rows": len(items), "checkpoint": json.dumps({"actor": actor}), "verification": json.dumps({"contractVersion": change["base_version"]})})
+    return {"changeId": str(change_id), "migrationRunId": str(run_id), "status": "rolled_back", "contractVersion": change["base_version"]}

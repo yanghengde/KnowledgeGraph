@@ -201,12 +201,37 @@ flowchart LR
 | 阶段 | 交付物 | 当前状态 | 写入边界 |
 |---|---|---|---|
 | 1. Schema 演进中心 | 字段目录、依赖影响、兼容性判定、复核与审批 | 已完成 | 只写控制面，不改业务投影 |
-| 2. 治理物化 | approved 版本的建表/迁移、分批回填、校验、回滚 | 待开发 | 仅写 `camstar_curated`，不写源库 |
-| 3. 发布工程 | Dev/UAT/Prod 环境、不可变制品、Graph Studio 蓝绿 Dataset、SPARQL 验收 | 待开发 | 验收成功后原子切换 |
-| 4. 可观测与血缘 | 字段级 lineage、SLA、数据新鲜度、质量趋势、告警 | 待开发 | 只写审计与指标 |
-| 5. Action Service | 经授权的 Camstar API 写回、幂等、审计、补偿事务 | 待开发 | 不允许数据库直写 |
+| 2. 治理物化 | approved 版本的契约迁移、分批回填、校验、指针回滚 | 已完成实现 | 仅写 `camstar_curated`，不写源库 |
+| 3. 发布工程 | Dev/UAT/Prod 环境、不可变制品、Graph Studio 蓝绿 Dataset、SPARQL 验收 | 已完成实现 | 验收成功后记录活动部署；环境开关默认关闭 |
+| 4. 可观测与血缘 | 字段级 lineage、SLA、数据新鲜度、质量趋势、告警 | 已完成实现 | 只写审计与指标 |
+| 5. Action Service | 经授权的 Camstar API 写回、幂等、审计、补偿挂钩 | 已完成实现 | 不允许数据库直写；定义与全局开关默认关闭 |
 
-阶段 2 开始前必须完成 Product/MfgOrder 业务键、`ORDERED_PRODUCT`/`BEGIN_PRODUCT` 关系语义，以及 SQL Server CT/CDC 或 Oracle SCN 增量策略的业务和 DBA 审批。生产源库中的亿级表必须逐表确认策略、主键/水位列和历史窗口；未确认时保持阻断，不能回退为全表扫描。
+五个阶段的工具链已经完成，但“实现完成”不等于“生产门禁已通过”。当前 Product/MfgOrder 契约、对象角色与两条关系仍为草案，因此治理物化会明确返回阻断项，不读取全表、不写治理快照。阶段 2 实际运行前仍必须完成 Product/MfgOrder 业务键、`ORDERED_PRODUCT`/`BEGIN_PRODUCT` 关系语义，以及 SQL Server CT/CDC 或 Oracle SCN 增量策略的业务和 DBA 审批。生产源库中的亿级表必须逐表确认策略、主键/水位列和历史窗口；未确认时保持阻断，不能回退为全表扫描。
+
+### 阶段 2：不可变治理版本
+
+- Schema 变更按 `analysis_ready → reviewed → approved → applying → applied` 推进；应用操作只更新字段目录和数据契约版本，不对 Camstar 执行 DDL。
+- 数据按物理主键 keyset 分页，每批写入 `materialization_batch`，内存占用不随源表总行数增长。
+- 超过阈值的大表禁止日常快照：必须已有活动基线，并消费经过 CRC/JSONL 校验的 CT、CDC、Oracle SCN 或水位增量包。执行器先在 PostgreSQL 内复制上一不可变版本，再按幂等 URI 合并 upsert/delete；Graph Studio 验收成功后才把窗口标记为 committed 并推进 checkpoint。
+- 每次物化生成独立 `curated_release`；对象与关系写入通用 JSONB 版本表，新增或减少字段不需要在亿级宽表上执行阻塞式 `ALTER TABLE`。
+- 必填、主键和必需关系验证通过后才进入 `ready`；激活只切换 `curated_release_activation`。回滚恢复上一指针，不重新扫描 Camstar。
+- `active_object` 和 `active_relationship` 是下游唯一稳定读取入口。
+
+### 阶段 3：环境晋级与蓝绿发布
+
+- `deployment_environment` 默认提供 Dev、UAT、Prod；同一 `curated_release_id` 必须按顺序晋级。
+- 发布制品是经过 Turtle 回读和 ZIP 校验的不可变 RDF，哈希写入 `deployment_release`。
+- 每次选择与当前相反的 blue/green 槽位，新建 Dataset/Layer/LoadDatasetStep，保留上一部署资产。
+- Graphmart reload 无失败资产且 SPARQL 对象计数达到制品预期后，部署才标记为 `active`。
+- 三个环境的 `apply_enabled` 初始均为 false；必须在 UAT 明确启用，工具才会调用 Graph Studio 写接口。
+
+### 阶段 4：字段血缘、健康与告警
+
+物化记录 `源表.源列 → data_contract_field → curated release` 的运行时映射，制品准备和 Graph Studio 发布继续扩展到 RDF/Layer。健康检查覆盖活动版本新鲜度、对象/关系/隔离数量、未解析关系、失败 Schema 迁移、最近发布失败和 Action 积压。告警使用稳定 fingerprint 去重，支持 open、acknowledged、resolved 生命周期；当前渠道默认为空，不会自动向外部系统发送消息。
+
+### 阶段 5：Camstar Action Service
+
+Action 定义只保存 HTTP 方法、Camstar API 路径、输入 Schema、角色、审批和重试策略，不允许保存或执行 SQL。请求必须提供幂等键；实际动作需要 Action 定义启用、全局 `actions.apply_enabled=true`、角色匹配和独立审批人。调用使用 `CAMSTAR_API_BASE_URL` 与 Token/Basic Auth，并发送 `Idempotency-Key`。响应只保存状态码、响应哈希和结果字段名，避免把业务或敏感响应复制到控制面。补偿 Action 已预留显式关联，不做不可审计的自动反向 SQL。
 
 ## 命令
 

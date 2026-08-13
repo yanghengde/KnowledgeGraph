@@ -67,6 +67,10 @@ class SyncSettings:
     source_kind: str = "camstar_sqlserver"
     source_schema: str | None = None
     source_connect_mode: str = "service_name"
+    camstar_api_base_url: str | None = None
+    camstar_api_user: str | None = None
+    camstar_api_password: str | None = None
+    camstar_api_token: str | None = None
 
     @classmethod
     def from_env(cls, env_file: Path | None = None) -> "SyncSettings":
@@ -102,4 +106,8 @@ class SyncSettings:
             ),
             source_schema=os.getenv("SRC_DB_SCHEMA", "").strip() or None,
             source_connect_mode=os.getenv("SRC_DB_ORACLE_MODE", "service_name").strip().casefold(),
+            camstar_api_base_url=os.getenv("CAMSTAR_API_BASE_URL", "").strip().rstrip("/") or None,
+            camstar_api_user=os.getenv("CAMSTAR_API_USER", "").strip() or None,
+            camstar_api_password=os.getenv("CAMSTAR_API_PASSWORD", "").strip() or None,
+            camstar_api_token=os.getenv("CAMSTAR_API_TOKEN", "").strip() or None,
         )

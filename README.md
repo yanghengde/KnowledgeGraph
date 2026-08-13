@@ -88,6 +88,19 @@ python scripts/graphstudio_sync.py doctor
 python scripts/graphstudio_sync.py dry-run --job camstar-full
 python scripts/graphstudio_sync.py preview --job camstar-full
 python scripts/graphstudio_sync.py preview-curation --profile opcenter2607-core
+python scripts/graphstudio_sync.py curation-cycle --profile opcenter2607-core
+# 仅在全部契约/关系/质量门禁通过后才会物化和激活；否则返回失败且不写业务快照
+python scripts/graphstudio_sync.py curation-cycle --profile opcenter2607-core --apply --actor scheduler
+# 生产 CronJob 入口：探测/冻结/抽取增量窗口，再刷新治理门禁和活动版本
+python scripts/graphstudio_sync.py continuous-cycle --job camstar-full --profile opcenter2607-core --apply --actor scheduler
+python scripts/graphstudio_sync.py materialize-curated --profile opcenter2607-core
+python scripts/graphstudio_sync.py materialize-curated --profile opcenter2607-core --apply --activate --actor <user>
+python scripts/graphstudio_sync.py release-status --profile opcenter2607-core
+python scripts/graphstudio_sync.py rollback-curated --profile opcenter2607-core --actor <user>
+python scripts/graphstudio_sync.py prepare-deployment --profile opcenter2607-core --environment dev --actor <user>
+python scripts/graphstudio_sync.py deployment-status --profile opcenter2607-core
+python scripts/graphstudio_sync.py health-check --profile opcenter2607-core
+python scripts/graphstudio_sync.py health-status --profile opcenter2607-core
 ```
 
 `init-db` 可创建目标 PostgreSQL 数据库和 `graphsync` Schema。已有连接档案默认不会被 `.env` 覆盖；只有显式传入 `--sync-connections` 才会重新同步环境变量中的连接元数据。
@@ -136,6 +149,10 @@ Schema：`graphsync`
 | 业务图谱 | `graph_profile`, `profile_class`, `profile_relationship`, `context_validation`, `pending_reference` |
 | 数据治理 | `data_contract`, `relationship_contract`, `curation_run`, `data_quality_result`；业务投影位于 `camstar_curated` schema |
 | Schema 演进 | `data_contract_field`, `asset_dependency`, `schema_change_request`, `schema_change_item`, `schema_migration_run` |
+| 治理版本 | `curated_release`, `curated_release_activation`, `materialization_batch`；业务快照位于 `camstar_curated.object_version/relationship_version` |
+| 环境发布 | `deployment_environment`, `deployment_release` |
+| 血缘与监控 | `runtime_lineage_event`, `health_check_run`, `health_metric`, `alert_rule`, `alert_event` |
+| 业务动作 | `action_definition`, `action_invocation`, `action_event` |
 | 审计 | `artifact`, `validation_result`, `row_state` |
 
 DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapshot`，新编译失败不会破坏当前 `ready` 版本。
@@ -147,6 +164,8 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 控制面 v8 增加 `camstar_curated` 治理层和版本化数据契约。首批契约覆盖 Product、MfgOrder，并把 `ProductId → Product.ProductId`（订单目标产品）与 `BeginProductId → Product.ProductId`（订单起始产品）作为两条独立关系审核。`preview-curation` 只执行有上限的主键、业务键、必填字段、物理映射、增量水位和引用完整性检查；它仅在 PostgreSQL 记录聚合质量证据，不保存源行、不写 curated 业务表，也不写 Graph Studio。
 
 控制面 v9 增加字段级 Schema 演进中心。每个治理字段使用稳定 `field_key` 管理来源、目标、类型、键角色、生命周期和本体属性；`asset_dependency` 显式记录它对 curated 列、关系、本体属性、Graph Studio 谓词及下游查询/API 的影响。新增、废弃、退役、重命名、改类型、改必填、改键、改来源和改转换都必须先生成兼容性分析，再经过复核和审批。有条件或破坏性变更必须提供迁移方案，破坏性变更还必须提供回滚方案。v9 只审批变更计划，不执行源库 DDL、不改 curated 业务表，也不发布 Graph Studio。
+
+控制面 v10～v13 完成后续四个阶段：v10 使用主键 keyset 分批构建不可变治理版本，验证后原子切换活动指针；v11 管理 Dev/UAT/Prod 顺序晋级、不可变 RDF 制品、蓝绿槽位和 SPARQL 验收；v12 记录字段运行时血缘、健康指标及告警生命周期；v13 提供只走 Camstar API 的 Action Service，包含角色校验、双人审批、幂等键和审计事件。环境发布、Action 定义和全局 Action 开关均默认关闭，初始化数据库不会修改 Camstar 或 Graph Studio。
 
 `preview-incremental` 会将已规划窗口读取成统一 JSONL 变更包，支持 SQL Server CT、CDC、Oracle Flashback SCN 以及 watermark/append-only。事件包含主键、insert/update/upsert/delete 操作和数据库恢复位置；预览只生成审计产物，不提交 checkpoint，也不写 Graph Studio。
 

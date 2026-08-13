@@ -5,7 +5,8 @@ metadata:
 spec:
   schedule: "0 * * * *"
   timeZone: "Asia/Shanghai"
-  # Remove this guard only after the production `sync` command has passed UAT.
+  # Remove this guard only after contracts, relationships and incremental
+  # policies have passed UAT. The command still enforces every database gate.
   suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
@@ -21,9 +22,9 @@ spec:
             - name: sync
               image: registry.example.com/camstar-ontology:latest
               imagePullPolicy: IfNotPresent
-              # Safe pre-production command. Replace `dry-run` with the UAT-approved
-              # publish command only after the mapping review queue is cleared.
-              command: ["python", "scripts/graphstudio_sync.py", "dry-run", "--job", "camstar-full"]
+              # Runs fresh quality evidence, then builds and activates an immutable
+              # curated release. It never writes Camstar or Graph Studio.
+              command: ["python", "scripts/graphstudio_sync.py", "continuous-cycle", "--job", "camstar-full", "--profile", "opcenter2607-core", "--apply", "--actor", "k8s-cronjob"]
               envFrom:
                 - secretRef:
                     name: camstar-graphstudio-sync-secrets
@@ -53,3 +54,30 @@ data:
 # SRC_DB_SCHEMA, SRC_DB_ORACLE_MODE,
 # GRAPHSTUDIO_BASE_URL, GRAPHSTUDIO_USER, GRAPHSTUDIO_PASSWORD,
 # SYNC_STATE_DATABASE_URL.
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: camstar-graphstudio-health
+spec:
+  schedule: "*/15 * * * *"
+  timeZone: "Asia/Shanghai"
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: health
+              image: registry.example.com/camstar-ontology:latest
+              command: ["python", "scripts/graphstudio_sync.py", "health-check", "--profile", "opcenter2607-core"]
+              envFrom:
+                - secretRef:
+                    name: camstar-graphstudio-sync-secrets
+                - configMapRef:
+                    name: camstar-graphstudio-sync-config

@@ -15,6 +15,10 @@
         governance: { contracts: [], relationships: [], latestRun: null, qualityResults: [] },
         contractSchema: null,
         schemaChanges: [],
+        materialization: { plan: null, releases: [] },
+        deployments: { environments: [], deployments: [], activeCuratedRelease: null },
+        observability: { latestRun: null, metrics: [], alerts: [], lineage: [] },
+        actions: { definitions: [], invocations: [], applyEnabled: false },
         mappings: null,
         runs: [],
         settings: [],
@@ -54,7 +58,7 @@
     }
 
     function iconCode(icon) {
-        return ({ dashboard: "OV", plug: "CN", schedule: "JB", profile: "BG", mapping: "MP", history: "RN", settings: "ST" })[icon] || "•";
+        return ({ dashboard: "OV", plug: "CN", schedule: "JB", profile: "BG", database: "DB", rocket: "DP", pulse: "HL", action: "AC", mapping: "MP", history: "RN", settings: "ST" })[icon] || "•";
     }
 
     function formatDate(value, compact = false) {
@@ -77,7 +81,7 @@
     }
 
     function statusLabel(value) {
-        return ({ online: "在线", offline: "离线", degraded: "降级", unknown: "未检查", disabled: "已停用", succeeded: "成功", failed: "失败", queued: "排队", started: "运行中", extracting: "抽取中", staged: "已暂存", loading: "加载中", verifying: "验证中", cancelled: "已取消" })[value] || value || "未知";
+        return ({ online: "在线", offline: "离线", degraded: "降级", unknown: "未检查", disabled: "已停用", succeeded: "成功", failed: "失败", queued: "排队", started: "运行中", extracting: "抽取中", staged: "已暂存", loading: "加载中", verifying: "验证中", cancelled: "已取消", planned: "已规划", ready: "待激活", active: "活动", superseded: "已替代", rolled_back: "已回滚", approved: "已批准", pending_approval: "待审批", executing: "执行中", healthy: "健康", unhealthy: "异常", warning: "警告", critical: "严重", open: "未处理", acknowledged: "已确认", resolved: "已恢复" })[value] || value || "未知";
     }
 
     function connectionKindLabel(value) {
@@ -370,9 +374,76 @@
         $("#schemaChangeCount").textContent = `${changes.length} 项`;
         $("#schemaChangeRows").innerHTML = changes.map(item => {
             const blockers = item.impact_summary?.blockers || [];
-            const actions = item.status === "analysis_ready" ? '<button class="mini-btn" data-action="review-schema-change">复核</button>' : item.status === "reviewed" ? '<button class="mini-btn" data-action="approve-schema-change">批准</button>' : "—";
+            const actions = item.status === "analysis_ready" ? '<button class="mini-btn" data-action="review-schema-change">复核</button>' : item.status === "reviewed" ? '<button class="mini-btn" data-action="approve-schema-change">批准</button>' : item.status === "approved" ? '<button class="mini-btn" data-action="apply-schema-change">执行迁移</button>' : item.status === "applied" ? '<button class="mini-btn" data-action="rollback-schema-change">回滚</button>' : "—";
             return `<tr data-schema-change="${escapeHtml(item.change_id)}"><td><strong>${escapeHtml(item.title)}</strong><br><small>${formatDate(item.created_at, true)}</small></td><td>${escapeHtml(item.contract_key)}<br><small>v${item.base_version} → v${item.target_version}</small></td><td><span class="status-pill ${item.compatibility === "non_breaking" ? "online" : item.compatibility === "breaking" ? "failed" : "unknown"}">${escapeHtml(compatibilityLabel(item.compatibility))}</span></td><td>${item.items?.length || 0}</td><td>${blockers.length ? `<span class="status-pill failed">${blockers.length} 项</span>` : "—"}</td><td>${escapeHtml(schemaStatusLabel(item.status))}</td><td>${actions}</td></tr>`;
         }).join("") || '<tr class="empty-row"><td colspan="7">尚无 Schema 变更申请</td></tr>';
+    }
+
+    function renderMaterialization() {
+        const plan = state.materialization?.plan;
+        const blockers = plan?.blockers || [];
+        $("#materializationPlan").innerHTML = plan ? `<div class="capability-chips"><span class="capability-chip ${plan.ready ? "" : "danger"}">门禁 <strong>${plan.ready ? "可执行" : `${blockers.length} 项阻断`}</strong></span><span class="capability-chip">批大小 <strong>${Number(plan.batchRows).toLocaleString()}</strong></span><span class="capability-chip">策略 <strong>不可变快照</strong></span><span class="capability-chip">回滚 <strong>指针切换</strong></span></div>${blockers.length ? `<div class="capability-warning">${blockers.map(escapeHtml).join("；")}</div>` : ""}` : "正在加载物化计划…";
+        const releases = state.materialization?.releases || [];
+        $("#releaseRows").innerHTML = releases.map(item => `<tr data-release="${escapeHtml(item.release_id)}"><td><strong>R${item.release_no}</strong><br><small>${String(item.release_id).slice(0, 8)}</small></td><td><span class="status-pill ${item.is_active || item.status === "ready" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${item.is_active ? "活动" : escapeHtml(statusLabel(item.status))}</span></td><td>${Number(item.object_count || 0).toLocaleString()}</td><td>${Number(item.relationship_count || 0).toLocaleString()}</td><td>${Number(item.quarantine_count || 0).toLocaleString()}</td><td>${formatDate(item.started_at, true)}</td><td>${item.status === "ready" ? '<button class="mini-btn" data-action="activate-release">激活</button>' : "—"}</td></tr>`).join("") || '<tr class="empty-row"><td colspan="7">尚无治理快照；当前审批门禁会阻止实际写入</td></tr>';
+    }
+
+    function renderDeployments() {
+        const data = state.deployments || { environments: [], deployments: [] };
+        $("#environmentCards").innerHTML = data.environments.map(item => `<article class="job-card" data-environment="${escapeHtml(item.environment_key)}"><div class="card-top"><div><p>ENVIRONMENT ${item.promotion_order}</p><h3>${escapeHtml(item.title)}</h3></div><span class="status-pill ${item.apply_enabled ? "online" : "unknown"}">${item.apply_enabled ? "允许发布" : "发布关闭"}</span></div><div class="card-details"><div class="detail-field"><span>Graphmart</span><strong>${escapeHtml(String(item.graphmart_uri).split("/").pop())}</strong></div><div class="detail-field"><span>Approval</span><strong>${item.requires_approval ? "需要审批" : "自动批准"}</strong></div></div><div class="card-actions"><small>蓝绿制品 · 顺序晋级</small><button class="mini-btn" data-action="prepare-deployment">准备制品</button></div></article>`).join("");
+        $("#deploymentRows").innerHTML = data.deployments.map(item => {
+            let actions = "—";
+            if (item.status === "planned") actions = '<button class="mini-btn" data-action="approve-deployment">批准</button>';
+            else if (item.status === "approved") actions = '<button class="mini-btn" data-action="apply-deployment">发布</button>';
+            return `<tr data-deployment="${escapeHtml(item.deployment_id)}"><td>${escapeHtml(item.environment_key.toUpperCase())}</td><td>${String(item.curated_release_id).slice(0, 8)}</td><td>${escapeHtml(item.slot)}</td><td>${item.artifact_hash ? String(item.artifact_hash).slice(0, 10) : "—"}</td><td><span class="status-pill ${item.status === "active" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${escapeHtml(statusLabel(item.status))}</span></td><td>${formatDate(item.started_at, true)}</td><td>${actions}</td></tr>`;
+        }).join("") || '<tr class="empty-row"><td colspan="7">活动治理快照产生后，才能准备发布制品</td></tr>';
+    }
+
+    function renderObservability() {
+        const data = state.observability || { metrics: [], alerts: [], lineage: [] };
+        $("#healthMetrics").innerHTML = data.metrics.slice(0, 8).map(item => `<article class="metric-card"><span>${escapeHtml(item.metric_key)}</span><strong>${item.value_numeric ?? "—"}</strong><small>${escapeHtml(item.message)}</small></article>`).join("") || '<article class="metric-card"><span>状态</span><strong>—</strong><small>运行健康检查生成指标</small></article>';
+        $("#alertList").innerHTML = data.alerts.map(item => `<div class="profile-issue ${item.severity === "critical" ? "error" : ""}" data-alert="${escapeHtml(item.alert_event_id)}"><span>${escapeHtml(statusLabel(item.severity))}</span><div><strong>${escapeHtml(item.message)}</strong><small>${formatDate(item.opened_at, true)} · ${escapeHtml(statusLabel(item.status))}</small></div>${item.status === "open" ? '<button class="mini-btn" data-action="ack-alert">确认</button>' : ""}</div>`).join("") || '<div class="profile-empty">暂无告警</div>';
+        $("#lineageList").innerHTML = data.lineage.map(item => `<div class="profile-issue"><span>${escapeHtml(item.run_type)}</span><div><strong>${escapeHtml(item.source_asset)} → ${escapeHtml(item.target_asset)}</strong><small>${Number(item.row_count || 0).toLocaleString()} 行 · ${formatDate(item.occurred_at, true)}</small></div></div>`).join("") || '<div class="profile-empty">物化或发布成功后生成运行时血缘</div>';
+    }
+
+    function renderActions() {
+        const data = state.actions || { definitions: [], invocations: [], applyEnabled: false };
+        $("#actionGlobalState").textContent = data.applyEnabled ? "实际执行已开启" : "实际执行关闭";
+        $("#actionGlobalState").classList.toggle("approved", data.applyEnabled);
+        $("#actionCards").innerHTML = data.definitions.map(item => `<article class="job-card" data-action-key="${escapeHtml(item.action_key)}"><div class="card-top"><div><p>${escapeHtml(item.object_class)} · ${escapeHtml(item.http_method)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="status-pill ${item.enabled ? "online" : "unknown"}">${item.enabled ? "已启用" : "定义关闭"}</span></div><div class="card-details"><div class="detail-field"><span>API</span><strong>${escapeHtml(item.endpoint_path)}</strong></div><div class="detail-field"><span>审批</span><strong>${item.approval_required ? "双人审批" : "无需审批"}</strong></div></div><div class="card-actions"><small>禁止数据库直写</small><button class="mini-btn" data-action="plan-action">创建预演</button></div></article>`).join("");
+        $("#actionInvocationRows").innerHTML = data.invocations.map(item => {
+            let actions = "—";
+            if (item.status === "pending_approval") actions = '<button class="mini-btn" data-action="approve-action">批准</button>';
+            else if (item.status === "approved") actions = '<button class="mini-btn" data-action="execute-action">执行</button>';
+            return `<tr data-invocation="${escapeHtml(item.invocation_id)}"><td>${escapeHtml(item.action_key)}</td><td>${escapeHtml(item.actor)}</td><td>${item.dry_run ? "预演" : "真实"}</td><td>${escapeHtml(item.idempotency_key)}</td><td><span class="status-pill ${item.status === "succeeded" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${escapeHtml(statusLabel(item.status))}</span></td><td>${formatDate(item.started_at, true)}</td><td>${actions}</td></tr>`;
+        }).join("") || '<tr class="empty-row"><td colspan="7">尚无 Action 调用</td></tr>';
+    }
+
+    function openActionPlanDialog(item) {
+        $("#dialogTitle").textContent = item.title;
+        $("#dialogKicker").textContent = "ACTION PLAN";
+        const example = Object.fromEntries((item.input_schema?.required || []).map(key => [key, key === "changes" ? {} : ""]));
+        $("#dialogFields").innerHTML = [
+            field("actor", "申请人", "", { placeholder: "工号或用户名" }),
+            field("actor_roles", "角色（逗号分隔）", (item.allowed_roles || []).join(",")),
+            field("idempotency_key", "幂等键", crypto.randomUUID(), { wide: true, help: "相同业务请求必须复用同一个幂等键" }),
+            field("payload", "请求 JSON", JSON.stringify(example, null, 2), { type: "textarea", wide: true }),
+            field("dry_run", "仅预演，不调用 Camstar", true, { type: "checkbox", wide: true }),
+        ].join("");
+        state.dialogSubmit = async form => {
+            const payload = JSON.parse(form.get("payload"));
+            const result = await request(`/api/sync/actions/${encodeURIComponent(item.action_key)}/plan`, { method: "POST", body: JSON.stringify({ payload, actor: form.get("actor"), actor_roles: String(form.get("actor_roles") || "").split(",").map(value => value.trim()).filter(Boolean), idempotency_key: form.get("idempotency_key"), dry_run: form.get("dry_run") === "on" }) });
+            toast(result.replayed ? "返回已有幂等调用" : `Action ${result.status}；未发生数据库直写`);
+            await loadActions();
+        };
+        $("#editDialog").showModal();
+    }
+
+    function openActorDialog(title, submit) {
+        $("#dialogTitle").textContent = title;
+        $("#dialogKicker").textContent = "AUDITED OPERATION";
+        $("#dialogFields").innerHTML = field("actor", "操作人", "", { wide: true, placeholder: "工号或用户名" });
+        state.dialogSubmit = async form => submit(form.get("actor"));
+        $("#editDialog").showModal();
     }
 
     function openSchemaChangeDialog() {
@@ -568,6 +639,9 @@
         }
         if (options.type === "checkbox") {
             return `<div class="${className} switch-field"${attributes}><label class="switch-row"><span class="switch-copy"><strong>${label}</strong><small>${escapeHtml(options.help || "关闭后不会参与自动测试和同步任务")}</small></span><input class="switch-input" type="checkbox" name="${name}" ${value ? "checked" : ""}><span class="switch-control" aria-hidden="true"></span></label></div>`;
+        }
+        if (options.type === "textarea") {
+            return `<div class="${className}"${attributes}><label id="dialog-${name}-label" for="dialog-${name}">${label}</label><textarea id="dialog-${name}" name="${name}" placeholder="${escapeHtml(options.placeholder || "")}">${escapeHtml(value ?? "")}</textarea>${help}</div>`;
         }
         return `<div class="${className}"${attributes}><label id="dialog-${name}-label" for="dialog-${name}">${label}</label><input id="dialog-${name}" name="${name}" type="${options.type || "text"}" value="${escapeHtml(value ?? "")}" placeholder="${escapeHtml(options.placeholder || "")}" ${options.readonly ? "readonly" : ""}>${help}</div>`;
     }
@@ -770,6 +844,10 @@
         ]);
         renderSchemaEvolution();
     }
+    async function loadMaterialization() { state.materialization = await request("/api/sync/profiles/opcenter2607-core/materialization"); renderMaterialization(); }
+    async function loadDeployments() { state.deployments = await request("/api/sync/profiles/opcenter2607-core/deployments"); renderDeployments(); }
+    async function loadObservability() { state.observability = await request("/api/sync/profiles/opcenter2607-core/observability"); renderObservability(); }
+    async function loadActions() { state.actions = await request("/api/sync/actions"); renderActions(); }
     async function loadMappings() { state.mappings = await request("/api/sync/mappings"); renderMappings(); renderOverview(); }
     async function loadRuns() { state.runs = (await request("/api/sync/runs?limit=100")).items; renderRuns(); }
     async function loadSettings() { state.settings = (await request("/api/sync/settings")).items; renderSettings(); }
@@ -778,7 +856,7 @@
         setAlert();
         try {
             await loadNavigation();
-            await Promise.all([loadConnections(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadRuns(), loadSettings()]);
+            await Promise.all([loadConnections(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
             await loadOverview();
         } catch (error) {
             setAlert(`同步中心加载失败：${error.message}`);
@@ -859,6 +937,70 @@
             finally { action.disabled = false; }
             return;
         }
+        if (action.dataset.action === "apply-schema-change" || action.dataset.action === "rollback-schema-change") {
+            const row = action.closest("[data-schema-change]");
+            const operation = action.dataset.action === "apply-schema-change" ? "apply" : "rollback";
+            openActorDialog(operation === "apply" ? "执行 Schema 迁移" : "回滚 Schema 迁移", async actor => {
+                const result = await request(`/api/sync/schema-changes/${encodeURIComponent(row.dataset.schemaChange)}/${operation}`, { method: "POST", body: JSON.stringify({ actor }) });
+                toast(operation === "apply" ? `契约已升级到 v${result.contractVersion}；下一步生成不可变治理版本` : `契约已回滚到 v${result.contractVersion}`);
+                await Promise.all([loadSchemaEvolution(state.contractSchema.contract.contract_key), loadMaterialization()]);
+            }); return;
+        }
+        if (action.dataset.action === "activate-release") {
+            const row = action.closest("[data-release]");
+            openActorDialog("激活治理版本", async actor => {
+                await request(`/api/sync/profiles/opcenter2607-core/releases/${encodeURIComponent(row.dataset.release)}/activate`, { method: "POST", body: JSON.stringify({ actor }) });
+                toast("治理版本已原子激活"); await Promise.all([loadMaterialization(), loadDeployments(), loadObservability()]);
+            }); return;
+        }
+        if (action.dataset.action === "prepare-deployment") {
+            const card = action.closest("[data-environment]");
+            openActorDialog(`准备 ${card.dataset.environment.toUpperCase()} 发布制品`, async actor => {
+                const result = await request("/api/sync/profiles/opcenter2607-core/deployments", { method: "POST", body: JSON.stringify({ environment_key: card.dataset.environment, actor }) });
+                toast(`不可变 RDF 制品已准备：${result.status}`); await loadDeployments();
+            }); return;
+        }
+        if (action.dataset.action === "approve-deployment") {
+            const row = action.closest("[data-deployment]");
+            openActorDialog("批准环境发布", async actor => {
+                await request(`/api/sync/deployments/${encodeURIComponent(row.dataset.deployment)}/approve`, { method: "POST", body: JSON.stringify({ actor }) });
+                toast("发布已批准；目标环境开关仍控制实际写入"); await loadDeployments();
+            }); return;
+        }
+        if (action.dataset.action === "apply-deployment") {
+            const row = action.closest("[data-deployment]");
+            action.disabled = true;
+            try { await request(`/api/sync/deployments/${encodeURIComponent(row.dataset.deployment)}/apply`, { method: "POST" }); toast("Graph Studio 蓝绿发布与验收完成"); await loadDeployments(); }
+            catch (error) { toast(error.message, true); }
+            finally { action.disabled = false; }
+            return;
+        }
+        if (action.dataset.action === "ack-alert") {
+            const row = action.closest("[data-alert]");
+            openActorDialog("确认告警", async actor => {
+                await request(`/api/sync/alerts/${encodeURIComponent(row.dataset.alert)}/acknowledge`, { method: "POST", body: JSON.stringify({ actor }) });
+                toast("告警已确认，恢复后会自动关闭"); await loadObservability();
+            }); return;
+        }
+        if (action.dataset.action === "plan-action") {
+            const card = action.closest("[data-action-key]");
+            openActionPlanDialog(state.actions.definitions.find(item => item.action_key === card.dataset.actionKey)); return;
+        }
+        if (action.dataset.action === "approve-action") {
+            const row = action.closest("[data-invocation]");
+            openActorDialog("批准 Camstar Action", async actor => {
+                await request(`/api/sync/actions/invocations/${encodeURIComponent(row.dataset.invocation)}/approve`, { method: "POST", body: JSON.stringify({ actor }) });
+                toast("Action 已由独立人员批准"); await loadActions();
+            }); return;
+        }
+        if (action.dataset.action === "execute-action") {
+            const row = action.closest("[data-invocation]");
+            action.disabled = true;
+            try { await request(`/api/sync/actions/invocations/${encodeURIComponent(row.dataset.invocation)}/execute`, { method: "POST" }); toast("Camstar API Action 执行完成"); await loadActions(); }
+            catch (error) { toast(error.message, true); }
+            finally { action.disabled = false; }
+            return;
+        }
         if (action.dataset.action === "dry-run-job" && jobCard) {
             action.disabled = true; action.textContent = "盘点中…";
             try {
@@ -936,6 +1078,29 @@
     });
     $("#schemaContractSelect").addEventListener("change", event => loadSchemaEvolution(event.currentTarget.value).catch(error => toast(error.message, true)));
     $("#newSchemaChange").addEventListener("click", () => openSchemaChangeDialog());
+    $("#planMaterialization").addEventListener("click", async event => {
+        const button = event.currentTarget; button.disabled = true;
+        try {
+            const result = await request("/api/sync/profiles/opcenter2607-core/materialization", { method: "POST", body: JSON.stringify({ apply: false, activate: false }) });
+            state.materialization.plan = result.plan; renderMaterialization();
+            toast(result.plan.ready ? "物化计划已通过门禁" : `物化仍有 ${result.plan.blockers.length} 项阻断`, !result.plan.ready);
+        } catch (error) { toast(error.message, true); }
+        finally { button.disabled = false; }
+    });
+    $("#runMaterialization").addEventListener("click", () => openActorDialog("执行已审批物化", async actor => {
+        const result = await request("/api/sync/profiles/opcenter2607-core/materialization", { method: "POST", body: JSON.stringify({ apply: true, activate: false, actor }) });
+        toast(`治理版本 R${result.releaseNo} 已验证，等待激活`); await Promise.all([loadMaterialization(), loadObservability()]);
+    }));
+    $("#rollbackRelease").addEventListener("click", () => openActorDialog("回滚治理版本", async actor => {
+        await request("/api/sync/profiles/opcenter2607-core/releases/rollback", { method: "POST", body: JSON.stringify({ actor }) });
+        toast("活动版本已回滚到上一不可变快照"); await Promise.all([loadMaterialization(), loadDeployments(), loadObservability()]);
+    }));
+    $("#runHealthCheck").addEventListener("click", async event => {
+        const button = event.currentTarget; button.disabled = true;
+        try { const result = await request("/api/sync/profiles/opcenter2607-core/health-check", { method: "POST" }); toast(`健康检查完成：${statusLabel(result.status)}`, result.status === "unhealthy"); await loadObservability(); }
+        catch (error) { toast(error.message, true); }
+        finally { button.disabled = false; }
+    });
     $("#probeIncremental").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true; button.textContent = "检测中…";
         try {

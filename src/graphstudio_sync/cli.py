@@ -13,10 +13,13 @@ from sqlalchemy import create_engine, text
 from .config import SyncSettings
 from .catalog import compile_catalog
 from .curation import build_curation_preview
+from .deployment import create_deployment, deployment_status
 from .database import initialize_control_plane
 from .inventory import build_plan, check_graphstudio, read_ontology, read_source_catalog
 from .incremental import execute_incremental_plan, execute_incremental_probe
 from .incremental_preview import build_incremental_preview
+from .materialization import execute_materialization, materialization_status, rollback_release
+from .observability import observability_status, run_health_check
 from .repository import ControlPlaneRepository
 from .preview import build_full_preview
 from .run_manager import execute_dry_run
@@ -142,6 +145,53 @@ def main(argv: list[str] | None = None) -> int:
     )
     curation_preview_parser.add_argument("--profile", default="opcenter2607-core")
     curation_preview_parser.add_argument("--output", type=Path)
+    curation_cycle_parser = subparsers.add_parser(
+        "curation-cycle",
+        help="Run quality gates and optionally materialize/activate one governed release",
+    )
+    curation_cycle_parser.add_argument("--profile", default="opcenter2607-core")
+    curation_cycle_parser.add_argument("--apply", action="store_true")
+    curation_cycle_parser.add_argument("--actor", default="scheduler")
+    curation_cycle_parser.add_argument("--output", type=Path)
+    continuous_parser = subparsers.add_parser(
+        "continuous-cycle",
+        help="Probe/plan/extract incremental changes, refresh quality evidence and optionally activate a curated release",
+    )
+    continuous_parser.add_argument("--job", default="camstar-full")
+    continuous_parser.add_argument("--profile", default="opcenter2607-core")
+    continuous_parser.add_argument("--apply", action="store_true")
+    continuous_parser.add_argument("--actor", default="scheduler")
+    continuous_parser.add_argument("--output", type=Path)
+    materialize_parser = subparsers.add_parser(
+        "materialize-curated",
+        help="Plan or build an immutable curated release; writes require --apply",
+    )
+    materialize_parser.add_argument("--profile", default="opcenter2607-core")
+    materialize_parser.add_argument("--apply", action="store_true")
+    materialize_parser.add_argument("--activate", action="store_true")
+    materialize_parser.add_argument("--actor")
+    materialize_parser.add_argument("--output", type=Path)
+    release_status_parser = subparsers.add_parser("release-status", help="Show curated release state")
+    release_status_parser.add_argument("--profile", default="opcenter2607-core")
+    release_status_parser.add_argument("--output", type=Path)
+    rollback_parser = subparsers.add_parser("rollback-curated", help="Restore the previous curated release pointer")
+    rollback_parser.add_argument("--profile", default="opcenter2607-core")
+    rollback_parser.add_argument("--actor")
+    rollback_parser.add_argument("--output", type=Path)
+    deployment_parser = subparsers.add_parser("prepare-deployment", help="Build an immutable Graph Studio deployment artifact")
+    deployment_parser.add_argument("--profile", default="opcenter2607-core")
+    deployment_parser.add_argument("--environment", choices=("dev", "uat", "prod"), default="dev")
+    deployment_parser.add_argument("--actor")
+    deployment_parser.add_argument("--output", type=Path)
+    deployment_status_parser = subparsers.add_parser("deployment-status", help="Show environment promotion state")
+    deployment_status_parser.add_argument("--profile", default="opcenter2607-core")
+    deployment_status_parser.add_argument("--output", type=Path)
+    health_parser = subparsers.add_parser("health-check", help="Collect lineage and release health metrics")
+    health_parser.add_argument("--profile", default="opcenter2607-core")
+    health_parser.add_argument("--output", type=Path)
+    health_status_parser = subparsers.add_parser("health-status", help="Show latest health metrics and alerts")
+    health_status_parser.add_argument("--profile", default="opcenter2607-core")
+    health_status_parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     settings = SyncSettings.from_env()
     if args.command == "doctor":
@@ -180,9 +230,74 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "preview-incremental":
         repository = ControlPlaneRepository(settings)
         payload = build_incremental_preview(settings, repository, job_name=args.job)
-    else:
+    elif args.command == "preview-curation":
         repository = ControlPlaneRepository(settings)
         payload = build_curation_preview(settings, repository, profile_key=args.profile)
+    elif args.command == "curation-cycle":
+        repository = ControlPlaneRepository(settings)
+        preview_result = build_curation_preview(settings, repository, profile_key=args.profile)
+        materialized = None
+        if args.apply and preview_result.get("publishable"):
+            materialized = execute_materialization(
+                settings, repository, profile_key=args.profile,
+                apply=True, activate=True, actor=args.actor,
+            )
+        payload = {
+            "ok": bool(preview_result.get("publishable")) if args.apply else True,
+            "previewOnly": not args.apply,
+            "curation": preview_result,
+            "materialization": materialized,
+        }
+    elif args.command == "continuous-cycle":
+        repository = ControlPlaneRepository(settings)
+        probe_result = execute_incremental_probe(settings, repository, job_name=args.job)
+        plan_result = execute_incremental_plan(
+            settings, repository, job_name=args.job, refresh_capabilities=False,
+        )
+        incremental_result = build_incremental_preview(settings, repository, job_name=args.job)
+        curation_result = build_curation_preview(settings, repository, profile_key=args.profile)
+        materialized = None
+        if args.apply and curation_result.get("publishable"):
+            materialized = execute_materialization(
+                settings, repository, profile_key=args.profile,
+                apply=True, activate=True, actor=args.actor,
+            )
+        payload = {
+            "ok": bool(curation_result.get("publishable")) if args.apply else True,
+            "previewOnly": not args.apply,
+            "incrementalProbe": probe_result,
+            "incrementalPlan": plan_result,
+            "incrementalPreview": incremental_result,
+            "curation": curation_result,
+            "materialization": materialized,
+        }
+    elif args.command == "materialize-curated":
+        repository = ControlPlaneRepository(settings)
+        payload = execute_materialization(
+            settings, repository, profile_key=args.profile,
+            apply=args.apply, activate=args.activate, actor=args.actor,
+        )
+    elif args.command == "release-status":
+        repository = ControlPlaneRepository(settings)
+        payload = materialization_status(repository, args.profile)
+    elif args.command == "rollback-curated":
+        repository = ControlPlaneRepository(settings)
+        payload = rollback_release(repository, profile_key=args.profile, actor=args.actor)
+    elif args.command == "prepare-deployment":
+        repository = ControlPlaneRepository(settings)
+        payload = create_deployment(
+            repository, profile_key=args.profile,
+            environment_key=args.environment, actor=args.actor,
+        )
+    elif args.command == "deployment-status":
+        repository = ControlPlaneRepository(settings)
+        payload = deployment_status(repository, args.profile)
+    elif args.command == "health-check":
+        repository = ControlPlaneRepository(settings)
+        payload = run_health_check(repository, args.profile)
+    else:
+        repository = ControlPlaneRepository(settings)
+        payload = observability_status(repository, args.profile)
     _write(payload, args.output)
     return 0 if payload.get("ok", True) else 1
 
