@@ -12,7 +12,7 @@ from typing import Any
 from urllib.parse import quote
 
 import requests
-from rdflib import Graph, Literal, Namespace, OWL, RDF, RDFS, URIRef, XSD
+from rdflib import Dataset, Graph, Literal, Namespace, OWL, RDF, RDFS, URIRef, XSD
 from sqlalchemy import text
 
 from .config import PROJECT_ROOT, SyncSettings
@@ -24,6 +24,11 @@ from .repository import ControlPlaneRepository
 DEPLOYMENT_ROOT = PROJECT_ROOT / "outputs" / "graphstudio" / "deployments"
 ONT = Namespace("https://opcenter.siemens.com/ontology/camstar/2607/publish#")
 GM_SELF = "http://cambridgesemantics.com/ontologies/Graphmarts#Self"
+
+
+def release_model_uri(ontology_release_id: str | uuid.UUID) -> str:
+    """Return an immutable Graph Studio model URI for one ontology release."""
+    return f"{str(ONT).rstrip('#')}/releases/{ontology_release_id}"
 
 
 def _json(response: requests.Response) -> Any:
@@ -112,6 +117,39 @@ def deployment_status(repository: ControlPlaneRepository, profile_key: str) -> d
     }
 
 
+def update_deployment_environment(
+    repository: ControlPlaneRepository,
+    *,
+    environment_key: str,
+    apply_enabled: bool,
+) -> dict[str, Any]:
+    """Enable or lock Graph Studio writes for one promotion environment.
+
+    This only changes the safety switch. It never prepares or applies a
+    deployment, so enabling an environment remains separate from publishing.
+    """
+    with repository.engine.begin() as connection:
+        row = connection.execute(
+            text(
+                """
+                UPDATE graphsync.deployment_environment
+                SET apply_enabled=:apply_enabled, updated_at=now()
+                WHERE environment_key=:environment_key
+                RETURNING environment_key, title, promotion_order,
+                          graphmart_uri, apply_enabled, requires_approval,
+                          config, updated_at
+                """
+            ),
+            {
+                "environment_key": environment_key,
+                "apply_enabled": apply_enabled,
+            },
+        ).mappings().one_or_none()
+    if row is None:
+        raise KeyError(environment_key)
+    return dict(row)
+
+
 def build_deployment_plan(
     repository: ControlPlaneRepository,
     *,
@@ -192,17 +230,20 @@ def build_curated_rdf(
         raise RuntimeError("No active publish ontology release")
     ontology_release_id = str(ontology_meta["ontology_release_id"])
     model = release_graph(repository.settings, ontology_release_id)
-    graph = Graph()
-    graph.bind("cam", ONT)
-    graph.bind("camdata", Namespace("https://opcenter.siemens.com/data/camstar/2607/ontology/"))
-    graph.bind("owl", OWL)
-    graph.bind("rdfs", RDFS)
-    ontology_uri = URIRef(str(ONT).rstrip("#"))
-    graph.add((ontology_uri, RDF.type, OWL.Ontology))
-    graph.add((ontology_uri, RDFS.label, Literal(f"Governed publish ontology release {ontology_meta['release_no']}")))
+    model_graph = Graph()
+    data_graph = Graph()
+    for graph in (model_graph, data_graph):
+        graph.bind("cam", ONT)
+        graph.bind("camdata", Namespace("https://opcenter.siemens.com/data/camstar/2607/ontology/"))
+        graph.bind("owl", OWL)
+        graph.bind("rdfs", RDFS)
+    model_uri = release_model_uri(ontology_release_id)
+    ontology_uri = URIRef(model_uri)
+    model_graph.add((ontology_uri, RDF.type, OWL.Ontology))
+    model_graph.add((ontology_uri, RDFS.label, Literal(f"Governed publish ontology release {ontology_meta['release_no']}")))
     datatype_map = {
         "string": XSD.string, "text": XSD.string, "boolean": XSD.boolean,
-        "integer": XSD.integer, "int": XSD.integer, "long": XSD.long,
+        "integer": XSD.int, "int": XSD.int, "long": XSD.long,
         "decimal": XSD.decimal, "double": XSD.double, "float": XSD.float,
         "date": XSD.date, "datetime": XSD.dateTime, "timestamp": XSD.dateTime,
     }
@@ -216,16 +257,16 @@ def build_curated_rdf(
         if ontology_class.get("sourceClass"):
             class_map[ontology_class["sourceClass"]] = ontology_class
         class_uri = ONT[target_name]
-        graph.add((class_uri, RDF.type, OWL.Class))
-        graph.add((class_uri, RDFS.label, Literal(ontology_class.get("label") or target_name)))
+        model_graph.add((class_uri, RDF.type, OWL.Class))
+        model_graph.add((class_uri, RDFS.label, Literal(ontology_class.get("label") or target_name)))
         published_properties = [item for item in entry["properties"] if item.get("published")]
         property_map[ontology_class["uid"]] = published_properties
         for prop in published_properties:
             predicate = ONT[f"{target_name}_{prop['targetName']}"]
-            graph.add((predicate, RDF.type, OWL.DatatypeProperty))
-            graph.add((predicate, RDFS.domain, class_uri))
-            graph.add((predicate, RDFS.range, datatype_map.get(str(prop.get("dataType") or "string").casefold(), XSD.string)))
-            graph.add((predicate, RDFS.label, Literal(prop["targetName"])))
+            model_graph.add((predicate, RDF.type, OWL.DatatypeProperty))
+            model_graph.add((predicate, RDFS.domain, class_uri))
+            model_graph.add((predicate, RDFS.range, datatype_map.get(str(prop.get("dataType") or "string").casefold(), XSD.string)))
+            model_graph.add((predicate, RDFS.label, Literal(prop["targetName"])))
     relationship_map: dict[tuple[str, str, str], dict[str, Any]] = {}
     for entry in model["relationships"]:
         relation = entry["relation"]
@@ -234,10 +275,10 @@ def build_curated_rdf(
         source = entry["source"]
         target = entry["target"]
         predicate = ONT[f"REL_{relation['targetName']}"]
-        graph.add((predicate, RDF.type, OWL.ObjectProperty))
-        graph.add((predicate, RDFS.domain, ONT[source["targetName"]]))
-        graph.add((predicate, RDFS.range, ONT[target["targetName"]]))
-        graph.add((predicate, RDFS.label, Literal(relation["targetName"])))
+        model_graph.add((predicate, RDF.type, OWL.ObjectProperty))
+        model_graph.add((predicate, RDFS.domain, ONT[source["targetName"]]))
+        model_graph.add((predicate, RDFS.range, ONT[target["targetName"]]))
+        model_graph.add((predicate, RDFS.label, Literal(relation["targetName"])))
         relationship_map[(
             str(relation.get("sourceRelationship") or relation["targetName"]),
             str(source.get("sourceClass") or ""),
@@ -245,7 +286,7 @@ def build_curated_rdf(
         )] = {
             "predicate": predicate, "source": source, "target": target,
         }
-    model_triple_count = len(graph)
+    model_triple_count = len(model_graph)
     with repository.engine.connect() as connection:
         objects = [dict(row) for row in connection.execute(
             text(
@@ -285,7 +326,7 @@ def build_curated_rdf(
         if not ontology_class:
             continue
         subject = URIRef(item["object_uri"])
-        graph.add((subject, RDF.type, ONT[ontology_class["targetName"]]))
+        data_graph.add((subject, RDF.type, ONT[ontology_class["targetName"]]))
         values = item["properties"] or {}
         for prop in property_map.get(ontology_class["uid"], []):
             source_name = prop.get("sourceName") or prop["targetName"]
@@ -295,16 +336,16 @@ def build_curated_rdf(
             predicate = ONT[f"{ontology_class['targetName']}_{prop['targetName']}"]
             if isinstance(value, list):
                 for member in value:
-                    graph.add((subject, predicate, Literal(member)))
+                    data_graph.add((subject, predicate, Literal(member)))
             else:
-                graph.add((subject, predicate, Literal(value)))
+                data_graph.add((subject, predicate, Literal(value)))
         published_objects += 1
     published_relationships = 0
     for item in relationships:
         mapping = relationship_map.get((item["relationship_name"], item["source_class"], item["target_class"]))
         if not mapping or not item.get("target_object_uri"):
             continue
-        graph.add((
+        data_graph.add((
             URIRef(item["source_object_uri"]),
             mapping["predicate"],
             URIRef(item["target_object_uri"]),
@@ -312,11 +353,21 @@ def build_curated_rdf(
         published_relationships += 1
     output_dir = DEPLOYMENT_ROOT / str(release_id)
     output_dir.mkdir(parents=True, exist_ok=True)
+    model_path = output_dir / "curated_model.trig"
     ttl_path = output_dir / "curated_data.ttl"
     zip_path = output_dir / "curated_data.zip"
-    graph.serialize(destination=ttl_path, format="turtle")
-    parsed = Graph().parse(ttl_path, format="turtle")
-    if len(parsed) != len(graph):
+    model_dataset = Dataset()
+    for prefix, namespace in model_graph.namespaces():
+        model_dataset.bind(prefix, namespace)
+    model_context = model_dataset.graph(ontology_uri)
+    for triple in model_graph:
+        model_context.add(triple)
+    model_dataset.serialize(destination=model_path, format="trig")
+    data_graph.serialize(destination=ttl_path, format="turtle")
+    parsed_model = Dataset()
+    parsed_model.parse(model_path, format="trig")
+    parsed_data = Graph().parse(ttl_path, format="turtle")
+    if len(parsed_model) != len(model_graph) or len(parsed_data) != len(data_graph):
         raise RuntimeError("Curated RDF round-trip changed the triple count")
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.write(ttl_path, arcname=f"rdf.ttl/{ttl_path.name}")
@@ -329,16 +380,20 @@ def build_curated_rdf(
         struct.pack_into("<I", data, cursor + 38, 0)
         cursor += 46
     zip_path.write_bytes(data)
+    artifact_hash = content_hash(model_path.read_bytes().hex() + zip_path.read_bytes().hex())
     return {
+        "modelUri": model_uri,
+        "modelPath": str(model_path),
         "ttlPath": str(ttl_path),
         "zipPath": str(zip_path),
-        "tripleCount": len(graph),
+        "tripleCount": len(model_graph) + len(data_graph),
+        "dataTripleCount": len(data_graph),
         "modelTripleCount": model_triple_count,
         "objectCount": published_objects,
         "relationshipCount": published_relationships,
         "ontologyReleaseId": ontology_release_id,
         "ontologyReleaseNo": ontology_meta["release_no"],
-        "artifactHash": content_hash(zip_path.read_bytes().hex()),
+        "artifactHash": artifact_hash,
     }
 
 
@@ -394,7 +449,10 @@ def create_deployment(
                     "expectedObjects": artifact["objectCount"],
                     "expectedRelationships": artifact["relationshipCount"],
                     "tripleCount": artifact["tripleCount"],
+                    "dataTripleCount": artifact["dataTripleCount"],
                     "modelTripleCount": artifact["modelTripleCount"],
+                    "modelUri": artifact["modelUri"],
+                    "modelPath": artifact["modelPath"],
                     "ontologyReleaseId": artifact["ontologyReleaseId"],
                     "checks": ["reload_complete", "no_failed_assets", "sparql_counts"],
                 }),
@@ -441,6 +499,186 @@ def approve_deployment(repository: ControlPlaneRepository, deployment_id: uuid.U
     return dict(row)
 
 
+def _catalog_entry(details: dict[str, Any]) -> str | None:
+    catalog = details.get("catalogEntry") or []
+    if isinstance(catalog, list):
+        catalog = catalog[0] if catalog else None
+    if isinstance(catalog, dict):
+        return _find_uri(catalog, ("uri", "catalogEntry"))
+    return catalog if isinstance(catalog, str) else None
+
+
+def _deployment_dataset(
+    session: requests.Session,
+    base: str,
+    deployment_id: uuid.UUID,
+) -> dict[str, Any] | None:
+    datasets = _require(session.get(f"{base}/api/datasets", timeout=60), "List datasets")
+    if not isinstance(datasets, list):
+        return None
+    marker = str(deployment_id)
+    return next(
+        (
+            item for item in datasets
+            if marker in str(((item.get("dataLocation") or {}).get("filePath") or ""))
+        ),
+        None,
+    )
+
+
+def _ensure_model(
+    session: requests.Session,
+    base: str,
+    *,
+    model_uri: str,
+    model_path: Path,
+) -> None:
+    models = _require(session.get(f"{base}/api/models", timeout=60), "List models")
+    if isinstance(models, list) and model_uri in models:
+        return
+    try:
+        with model_path.open("rb") as handle:
+            _require(
+                session.post(
+                    f"{base}/api/models",
+                    files={"modelData": (model_path.name, handle, "application/trig")},
+                    timeout=180,
+                ),
+                "Register ontology model",
+            )
+    except Exception as exc:
+        raise RuntimeError(
+            "Graph Studio 本体注册失败；请确认 API 账号拥有 Manage Models 权限。"
+            f" 原始错误：{exc}"
+        ) from exc
+    models = _require(session.get(f"{base}/api/models", timeout=60), "Verify model registration")
+    if not isinstance(models, list) or model_uri not in models:
+        raise RuntimeError(f"Graph Studio 本体注册后不可见：{model_uri}")
+
+
+def _ensure_dataset(
+    session: requests.Session,
+    base: str,
+    *,
+    deployment_id: uuid.UUID,
+    deployment: dict[str, Any],
+    zip_path: Path,
+    model_uri: str,
+    settings: SyncSettings,
+    reuse_existing: bool,
+) -> tuple[str, str]:
+    existing = _deployment_dataset(session, base, deployment_id)
+    if existing and not reuse_existing:
+        existing_uri = _find_uri(existing, ("uri", "datasetUri"))
+        if existing_uri:
+            _require(
+                session.delete(f"{base}/api/datasets/{quote(existing_uri, safe='')}", timeout=60),
+                "Remove obsolete deployment dataset",
+            )
+        existing = None
+    dataset_uri = _find_uri(existing, ("uri", "datasetUri")) if existing else None
+    if not dataset_uri:
+        multipart: list[tuple[str, tuple[Any, ...]]] = [
+            ("title", (None, f"{deployment['profile_key']} {deployment['environment_key']} {deployment['slot']}")),
+            ("description", (None, f"Immutable curated release {deployment['curated_release_id']}")),
+            ("models", (None, model_uri)),
+            ("fileConnection", (None, settings.shared_file_connection)),
+            ("filePath", (None, f"{settings.shared_file_path}/{deployment_id}")),
+        ]
+        with zip_path.open("rb") as handle:
+            multipart.append(("rdfZip", (zip_path.name, handle, "application/zip")))
+            result = _require(
+                session.post(f"{base}/api/datasets/from-rdf-zip", files=multipart, timeout=600),
+                "Upload RDF dataset",
+            )
+        dataset_uri = _find_uri(result, ("uri", "datasetUri"))
+    if not dataset_uri:
+        raise RuntimeError("Graph Studio dataset response has no URI")
+    details = _require(
+        session.get(
+            f"{base}/api/datasets/{quote(dataset_uri, safe='')}",
+            params={"expand": "catalogEntry"}, timeout=60,
+        ),
+        "Read dataset",
+    )
+    catalog = _catalog_entry(details) if isinstance(details, dict) else None
+    if not catalog:
+        raise RuntimeError("Graph Studio dataset response has no catalog entry")
+    return dataset_uri, catalog
+
+
+def _ensure_layer(
+    session: requests.Session,
+    base: str,
+    *,
+    encoded_graphmart: str,
+    title: str,
+    model_uri: str,
+) -> str:
+    layers = _require(
+        session.get(f"{base}/api/graphmarts/{encoded_graphmart}/layers", timeout=60),
+        "List graphmart layers",
+    )
+    existing = next((item for item in layers if item.get("title") == title), None) if isinstance(layers, list) else None
+    if existing:
+        layer_uri = _find_uri(existing, ("uri", "layerUri"))
+    else:
+        result = _require(
+            session.post(
+                f"{base}/api/graphmarts/{encoded_graphmart}/layers",
+                json={
+                    "title": title,
+                    "visible": True,
+                    "defaultSelected": True,
+                    "autoDeployOntologyChanges": False,
+                    "model": [model_uri],
+                },
+                timeout=60,
+            ),
+            "Create blue/green layer",
+        )
+        layer_uri = _find_uri(result, ("uri", "layerUri"))
+    if not layer_uri:
+        raise RuntimeError("Graph Studio layer response has no URI")
+    return layer_uri
+
+
+def _ensure_load_step(
+    session: requests.Session,
+    base: str,
+    *,
+    layer_uri: str,
+    catalog: str,
+    model_uri: str,
+) -> str:
+    encoded_layer = quote(layer_uri, safe="")
+    steps = _require(session.get(f"{base}/api/layers/{encoded_layer}/steps", timeout=60), "List layer steps")
+    title = "Load immutable curated RDF"
+    existing = next((item for item in steps if item.get("title") == title), None) if isinstance(steps, list) else None
+    if existing:
+        step_uri = _find_uri(existing, ("uri", "stepUri"))
+    else:
+        result = _require(
+            session.post(
+                f"{base}/api/layers/{encoded_layer}/steps",
+                json={
+                    "title": title,
+                    "type": "LoadDatasetStep",
+                    "gmLinkedDataset": catalog,
+                    "source": [GM_SELF],
+                    "ontology": [model_uri],
+                    "ignoreLoadErrors": False,
+                },
+                timeout=60,
+            ),
+            "Create load step",
+        )
+        step_uri = _find_uri(result, ("uri", "stepUri"))
+    if not step_uri:
+        raise RuntimeError("Graph Studio load step response has no URI")
+    return step_uri
+
+
 def apply_deployment(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -464,13 +702,60 @@ def apply_deployment(
         ).mappings().one_or_none()
     if deployment is None:
         raise KeyError(str(deployment_id))
-    if deployment["status"] != "approved":
-        raise ValueError("Deployment must be approved before apply")
+    deployment = dict(deployment)
+    if deployment["status"] not in {"approved", "failed"}:
+        raise ValueError("Deployment must be approved or failed before apply/retry")
     if not deployment["apply_enabled"]:
         raise RuntimeError("Graph Studio apply is disabled for this environment")
+    validation_plan = dict(deployment.get("validation_plan") or {})
+    legacy_artifact = not validation_plan.get("modelUri")
+    model_path_value = validation_plan.get("modelPath")
+    if legacy_artifact or not model_path_value or not Path(model_path_value).is_file():
+        artifact = build_curated_rdf(
+            repository,
+            profile_key=deployment["profile_key"],
+            release_id=deployment["curated_release_id"],
+        )
+        validation_plan.update({
+            "expectedObjects": artifact["objectCount"],
+            "expectedRelationships": artifact["relationshipCount"],
+            "tripleCount": artifact["tripleCount"],
+            "dataTripleCount": artifact["dataTripleCount"],
+            "modelTripleCount": artifact["modelTripleCount"],
+            "modelUri": artifact["modelUri"],
+            "modelPath": artifact["modelPath"],
+            "ontologyReleaseId": artifact["ontologyReleaseId"],
+            "checks": ["model_registered", "reload_complete", "no_failed_assets", "sparql_counts"],
+        })
+        deployment["artifact_uri"] = artifact["zipPath"]
+        deployment["artifact_hash"] = artifact["artifactHash"]
+        deployment["ontology_release_id"] = uuid.UUID(artifact["ontologyReleaseId"])
+        with repository.engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE graphsync.deployment_release
+                    SET artifact_uri=:artifact_uri,
+                        artifact_hash=:artifact_hash,
+                        ontology_release_id=:ontology_release_id,
+                        validation_plan=CAST(:validation_plan AS jsonb)
+                    WHERE deployment_id=:deployment_id
+                    """
+                ),
+                {
+                    "deployment_id": deployment_id,
+                    "artifact_uri": deployment["artifact_uri"],
+                    "artifact_hash": deployment["artifact_hash"],
+                    "ontology_release_id": deployment["ontology_release_id"],
+                    "validation_plan": json.dumps(validation_plan),
+                },
+            )
     zip_path = Path(deployment["artifact_uri"])
     if not zip_path.is_file():
         raise RuntimeError(f"Deployment artifact does not exist: {zip_path}")
+    model_path = Path(validation_plan["modelPath"])
+    if not model_path.is_file():
+        raise RuntimeError(f"Deployment model artifact does not exist: {model_path}")
     if not settings.shared_file_connection:
         raise RuntimeError("GRAPHSTUDIO_FILE_CONNECTION is not configured")
 
@@ -481,39 +766,53 @@ def apply_deployment(
     graphmart_uri = deployment["graphmart_uri"]
     encoded_graphmart = quote(graphmart_uri, safe="")
     with repository.engine.begin() as connection:
-        connection.execute(text("UPDATE graphsync.deployment_release SET status='uploading' WHERE deployment_id=:id"), {"id": deployment_id})
+        connection.execute(
+            text("UPDATE graphsync.deployment_release SET status='uploading', error='{}'::jsonb, finished_at=NULL WHERE deployment_id=:id"),
+            {"id": deployment_id},
+        )
+    dataset_uri = deployment.get("dataset_uri")
+    layer_uri = deployment.get("layer_uri")
+    step_uri = deployment.get("step_uri")
     try:
-        multipart: list[tuple[str, tuple[Any, ...]]] = [
-            ("title", (None, f"{deployment['profile_key']} {deployment['environment_key']} {deployment['slot']}")),
-            ("description", (None, f"Immutable curated release {deployment['curated_release_id']}")),
-            ("models", (None, str(ONT).rstrip("#"))),
-            ("fileConnection", (None, settings.shared_file_connection)),
-            ("filePath", (None, f"{settings.shared_file_path}/{deployment_id}")),
-        ]
-        with zip_path.open("rb") as handle:
-            multipart.append(("rdfZip", (zip_path.name, handle, "application/zip")))
-            dataset_result = _require(session.post(f"{base}/api/datasets/from-rdf-zip", files=multipart, timeout=600), "Upload RDF dataset")
-        dataset_uri = _find_uri(dataset_result, ("uri", "datasetUri"))
-        details = _require(session.get(f"{base}/api/datasets/{quote(dataset_uri or '', safe='')}", params={"expand": "catalogEntry"}, timeout=60), "Read dataset")
-        catalog = details.get("catalogEntry") or []
-        if isinstance(catalog, list):
-            catalog = catalog[0] if catalog else None
-        if not dataset_uri or not catalog:
-            raise RuntimeError("Graph Studio dataset response has no URI/catalog entry")
-        layer = _require(session.post(
-            f"{base}/api/graphmarts/{encoded_graphmart}/layers",
-            json={"title": f"{deployment['profile_key']} {deployment['slot']} {str(deployment_id)[:8]}", "visible": True, "defaultSelected": True, "autoDeployOntologyChanges": False, "model": [str(ONT).rstrip("#")]},
-            timeout=60,
-        ), "Create blue/green layer")
-        layer_uri = _find_uri(layer, ("uri", "layerUri"))
-        step = _require(session.post(
-            f"{base}/api/layers/{quote(layer_uri or '', safe='')}/steps",
-            json={"title": "Load immutable curated RDF", "type": "LoadDatasetStep", "gmLinkedDataset": catalog, "source": [GM_SELF], "ontology": [str(ONT).rstrip("#")], "ignoreLoadErrors": False},
-            timeout=60,
-        ), "Create load step")
-        step_uri = _find_uri(step, ("uri", "stepUri"))
+        model_uri = validation_plan["modelUri"]
+        _ensure_model(session, base, model_uri=model_uri, model_path=model_path)
+        dataset_uri, catalog = _ensure_dataset(
+            session, base,
+            deployment_id=deployment_id,
+            deployment=deployment,
+            zip_path=zip_path,
+            model_uri=model_uri,
+            settings=settings,
+            reuse_existing=not legacy_artifact,
+        )
         with repository.engine.begin() as connection:
-            connection.execute(text("UPDATE graphsync.deployment_release SET status='loading', dataset_uri=:dataset, catalog_entry=:catalog, layer_uri=:layer, step_uri=:step WHERE deployment_id=:id"), {"id": deployment_id, "dataset": dataset_uri, "catalog": catalog, "layer": layer_uri, "step": step_uri})
+            connection.execute(
+                text("UPDATE graphsync.deployment_release SET dataset_uri=:dataset, catalog_entry=:catalog WHERE deployment_id=:id"),
+                {"id": deployment_id, "dataset": dataset_uri, "catalog": catalog},
+            )
+        layer_title = f"{deployment['profile_key']} {deployment['slot']} {str(deployment_id)[:8]}"
+        layer_uri = _ensure_layer(
+            session, base,
+            encoded_graphmart=encoded_graphmart,
+            title=layer_title,
+            model_uri=model_uri,
+        )
+        with repository.engine.begin() as connection:
+            connection.execute(
+                text("UPDATE graphsync.deployment_release SET layer_uri=:layer WHERE deployment_id=:id"),
+                {"id": deployment_id, "layer": layer_uri},
+            )
+        step_uri = _ensure_load_step(
+            session, base,
+            layer_uri=layer_uri,
+            catalog=catalog,
+            model_uri=model_uri,
+        )
+        with repository.engine.begin() as connection:
+            connection.execute(
+                text("UPDATE graphsync.deployment_release SET status='loading', step_uri=:step WHERE deployment_id=:id"),
+                {"id": deployment_id, "step": step_uri},
+            )
         _require(session.post(f"{base}/api/graphmarts/{encoded_graphmart}/reload", json={"inDesignMode": True, "deployOnActivation": True}, timeout=180), "Reload graphmart")
         deadline = time.monotonic() + 600
         graph_status: dict[str, Any] = {}
@@ -586,6 +885,42 @@ def apply_deployment(
             )
         return {"deploymentId": str(deployment_id), "status": "active", "datasetUri": dataset_uri, "layerUri": layer_uri, "stepUri": step_uri, "validation": validation}
     except Exception as exc:
+        message = str(exc)
+        if "acl limited predicate" in message and "Graphmarts#model" in message:
+            message = (
+                "Graph Studio 拒绝关联本体模型：API 账号缺少目标 Graphmart 的 Modify（Add/Edit）权限，"
+                "或缺少 Manage Models 权限。请在 Opcenter2607 → Sharing → Configuration 为该账号授予 Modify。"
+                f" 原始错误：{message}"
+            )
         with repository.engine.begin() as connection:
-            connection.execute(text("UPDATE graphsync.deployment_release SET status='failed', error=CAST(:error AS jsonb), finished_at=now() WHERE deployment_id=:id"), {"id": deployment_id, "error": json.dumps({"message": str(exc)})})
-        raise
+            connection.execute(
+                text(
+                    """
+                    UPDATE graphsync.deployment_release
+                    SET status='failed',
+                        dataset_uri=COALESCE(:dataset, dataset_uri),
+                        layer_uri=COALESCE(:layer, layer_uri),
+                        step_uri=COALESCE(:step, step_uri),
+                        error=CAST(:error AS jsonb), finished_at=now()
+                    WHERE deployment_id=:id
+                    """
+                ),
+                {
+                    "id": deployment_id,
+                    "dataset": dataset_uri,
+                    "layer": layer_uri,
+                    "step": step_uri,
+                    "error": json.dumps({
+                        "message": message,
+                        "retryable": True,
+                        "stage": "graphstudio_apply",
+                        "resources": {
+                            "datasetUri": dataset_uri,
+                            "layerUri": layer_uri,
+                            "stepUri": step_uri,
+                            "modelUri": validation_plan.get("modelUri"),
+                        },
+                    }),
+                },
+            )
+        raise RuntimeError(message) from exc

@@ -39,6 +39,7 @@
         attributeProjections: [],
         materialization: { plan: null, releases: [] },
         deployments: { environments: [], deployments: [], activeCuratedRelease: null },
+        deploymentPlans: {},
         observability: { latestRun: null, metrics: [], alerts: [], lineage: [] },
         actions: { definitions: [], invocations: [], applyEnabled: false },
         mappings: null,
@@ -1561,9 +1562,35 @@
     function renderMaterialization() {
         const plan = state.materialization?.plan;
         const blockers = plan?.blockers || [];
-        $("#materializationPlan").innerHTML = plan ? `<div class="capability-chips"><span class="capability-chip ${plan.ready ? "" : "danger"}">门禁 <strong>${plan.ready ? "可执行" : `${blockers.length} 项阻断`}</strong></span><span class="capability-chip">批大小 <strong>${Number(plan.batchRows).toLocaleString()}</strong></span><span class="capability-chip">策略 <strong>不可变快照</strong></span><span class="capability-chip">回滚 <strong>指针切换</strong></span></div>${blockers.length ? `<div class="capability-warning">${blockers.map(escapeHtml).join("；")}</div>` : ""}` : "正在加载物化计划…";
         const releases = state.materialization?.releases || [];
+        const activeRelease = releases.find(item => item.is_active) || state.deployments?.activeCuratedRelease;
+        const devEnvironment = (state.deployments?.environments || []).find(item => item.environment_key === "dev");
+        const devDeployment = (state.deployments?.deployments || []).find(item => item.environment_key === "dev" && String(item.curated_release_id) === String(activeRelease?.release_id));
+        const published = devDeployment?.status === "active";
+        const steps = [
+            { title: "数据治理", note: plan?.ready ? "门禁已通过" : `${blockers.length || "—"} 项待处理`, complete: Boolean(plan?.ready) },
+            { title: "数据版本", note: activeRelease ? `R${activeRelease.release_no} 已激活` : "尚未生成", complete: Boolean(activeRelease) },
+            { title: "Dev 发布配置", note: devEnvironment?.apply_enabled ? "Graph Studio 写入已开启" : "写入仍锁定", complete: Boolean(devEnvironment?.apply_enabled) },
+            { title: "Graph Studio", note: published ? "Dev 已发布" : devDeployment ? statusLabel(devDeployment.status) : "尚未发布", complete: published },
+        ];
+        const currentIndex = Math.max(0, steps.findIndex(item => !item.complete));
+        const action = !plan?.ready
+            ? { label: "返回数据治理", attrs: 'data-go="profiles"', help: "先清除数据门禁" }
+            : !activeRelease
+                ? { label: "生成数据版本", attrs: 'data-action="generate-release"', help: "生成后在版本记录中激活" }
+                : !devEnvironment?.apply_enabled
+                    ? { label: "配置 Dev 发布", attrs: 'data-go="deployments" data-focus="environment-dev"', help: "当前 R1 已就绪，无需重新生成" }
+                    : !devDeployment
+                        ? { label: "准备 Dev 制品", attrs: 'data-go="deployments" data-focus="environment-dev"', help: "先生成不可变 RDF 制品" }
+                        : devDeployment.status === "approved"
+                            ? { label: "前往确认发布", attrs: 'data-go="deployments" data-focus="environment-dev"', help: "正式写入前会再次确认" }
+                            : { label: published ? "查看 Dev 发布结果" : "查看发布进度", attrs: 'data-go="deployments" data-focus="environment-dev"', help: published ? "R1 已写入 Graph Studio" : "继续完成当前发布" };
+        $("#releasePublishGuide").innerHTML = `<div class="publish-guide-copy"><span>CURRENT RELEASE STATE</span><h3>${published ? `数据版本 R${activeRelease.release_no} 已发布到 Dev` : activeRelease ? `数据版本 R${activeRelease.release_no} 已就绪，下一步发布到 Dev` : "先生成可发布的数据版本"}</h3><p>${activeRelease ? `当前活动快照包含 ${Number(activeRelease.object_count || 0).toLocaleString()} 个对象实例和 ${Number(activeRelease.relationship_count || 0).toLocaleString()} 个关系实例。只有最后一步完成后，数据才真正写入 Graph Studio。` : "治理完成后生成不可变数据快照；这一步不会直接修改 Graph Studio。"}</p></div><div class="publish-guide-action"><button class="btn primary" ${action.attrs}>${escapeHtml(action.label)}</button><small>${escapeHtml(action.help)}</small></div><div class="publish-guide-steps">${steps.map((item, index) => `<div class="publish-step ${item.complete ? "complete" : index === currentIndex ? "current" : ""}"><i>${item.complete ? "✓" : index + 1}</i><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.note)}</small></div>`).join("")}</div>`;
+        $("#materializationPlan").innerHTML = plan ? `<div class="capability-chips"><span class="capability-chip ${plan.ready ? "" : "danger"}">数据门禁 <strong>${plan.ready ? "已通过" : `${blockers.length} 项阻断`}</strong></span><span class="capability-chip">当前活动版本 <strong>${activeRelease ? `R${activeRelease.release_no}` : "无"}</strong></span><span class="capability-chip">批大小 <strong>${Number(plan.batchRows).toLocaleString()}</strong></span><span class="capability-chip">快照策略 <strong>不可变</strong></span></div>${blockers.length ? `<div class="capability-warning">${blockers.map(escapeHtml).join("；")}</div>` : ""}` : "正在加载数据版本计划…";
         $("#releaseRows").innerHTML = releases.map(item => `<tr data-release="${escapeHtml(item.release_id)}"><td><strong>R${item.release_no}</strong><br><small>${String(item.release_id).slice(0, 8)}</small></td><td><span class="status-pill ${item.is_active || item.status === "ready" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${item.is_active ? "活动" : escapeHtml(statusLabel(item.status))}</span></td><td>${Number(item.object_count || 0).toLocaleString()}</td><td>${Number(item.relationship_count || 0).toLocaleString()}</td><td>${Number(item.quarantine_count || 0).toLocaleString()}</td><td>${formatDate(item.started_at, true)}</td><td>${item.status === "ready" ? '<button class="mini-btn" data-action="activate-release">激活</button>' : "—"}</td></tr>`).join("") || '<tr class="empty-row"><td colspan="7">尚无数据版本；请先在“数据治理”处理上方门禁，再执行物化</td></tr>';
+        $("#runMaterialization").textContent = activeRelease ? "重新生成数据版本" : "生成数据版本";
+        $("#runMaterialization").disabled = !plan?.ready;
+        $("#rollbackRelease").disabled = releases.length < 2;
         renderReleaseStatus();
         renderOntologyWorkflowControls();
         renderQuickGovernance();
@@ -1572,13 +1599,58 @@
 
     function renderDeployments() {
         const data = state.deployments || { environments: [], deployments: [] };
-        $("#environmentCards").innerHTML = data.environments.map(item => `<article class="job-card" data-environment="${escapeHtml(item.environment_key)}"><div class="card-top"><div><p>ENVIRONMENT ${item.promotion_order}</p><h3>${escapeHtml(item.title)}</h3></div><span class="status-pill ${item.apply_enabled ? "online" : "unknown"}">${item.apply_enabled ? "允许发布" : "发布关闭"}</span></div><div class="card-details"><div class="detail-field"><span>Graphmart</span><strong>${escapeHtml(String(item.graphmart_uri).split("/").pop())}</strong></div><div class="detail-field"><span>Approval</span><strong>${item.requires_approval ? "需要审批" : "自动批准"}</strong></div></div><div class="card-actions"><small>蓝绿制品 · 顺序晋级</small><button class="mini-btn" data-action="prepare-deployment">准备制品</button></div></article>`).join("");
+        const activeRelease = data.activeCuratedRelease;
+        const deploymentErrorMessage = deployment => {
+            const error = deployment?.error;
+            if (!error) return "";
+            const message = typeof error === "string" ? error : error.message || "发布失败，可检查配置后重试";
+            if (message.includes("acl limited predicate") && message.includes("Graphmarts#model")) {
+                return "上次发布未先注册本体模型。系统已修复发布顺序，可以直接重试；若仍失败，请为 API 账号补充 Manage Models 与 Graphmart Modify 权限。";
+            }
+            return message;
+        };
+        const environmentState = item => {
+            const plan = state.deploymentPlans[item.environment_key];
+            const latest = data.deployments.find(deployment => deployment.environment_key === item.environment_key && String(deployment.curated_release_id) === String(activeRelease?.release_id));
+            if (latest?.status === "active") return { key: "complete", label: "已发布", note: `R${activeRelease.release_no} 已写入目标 Graphmart`, latest, plan };
+            if (!plan?.ready) return { key: "blocked", label: "尚不可发布", note: plan?.blockers?.[0] || "等待活动数据版本", latest, plan };
+            if (!item.apply_enabled) return { key: "current", label: "写入已锁定", note: "先开启此环境的 Graph Studio 写入开关", latest, plan };
+            if (!latest) return { key: "current", label: "可准备制品", note: `将为 R${activeRelease.release_no} 生成不可变 RDF 制品`, latest, plan };
+            if (latest.status === "planned") return { key: "current", label: "等待外部门禁", note: "制品已准备，等待 OA 或外部审批回调", latest, plan };
+            if (latest.status === "approved") return { key: "current", label: "等待正式发布", note: "点击发布后才会写入 Graph Studio", latest, plan };
+            if (["uploading", "loading", "verifying"].includes(latest.status)) return { key: "current", label: "发布处理中", note: `当前阶段：${statusLabel(latest.status)}`, latest, plan };
+            return { key: "current", label: latest?.status === "failed" ? "发布失败，可重试" : statusLabel(latest?.status || "ready"), note: deploymentErrorMessage(latest) || "检查当前发布记录", latest, plan };
+        };
+        const states = data.environments.map(item => ({ environment: item, ...environmentState(item) }));
+        const current = states.find(item => item.key !== "complete") || states[states.length - 1];
+        const currentAction = current ? (!current.plan?.ready
+            ? `<button class="btn secondary" disabled>等待前置环境</button>`
+            : !current.environment.apply_enabled
+                ? `<button class="btn primary" data-action="configure-deployment-environment" data-environment-key="${escapeHtml(current.environment.environment_key)}">开启 ${escapeHtml(current.environment.environment_key.toUpperCase())} 写入</button>`
+                : !current.latest
+                    ? `<button class="btn primary" data-action="prepare-deployment" data-environment-key="${escapeHtml(current.environment.environment_key)}">准备 ${escapeHtml(current.environment.title)} 制品</button>`
+                    : ["approved", "failed"].includes(current.latest.status)
+                        ? `<button class="btn primary" data-action="apply-deployment" data-deployment-id="${escapeHtml(current.latest.deployment_id)}">${current.latest.status === "failed" ? "重试发布到" : "确认发布到"} ${escapeHtml(current.environment.title)}</button>`
+                        : `<button class="btn secondary" disabled>${escapeHtml(current.label)}</button>`) : "";
+        $("#deploymentGuide").innerHTML = `<div class="publish-guide-copy"><span>NEXT ACTION</span><h3>${current ? `${current.environment.title} · ${current.label}` : "尚无发布环境"}</h3><p>${current ? escapeHtml(current.note) : "请先配置发布环境。"}</p></div><div class="publish-guide-action">${currentAction}<small>写入操作与配置开关相互独立，避免误发布</small></div><div class="publish-guide-steps">${states.map((item, index) => `<div class="publish-step ${item.key === "complete" ? "complete" : item === current ? "current" : ""}"><i>${item.key === "complete" ? "✓" : index + 1}</i><strong>${escapeHtml(item.environment.title)}</strong><small>${escapeHtml(item.label)}</small></div>`).join("")}<div class="publish-step ${states.every(item => item.key === "complete") ? "complete" : ""}"><i>${states.every(item => item.key === "complete") ? "✓" : 4}</i><strong>发布完成</strong><small>Graph Studio 可查询</small></div></div>`;
+        $("#environmentCards").innerHTML = states.map((item, index) => {
+            const environment = item.environment;
+            const targetId = String(environment.graphmart_uri).split("/").pop();
+            const buttons = item.plan?.ready
+                ? [`<button class="mini-btn" data-action="configure-deployment-environment">${environment.apply_enabled ? "关闭写入" : "开启写入"}</button>`]
+                : ['<button class="mini-btn" disabled>等待前置环境</button>'];
+            if (item.plan?.ready && environment.apply_enabled && !item.latest) buttons.push('<button class="mini-btn" data-action="prepare-deployment">准备制品</button>');
+            if (["approved", "failed"].includes(item.latest?.status) && environment.apply_enabled) buttons.push(`<button class="mini-btn" data-action="apply-deployment" data-deployment-id="${escapeHtml(item.latest.deployment_id)}">${item.latest.status === "failed" ? "修复后重试" : "发布到 Graph Studio"}</button>`);
+            return `<article id="environment-${escapeHtml(environment.environment_key)}" class="job-card environment-card ${item.key}" data-environment="${escapeHtml(environment.environment_key)}"><div class="card-top"><div><p>STEP ${index + 1} · ${escapeHtml(environment.environment_key.toUpperCase())}</p><h3>${escapeHtml(environment.title)}</h3></div><span class="status-pill ${item.key === "complete" ? "online" : item.key === "blocked" || !environment.apply_enabled ? "unknown" : "online"}">${escapeHtml(item.label)}</span></div><div class="card-details"><div class="detail-field"><span>目标 Graphmart</span><strong title="${escapeHtml(environment.graphmart_uri)}">${escapeHtml(targetId)}</strong></div><div class="detail-field"><span>写入安全开关</span><strong>${environment.apply_enabled ? "已开启" : "已关闭"}</strong></div><div class="detail-field"><span>发布版本</span><strong>${activeRelease ? `数据 R${activeRelease.release_no}` : "无活动版本"}</strong></div><div class="detail-field"><span>外部门禁</span><strong>${environment.requires_approval ? "等待 OA / 外部回调" : "本环境无需审批"}</strong></div></div><div class="environment-next ${item.key === "complete" ? "success" : item.key === "current" ? "warning" : ""}">${escapeHtml(item.note)}</div><div class="card-actions"><small>蓝绿发布 · 可回滚</small><div class="card-action-buttons">${buttons.join("")}</div></div></article>`;
+        }).join("");
         $("#deploymentRows").innerHTML = data.deployments.map(item => {
             let actions = "—";
-            if (item.status === "planned") actions = '<button class="mini-btn" data-action="approve-deployment">批准</button>';
-            else if (item.status === "approved") actions = '<button class="mini-btn" data-action="apply-deployment">发布</button>';
-            return `<tr data-deployment="${escapeHtml(item.deployment_id)}"><td>${escapeHtml(item.environment_key.toUpperCase())}</td><td>${String(item.curated_release_id).slice(0, 8)}</td><td>${escapeHtml(item.slot)}</td><td>${item.artifact_hash ? String(item.artifact_hash).slice(0, 10) : "—"}</td><td><span class="status-pill ${item.status === "active" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${escapeHtml(statusLabel(item.status))}</span></td><td>${formatDate(item.started_at, true)}</td><td>${actions}</td></tr>`;
-        }).join("") || '<tr class="empty-row"><td colspan="7">活动数据版本产生后，才能准备发布制品</td></tr>';
+            const environment = data.environments.find(candidate => candidate.environment_key === item.environment_key);
+            if (item.status === "planned") actions = '<span class="status-pill unknown">等待 OA / 外部门禁</span>';
+            else if (["approved", "failed"].includes(item.status) && environment?.apply_enabled) actions = `<button class="mini-btn" data-action="apply-deployment">${item.status === "failed" ? "重试" : "确认发布"}</button>`;
+            else if (item.status === "approved") actions = '<span class="status-pill unknown">先开启写入</span>';
+            return `<tr data-deployment="${escapeHtml(item.deployment_id)}"><td>${escapeHtml(item.environment_key.toUpperCase())}</td><td>${String(item.curated_release_id).slice(0, 8)}</td><td>${escapeHtml(item.slot)}</td><td>${item.artifact_hash ? String(item.artifact_hash).slice(0, 10) : "—"}</td><td><span class="status-pill ${item.status === "active" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${item.status === "active" ? "已发布" : escapeHtml(statusLabel(item.status))}</span></td><td>${formatDate(item.started_at, true)}</td><td>${actions}</td></tr>`;
+        }).join("") || '<tr class="empty-row"><td colspan="7">还没有 Graph Studio 发布记录。请从上方当前步骤开始。</td></tr>';
         renderReleaseStatus();
         renderQuickGovernance();
     }
@@ -1690,6 +1762,41 @@
             await request("/api/sync/actions/openapi-import", { method: "POST", body: JSON.stringify({ source_file: form.get("source_file"), operation_id: form.get("operation_id") }) });
             toast("OpenAPI 写操作已作为禁用草案导入；请配置角色后再复核批准");
             await loadActions();
+        };
+        $("#editDialog").showModal();
+    }
+
+    function openDeploymentEnvironmentDialog(item) {
+        const nextEnabled = !item.apply_enabled;
+        $("#dialogTitle").textContent = `${nextEnabled ? "开启" : "关闭"} ${item.title} Graph Studio 写入`;
+        $("#dialogKicker").textContent = "ENVIRONMENT SAFETY SWITCH";
+        $("#dialogFields").innerHTML = `<div class="dialog-operation-note"><strong>${nextEnabled ? "开启后仍不会立即发布" : "关闭后可阻止后续真实写入"}</strong><br>${nextEnabled ? "系统只会允许后续“发布到 Graph Studio”动作执行；准备制品不会写入目标 Graphmart，正式发布前还会再次确认。" : "已有发布记录不会被删除，但新的发布动作会被安全开关阻断。"}<br><br>目标：<b>${escapeHtml(item.title)}</b><br>Graphmart：<b>${escapeHtml(String(item.graphmart_uri).split("/").pop())}</b></div>${field("apply_enabled", "允许此环境写入 Graph Studio", nextEnabled, { type: "checkbox", wide: true, help: "这是环境级安全开关，不是发布按钮" })}`;
+        $("#dialogFeedback").hidden = true;
+        state.dialogSubmitLabel = nextEnabled ? "确认开启写入" : "确认关闭写入";
+        state.dialogBusyLabel = "正在保存环境配置…";
+        $("#dialogSave").textContent = state.dialogSubmitLabel;
+        state.dialogSubmit = async form => {
+            await request(`/api/sync/deployment-environments/${encodeURIComponent(item.environment_key)}`, { method: "PUT", body: JSON.stringify({ apply_enabled: form.has("apply_enabled") }) });
+            toast(`${item.title} Graph Studio 写入已${form.has("apply_enabled") ? "开启" : "关闭"}；尚未执行发布`);
+            await loadDeployments();
+        };
+        $("#editDialog").showModal();
+    }
+
+    function openDeploymentApplyDialog(deployment, environment) {
+        const release = state.deployments.activeCuratedRelease;
+        const retrying = deployment.status === "failed";
+        $("#dialogTitle").textContent = `${retrying ? "重试发布" : "发布"}数据版本 R${release?.release_no || "—"} 到 ${environment.title}`;
+        $("#dialogKicker").textContent = "GRAPH STUDIO WRITE CONFIRMATION";
+        $("#dialogFields").innerHTML = `<div class="dialog-operation-note"><strong>${retrying ? "系统会从失败阶段安全重试" : "这是会实际写入 Graph Studio 的最后一步"}</strong><br>${retrying ? "将先注册不可变本体模型，并复用或清理上次遗留资源，然后继续创建蓝绿图层与验收。" : `系统将上传不可变 RDF 制品，切换 ${escapeHtml(deployment.slot)} 槽位并执行验收。`}环境安全开关已开启，完成后发布记录将显示“已发布”。<br><br>目标 Graphmart：<b>${escapeHtml(String(environment.graphmart_uri).split("/").pop())}</b><br>制品校验值：<b>${escapeHtml(String(deployment.artifact_hash || "—").slice(0, 16))}</b></div>`;
+        $("#dialogFeedback").hidden = true;
+        state.dialogSubmitLabel = `${retrying ? "确认重试" : "确认发布到"} ${environment.title}`;
+        state.dialogBusyLabel = "正在写入并验收…";
+        $("#dialogSave").textContent = state.dialogSubmitLabel;
+        state.dialogSubmit = async () => {
+            await request(`/api/sync/deployments/${encodeURIComponent(deployment.deployment_id)}/apply`, { method: "POST" });
+            toast(`数据版本 R${release?.release_no || "—"} 已发布到 ${environment.title}`);
+            await Promise.all([loadDeployments(), loadObservability()]);
         };
         $("#editDialog").showModal();
     }
@@ -2300,7 +2407,15 @@
         renderAttributeProjections();
     }
     async function loadMaterialization() { state.materialization = await request("/api/sync/profiles/opcenter2607-core/materialization"); renderMaterialization(); }
-    async function loadDeployments() { state.deployments = await request("/api/sync/profiles/opcenter2607-core/deployments"); renderDeployments(); }
+    async function loadDeployments() {
+        state.deployments = await request("/api/sync/profiles/opcenter2607-core/deployments");
+        const plans = await Promise.all((state.deployments.environments || []).map(item =>
+            request(`/api/sync/profiles/opcenter2607-core/deployments/plan/${encodeURIComponent(item.environment_key)}`)
+        ));
+        state.deploymentPlans = Object.fromEntries(plans.map(item => [item.environment.environment_key, item]));
+        renderDeployments();
+        renderMaterialization();
+    }
     async function loadObservability() { state.observability = await request("/api/sync/profiles/opcenter2607-core/observability"); renderObservability(); }
     async function loadActions() { state.actions = await request("/api/sync/actions"); renderActions(); }
     async function loadMappings() { state.mappings = await request("/api/sync/mappings"); renderMappings(); renderOverview(); }
@@ -2314,6 +2429,8 @@
             await Promise.all([loadConnections(), loadOntologyGovernance(), loadOntologyDiscoverySourceGraph(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadAttributeProjections(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
             renderMappings();
             renderAdvancedGovernanceMode();
+            renderMaterialization();
+            renderDeployments();
             await loadOverview();
         } catch (error) {
             setAlert(`同步中心加载失败：${error.message}`);
@@ -2686,11 +2803,23 @@
                 toast("治理版本已原子激活"); await Promise.all([loadMaterialization(), loadDeployments(), loadObservability()]);
             }); return;
         }
+        if (action.dataset.action === "generate-release") {
+            $("#runMaterialization").click();
+            return;
+        }
+        if (action.dataset.action === "configure-deployment-environment") {
+            const card = action.closest("[data-environment]");
+            const environmentKey = action.dataset.environmentKey || card?.dataset.environment;
+            const environment = state.deployments.environments.find(item => item.environment_key === environmentKey);
+            if (environment) openDeploymentEnvironmentDialog(environment);
+            return;
+        }
         if (action.dataset.action === "prepare-deployment") {
             const card = action.closest("[data-environment]");
-            openActorDialog(`准备 ${card.dataset.environment.toUpperCase()} 发布制品`, async actor => {
-                const result = await request("/api/sync/profiles/opcenter2607-core/deployments", { method: "POST", body: JSON.stringify({ environment_key: card.dataset.environment, actor }) });
-                toast(`不可变 RDF 制品已准备：${result.status}`); await loadDeployments();
+            const environmentKey = action.dataset.environmentKey || card?.dataset.environment;
+            openActorDialog(`准备 ${environmentKey.toUpperCase()} 不可变发布制品`, async actor => {
+                const result = await request("/api/sync/profiles/opcenter2607-core/deployments", { method: "POST", body: JSON.stringify({ environment_key: environmentKey, actor }) });
+                toast(`RDF 制品已准备；${result.status === "approved" ? "下一步确认发布到 Graph Studio" : "等待外部门禁"}`); await loadDeployments();
             }); return;
         }
         if (action.dataset.action === "approve-deployment") {
@@ -2702,10 +2831,10 @@
         }
         if (action.dataset.action === "apply-deployment") {
             const row = action.closest("[data-deployment]");
-            action.disabled = true;
-            try { await request(`/api/sync/deployments/${encodeURIComponent(row.dataset.deployment)}/apply`, { method: "POST" }); toast("Graph Studio 蓝绿发布与验收完成"); await loadDeployments(); }
-            catch (error) { toast(error.message, true); }
-            finally { action.disabled = false; }
+            const deploymentId = action.dataset.deploymentId || row?.dataset.deployment;
+            const deployment = state.deployments.deployments.find(item => item.deployment_id === deploymentId);
+            const environment = state.deployments.environments.find(item => item.environment_key === deployment?.environment_key);
+            if (deployment && environment) openDeploymentApplyDialog(deployment, environment);
             return;
         }
         if (action.dataset.action === "ack-alert") {

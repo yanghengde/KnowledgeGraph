@@ -1,6 +1,12 @@
 import pytest
 
 from src.graphstudio_sync.actions import _resolved_path, _validate_payload
+from src.graphstudio_sync.deployment import (
+    _catalog_entry,
+    _ensure_dataset,
+    _ensure_model,
+    release_model_uri,
+)
 from src.graphstudio_sync.materialization import (
     apply_transform,
     build_materialization_plan,
@@ -11,6 +17,108 @@ from src.graphstudio_sync.materialization import (
 from src.graphstudio_sync.observability import _rule_failed
 from src.graphstudio_sync.schema_evolution import _merged_field
 from src.graphstudio_sync.repository import _physical_key_catalog
+
+
+class _GraphStudioResponse:
+    def __init__(self, payload, *, ok=True, status_code=200):
+        self._payload = payload
+        self.ok = ok
+        self.status_code = status_code
+        self.text = "" if payload is None else str(payload)
+
+    def json(self):
+        return self._payload
+
+
+class _ModelSession:
+    def __init__(self, model_uri):
+        self.model_uri = model_uri
+        self.get_count = 0
+        self.uploaded_name = None
+
+    def get(self, _url, **_kwargs):
+        self.get_count += 1
+        return _GraphStudioResponse([] if self.get_count == 1 else [self.model_uri])
+
+    def post(self, _url, *, files, **_kwargs):
+        self.uploaded_name = files["modelData"][0]
+        return _GraphStudioResponse({"status": "uploaded"}, status_code=201)
+
+
+def test_release_model_uri_is_immutable_per_ontology_release() -> None:
+    release_id = "5e76088e-74df-4859-a9a3-1aa7649534d3"
+
+    assert release_model_uri(release_id).endswith(f"/releases/{release_id}")
+
+
+def test_catalog_entry_accepts_graph_studio_list_response() -> None:
+    entry = "http://openanzo.org/catEntry(example)"
+
+    assert _catalog_entry({"catalogEntry": [entry]}) == entry
+
+
+def test_ensure_model_uploads_model_data_then_verifies_registration(tmp_path) -> None:
+    model_uri = release_model_uri("release-1")
+    model_path = tmp_path / "curated_model.trig"
+    model_path.write_text("<urn:model> { <urn:model> a <http://www.w3.org/2002/07/owl#Ontology> . }")
+    session = _ModelSession(model_uri)
+
+    _ensure_model(session, "https://graphstudio.example", model_uri=model_uri, model_path=model_path)
+
+    assert session.uploaded_name == "curated_model.trig"
+    assert session.get_count == 2
+
+
+class _DatasetSession:
+    def __init__(self, deployment_id):
+        self.deployment_id = str(deployment_id)
+        self.deleted = []
+        self.uploaded = 0
+
+    def get(self, url, **_kwargs):
+        if url.endswith("/api/datasets"):
+            return _GraphStudioResponse([{
+                "uri": "http://example.com/dataset/old",
+                "dataLocation": {"filePath": f"sync/{self.deployment_id}/old"},
+            }])
+        return _GraphStudioResponse({"catalogEntry": ["http://example.com/catalog/new"]})
+
+    def delete(self, url, **_kwargs):
+        self.deleted.append(url)
+        return _GraphStudioResponse({"deleted": True})
+
+    def post(self, _url, **_kwargs):
+        self.uploaded += 1
+        return _GraphStudioResponse({"uri": "http://example.com/dataset/new"}, status_code=201)
+
+
+def test_ensure_dataset_replaces_legacy_orphan_before_upload(tmp_path) -> None:
+    import uuid
+    from types import SimpleNamespace
+
+    deployment_id = uuid.uuid4()
+    zip_path = tmp_path / "data.zip"
+    zip_path.write_bytes(b"zip")
+    session = _DatasetSession(deployment_id)
+    settings = SimpleNamespace(shared_file_connection="urn:file", shared_file_path="sync")
+
+    dataset_uri, catalog = _ensure_dataset(
+        session, "https://graphstudio.example",
+        deployment_id=deployment_id,
+        deployment={
+            "profile_key": "core", "environment_key": "dev", "slot": "blue",
+            "curated_release_id": uuid.uuid4(),
+        },
+        zip_path=zip_path,
+        model_uri=release_model_uri("release-1"),
+        settings=settings,
+        reuse_existing=False,
+    )
+
+    assert session.deleted and "http%3A%2F%2Fexample.com%2Fdataset%2Fold" in session.deleted[0]
+    assert session.uploaded == 1
+    assert dataset_uri == "http://example.com/dataset/new"
+    assert catalog == "http://example.com/catalog/new"
 
 
 def _contract(**overrides):

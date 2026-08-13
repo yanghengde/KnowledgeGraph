@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-32">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-33">
 </head>
 <body>
     <div class="app-shell">
@@ -261,18 +261,20 @@
                 <section class="page-section" data-section="releases">
                     <div class="section-tabs" data-section-tabs="publishing"></div>
                     <div class="section-header">
-                        <div><span class="section-kicker">CURATED DATA RELEASES</span><h2>数据版本</h2><p>这里保存的是依据活动本体版本物化的 Camstar 数据快照，与“本体 R1”相互独立；验证通过后才切换活动指针。</p></div>
-                        <div class="card-action-buttons"><button class="btn secondary" id="planMaterialization">预览物化计划</button><button class="btn primary" id="runMaterialization">生成数据版本</button></div>
+                        <div><span class="section-kicker">CURATED DATA RELEASES</span><h2>发布准备</h2><p>先确认治理与数据版本，再进入目标环境完成 Graph Studio 发布。页面只突出当前唯一需要执行的下一步。</p></div>
+                        <div class="card-action-buttons"><button class="btn secondary" id="planMaterialization">检查数据版本计划</button><button class="btn secondary" id="runMaterialization">重新生成数据版本</button></div>
                     </div>
-                    <div id="materializationPlan" class="capability-summary"></div>
-                    <article class="panel table-panel"><div class="panel-heading"><div><span class="section-kicker">VERSION LEDGER</span><h3>不可变治理快照</h3></div><button class="mini-btn" id="rollbackRelease">回滚到上一版本</button></div><div class="table-wrap"><table><thead><tr><th>版本</th><th>状态</th><th>对象</th><th>关系</th><th>隔离</th><th>开始时间</th><th>操作</th></tr></thead><tbody id="releaseRows"></tbody></table></div></article>
+                    <article id="releasePublishGuide" class="panel publish-guide"></article>
+                    <div id="materializationPlan" class="capability-summary release-plan-summary"></div>
+                    <article class="panel table-panel"><div class="panel-heading"><div><span class="section-kicker">VERSION LEDGER</span><h3>数据版本记录</h3><p class="panel-note">对象和关系数量均为本次快照中的数据实例数，不是本体类型数。</p></div><button class="mini-btn" id="rollbackRelease">回滚到上一版本</button></div><div class="table-wrap"><table><thead><tr><th>数据版本</th><th>状态</th><th>对象实例</th><th>关系实例</th><th>隔离数据</th><th>生成时间</th><th>操作</th></tr></thead><tbody id="releaseRows"></tbody></table></div></article>
                 </section>
 
                 <section class="page-section" data-section="deployments">
                     <div class="section-tabs" data-section-tabs="publishing"></div>
-                    <div class="section-header"><div><span class="section-kicker">PROMOTION PIPELINE</span><h2>环境发布</h2><p>同一不可变制品按 Dev → UAT → Prod 晋级，使用蓝绿图层和验收门禁，旧图层保留用于回滚。</p></div></div>
+                    <div class="section-header"><div><span class="section-kicker">PROMOTION PIPELINE</span><h2>发布到 Graph Studio</h2><p>选择环境后按“开启写入 → 准备制品 → 发布”完成操作。开启写入本身不会发布数据，正式写入仍需单独确认。</p></div><button class="btn secondary" data-go="releases">返回发布准备</button></div>
+                    <article id="deploymentGuide" class="panel publish-guide"></article>
                     <div id="environmentCards" class="job-grid"></div>
-                    <article class="panel table-panel" style="margin-top:18px"><div class="panel-heading"><div><span class="section-kicker">DEPLOYMENT LEDGER</span><h3>发布记录</h3></div></div><div class="table-wrap"><table><thead><tr><th>环境</th><th>治理版本</th><th>槽位</th><th>制品</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="deploymentRows"></tbody></table></div></article>
+                    <article class="panel table-panel" style="margin-top:18px"><div class="panel-heading"><div><span class="section-kicker">DEPLOYMENT LEDGER</span><h3>Graph Studio 发布记录</h3><p class="panel-note">只有状态为“已发布”的记录才代表数据已写入目标 Graphmart。</p></div></div><div class="table-wrap"><table><thead><tr><th>环境</th><th>数据版本</th><th>蓝绿槽位</th><th>制品校验值</th><th>状态</th><th>开始时间</th><th>下一步</th></tr></thead><tbody id="deploymentRows"></tbody></table></div></article>
                 </section>
 
                 <section class="page-section" data-section="observability">
@@ -344,6 +346,6 @@
 
     <div id="toast" class="toast" hidden></div>
     <script src="/static/lib/g6.js"></script>
-    <script src="/static/sync.js?v=20260813-39"></script>
+    <script src="/static/sync.js?v=20260813-41"></script>
 </body>
 </html>

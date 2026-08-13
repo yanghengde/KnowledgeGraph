@@ -32,6 +32,7 @@ from src.graphstudio_sync.deployment import (
     build_deployment_plan,
     create_deployment,
     deployment_status,
+    update_deployment_environment,
 )
 from src.graphstudio_sync.incremental import execute_incremental_plan, execute_incremental_probe
 from src.graphstudio_sync.incremental_preview import build_incremental_preview
@@ -367,6 +368,10 @@ class DeploymentCreate(BaseModel):
     environment_key: Literal["dev", "uat", "prod"] = "dev"
     release_id: uuid.UUID | None = None
     actor: str | None = Field(default=None, max_length=200)
+
+
+class DeploymentEnvironmentUpdate(BaseModel):
+    apply_enabled: bool
 
 
 class ActorRequest(BaseModel):
@@ -923,6 +928,21 @@ def get_deployment_plan(profile_key: str, environment_key: str):
     try:
         return build_deployment_plan(
             _repo(), profile_key=profile_key, environment_key=environment_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Deployment environment not found") from exc
+
+
+@router.put("/deployment-environments/{environment_key}")
+def configure_deployment_environment(
+    environment_key: Literal["dev", "uat", "prod"],
+    request: DeploymentEnvironmentUpdate,
+):
+    try:
+        return update_deployment_environment(
+            _repo(),
+            environment_key=environment_key,
+            apply_enabled=request.apply_enabled,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Deployment environment not found") from exc
