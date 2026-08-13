@@ -171,6 +171,8 @@ DDL 是幂等的，可重复执行。映射目录使用不可变 `catalog_snapsh
 
 控制面 v14 增加通用属性投影：任何数据契约都可用“目标关联键 + 来源字段路径”从关联表补充属性，并可选配置声明式多跳 Join、过滤、排序及一对多策略。编译器只接受经过标识符校验的结构化配置，不接受原始 SQL；预览有严格行数上限，物化按主对象键分批查询，同时兼容 SQL Server 和 Oracle。规则修改后自动回到草案，必须经过成功源预览、复核和批准才进入治理版本。
 
+控制面 v15 收敛为单库通用模型：`OpcenterGraph` 同时承载 `graphsync` 控制面与 `camstar_curated` 治理版本，业务实例只使用 `object_version` 和 `relationship_version`。早期 Product/MfgOrder 专属验证表及两条写死的 MfgOrder 演示 Action 已删除。Action 可手工配置或从本地 Camstar OpenAPI 选择性导入；导入项保持禁用草案，真实执行必须通过可信反向代理身份、不同人员复核/批准和全局执行开关。
+
 `preview-incremental` 会将已规划窗口读取成统一 JSONL 变更包，支持 SQL Server CT、CDC、Oracle Flashback SCN 以及 watermark/append-only。事件包含主键、insert/update/upsert/delete 操作和数据库恢复位置；预览只生成审计产物，不提交 checkpoint，也不写 Graph Studio。
 
 “同步任务 → 表级同步策略”可为每个本体类配置全量快照、水位增量、追加增量、CDC 或不导入。超过 `sync.snapshot_row_threshold` 且没有显式策略的表会在抽取前失败，避免误扫亿级表。水位/追加策略必须配置水位列；每个已验证 RDF 分片会写入 `sync_batch`，便于审计和后续断点续跑。

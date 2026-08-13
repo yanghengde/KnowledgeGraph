@@ -82,7 +82,7 @@
     }
 
     function statusLabel(value) {
-        return ({ online: "在线", offline: "离线", degraded: "降级", unknown: "未检查", disabled: "已停用", succeeded: "成功", failed: "失败", queued: "排队", started: "运行中", extracting: "抽取中", staged: "已暂存", loading: "加载中", verifying: "验证中", cancelled: "已取消", planned: "已规划", ready: "待激活", active: "活动", draft: "草案", reviewed: "已复核", retired: "已退役", superseded: "已替代", rolled_back: "已回滚", approved: "已批准", pending_approval: "待审批", executing: "执行中", healthy: "健康", unhealthy: "异常", warning: "警告", critical: "严重", open: "未处理", acknowledged: "已确认", resolved: "已恢复" })[value] || value || "未知";
+        return ({ online: "在线", offline: "离线", degraded: "降级", unknown: "未检查", disabled: "已停用", succeeded: "成功", failed: "失败", queued: "排队", started: "运行中", extracting: "抽取中", staged: "已暂存", loading: "加载中", verifying: "验证中", cancelled: "已取消", planned: "已规划", ready: "待激活", active: "活动", draft: "草案", reviewed: "已复核", retired: "已退役", superseded: "已替代", rolled_back: "已回滚", approved: "已批准", pending_approval: "待审批", executing: "执行中", compensating: "补偿中", compensated: "已补偿", rejected: "已拒绝", healthy: "健康", unhealthy: "异常", warning: "警告", critical: "严重", open: "未处理", acknowledged: "已确认", resolved: "已恢复" })[value] || value || "未知";
     }
 
     function connectionKindLabel(value) {
@@ -435,11 +435,20 @@
         const data = state.actions || { definitions: [], invocations: [], applyEnabled: false };
         $("#actionGlobalState").textContent = data.applyEnabled ? "实际执行已开启" : "实际执行关闭";
         $("#actionGlobalState").classList.toggle("approved", data.applyEnabled);
-        $("#actionCards").innerHTML = data.definitions.map(item => `<article class="job-card" data-action-key="${escapeHtml(item.action_key)}"><div class="card-top"><div><p>${escapeHtml(item.object_class)} · ${escapeHtml(item.http_method)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="status-pill ${item.enabled ? "online" : "unknown"}">${item.enabled ? "已启用" : "定义关闭"}</span></div><div class="card-details"><div class="detail-field"><span>API</span><strong>${escapeHtml(item.endpoint_path)}</strong></div><div class="detail-field"><span>审批</span><strong>${item.approval_required ? "双人审批" : "无需审批"}</strong></div></div><div class="card-actions"><small>禁止数据库直写</small><button class="mini-btn" data-action="plan-action">创建预演</button></div></article>`).join("");
+        const trustedIdentity = data.identityMode === "trusted_headers";
+        $("#actionSecuritySummary").innerHTML = `<div class="capability-chips"><span class="capability-chip ${trustedIdentity ? "" : "danger"}">可信身份 <strong>${trustedIdentity ? "反向代理" : "未配置，仅允许预演"}</strong></span><span class="capability-chip">定义数量 <strong>${data.definitions.length}</strong></span><span class="capability-chip">写入边界 <strong>Camstar API Only</strong></span></div>`;
+        $("#actionCards").innerHTML = data.definitions.map(item => {
+            const buttons = ['<button class="mini-btn" data-action="edit-action-definition">配置</button>', '<button class="mini-btn" data-action="plan-action">创建预演</button>'];
+            if (item.status === "draft") buttons.push('<button class="mini-btn" data-action="review-action-definition">复核</button>');
+            if (item.status === "reviewed") buttons.push('<button class="mini-btn" data-action="approve-action-definition">批准</button>');
+            if (item.status === "approved") buttons.push('<button class="mini-btn" data-action="retire-action-definition">退役</button>');
+            return `<article class="job-card" data-action-key="${escapeHtml(item.action_key)}"><div class="card-top"><div><p>${escapeHtml(item.object_class)} · ${escapeHtml(item.http_method)} · ${escapeHtml(item.origin)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="status-pill ${item.enabled ? "online" : "unknown"}">${escapeHtml(statusLabel(item.status))} · v${item.version}</span></div><div class="card-details"><div class="detail-field"><span>API</span><strong>${escapeHtml(item.endpoint_path)}</strong></div><div class="detail-field"><span>角色</span><strong>${escapeHtml((item.allowed_roles || []).join(", ") || "尚未配置")}</strong></div><div class="detail-field"><span>审批</span><strong>${item.approval_required ? "双人审批" : "无需审批"}</strong></div><div class="detail-field"><span>补偿</span><strong>${escapeHtml(item.compensation_action_key || "未配置")}</strong></div></div><div class="card-actions"><small>禁止数据库直写</small><div class="card-action-buttons">${buttons.join("")}</div></div></article>`;
+        }).join("") || '<article class="panel profile-empty">没有写死的演示 Action。请手工新增，或从本地 Camstar OpenAPI 选择性导入。</article>';
         $("#actionInvocationRows").innerHTML = data.invocations.map(item => {
             let actions = "—";
             if (item.status === "pending_approval") actions = '<button class="mini-btn" data-action="approve-action">批准</button>';
             else if (item.status === "approved") actions = '<button class="mini-btn" data-action="execute-action">执行</button>';
+            else if (item.status === "succeeded" && data.definitions.find(definition => definition.action_key === item.action_key)?.compensation_action_key) actions = '<button class="mini-btn" data-action="compensate-action">发起补偿</button>';
             return `<tr data-invocation="${escapeHtml(item.invocation_id)}"><td>${escapeHtml(item.action_key)}</td><td>${escapeHtml(item.actor)}</td><td>${item.dry_run ? "预演" : "真实"}</td><td>${escapeHtml(item.idempotency_key)}</td><td><span class="status-pill ${item.status === "succeeded" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${escapeHtml(statusLabel(item.status))}</span></td><td>${formatDate(item.started_at, true)}</td><td>${actions}</td></tr>`;
         }).join("") || '<tr class="empty-row"><td colspan="7">尚无 Action 调用</td></tr>';
     }
@@ -449,16 +458,78 @@
         $("#dialogKicker").textContent = "ACTION PLAN";
         const example = Object.fromEntries((item.input_schema?.required || []).map(key => [key, key === "changes" ? {} : ""]));
         $("#dialogFields").innerHTML = [
-            field("actor", "申请人", "", { placeholder: "工号或用户名" }),
-            field("actor_roles", "角色（逗号分隔）", (item.allowed_roles || []).join(",")),
             field("idempotency_key", "幂等键", crypto.randomUUID(), { wide: true, help: "相同业务请求必须复用同一个幂等键" }),
             field("payload", "请求 JSON", JSON.stringify(example, null, 2), { type: "textarea", wide: true }),
-            field("dry_run", "仅预演，不调用 Camstar", true, { type: "checkbox", wide: true }),
+            field("dry_run", "仅预演，不调用 Camstar", true, { type: "checkbox", wide: true, help: "申请人和角色只能由服务端可信身份提供，不能在页面填写" }),
         ].join("");
         state.dialogSubmit = async form => {
             const payload = JSON.parse(form.get("payload"));
-            const result = await request(`/api/sync/actions/${encodeURIComponent(item.action_key)}/plan`, { method: "POST", body: JSON.stringify({ payload, actor: form.get("actor"), actor_roles: String(form.get("actor_roles") || "").split(",").map(value => value.trim()).filter(Boolean), idempotency_key: form.get("idempotency_key"), dry_run: form.get("dry_run") === "on" }) });
+            const result = await request(`/api/sync/actions/${encodeURIComponent(item.action_key)}/plan`, { method: "POST", body: JSON.stringify({ payload, idempotency_key: form.get("idempotency_key"), dry_run: form.get("dry_run") === "on" }) });
             toast(result.replayed ? "返回已有幂等调用" : `Action ${result.status}；未发生数据库直写`);
+            await loadActions();
+        };
+        $("#editDialog").showModal();
+    }
+
+    function openActionDefinitionDialog(item = null) {
+        const actionKey = item?.action_key || "camstar.custom.action";
+        const compensationItems = [["", "不配置补偿"], ...(state.actions.definitions || []).filter(definition => definition.action_key !== actionKey).map(definition => [definition.action_key, `${definition.object_class} · ${definition.title}`])];
+        $("#dialogTitle").textContent = item ? `配置 ${item.title}` : "新增通用 Action";
+        $("#dialogKicker").textContent = "ACTION DEFINITION";
+        $("#dialogFields").innerHTML = [
+            field("action_key", "Action 稳定 ID", actionKey, { wide: true, readonly: Boolean(item) }),
+            field("title", "显示名称", item?.title || "", { wide: true }),
+            field("object_class", "本体对象", item?.object_class || "", { placeholder: "Product / Workflow" }),
+            field("http_method", "HTTP 方法", item?.http_method || "POST", { type: "select", items: [["POST", "POST"], ["PUT", "PUT"], ["PATCH", "PATCH"], ["DELETE", "DELETE"]] }),
+            field("endpoint_path", "Camstar API 相对路径", item?.endpoint_path || "/api/Objects/{key}", { wide: true, help: "只允许相对路径，禁止数据库 SQL 和外部完整 URL" }),
+            field("allowed_roles", "允许角色（逗号分隔）", (item?.allowed_roles || []).join(","), { wide: true }),
+            field("input_schema", "输入 JSON Schema", JSON.stringify(item?.input_schema || { type: "object", required: ["key"], properties: { key: { type: "string" } } }, null, 2), { type: "textarea", wide: true }),
+            field("path_parameters", "路径参数（逗号分隔）", (item?.config?.pathParameters || []).join(",")),
+            field("timeout_seconds", "超时秒数", item?.timeout_seconds || 60, { type: "number" }),
+            field("max_attempts", "最大尝试次数", item?.retry_policy?.maxAttempts || 1, { type: "number" }),
+            field("compensation_action_key", "补偿 Action", item?.compensation_action_key || "", { type: "select", items: compensationItems }),
+            field("approval_required", "真实执行需要双人审批", item?.approval_required !== false, { type: "checkbox", wide: true }),
+            field("description", "业务说明", item?.description || "", { type: "textarea", wide: true }),
+        ].join("");
+        state.dialogSubmit = async form => {
+            const key = String(form.get("action_key") || "").trim();
+            const payload = {
+                title: form.get("title"), description: form.get("description") || null,
+                object_class: form.get("object_class"), endpoint_path: form.get("endpoint_path"),
+                http_method: form.get("http_method"), input_schema: JSON.parse(form.get("input_schema")),
+                allowed_roles: String(form.get("allowed_roles") || "").split(",").map(value => value.trim()).filter(Boolean),
+                approval_required: form.get("approval_required") === "on",
+                timeout_seconds: Number(form.get("timeout_seconds")),
+                retry_policy: { maxAttempts: Number(form.get("max_attempts")), retryStatuses: [429, 502, 503, 504] },
+                compensation_action_key: form.get("compensation_action_key") || null,
+                config: { profileKey: "opcenter2607-core", pathParameters: String(form.get("path_parameters") || "").split(",").map(value => value.trim()).filter(Boolean) },
+            };
+            await request(`/api/sync/actions/definitions/${encodeURIComponent(key)}`, { method: "PUT", body: JSON.stringify(payload) });
+            toast("Action 已保存为草案；真实执行需要可信身份下的复核与独立批准");
+            await loadActions();
+        };
+        $("#editDialog").showModal();
+    }
+
+    async function openOpenApiImportDialog() {
+        const sources = (await request("/api/sync/actions/openapi-sources")).items;
+        if (!sources.length) { toast("没有找到本地 Camstar OpenAPI 文件", true); return; }
+        $("#dialogTitle").textContent = "从 Camstar OpenAPI 导入";
+        $("#dialogKicker").textContent = "SELECTIVE IMPORT";
+        $("#dialogFields").innerHTML = [
+            field("source_file", "对象 API", sources[0].sourceFile, { type: "select", items: sources.map(source => [source.sourceFile, source.objectClass]) }),
+            field("operation_id", "写操作", "", { type: "select", items: [] }),
+            field("import_note", "导入规则", "只导入选中的一个 POST/PUT/PATCH/DELETE，并保持草案和禁用状态。不会批量生成所有对象 CRUD。", { type: "textarea", wide: true, readonly: true }),
+        ].join("");
+        const loadOperations = async () => {
+            const candidates = (await request(`/api/sync/actions/openapi-candidates?source_file=${encodeURIComponent($("#dialog-source_file").value)}`)).items;
+            $("#dialog-operation_id").innerHTML = candidates.map(candidate => `<option value="${escapeHtml(candidate.operationId)}">${escapeHtml(`${candidate.httpMethod} ${candidate.endpointPath}`)}</option>`).join("");
+        };
+        $("#dialog-source_file").addEventListener("change", () => loadOperations().catch(error => toast(error.message, true)));
+        await loadOperations();
+        state.dialogSubmit = async form => {
+            await request("/api/sync/actions/openapi-import", { method: "POST", body: JSON.stringify({ source_file: form.get("source_file"), operation_id: form.get("operation_id") }) });
+            toast("OpenAPI 写操作已作为禁用草案导入；请配置角色后再复核批准");
             await loadActions();
         };
         $("#editDialog").showModal();
@@ -1121,12 +1192,28 @@
             const card = action.closest("[data-action-key]");
             openActionPlanDialog(state.actions.definitions.find(item => item.action_key === card.dataset.actionKey)); return;
         }
+        if (action.dataset.action === "edit-action-definition") {
+            const card = action.closest("[data-action-key]");
+            openActionDefinitionDialog(state.actions.definitions.find(item => item.action_key === card.dataset.actionKey)); return;
+        }
+        if (["review-action-definition", "approve-action-definition", "retire-action-definition"].includes(action.dataset.action)) {
+            const card = action.closest("[data-action-key]");
+            const status = ({ "review-action-definition": "reviewed", "approve-action-definition": "approved", "retire-action-definition": "retired" })[action.dataset.action];
+            action.disabled = true;
+            try {
+                await request(`/api/sync/actions/definitions/${encodeURIComponent(card.dataset.actionKey)}/review`, { method: "PUT", body: JSON.stringify({ status }) });
+                toast(`Action ${statusLabel(status)}`); await loadActions();
+            } catch (error) { toast(error.message, true); }
+            finally { action.disabled = false; }
+            return;
+        }
         if (action.dataset.action === "approve-action") {
             const row = action.closest("[data-invocation]");
-            openActorDialog("批准 Camstar Action", async actor => {
-                await request(`/api/sync/actions/invocations/${encodeURIComponent(row.dataset.invocation)}/approve`, { method: "POST", body: JSON.stringify({ actor }) });
-                toast("Action 已由独立人员批准"); await loadActions();
-            }); return;
+            action.disabled = true;
+            try { await request(`/api/sync/actions/invocations/${encodeURIComponent(row.dataset.invocation)}/approve`, { method: "POST" }); toast("Action 已由可信身份的独立人员批准"); await loadActions(); }
+            catch (error) { toast(error.message, true); }
+            finally { action.disabled = false; }
+            return;
         }
         if (action.dataset.action === "execute-action") {
             const row = action.closest("[data-invocation]");
@@ -1135,6 +1222,20 @@
             catch (error) { toast(error.message, true); }
             finally { action.disabled = false; }
             return;
+        }
+        if (action.dataset.action === "compensate-action") {
+            const row = action.closest("[data-invocation]");
+            $("#dialogTitle").textContent = "发起补偿 Action";
+            $("#dialogKicker").textContent = "COMPENSATION";
+            $("#dialogFields").innerHTML = [
+                field("idempotency_key", "补偿幂等键", crypto.randomUUID(), { wide: true }),
+                field("payload", "补偿请求 JSON", "{}", { type: "textarea", wide: true }),
+            ].join("");
+            state.dialogSubmit = async form => {
+                await request(`/api/sync/actions/invocations/${encodeURIComponent(row.dataset.invocation)}/compensate`, { method: "POST", body: JSON.stringify({ idempotency_key: form.get("idempotency_key"), payload: JSON.parse(form.get("payload")) }) });
+                toast("补偿 Action 已创建，并进入独立审批流程"); await loadActions();
+            };
+            $("#editDialog").showModal(); return;
         }
         if (action.dataset.action === "dry-run-job" && jobCard) {
             action.disabled = true; action.textContent = "盘点中…";
@@ -1214,6 +1315,8 @@
     $("#schemaContractSelect").addEventListener("change", event => loadSchemaEvolution(event.currentTarget.value).catch(error => toast(error.message, true)));
     $("#newSchemaChange").addEventListener("click", () => openSchemaChangeDialog());
     $("#newAttributeProjection").addEventListener("click", () => openAttributeProjectionDialog());
+    $("#newActionDefinition").addEventListener("click", () => openActionDefinitionDialog());
+    $("#importOpenApiAction").addEventListener("click", () => openOpenApiImportDialog().catch(error => toast(error.message, true)));
     $("#planMaterialization").addEventListener("click", async event => {
         const button = event.currentTarget; button.disabled = true;
         try {

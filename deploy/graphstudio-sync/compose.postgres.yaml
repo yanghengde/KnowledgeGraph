@@ -3,7 +3,7 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: graphsync
+      POSTGRES_DB: OpcenterGraph
       POSTGRES_USER: graphsync
       POSTGRES_PASSWORD: ${PGSQL_PASSWORD:?set PGSQL_PASSWORD}
     ports:
@@ -12,7 +12,7 @@ services:
       - graphsync_postgres_data:/var/lib/postgresql/data
       - ../../sql/graphstudio_sync_control_postgres.sql:/docker-entrypoint-initdb.d/001-control-plane.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U graphsync -d graphsync"]
+      test: ["CMD-SHELL", "pg_isready -U graphsync -d OpcenterGraph"]
       interval: 10s
       timeout: 5s
       retries: 10

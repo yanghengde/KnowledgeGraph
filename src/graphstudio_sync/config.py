@@ -71,6 +71,8 @@ class SyncSettings:
     camstar_api_user: str | None = None
     camstar_api_password: str | None = None
     camstar_api_token: str | None = None
+    action_auth_mode: str = "disabled"
+    action_trusted_proxy_secret: str | None = None
 
     @classmethod
     def from_env(cls, env_file: Path | None = None) -> "SyncSettings":
@@ -110,4 +112,6 @@ class SyncSettings:
             camstar_api_user=os.getenv("CAMSTAR_API_USER", "").strip() or None,
             camstar_api_password=os.getenv("CAMSTAR_API_PASSWORD", "").strip() or None,
             camstar_api_token=os.getenv("CAMSTAR_API_TOKEN", "").strip() or None,
+            action_auth_mode=os.getenv("ACTION_AUTH_MODE", "disabled").strip().casefold(),
+            action_trusted_proxy_secret=os.getenv("ACTION_TRUSTED_PROXY_SECRET", "").strip() or None,
         )

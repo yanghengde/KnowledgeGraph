@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-10">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-11">
 </head>
 <body>
     <div class="app-shell">
@@ -190,7 +190,8 @@
                 </section>
 
                 <section class="page-section" data-section="actions">
-                    <div class="section-header"><div><span class="section-kicker">CAMSTAR ACTION SERVICE</span><h2>业务动作</h2><p>所有写操作只走 Camstar API，包含角色校验、双人审批、幂等键、执行审计和补偿挂钩；数据库直写被禁止。</p></div><span id="actionGlobalState" class="count-badge">实际执行关闭</span></div>
+                    <div class="section-header"><div><span class="section-kicker">CAMSTAR ACTION SERVICE</span><h2>业务动作</h2><p>按对象配置需要的业务命令，所有写操作只走 Camstar API。真实执行必须使用可信身份、复核审批、幂等键和完整审计。</p></div><div class="card-action-buttons"><span id="actionGlobalState" class="count-badge">实际执行关闭</span><button class="btn secondary" id="importOpenApiAction">从 OpenAPI 导入</button><button class="btn primary" id="newActionDefinition">新增 Action</button></div></div>
+                    <div id="actionSecuritySummary" class="capability-summary"></div>
                     <div id="actionCards" class="job-grid"></div>
                     <article class="panel table-panel" style="margin-top:18px"><div class="panel-heading"><div><span class="section-kicker">AUDIT</span><h3>Action 调用记录</h3></div></div><div class="table-wrap"><table><thead><tr><th>Action</th><th>申请人</th><th>模式</th><th>幂等键</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="actionInvocationRows"></tbody></table></div></article>
                 </section>
@@ -242,6 +243,6 @@
     </dialog>
 
     <div id="toast" class="toast" hidden></div>
-    <script src="/static/sync.js?v=20260813-10"></script>
+    <script src="/static/sync.js?v=20260813-11"></script>
 </body>
 </html>

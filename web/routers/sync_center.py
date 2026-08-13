@@ -6,14 +6,26 @@ import uuid
 from functools import lru_cache
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field, model_validator
 
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
 from src.graphstudio_sync.curation import build_curation_preview
-from src.graphstudio_sync.actions import approve_action, execute_action, list_actions, plan_action
+from src.graphstudio_sync.actions import (
+    approve_action,
+    execute_action,
+    import_openapi_action,
+    list_actions,
+    openapi_action_candidates,
+    openapi_action_sources,
+    plan_action,
+    plan_compensation,
+    review_action_definition,
+    upsert_action_definition,
+)
+from src.graphstudio_sync.action_identity import action_principal, require_action_principal
 from src.graphstudio_sync.deployment import (
     apply_deployment,
     approve_deployment,
@@ -276,10 +288,37 @@ class ActorRequest(BaseModel):
 
 class ActionPlanRequest(BaseModel):
     payload: dict[str, Any]
-    actor: str = Field(min_length=1, max_length=200)
-    actor_roles: list[str] = Field(default_factory=list, max_length=100)
     idempotency_key: str = Field(min_length=8, max_length=300)
     dry_run: bool = True
+
+
+class ActionDefinitionUpdate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=4000)
+    object_class: str = Field(min_length=1, max_length=200)
+    endpoint_path: str = Field(min_length=1, max_length=1000)
+    http_method: Literal["POST", "PUT", "PATCH", "DELETE"]
+    input_schema: dict[str, Any] = Field(default_factory=lambda: {"type": "object"})
+    allowed_roles: list[str] = Field(min_length=1, max_length=100)
+    approval_required: bool = True
+    timeout_seconds: int = Field(default=60, ge=1, le=600)
+    retry_policy: dict[str, Any] = Field(default_factory=lambda: {"maxAttempts": 1})
+    compensation_action_key: str | None = Field(default=None, max_length=300)
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class ActionDefinitionReview(BaseModel):
+    status: Literal["reviewed", "approved", "retired"]
+
+
+class OpenApiActionImport(BaseModel):
+    source_file: str = Field(min_length=6, max_length=300)
+    operation_id: str = Field(min_length=1, max_length=1000)
+
+
+class ActionCompensationRequest(BaseModel):
+    payload: dict[str, Any]
+    idempotency_key: str = Field(min_length=8, max_length=300)
 
 
 @router.get("/overview")
@@ -831,13 +870,67 @@ def acknowledge_health_alert(alert_id: str, request: ActorRequest):
 
 @router.get("/actions")
 def actions():
-    return list_actions(_repo())
+    payload = list_actions(_repo())
+    payload["identityMode"] = _settings().action_auth_mode
+    return payload
+
+
+@router.put("/actions/definitions/{action_key}")
+def update_action_definition(action_key: str, request: ActionDefinitionUpdate):
+    try:
+        return upsert_action_definition(_repo(), action_key=action_key, **request.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/actions/definitions/{action_key}/review")
+def review_action(action_key: str, payload: ActionDefinitionReview, request: Request):
+    principal = action_principal(request, _settings())
+    require_action_principal(principal)
+    try:
+        return review_action_definition(
+            _repo(), action_key, status=payload.status, actor=principal.subject,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Action definition not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/actions/openapi-candidates")
+def action_openapi_candidates(source_file: str | None = Query(default=None)):
+    try:
+        return {"items": openapi_action_candidates(source_file)}
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="OpenAPI source file not found") from exc
+
+
+@router.get("/actions/openapi-sources")
+def action_openapi_sources():
+    return {"items": openapi_action_sources()}
+
+
+@router.post("/actions/openapi-import")
+def import_action_from_openapi(request: OpenApiActionImport):
+    try:
+        return import_openapi_action(_repo(), **request.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="OpenAPI operation not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/actions/{action_key}/plan")
-def plan_camstar_action(action_key: str, request: ActionPlanRequest):
+def plan_camstar_action(action_key: str, payload: ActionPlanRequest, request: Request):
+    principal = action_principal(request, _settings())
+    if not payload.dry_run:
+        require_action_principal(principal)
     try:
-        return plan_action(_repo(), action_key=action_key, **request.model_dump())
+        return plan_action(
+            _repo(), action_key=action_key, payload=payload.payload,
+            idempotency_key=payload.idempotency_key, dry_run=payload.dry_run,
+            actor=principal.subject, actor_roles=list(principal.roles),
+        )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Action definition not found") from exc
     except PermissionError as exc:
@@ -847,23 +940,58 @@ def plan_camstar_action(action_key: str, request: ActionPlanRequest):
 
 
 @router.post("/actions/invocations/{invocation_id}/approve")
-def approve_camstar_action(invocation_id: str, request: ActorRequest):
-    if not request.actor:
-        raise HTTPException(status_code=422, detail="Approver is required")
+def approve_camstar_action(invocation_id: str, request: Request):
+    principal = action_principal(request, _settings())
+    require_action_principal(principal)
     try:
-        return approve_action(_repo(), uuid.UUID(invocation_id), request.actor)
+        return approve_action(
+            _repo(), uuid.UUID(invocation_id), principal.subject,
+            list(principal.roles),
+        )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Action invocation not found") from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/actions/invocations/{invocation_id}/execute")
-def execute_camstar_action(invocation_id: str):
+def execute_camstar_action(invocation_id: str, request: Request):
+    principal = action_principal(request, _settings())
+    require_action_principal(principal)
     try:
-        return execute_action(_settings(), _repo(), invocation_id=uuid.UUID(invocation_id))
+        return execute_action(
+            _settings(), _repo(), invocation_id=uuid.UUID(invocation_id),
+            actor=principal.subject, actor_roles=list(principal.roles),
+        )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Action invocation not found") from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/actions/invocations/{invocation_id}/compensate")
+def compensate_camstar_action(
+    invocation_id: str,
+    payload: ActionCompensationRequest,
+    request: Request,
+):
+    principal = action_principal(request, _settings())
+    require_action_principal(principal)
+    try:
+        return plan_compensation(
+            _repo(), original_invocation_id=uuid.UUID(invocation_id),
+            payload=payload.payload, actor=principal.subject,
+            actor_roles=list(principal.roles),
+            idempotency_key=payload.idempotency_key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Action invocation not found") from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
     except (ValueError, RuntimeError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 

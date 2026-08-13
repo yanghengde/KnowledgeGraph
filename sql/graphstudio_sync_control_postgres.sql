@@ -1081,6 +1081,18 @@ CREATE TABLE IF NOT EXISTS graphsync.action_definition (
     timeout_seconds       integer NOT NULL DEFAULT 60 CHECK (timeout_seconds BETWEEN 1 AND 600),
     retry_policy          jsonb NOT NULL DEFAULT '{"maxAttempts":1}'::jsonb,
     compensation_action_key text REFERENCES graphsync.action_definition(action_key),
+    version               integer NOT NULL DEFAULT 1 CHECK (version > 0),
+    status                text NOT NULL DEFAULT 'draft' CHECK (status IN (
+                              'draft', 'reviewed', 'approved', 'retired'
+                          )),
+    origin                text NOT NULL DEFAULT 'manual' CHECK (origin IN (
+                              'manual', 'openapi'
+                          )),
+    operation_id          text,
+    reviewed_by           text,
+    reviewed_at           timestamptz,
+    approved_by           text,
+    approved_at           timestamptz,
     config                jsonb NOT NULL DEFAULT '{}'::jsonb,
     created_at            timestamptz NOT NULL DEFAULT now(),
     updated_at            timestamptz NOT NULL DEFAULT now()
@@ -1107,6 +1119,39 @@ CREATE TABLE IF NOT EXISTS graphsync.action_invocation (
     error                 jsonb
 );
 
+ALTER TABLE graphsync.action_definition
+    ADD COLUMN IF NOT EXISTS version integer NOT NULL DEFAULT 1;
+ALTER TABLE graphsync.action_definition
+    ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'draft';
+ALTER TABLE graphsync.action_definition
+    ADD COLUMN IF NOT EXISTS origin text NOT NULL DEFAULT 'manual';
+ALTER TABLE graphsync.action_definition
+    ADD COLUMN IF NOT EXISTS operation_id text;
+ALTER TABLE graphsync.action_definition
+    ADD COLUMN IF NOT EXISTS reviewed_by text;
+ALTER TABLE graphsync.action_definition
+    ADD COLUMN IF NOT EXISTS reviewed_at timestamptz;
+ALTER TABLE graphsync.action_definition
+    ADD COLUMN IF NOT EXISTS approved_by text;
+ALTER TABLE graphsync.action_definition
+    ADD COLUMN IF NOT EXISTS approved_at timestamptz;
+ALTER TABLE graphsync.action_definition
+    DROP CONSTRAINT IF EXISTS action_definition_status_check;
+ALTER TABLE graphsync.action_definition
+    ADD CONSTRAINT action_definition_status_check
+    CHECK (status IN ('draft', 'reviewed', 'approved', 'retired'));
+ALTER TABLE graphsync.action_definition
+    DROP CONSTRAINT IF EXISTS action_definition_origin_check;
+ALTER TABLE graphsync.action_definition
+    ADD CONSTRAINT action_definition_origin_check
+    CHECK (origin IN ('manual', 'openapi'));
+
+ALTER TABLE graphsync.action_invocation
+    ADD COLUMN IF NOT EXISTS compensation_of uuid REFERENCES graphsync.action_invocation(invocation_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_graphsync_action_compensation
+    ON graphsync.action_invocation (compensation_of)
+    WHERE compensation_of IS NOT NULL;
+
 CREATE INDEX IF NOT EXISTS ix_graphsync_action_invocation
     ON graphsync.action_invocation (action_key, started_at DESC);
 
@@ -1119,78 +1164,13 @@ CREATE TABLE IF NOT EXISTS graphsync.action_event (
     created_at            timestamptz NOT NULL DEFAULT now()
 );
 
--- Curated tables contain only governance-approved projections. The initial
--- implementation creates the contract-shaped targets but preview runs do not
--- write business rows into them.
-CREATE TABLE IF NOT EXISTS camstar_curated.product (
-    source_product_id     text PRIMARY KEY,
-    product_base_id       text,
-    revision              text,
-    description           text,
-    status                integer,
-    object_type           text,
-    workflow_id           text,
-    product_type_id       text,
-    change_count          bigint,
-    source_payload        jsonb NOT NULL DEFAULT '{}'::jsonb,
-    source_hash           text NOT NULL,
-    source_change_at      timestamptz,
-    curated_at            timestamptz NOT NULL DEFAULT now(),
-    curation_run_id       uuid NOT NULL REFERENCES graphsync.curation_run(curation_run_id)
-);
-
-CREATE TABLE IF NOT EXISTS camstar_curated.mfg_order (
-    source_mfg_order_id   text PRIMARY KEY,
-    order_name            text NOT NULL,
-    description           text,
-    ordered_product_id    text,
-    begin_product_id      text,
-    quantity              numeric,
-    order_status_id       text,
-    reporting_factory_id  text,
-    planned_start_at      timestamptz,
-    planned_completion_at timestamptz,
-    last_change_at        timestamptz,
-    change_count          bigint,
-    source_payload        jsonb NOT NULL DEFAULT '{}'::jsonb,
-    source_hash           text NOT NULL,
-    curated_at            timestamptz NOT NULL DEFAULT now(),
-    curation_run_id       uuid NOT NULL REFERENCES graphsync.curation_run(curation_run_id)
-);
-
-CREATE INDEX IF NOT EXISTS ix_curated_mfg_order_product
-    ON camstar_curated.mfg_order (ordered_product_id);
-
-CREATE TABLE IF NOT EXISTS camstar_curated.mfg_order_product_link (
-    source_mfg_order_id   text NOT NULL,
-    relationship_name    text NOT NULL CHECK (relationship_name IN (
-                             'ORDERED_PRODUCT', 'BEGIN_PRODUCT'
-                         )),
-    source_product_id     text NOT NULL,
-    resolution_status    text NOT NULL CHECK (resolution_status IN (
-                             'resolved', 'pending', 'quarantined'
-                         )),
-    curated_at            timestamptz NOT NULL DEFAULT now(),
-    curation_run_id       uuid NOT NULL REFERENCES graphsync.curation_run(curation_run_id),
-    PRIMARY KEY (source_mfg_order_id, relationship_name)
-);
-
-CREATE INDEX IF NOT EXISTS ix_curated_mfg_order_product_target
-    ON camstar_curated.mfg_order_product_link (source_product_id, relationship_name);
-
-CREATE TABLE IF NOT EXISTS camstar_curated.quarantine_record (
-    quarantine_id        uuid PRIMARY KEY,
-    curation_run_id      uuid NOT NULL REFERENCES graphsync.curation_run(curation_run_id) ON DELETE CASCADE,
-    contract_key         text NOT NULL REFERENCES graphsync.data_contract(contract_key),
-    source_primary_key   jsonb NOT NULL,
-    rule_keys            jsonb NOT NULL,
-    source_payload       jsonb NOT NULL,
-    status               text NOT NULL DEFAULT 'open' CHECK (status IN (
-                             'open', 'resolved', 'ignored', 'expired'
-                         )),
-    created_at           timestamptz NOT NULL DEFAULT now(),
-    resolved_at          timestamptz
-);
+-- v8 proof-of-concept entity tables were replaced by the generic immutable
+-- object/relationship stores above.  The DROP targets are explicit and stay
+-- inside camstar_curated; Product and MfgOrder contracts remain governed.
+DROP TABLE IF EXISTS camstar_curated.mfg_order_product_link;
+DROP TABLE IF EXISTS camstar_curated.mfg_order;
+DROP TABLE IF EXISTS camstar_curated.product;
+DROP TABLE IF EXISTS camstar_curated.quarantine_record;
 
 CREATE OR REPLACE FUNCTION graphsync.touch_updated_at()
 RETURNS trigger LANGUAGE plpgsql AS $$
@@ -1388,6 +1368,10 @@ INSERT INTO graphsync.schema_version (version, description)
 VALUES (14, 'Generic related-table attribute projections for any governed object')
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (15, 'Single-database generic curated storage and configurable governed actions')
+ON CONFLICT (version) DO NOTHING;
+
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)
 VALUES
@@ -1474,7 +1458,7 @@ VALUES
      '["ProductId", "ProductBaseId", "ProductRevision", "Description", "Status", "ObjectType", "WorkflowId", "ProductTypeId", "ChangeCount"]'::jsonb,
      '["ProductId"]'::jsonb, NULL, 'core',
      '{"maxErrorRate":0,"maxWarningRate":0.05}'::jsonb,
-     '{"targetTable":"camstar_curated.product","businessKeyRequiresReview":true}'::jsonb),
+     '{"targetStore":"camstar_curated.object_version","businessKeyRequiresReview":true}'::jsonb),
     ('opcenter2607-mfgorder-v1', 'opcenter2607-core', 'MfgOrder',
      'CamstarPRD_SCHEMA', 'MfgOrder', '["MfgOrderId"]'::jsonb,
      '["MfgOrderName"]'::jsonb,
@@ -1482,8 +1466,12 @@ VALUES
      '["MfgOrderId", "MfgOrderName", "ProductId"]'::jsonb,
      'LastChangeDate', 'core',
      '{"maxErrorRate":0,"maxWarningRate":0.05}'::jsonb,
-     '{"targetTable":"camstar_curated.mfg_order"}'::jsonb)
+     '{"targetStore":"camstar_curated.object_version"}'::jsonb)
 ON CONFLICT (contract_key) DO NOTHING;
+
+UPDATE graphsync.data_contract
+SET config=(config - 'targetTable') || jsonb_build_object('targetStore', 'camstar_curated.object_version')
+WHERE config ? 'targetTable';
 
 INSERT INTO graphsync.relationship_contract
     (relationship_contract_key, profile_key, source_contract_key,
@@ -1569,29 +1557,14 @@ VALUES
      '{"description":"最近 Graph Studio 发布失败"}'::jsonb)
 ON CONFLICT (rule_key) DO NOTHING;
 
-INSERT INTO graphsync.action_definition
-    (action_key, title, description, object_class, endpoint_path, http_method,
-     input_schema, allowed_roles, approval_required, enabled, retry_policy, config)
-VALUES
-    ('camstar.mfgorder.update', '更新制造订单',
-     '通过 Camstar 业务 API 更新 MfgOrder；默认禁用，完成接口与权限验收后才能启用。',
-     'MfgOrder', '/api/mfgorders/{MfgOrderId}', 'PATCH',
-     '{"type":"object","required":["MfgOrderId","changes"],"properties":{"MfgOrderId":{"type":"string"},"changes":{"type":"object"}}}'::jsonb,
-     '["camstar_operator","camstar_admin"]'::jsonb, true, false,
-     '{"maxAttempts":1,"retryStatuses":[429,502,503,504]}'::jsonb,
-     '{"pathParameters":["MfgOrderId"],"writeBoundary":"camstar_api_only","profileKey":"opcenter2607-core"}'::jsonb),
-    ('camstar.mfgorder.release', '下达制造订单',
-     '通过 Camstar 业务 API 下达 MfgOrder；必须独立审批。',
-     'MfgOrder', '/api/mfgorders/{MfgOrderId}/release', 'POST',
-     '{"type":"object","required":["MfgOrderId"],"properties":{"MfgOrderId":{"type":"string"}}}'::jsonb,
-     '["camstar_planner","camstar_admin"]'::jsonb, true, false,
-     '{"maxAttempts":1,"retryStatuses":[429,502,503,504]}'::jsonb,
-     '{"pathParameters":["MfgOrderId"],"writeBoundary":"camstar_api_only","profileKey":"opcenter2607-core"}'::jsonb)
-ON CONFLICT (action_key) DO UPDATE SET
-    config=graphsync.action_definition.config || EXCLUDED.config,
-    input_schema=EXCLUDED.input_schema,
-    allowed_roles=EXCLUDED.allowed_roles,
-    retry_policy=EXCLUDED.retry_policy;
+-- Remove the two v13 proof-of-concept MfgOrder actions only when they have no
+-- audit history.  Real user-defined actions and invocations are never deleted.
+DELETE FROM graphsync.action_definition definition
+WHERE definition.action_key IN ('camstar.mfgorder.update', 'camstar.mfgorder.release')
+  AND NOT EXISTS (
+      SELECT 1 FROM graphsync.action_invocation invocation
+      WHERE invocation.action_key=definition.action_key
+  );
 
 INSERT INTO graphsync.asset_dependency
     (dependency_id, profile_key, upstream_type, upstream_key,

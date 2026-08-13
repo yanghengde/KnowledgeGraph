@@ -219,6 +219,12 @@ flowchart LR
 - 默认禁止同名覆盖。显式 `overwrite` 可用关联值替代主值，`coalesce` 仅在主值为空时补齐。
 - 主对象的增量事件会刷新其投影；仅扩展表发生变化时，由定时治理版本进行一致性重算。生产上如需秒级更新，应为扩展表另行配置 CDC 失效队列，不能用全表轮询替代。
 
+### 单库收敛与通用 Action（控制面 v15）
+
+正式 PostgreSQL 只使用 `OpcenterGraph`：`graphsync` 保存契约、任务、审批和审计，`camstar_curated` 只保存通用不可变对象/关系版本。v8 的 `product`、`mfg_order`、`mfg_order_product_link` 和独立 `quarantine_record` 已删除；隔离状态及问题直接记录在 `object_version.record_status/quality_issues`，避免对象增加时继续增加物理专表。
+
+Action 定义不再由初始化 SQL 写死。管理员可手工创建，或从 `src/Swagger` 中选择一个具体写操作导入；系统不会为所有对象批量生成 CRUD。每次编辑都会回到禁用草案，按 `draft → reviewed → approved` 治理。生产身份不能由浏览器填写：`ACTION_AUTH_MODE=trusted_headers` 时，只接受可信反向代理携带共享代理凭据注入的用户和角色；默认 `disabled` 模式仅允许预演。补偿 Action 是另一条已批准定义，针对成功调用单独创建补偿 invocation，重新经过角色校验、幂等和审批，成功后把原调用标记为 `compensated`。
+
 ### 阶段 2：不可变治理版本
 
 - Schema 变更按 `analysis_ready → reviewed → approved → applying → applied` 推进；应用操作只更新字段目录和数据契约版本，不对 Camstar 执行 DDL。
