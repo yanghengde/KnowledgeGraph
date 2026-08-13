@@ -5,6 +5,7 @@ from src.graphstudio_sync.deployment import (
     _catalog_entry,
     _ensure_dataset,
     _ensure_model,
+    _requires_dataset_replacement,
     release_model_uri,
 )
 from src.graphstudio_sync.materialization import (
@@ -73,6 +74,7 @@ class _DatasetSession:
     def __init__(self, deployment_id):
         self.deployment_id = str(deployment_id)
         self.deleted = []
+        self.delete_kwargs = []
         self.uploaded = 0
 
     def get(self, url, **_kwargs):
@@ -83,8 +85,9 @@ class _DatasetSession:
             }])
         return _GraphStudioResponse({"catalogEntry": ["http://example.com/catalog/new"]})
 
-    def delete(self, url, **_kwargs):
+    def delete(self, url, **kwargs):
         self.deleted.append(url)
+        self.delete_kwargs.append(kwargs)
         return _GraphStudioResponse({"deleted": True})
 
     def post(self, _url, **_kwargs):
@@ -116,9 +119,19 @@ def test_ensure_dataset_replaces_legacy_orphan_before_upload(tmp_path) -> None:
     )
 
     assert session.deleted and "http%3A%2F%2Fexample.com%2Fdataset%2Fold" in session.deleted[0]
+    assert session.delete_kwargs[0]["params"] == {"force": "true"}
     assert session.uploaded == 1
     assert dataset_uri == "http://example.com/dataset/new"
     assert catalog == "http://example.com/catalog/new"
+
+
+def test_dataset_replacement_remains_pending_after_force_delete_failure() -> None:
+    plan = {"modelUri": release_model_uri("release-1")}
+    error = {"message": "Remove obsolete deployment dataset failed: HTTP 500"}
+
+    assert _requires_dataset_replacement(plan, error) is True
+    assert _requires_dataset_replacement({**plan, "replaceExistingDataset": True}, {}) is True
+    assert _requires_dataset_replacement(plan, {}) is False
 
 
 def _contract(**overrides):

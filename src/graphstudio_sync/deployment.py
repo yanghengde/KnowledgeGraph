@@ -572,7 +572,11 @@ def _ensure_dataset(
         existing_uri = _find_uri(existing, ("uri", "datasetUri"))
         if existing_uri:
             _require(
-                session.delete(f"{base}/api/datasets/{quote(existing_uri, safe='')}", timeout=60),
+                session.delete(
+                    f"{base}/api/datasets/{quote(existing_uri, safe='')}",
+                    params={"force": "true"},
+                    timeout=60,
+                ),
                 "Remove obsolete deployment dataset",
             )
         existing = None
@@ -605,6 +609,19 @@ def _ensure_dataset(
     if not catalog:
         raise RuntimeError("Graph Studio dataset response has no catalog entry")
     return dataset_uri, catalog
+
+
+def _requires_dataset_replacement(
+    validation_plan: dict[str, Any], previous_error: Any,
+) -> bool:
+    if not validation_plan.get("modelUri") or validation_plan.get("replaceExistingDataset"):
+        return True
+    previous_error_message = (
+        str(previous_error.get("message") or "")
+        if isinstance(previous_error, dict)
+        else str(previous_error or "")
+    )
+    return "Remove obsolete deployment dataset failed" in previous_error_message
 
 
 def _ensure_layer(
@@ -709,6 +726,15 @@ def apply_deployment(
         raise RuntimeError("Graph Studio apply is disabled for this environment")
     validation_plan = dict(deployment.get("validation_plan") or {})
     legacy_artifact = not validation_plan.get("modelUri")
+    replace_existing_dataset = _requires_dataset_replacement(
+        validation_plan, deployment.get("error"),
+    )
+    if replace_existing_dataset:
+        # Keep this marker until the replacement upload succeeds.  Without it, a
+        # failed cleanup followed by another retry could reuse the legacy ZIP
+        # dataset, which still contains the ontology triples we now register as
+        # an immutable Graph Studio model.
+        validation_plan["replaceExistingDataset"] = True
     model_path_value = validation_plan.get("modelPath")
     if legacy_artifact or not model_path_value or not Path(model_path_value).is_file():
         artifact = build_curated_rdf(
@@ -730,6 +756,7 @@ def apply_deployment(
         deployment["artifact_uri"] = artifact["zipPath"]
         deployment["artifact_hash"] = artifact["artifactHash"]
         deployment["ontology_release_id"] = uuid.UUID(artifact["ontologyReleaseId"])
+        deployment["validation_plan"] = validation_plan
         with repository.engine.begin() as connection:
             connection.execute(
                 text(
@@ -767,8 +794,15 @@ def apply_deployment(
     encoded_graphmart = quote(graphmart_uri, safe="")
     with repository.engine.begin() as connection:
         connection.execute(
-            text("UPDATE graphsync.deployment_release SET status='uploading', error='{}'::jsonb, finished_at=NULL WHERE deployment_id=:id"),
-            {"id": deployment_id},
+            text(
+                """
+                UPDATE graphsync.deployment_release
+                SET status='uploading', error='{}'::jsonb, finished_at=NULL,
+                    validation_plan=CAST(:validation_plan AS jsonb)
+                WHERE deployment_id=:id
+                """
+            ),
+            {"id": deployment_id, "validation_plan": json.dumps(validation_plan)},
         )
     dataset_uri = deployment.get("dataset_uri")
     layer_uri = deployment.get("layer_uri")
@@ -783,12 +817,26 @@ def apply_deployment(
             zip_path=zip_path,
             model_uri=model_uri,
             settings=settings,
-            reuse_existing=not legacy_artifact,
+            reuse_existing=not replace_existing_dataset,
         )
+        validation_plan["replaceExistingDataset"] = False
+        deployment["validation_plan"] = validation_plan
         with repository.engine.begin() as connection:
             connection.execute(
-                text("UPDATE graphsync.deployment_release SET dataset_uri=:dataset, catalog_entry=:catalog WHERE deployment_id=:id"),
-                {"id": deployment_id, "dataset": dataset_uri, "catalog": catalog},
+                text(
+                    """
+                    UPDATE graphsync.deployment_release
+                    SET dataset_uri=:dataset, catalog_entry=:catalog,
+                        validation_plan=CAST(:validation_plan AS jsonb)
+                    WHERE deployment_id=:id
+                    """
+                ),
+                {
+                    "id": deployment_id,
+                    "dataset": dataset_uri,
+                    "catalog": catalog,
+                    "validation_plan": json.dumps(validation_plan),
+                },
             )
         layer_title = f"{deployment['profile_key']} {deployment['slot']} {str(deployment_id)[:8]}"
         layer_uri = _ensure_layer(
