@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+import pytest
+
 from src.graphstudio_sync import publish_ontology
 
 
@@ -37,6 +39,36 @@ def test_governance_status_includes_active_release_graph(monkeypatch):
 
     assert result["activeRelease"] == active
     assert result["activeReleaseGraph"] == frozen
+
+
+def test_freeze_does_not_require_a_second_local_approver(monkeypatch):
+    monkeypatch.setattr(publish_ontology, "_workspace_row", lambda *_: {
+        "workspace_key": "demo", "workspace_id": "workspace-1", "profile_key": "profile",
+        "status": "reviewed", "reviewed_by": "same-user", "revision": 3,
+    })
+    monkeypatch.setattr(publish_ontology, "validate_workspace", lambda *_: {
+        "valid": True, "contentHash": "hash", "counts": {"classes": 1, "properties": 0, "relationships": 0},
+    })
+    monkeypatch.setattr(publish_ontology, "workspace_graph", lambda *_: {"nodes": [], "edges": [], "properties": []})
+
+    class _Begin:
+        def __enter__(self):
+            raise RuntimeError("database reached")
+
+        def __exit__(self, *_args):
+            return None
+
+    repository = SimpleNamespace(engine=SimpleNamespace(begin=lambda: _Begin()))
+
+    with pytest.raises(RuntimeError, match="database reached"):
+        publish_ontology.approve_workspace(SimpleNamespace(), repository, "demo", "same-user")
+
+
+def test_freeze_rejects_an_already_frozen_workspace(monkeypatch):
+    monkeypatch.setattr(publish_ontology, "_workspace_row", lambda *_: {"status": "frozen"})
+
+    with pytest.raises(ValueError, match="Only a draft workspace may be frozen"):
+        publish_ontology.approve_workspace(SimpleNamespace(), SimpleNamespace(), "demo", "local-console")
 
 
 def test_publish_ontology_requires_a_core_object(monkeypatch) -> None:

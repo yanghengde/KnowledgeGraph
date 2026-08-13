@@ -844,10 +844,8 @@ def _freeze_graph(settings: SyncSettings, workspace_key: str, release_id: str, r
 
 def approve_workspace(settings: SyncSettings, repository: ControlPlaneRepository, workspace_key: str, actor: str) -> dict[str, Any]:
     workspace = _workspace_row(repository, workspace_key)
-    if workspace["status"] != "reviewed":
-        raise ValueError("Workspace must be reviewed before approval")
-    if not workspace.get("reviewed_by") or workspace["reviewed_by"] == actor:
-        raise ValueError("Reviewer and approver must be different people")
+    if workspace["status"] not in {"draft", "reviewed"}:
+        raise ValueError("Only a draft workspace may be frozen")
     validation = validate_workspace(settings, repository, workspace_key)
     if not validation["valid"]:
         raise ValueError("Ontology validation failed")
@@ -864,9 +862,14 @@ def approve_workspace(settings: SyncSettings, repository: ControlPlaneRepository
             {"profile": workspace["profile_key"], "hash": validation["contentHash"]},
         ).mappings().one_or_none()
     if duplicate:
+        with repository.engine.begin() as connection:
+            connection.execute(
+                text("UPDATE graphsync.ontology_workspace SET status='frozen' WHERE workspace_key=:key"),
+                {"key": workspace_key},
+            )
         return {"releaseId": str(duplicate["ontology_release_id"]), "releaseNo": duplicate["release_no"], "status": duplicate["status"], "duplicate": True}
-    _freeze_graph(settings, workspace_key, release_id, release_no, snapshot)
     try:
+        _freeze_graph(settings, workspace_key, release_id, release_no, snapshot)
         with repository.engine.begin() as connection:
             connection.execute(
                 text(
@@ -899,13 +902,16 @@ def approve_workspace(settings: SyncSettings, repository: ControlPlaneRepository
                 {"key": workspace_key},
             )
     except Exception:
-        driver, session = _publish_session(settings)
         try:
-            session.run("MATCH (r:OntologyRelease {releaseId:$id}) DETACH DELETE r", id=release_id).consume()
-            session.run("MATCH (n {releaseId:$id}) DETACH DELETE n", id=release_id).consume()
-        finally:
-            session.close()
-            driver.close()
+            driver, session = _publish_session(settings)
+            try:
+                session.run("MATCH (r:OntologyRelease {releaseId:$id}) DETACH DELETE r", id=release_id).consume()
+                session.run("MATCH (n {releaseId:$id}) DETACH DELETE n", id=release_id).consume()
+            finally:
+                session.close()
+                driver.close()
+        except Exception:
+            pass
         raise
     return {"releaseId": release_id, "releaseNo": release_no, "status": "approved", "duplicate": False}
 

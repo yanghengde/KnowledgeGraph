@@ -6,7 +6,7 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-21">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-26">
 </head>
 <body>
     <div class="app-shell">
@@ -23,6 +23,8 @@
                 <div class="nav-skeleton short"></div>
             </nav>
             <div class="sidebar-footer">
+                <div class="sidebar-caption advanced-caption">高级功能</div>
+                <nav id="advancedNavigation" class="advanced-nav" aria-label="高级功能"></nav>
                 <a href="/ontology" class="workspace-link">
                     <span class="workspace-icon">◇</span>
                     <span><strong>本体工作台</strong><small>辅助建模与查询</small></span>
@@ -59,33 +61,21 @@
                         <article class="metric-card"><span>最近成功</span><strong id="metricLastSuccess">—</strong><small>Graphmart 发布</small></article>
                     </div>
 
-                    <article class="panel pipeline-panel">
+                    <article class="panel release-journey-panel">
                         <div class="panel-heading">
-                            <div><span class="section-kicker">DATA FLOW</span><h3>主数据链路</h3></div>
-                            <span class="panel-note">检查点仅在 SPARQL 验收成功后提交</span>
+                            <div><span class="section-kicker">RELEASE STATUS</span><h3>从本体治理到 Graph Studio</h3></div>
+                            <span class="panel-note">每一步都由实时版本和发布记录判断</span>
                         </div>
-                        <div class="pipeline">
-                            <div class="pipeline-node"><i>01</i><strong>Camstar</strong><span>SQL Server 数据</span></div>
-                            <b>→</b>
-                            <div class="pipeline-node"><i>02</i><strong>Source Ontology</strong><span>完整 Neo4j 映射</span></div>
-                            <b>→</b>
-                            <button class="pipeline-node pipeline-button active" data-go="ontology_governance"><i>03</i><strong>Ontology Governance</strong><span>G6 编辑与版本审批</span></button>
-                            <b>→</b>
-                            <div class="pipeline-node"><i>04</i><strong>RDF Build</strong><span>模型 + 数据版本</span></div>
-                            <b>→</b>
-                            <div class="pipeline-node"><i>05</i><strong>Graph Studio</strong><span>Dataset 切换</span></div>
-                            <b>→</b>
-                            <div class="pipeline-node"><i>06</i><strong>Verify</strong><span>SPARQL 验收</span></div>
-                        </div>
+                        <div id="overviewReleaseJourney" class="release-journey"></div>
                     </article>
 
                     <div class="two-column">
                         <article class="panel">
-                            <div class="panel-heading"><div><span class="section-kicker">CONNECTIONS</span><h3>链路健康</h3></div><button class="text-btn" data-go="connections">管理连接</button></div>
+                            <div class="panel-heading"><div><span class="section-kicker">CONNECTIONS</span><h3>链路健康</h3></div><button class="text-btn" data-go="connections">进入数据接入</button></div>
                             <div id="overviewConnections" class="compact-list loading-list"></div>
                         </article>
                         <article class="panel">
-                            <div class="panel-heading"><div><span class="section-kicker">RECENT RUNS</span><h3>最近运行</h3></div><button class="text-btn" data-go="runs">查看全部</button></div>
+                            <div class="panel-heading"><div><span class="section-kicker">RECENT RUNS</span><h3>最近运行</h3></div><button class="text-btn" data-go="observability">进入运行监控</button></div>
                             <div id="overviewRuns" class="compact-list loading-list"></div>
                         </article>
                     </div>
@@ -94,13 +84,23 @@
                 <section class="page-section" data-section="ontology_governance">
                     <div class="section-header">
                         <div><span class="section-kicker">PUBLISH ONTOLOGY</span><h2>本体治理</h2><p>从完整 Camstar 源本体选择对象，在独立 Neo4j 数据库中编辑 Graph Studio 发布模型。RDF 只读取已批准并激活的不可变本体版本。</p></div>
-                        <div class="card-action-buttons">
-                            <button class="btn secondary" id="validatePublishOntology">校验</button>
-                            <button class="btn secondary" id="reviewPublishOntology">提交复核</button>
-                            <button class="btn primary" id="approvePublishOntology">批准并冻结</button>
+                    </div>
+                    <div class="ontology-governance-toolbar">
+                        <div id="ontologyGovernanceSummary" class="capability-summary"></div>
+                        <div class="card-action-buttons ontology-governance-actions">
+                            <button class="btn secondary ontology-flow-button" id="validatePublishOntology"><i>1</i><span><strong>校验</strong><small>检查模型</small></span></button>
+                            <button class="btn primary ontology-flow-button" id="approvePublishOntology"><i>2</i><span><strong>生成冻结版本</strong><small>创建不可变快照</small></span></button>
                         </div>
                     </div>
-                    <div id="ontologyGovernanceSummary" class="capability-summary"></div>
+                    <div id="ontologyWorkflowFeedback" class="ontology-workflow-feedback" aria-live="polite"></div>
+                    <article class="panel ontology-result-panel">
+                        <div class="panel-heading">
+                            <div><span class="section-kicker">GOVERNED RESULT</span><h3>治理结果与下一步</h3></div>
+                            <button class="mini-btn" data-go="profiles">进入数据治理</button>
+                        </div>
+                        <div id="ontologyResultSummary" class="ontology-result-summary"></div>
+                        <div id="ontologyReleaseJourney" class="release-journey compact"></div>
+                    </article>
                     <div id="ontologyGovernanceEmpty" class="panel ontology-empty" hidden>
                         <span class="section-kicker">INITIALIZE</span>
                         <h3>建立发布本体工作区</h3>
@@ -111,7 +111,7 @@
                         <article class="ontology-discovery-canvas panel">
                             <div class="panel-heading"><div><span class="section-kicker">SOURCE ONTOLOGY</span><h3>选择 Camstar 本体对象</h3></div><div class="card-action-buttons"><span id="ontologyDiscoveryPlanState" class="count-badge">加载图谱</span><button class="mini-btn" id="toggleOntologyDiscoveryFocus">聚焦所选</button><button class="mini-btn" id="fitOntologyDiscoveryGraph">适应画布</button></div></div>
                             <div id="ontologyDiscoveryGraph" aria-label="Camstar 源本体 G6 画布"></div>
-                            <div class="ontology-discovery-legend"><span><i class="selected"></i>当前选择</span><span><i class="existing"></i>已在草案</span><span><i></i>源本体对象</span></div>
+                            <div class="ontology-discovery-legend"><span><i class="selected"></i>当前选择</span><span><i class="followed"></i>旧图谱关注</span><span><i class="existing"></i>已在草案</span><span><i></i>源本体对象</span></div>
                         </article>
                         <aside class="ontology-inspector panel ontology-unified-inspector">
                             <div class="panel-heading"><div><span class="section-kicker">OBJECT EDITOR</span><h3>对象配置</h3></div></div>
@@ -127,6 +127,7 @@
                 </section>
 
                 <section class="page-section" data-section="connections">
+                    <div class="section-tabs" data-section-tabs="ingestion"></div>
                     <div class="section-header">
                         <div><span class="section-kicker">CONNECTION PROFILES</span><h2>连接管理</h2><p>连接元数据保存在 PostgreSQL，密码由环境变量引用，页面和数据库均不保存明文密码。</p></div>
                         <button class="btn primary" id="testConnectionsPage">测试全部连接</button>
@@ -135,6 +136,7 @@
                 </section>
 
                 <section class="page-section" data-section="jobs">
+                    <div class="section-tabs" data-section-tabs="ingestion"></div>
                     <div class="section-header">
                         <div><span class="section-kicker">ORCHESTRATION</span><h2>同步任务</h2><p>配置同步模式、Cron 表达式、时区及产物保留策略。生产调度由外部 CronJob 触发。</p></div>
                     </div>
@@ -150,8 +152,9 @@
                 </section>
 
                 <section class="page-section" data-section="profiles">
+                    <div class="section-tabs" data-section-tabs="data_governance"></div>
                     <div class="section-header">
-                        <div><span class="section-kicker">BUSINESS GRAPH</span><h2>业务图谱</h2><p>保留完整本体，但只从核心对象沿审核通过的关系构建有上下文的实例图谱。弱关联仅可查询，不会触发图谱扩展。</p></div>
+                        <div><span class="section-kicker">DATA GOVERNANCE</span><h2>数据治理</h2><p>对象与关系范围以上游已激活本体版本为准；在这里补充物理数据契约、业务键、质量规则和上下文扩展策略。</p></div>
                         <div class="card-action-buttons"><button class="btn secondary" id="editGraphProfile">配置边界</button><button class="btn primary" id="planContextClosure">预览上下文闭包</button></div>
                     </div>
                     <div id="profileMetrics" class="metric-grid"></div>
@@ -195,6 +198,7 @@
                 </section>
 
                 <section class="page-section" data-section="projections">
+                    <div class="section-tabs" data-section-tabs="data_governance"></div>
                     <div class="section-header">
                         <div><span class="section-kicker">CONFIGURED ENRICHMENT</span><h2>属性投影</h2><p>把任意关联表中的字段合并到主本体对象。简单场景只需填写关联键与字段映射；多跳关联、过滤和排序可在高级配置中声明。</p></div>
                         <button class="btn primary" id="newAttributeProjection">新增属性投影</button>
@@ -207,8 +211,9 @@
                 </section>
 
                 <section class="page-section" data-section="releases">
+                    <div class="section-tabs" data-section-tabs="publishing"></div>
                     <div class="section-header">
-                        <div><span class="section-kicker">CURATED RELEASES</span><h2>治理版本</h2><p>以不可变快照分批物化 Camstar 数据；验证通过后切换活动指针，回滚无需重扫源库。</p></div>
+                        <div><span class="section-kicker">CURATED DATA RELEASES</span><h2>数据版本</h2><p>这里保存的是依据活动本体版本物化的 Camstar 数据快照，与“本体 R1”相互独立；验证通过后才切换活动指针。</p></div>
                         <div class="card-action-buttons"><button class="btn secondary" id="planMaterialization">预览物化计划</button><button class="btn primary" id="runMaterialization">执行已审批物化</button></div>
                     </div>
                     <div id="materializationPlan" class="capability-summary"></div>
@@ -216,13 +221,15 @@
                 </section>
 
                 <section class="page-section" data-section="deployments">
+                    <div class="section-tabs" data-section-tabs="publishing"></div>
                     <div class="section-header"><div><span class="section-kicker">PROMOTION PIPELINE</span><h2>环境发布</h2><p>同一不可变制品按 Dev → UAT → Prod 晋级，使用蓝绿图层和验收门禁，旧图层保留用于回滚。</p></div></div>
                     <div id="environmentCards" class="job-grid"></div>
                     <article class="panel table-panel" style="margin-top:18px"><div class="panel-heading"><div><span class="section-kicker">DEPLOYMENT LEDGER</span><h3>发布记录</h3></div></div><div class="table-wrap"><table><thead><tr><th>环境</th><th>治理版本</th><th>槽位</th><th>制品</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="deploymentRows"></tbody></table></div></article>
                 </section>
 
                 <section class="page-section" data-section="observability">
-                    <div class="section-header"><div><span class="section-kicker">LINEAGE & HEALTH</span><h2>血缘监控</h2><p>跟踪字段从 Camstar 到治理层、RDF 和 Graph Studio 的运行时血缘，并持续检查新鲜度、关系完整性和发布健康。</p></div><button class="btn primary" id="runHealthCheck">运行健康检查</button></div>
+                    <div class="section-tabs" data-section-tabs="monitoring"></div>
+                    <div class="section-header"><div><span class="section-kicker">LINEAGE & HEALTH</span><h2>运行监控</h2><p>跟踪字段从 Camstar 到治理层、RDF 和 Graph Studio 的运行时血缘，并持续检查新鲜度、关系完整性和发布健康。</p></div><button class="btn primary" id="runHealthCheck">运行健康检查</button></div>
                     <div id="healthMetrics" class="metric-grid"></div>
                     <div class="two-column"><article class="panel"><div class="panel-heading"><div><span class="section-kicker">ALERTS</span><h3>告警</h3></div></div><div id="alertList" class="profile-issues"></div></article><article class="panel"><div class="panel-heading"><div><span class="section-kicker">RUNTIME LINEAGE</span><h3>最近血缘</h3></div></div><div id="lineageList" class="profile-issues"></div></article></div>
                 </section>
@@ -235,6 +242,7 @@
                 </section>
 
                 <section class="page-section" data-section="mappings">
+                    <div class="section-tabs" data-section-tabs="data_governance"></div>
                     <div class="section-header">
                         <div><span class="section-kicker">ONTOLOGY COMPILER</span><h2>映射管理</h2><p>Neo4j 本体类和属性映射到 Camstar 物理表列；不确定项必须显式确认，运行时不盲目猜测。</p></div>
                         <button class="btn primary" id="compileMappings">重新编译映射</button>
@@ -251,6 +259,7 @@
                 </section>
 
                 <section class="page-section" data-section="runs">
+                    <div class="section-tabs" data-section-tabs="monitoring"></div>
                     <div class="section-header">
                         <div><span class="section-kicker">AUDIT TRAIL</span><h2>运行记录</h2><p>记录每次同步的阶段、行数、三元组、校验结果和失败原因。</p></div>
                     </div>
@@ -261,7 +270,7 @@
 
                 <section class="page-section" data-section="settings">
                     <div class="section-header">
-                        <div><span class="section-kicker">PLATFORM</span><h2>系统设置</h2><p>配置同步中心参数与左侧菜单。不可编辑的主流程标识由系统保护。</p></div>
+                        <div><span class="section-kicker">PLATFORM</span><h2>系统设置</h2><p>配置同步中心参数，以及六个业务阶段菜单和高级功能的可见性。不可编辑的主流程标识由系统保护。</p></div>
                     </div>
                     <div class="settings-layout">
                         <article class="panel"><div class="panel-heading"><div><span class="section-kicker">APPLICATION</span><h3>平台参数</h3></div></div><div id="settingList" class="setting-list"></div></article>
@@ -276,12 +285,13 @@
         <form method="dialog" id="editForm">
             <div class="dialog-heading"><div><span class="section-kicker" id="dialogKicker">CONFIGURATION</span><h2 id="dialogTitle">编辑配置</h2></div><button type="button" id="dialogClose" class="dialog-close" aria-label="关闭">×</button></div>
             <div id="dialogFields" class="dialog-fields"></div>
+            <div id="dialogFeedback" class="dialog-feedback" hidden></div>
             <div class="dialog-actions"><button type="button" id="dialogCancel" class="btn secondary">取消</button><button type="submit" value="default" class="btn primary" id="dialogSave">保存</button></div>
         </form>
     </dialog>
 
     <div id="toast" class="toast" hidden></div>
     <script src="/static/lib/g6.js"></script>
-    <script src="/static/sync.js?v=20260813-26"></script>
+    <script src="/static/sync.js?v=20260813-31"></script>
 </body>
 </html>

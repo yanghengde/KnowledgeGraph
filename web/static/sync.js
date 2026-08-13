@@ -12,6 +12,7 @@
         ontologyGovernance: { workspaces: [], graph: { nodes: [], edges: [], properties: [] }, releases: [] },
         ontologySourceCandidates: [],
         ontologyValidation: null,
+        ontologyWorkflowNotice: null,
         selectedOntologyClassUid: null,
         ontologyPropertyFilter: "",
         ontologyGovernanceStage: "discover",
@@ -40,12 +41,26 @@
         runs: [],
         settings: [],
         dialogSubmit: null,
+        dialogSubmitLabel: "保存",
+        dialogBusyLabel: "处理中…",
     };
     let ontologyGovernanceGraph = null;
     let ontologyDiscoveryGraph = null;
 
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+    const NAVIGATION_GROUPS = [
+        { key: "overview", label: "总览", icon: "OV", sections: ["overview"] },
+        { key: "ingestion", label: "数据接入", icon: "IN", sections: ["connections", "jobs"], tabs: [["connections", "连接与凭据"], ["jobs", "任务与增量策略"]] },
+        { key: "ontology_governance", label: "本体治理", icon: "OG", sections: ["ontology_governance"] },
+        { key: "data_governance", label: "数据治理", icon: "DG", sections: ["profiles", "projections", "mappings"], tabs: [["profiles", "对象与关系契约"], ["projections", "属性投影"], ["mappings", "映射异常"]] },
+        { key: "publishing", label: "发布中心", icon: "PB", sections: ["releases", "deployments"], tabs: [["releases", "数据版本"], ["deployments", "环境发布"]] },
+        { key: "monitoring", label: "运行监控", icon: "MO", sections: ["observability", "runs"], tabs: [["observability", "健康与血缘"], ["runs", "运行记录"]] },
+    ];
+    const ADVANCED_NAVIGATION = [
+        { key: "actions", label: "业务动作", icon: "AC" },
+        { key: "settings", label: "系统设置", icon: "ST" },
+    ];
     const escapeHtml = (value) => String(value ?? "")
         .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
@@ -138,19 +153,41 @@
 
     function renderNavigation() {
         const nav = $("#syncNavigation");
-        nav.innerHTML = state.navigation.map(item => `
-            <a class="nav-item" href="${escapeHtml(item.route)}" data-section-key="${escapeHtml(item.menu_key)}" title="${escapeHtml(item.label_zh)}">
-                <span class="nav-icon">${iconCode(item.icon)}</span>
-                <span class="nav-label">${escapeHtml(item.label_zh)}</span>
+        const enabled = new Map(state.navigation.map(item => [item.menu_key, item.enabled]));
+        const groups = NAVIGATION_GROUPS.filter(group => group.sections.some(section => enabled.get(section) !== false));
+        nav.innerHTML = groups.map(group => `
+            <a class="nav-item" href="#${escapeHtml(group.sections[0])}" data-navigation-group="${escapeHtml(group.key)}" title="${escapeHtml(group.label)}">
+                <span class="nav-icon">${group.icon}</span>
+                <span class="nav-label">${escapeHtml(group.label)}</span>
             </a>`).join("");
+        const advanced = $("#advancedNavigation");
+        advanced.innerHTML = ADVANCED_NAVIGATION.filter(item => enabled.get(item.key) !== false).map(item => `
+            <a class="nav-item advanced" href="#${escapeHtml(item.key)}" data-navigation-group="${escapeHtml(item.key)}" title="${escapeHtml(item.label)}">
+                <span class="nav-icon">${item.icon}</span>
+                <span class="nav-label">${escapeHtml(item.label)}</span>
+            </a>`).join("");
+        renderSectionTabs();
         setActiveSection(location.hash.slice(1) || "overview");
     }
 
+    function renderSectionTabs() {
+        $$('[data-section-tabs]').forEach(container => {
+            const group = NAVIGATION_GROUPS.find(item => item.key === container.dataset.sectionTabs);
+            container.innerHTML = (group?.tabs || []).map(([key, label]) => `<button type="button" data-go="${key}">${escapeHtml(label)}</button>`).join("");
+        });
+    }
+
+    function navigationGroupFor(section) {
+        return NAVIGATION_GROUPS.find(group => group.sections.includes(section))?.key || section;
+    }
+
     function setActiveSection(key) {
-        const available = state.navigation.some(item => item.menu_key === key);
+        const available = $(`.page-section[data-section="${CSS.escape(key)}"]`);
         const selected = available ? key : "overview";
         $$(".page-section").forEach(section => section.classList.toggle("active", section.dataset.section === selected));
-        $$(".nav-item").forEach(item => item.classList.toggle("active", item.dataset.sectionKey === selected));
+        const activeGroup = navigationGroupFor(selected);
+        $$(".nav-item[data-navigation-group]").forEach(item => item.classList.toggle("active", item.dataset.navigationGroup === activeGroup));
+        $$("[data-section-tabs] button").forEach(item => item.classList.toggle("active", item.dataset.go === selected));
         if (location.hash !== `#${selected}`) history.replaceState(null, "", `#${selected}`);
     }
 
@@ -180,6 +217,107 @@
         runContainer.innerHTML = data.recentRuns.map(item => `
             <div class="compact-row"><div><strong>${escapeHtml(item.job_name)}</strong><small>${formatDate(item.started_at, true)} · ${Number(item.row_count || 0).toLocaleString()} 行</small></div><span class="status-pill ${item.status}">${statusLabel(item.status)}</span></div>
         `).join("") || '<div class="compact-row"><div><strong>尚无运行记录</strong><small>完成首次 dry-run 后会显示在这里</small></div><span class="status-pill unknown">待运行</span></div>';
+        renderReleaseStatus();
+    }
+
+    function releaseJourneyState() {
+        const ontology = state.ontologyGovernance?.activeRelease || null;
+        const blockers = state.materialization?.plan?.blockers || [];
+        const curated = state.deployments?.activeCuratedRelease
+            || (state.materialization?.releases || []).find(item => item.is_active)
+            || null;
+        const deployments = state.deployments?.deployments || [];
+        const graphStudio = deployments.find(item => item.status === "active") || null;
+        const latestDeployment = deployments[0] || null;
+        return [
+            {
+                key: "ontology", index: "01", title: "本体模型",
+                detail: ontology ? `R${ontology.release_no} 已激活` : "尚无活动版本",
+                status: ontology ? "complete" : "current", go: "ontology_governance",
+            },
+            {
+                key: "governance", index: "02", title: "数据治理",
+                detail: blockers.length ? `${blockers.length} 项门禁待处理` : ontology ? "门禁已通过" : "等待本体版本",
+                status: !ontology ? "waiting" : blockers.length ? "current" : "complete", go: "profiles",
+            },
+            {
+                key: "release", index: "03", title: "数据版本",
+                detail: curated ? `R${curated.release_no || "—"} 已激活` : "尚未生成",
+                status: curated ? "complete" : !blockers.length && ontology ? "current" : "waiting", go: "releases",
+            },
+            {
+                key: "deploy", index: "04", title: "Graph Studio",
+                detail: graphStudio ? `${String(graphStudio.environment_key || "").toUpperCase()} 已发布` : latestDeployment ? `${statusLabel(latestDeployment.status)}` : "尚未部署",
+                status: graphStudio ? "complete" : curated ? "current" : "waiting", go: "deployments",
+            },
+            {
+                key: "verify", index: "05", title: "SPARQL 验收",
+                detail: graphStudio ? "已随蓝绿发布通过" : "尚未执行",
+                status: graphStudio ? "complete" : "waiting", go: "observability",
+            },
+        ];
+    }
+
+    function renderReleaseJourney(container) {
+        if (!container) return;
+        container.innerHTML = releaseJourneyState().map((item, index) => `
+            ${index ? '<span class="journey-arrow">→</span>' : ""}
+            <button type="button" class="journey-stage ${item.status}" data-go="${item.go}">
+                <i>${item.status === "complete" ? "✓" : item.index}</i>
+                <span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small></span>
+            </button>`).join("");
+    }
+
+    function activeOntologyClassNames() {
+        return new Set((state.ontologyGovernance?.activeReleaseGraph?.classes || []).map(item => item.class?.targetName || item.class?.sourceClass).filter(Boolean));
+    }
+
+    function ontologyRelationKey(source, name, target) {
+        return [source, name, target].join("|");
+    }
+
+    function ontologyGovernanceDrift() {
+        const activeGraph = state.ontologyGovernance?.activeReleaseGraph || { classes: [], relationships: [] };
+        const governedClasses = new Set((state.activeProfile?.classes || []).filter(item => item.enabled).map(item => item.class_name));
+        const governedRelationships = new Set((state.activeProfile?.relationships || []).filter(item => item.enabled).map(item => ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
+        const missingClasses = activeGraph.classes.filter(item => {
+            const name = item.class?.targetName || item.class?.sourceClass;
+            return name && !governedClasses.has(name);
+        });
+        const missingRelationships = activeGraph.relationships.filter(item => {
+            const source = item.source?.targetName || item.source?.sourceClass;
+            const target = item.target?.targetName || item.target?.sourceClass;
+            const name = item.relation?.targetName || item.relation?.sourceRelationship;
+            return source && target && name && !governedRelationships.has(ontologyRelationKey(source, name, target));
+        });
+        return { governedClasses, governedRelationships, missingClasses, missingRelationships };
+    }
+
+    function renderOntologyResultSummary() {
+        const container = $("#ontologyResultSummary");
+        if (!container) return;
+        const active = state.ontologyGovernance?.activeRelease;
+        if (!active) {
+            container.innerHTML = '<div class="ontology-result-empty"><strong>尚无活动本体版本</strong><span>完成校验并生成冻结版本后，可在版本历史中激活。</span></div>';
+            return;
+        }
+        const releaseClasses = activeOntologyClassNames();
+        const drift = ontologyGovernanceDrift();
+        const missing = drift.missingClasses.map(item => item.class?.targetName || item.class?.sourceClass);
+        const missingCount = missing.length + drift.missingRelationships.length;
+        const blockerCount = state.materialization?.plan?.blockers?.length || 0;
+        container.innerHTML = `
+            <div class="ontology-result-card primary"><span>当前活动本体</span><strong>R${active.release_no}</strong><small>${active.class_count} 对象 · ${active.property_count} 属性 · ${active.relationship_count} 关系</small></div>
+            <div class="ontology-result-card"><span>实际存储位置</span><strong>${escapeHtml(state.ontologyGovernance.database || "graphstudio-model")}</strong><small>Neo4j 不可变发布本体库</small></div>
+            <div class="ontology-result-card ${missingCount ? "warning" : "success"}"><span>数据治理范围</span><strong>${missingCount ? `${missingCount} 项待对齐` : "已对齐"}</strong><small>${missingCount ? `${missing.length} 对象 · ${drift.missingRelationships.length} 关系` : `${releaseClasses.size} 个对象均来自 R${active.release_no}`}</small></div>
+            <div class="ontology-result-card ${blockerCount ? "warning" : "success"}"><span>下一发布门禁</span><strong>${blockerCount ? `${blockerCount} 项阻断` : "可以生成数据版本"}</strong><small>${blockerCount ? "进入数据治理逐项处理" : "进入发布中心执行物化"}</small></div>
+            ${missingCount ? `<div class="ontology-result-actions"><div><strong>发现范围漂移</strong><small>${missing.length ? `缺少对象：${escapeHtml(missing.join("、"))}` : "对象已对齐"}；另有 ${drift.missingRelationships.length} 条关系未进入数据治理。</small></div><button class="mini-btn" data-action="sync-ontology-to-data-governance">按 R${active.release_no} 补齐治理范围</button></div>` : ""}`;
+    }
+
+    function renderReleaseStatus() {
+        renderReleaseJourney($("#overviewReleaseJourney"));
+        renderReleaseJourney($("#ontologyReleaseJourney"));
+        renderOntologyResultSummary();
     }
 
     function ontologyRoleColor(role) {
@@ -246,12 +384,40 @@
         }).join("") || '<div class="ontology-discovery-empty">没有匹配的源本体对象</div>';
     }
 
-    function ontologyDiscoveryModuleColor(module) {
-        const palette = ["#167d96", "#356cb0", "#6f5aae", "#9b6a34", "#287d69", "#8d4f61", "#4f7783"];
-        const key = String(module || "other");
-        let hash = 0;
-        for (let index = 0; index < key.length; index += 1) hash = ((hash << 5) - hash + key.charCodeAt(index)) | 0;
-        return palette[Math.abs(hash) % palette.length];
+    const ONTOLOGY_PRIORITY_STORAGE_KEY = "camstar_priority_nodes_v2";
+    const ONTOLOGY_CORE_NODE_IDS = new Set(["Workflow", "Product", "MfgOrder"]);
+    const ONTOLOGY_MODULE_THEMES = {
+        workflow: ["#009999", "#00B8B8"], operation: ["#FF6600", "#FF8833"], spec: ["#862996", "#A040B0"],
+        workcenter: ["#2E86C1", "#5DADE2"], factory: ["#27AE60", "#52D68C"], mfgline: ["#00897B", "#4DB6AC"],
+        product: ["#F39C12", "#F5B041"], container: ["#3498DB", "#5DADE2"], mfgorder: ["#34495E", "#5D6D7E"],
+        quality: ["#E74C3C", "#EC7063"], resource: ["#F1C40F", "#F7DC6F"], material: ["#16A085", "#48C9B0"],
+        bom: ["#673AB7", "#9575CD"], employee: ["#E67E22", "#EB984E"], organization: ["#C62828", "#EF5350"],
+        businessrule: ["#6A1B9A", "#AB47BC"], datacollection: ["#9B59B6", "#AF7AC5"], document: ["#607D8B", "#90A4AE"],
+        maintenance: ["#C0392B", "#D98880"], sampling: ["#9C27B0", "#BA68C8"], setup: ["#7E57C2", "#9575CD"],
+        spc: ["#2979FF", "#82B1FF"], other: ["#505050", "#707070"],
+    };
+
+    function ontologyPriorityNodes() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(ONTOLOGY_PRIORITY_STORAGE_KEY) || "[]");
+            if (Array.isArray(saved) && saved.length) return new Set(saved);
+            const legacy = JSON.parse(localStorage.getItem("camstar_priority_node_sizes_v1") || "{}");
+            return new Set(Object.keys(legacy || {}));
+        } catch (_) {
+            return new Set();
+        }
+    }
+
+    function ontologyDiscoveryModuleTheme(module) {
+        const key = String(module || "other").toLowerCase();
+        if (ONTOLOGY_MODULE_THEMES[key]) return ONTOLOGY_MODULE_THEMES[key];
+        if (key.startsWith("semiconductor_")) {
+            const semiconductorThemes = [["#00695C", "#4DB6AC"], ["#283593", "#7986CB"], ["#6D4C41", "#BCAAA4"], ["#1565C0", "#42A5F5"], ["#7C3AED", "#C4B5FD"], ["#C62828", "#EF5350"]];
+            let hash = 0;
+            for (let index = 0; index < key.length; index += 1) hash = ((hash << 5) - hash + key.charCodeAt(index)) | 0;
+            return semiconductorThemes[Math.abs(hash) % semiconductorThemes.length];
+        }
+        return ONTOLOGY_MODULE_THEMES.other;
     }
 
     async function renderOntologyDiscoveryGraph() {
@@ -289,39 +455,42 @@
             related.forEach(id => visibleIds.add(id));
         }
         const visibleNodes = sourceGraph.nodes.filter(node => visibleIds.has(node.id));
+        const priorityNodes = ontologyPriorityNodes();
         const orderedNodes = [...visibleNodes].sort((left, right) => {
-            const rank = node => selected.has(node.id) ? 0 : planNodes.has(node.id) ? 1 : related.has(node.id) ? 2 : 3;
-            return rank(left) - rank(right) || (degree.get(right.id) || 0) - (degree.get(left.id) || 0) || left.id.localeCompare(right.id);
+            const rank = node => priorityNodes.has(node.id) ? 0 : ONTOLOGY_CORE_NODE_IDS.has(node.id) ? 1 : 2;
+            return rank(left) - rank(right)
+                || String(left.data?.module || "other").localeCompare(String(right.data?.module || "other"))
+                || left.id.localeCompare(right.id);
         });
         const goldenAngle = Math.PI * (3 - Math.sqrt(5));
         const positions = new Map();
-        const selectedNodes = orderedNodes.filter(node => selected.has(node.id));
-        const anchorNodes = selectedNodes.length ? selectedNodes : orderedNodes.filter(node => node.id === "Workflow").slice(0, 1);
-        anchorNodes.forEach((node, index) => {
-            const angle = anchorNodes.length === 1 ? 0 : index / anchorNodes.length * Math.PI * 2;
-            const radius = anchorNodes.length <= 1 ? 0 : Math.max(95, anchorNodes.length * 32);
-            positions.set(node.id, { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
+        const followedNodes = orderedNodes.filter(node => priorityNodes.has(node.id));
+        const coreNodes = orderedNodes.filter(node => !priorityNodes.has(node.id) && ONTOLOGY_CORE_NODE_IDS.has(node.id));
+        const regularNodes = orderedNodes.filter(node => !priorityNodes.has(node.id) && !ONTOLOGY_CORE_NODE_IDS.has(node.id));
+        let anchorNode = null;
+        let workflowIndex = followedNodes.findIndex(node => node.id === "Workflow");
+        if (workflowIndex >= 0) anchorNode = followedNodes.splice(workflowIndex, 1)[0];
+        else {
+            workflowIndex = coreNodes.findIndex(node => node.id === "Workflow");
+            if (workflowIndex >= 0) anchorNode = coreNodes.splice(workflowIndex, 1)[0];
+        }
+        if (anchorNode) positions.set(anchorNode.id, { x: 0, y: 0 });
+        const followedRadius = followedNodes.length ? Math.max(145, followedNodes.length * 115 / (2 * Math.PI)) : 0;
+        followedNodes.forEach((node, index) => {
+            const angle = followedNodes.length === 1 ? -Math.PI / 2 : index / followedNodes.length * Math.PI * 2 - Math.PI / 2;
+            positions.set(node.id, { x: Math.cos(angle) * followedRadius * 1.12, y: Math.sin(angle) * followedRadius });
         });
-        const anchorIds = new Set(anchorNodes.map(node => node.id));
-        const otherNodes = orderedNodes.filter(node => !anchorIds.has(node.id));
-        const innerRadius = 155;
-        otherNodes.forEach((node, index) => {
-            const radius = Math.sqrt(innerRadius * innerRadius + index * 31 * 31);
+        const coreRadius = Math.max(followedRadius + 165, 270, coreNodes.length * 130 / (2 * Math.PI));
+        coreNodes.forEach((node, index) => {
+            const angle = index / Math.max(1, coreNodes.length) * Math.PI * 2;
+            positions.set(node.id, { x: Math.cos(angle) * coreRadius * 1.2, y: Math.sin(angle) * coreRadius * .78 });
+        });
+        const innerRadius = coreRadius + 110;
+        regularNodes.forEach((node, index) => {
+            const radius = Math.sqrt(innerRadius * innerRadius + index * 34 * 34);
             const angle = index * goldenAngle;
-            positions.set(node.id, { x: Math.cos(angle) * radius * 1.18, y: Math.sin(angle) * radius * .82 });
+            positions.set(node.id, { x: Math.cos(angle) * radius * 1.25, y: Math.sin(angle) * radius * .78 });
         });
-        const rawPositions = [...positions.values()];
-        const minX = Math.min(...rawPositions.map(item => item.x));
-        const maxX = Math.max(...rawPositions.map(item => item.x));
-        const minY = Math.min(...rawPositions.map(item => item.y));
-        const maxY = Math.max(...rawPositions.map(item => item.y));
-        const usableWidth = Math.max(200, container.clientWidth - 90);
-        const usableHeight = Math.max(200, container.clientHeight - 90);
-        const positionScale = Math.min(usableWidth / Math.max(1, maxX - minX), usableHeight / Math.max(1, maxY - minY));
-        positions.forEach((position, id) => positions.set(id, {
-            x: (position.x - (minX + maxX) / 2) * positionScale + container.clientWidth / 2,
-            y: (position.y - (minY + maxY) / 2) * positionScale + container.clientHeight / 2,
-        }));
         const existing = new Set((state.ontologyGovernance.graph?.nodes || []).map(item => item.data?.sourceClass).filter(Boolean));
         const graphNodes = visibleNodes.map(node => {
             const text = `${node.id} ${node.data?.chineseName || ""}`.toLowerCase();
@@ -337,6 +506,8 @@
                     unconnected: Boolean(planNodes.get(node.id)?.unconnected),
                     related: related.has(node.id),
                     existing: existing.has(node.id),
+                    followed: priorityNodes.has(node.id),
+                    core: ONTOLOGY_CORE_NODE_IDS.has(node.id),
                     searchMatch,
                     faded: Boolean(selected.size && !selected.has(node.id) && !planNodes.has(node.id) && !related.has(node.id)),
                 },
@@ -352,7 +523,7 @@
             const score = edge => (selected.has(edge.source) || selected.has(edge.target) ? 10000 : 0) + (planNodes.has(edge.source) || planNodes.has(edge.target) ? 5000 : 0) + (degree.get(edge.source) || 0) + (degree.get(edge.target) || 0);
             return score(right) - score(left);
         });
-        const edgeLimit = state.ontologyDiscoveryFocused ? 500 : selected.size ? 300 : 220;
+        const edgeLimit = state.ontologyDiscoveryFocused ? 500 : 360;
         const graphEdges = scoredEdges.slice(0, edgeLimit).map((edge, index) => {
             const name = edge.data?.label || "";
             const isPlan = planEdgeKeys.has(`${edge.source}|${edge.target}|${name}`);
@@ -370,30 +541,30 @@
             container,
             width: container.clientWidth,
             height: container.clientHeight,
-            autoFit: false,
-            padding: [55, 65, 65, 65],
+            autoFit: "view",
+            padding: [60, 60, 60, 60],
             culling: false,
             animation: false,
             behaviors: ["drag-element", "drag-canvas", "zoom-canvas"],
             node: { type: "circle", style: {
-                size: d => d.data?.selected ? 50 : d.data?.bridge ? 36 : d.data?.related || d.data?.searchMatch ? 30 : 24,
-                fill: d => d.data?.unconnected ? "#b64754" : d.data?.selected ? "#00ad94" : d.data?.bridge ? "#287fba" : d.data?.existing ? "#8061bd" : ontologyDiscoveryModuleColor(d.data?.module),
-                stroke: d => d.data?.selected ? "#42f0cb" : d.data?.searchMatch ? "#f2b84b" : d.data?.related ? "#42cdb1" : "rgba(116,166,178,.65)",
-                lineWidth: d => d.data?.selected ? 4 : d.data?.searchMatch || d.data?.related ? 2.5 : 1.3,
-                opacity: d => d.data?.faded ? .11 : 1,
-                labelText: d => d.id,
-                labelOpacity: d => d.data?.faded ? .04 : state.ontologyDiscoveryFocused || d.data?.selected || d.data?.bridge || d.data?.related || d.data?.searchMatch ? 1 : .28,
-                labelPlacement: "bottom", labelOffsetY: 7,
-                labelFill: "#dfeff0", labelFontSize: d => d.data?.selected ? 10 : 8, labelFontWeight: 650,
-                labelBackground: true, labelBackgroundFill: "#0a1d26", labelBackgroundRadius: 4, labelPadding: [2,5],
-                iconText: d => String(d.id).slice(0,2).toUpperCase(),
+                size: d => d.data?.followed || d.data?.core ? 76 : 52,
+                fill: d => ontologyDiscoveryModuleTheme(d.data?.module)[0],
+                stroke: d => d.data?.selected ? "#ffffff" : d.data?.existing ? "#a77ae8" : ontologyDiscoveryModuleTheme(d.data?.module)[1],
+                lineWidth: d => d.data?.selected ? 4 : d.data?.followed ? 3 : 2,
+                opacity: d => d.data?.faded ? .13 : 1,
+                labelText: d => d.data?.displayLabel || d.data?.label || d.id,
+                labelOpacity: d => d.data?.faded ? .08 : 1,
+                labelPlacement: "bottom", labelOffsetY: 8,
+                labelFill: "#e8f0f2", labelFontSize: 11, labelFontWeight: 500,
+                labelBackground: false,
+                iconText: d => String(d.data?.displayLabel || d.data?.label || d.id).slice(0,2),
                 iconOpacity: d => d.data?.faded ? .06 : 1,
-                iconFill: "#fff", iconFontSize: 10, iconFontWeight: 750,
+                iconFill: "#fff", iconFontSize: d => d.data?.followed || d.data?.core ? 18 : 14, iconFontWeight: 700,
                 cursor: "pointer",
             }},
             edge: { type: "line", style: {
-                stroke: d => d.data?.plan ? d.data?.semantic ? "#2ed9b5" : "#d99d48" : "rgba(58,126,139,.28)",
-                lineWidth: d => d.data?.plan ? 2.5 : .8,
+                stroke: d => d.data?.plan ? d.data?.semantic ? "#00ffb9" : "#d99d48" : "rgba(0,255,185,.2)",
+                lineWidth: d => d.data?.plan ? 2.5 : 1,
                 lineDash: d => d.data?.plan && !d.data?.semantic ? [5,4] : undefined,
                 opacity: d => d.data?.faded ? .08 : 1,
                 endArrow: d => Boolean(d.data?.plan),
@@ -450,14 +621,50 @@
         button.disabled = !plan.nodes.some(node => !["path_only", "excluded"].includes(ontologyDiscoveryNodePolicy(node)));
     }
 
-    function renderOntologyDiscovery() {
+    function renderOntologyDiscoveryDetails() {
         const selectedSource = state.ontologyDiscoverySelected[0];
         const existing = selectedSource ? ontologyDiscoveryExistingClass(selectedSource) : null;
         $("#ontologyDiscoveryPlanState").textContent = selectedSource
             ? `${selectedSource} · ${existing ? "已在草案" : "可加入"}`
-            : `${state.ontologyDiscoverySourceGraph.nodes.length || 0} 对象 · 点击选择`;
+            : `${state.ontologyDiscoverySourceGraph.nodes.length || 0} 对象 · ${ontologyPriorityNodes().size} 关注`;
         renderOntologyInspector();
+    }
+
+    function renderOntologyDiscovery() {
+        renderOntologyDiscoveryDetails();
         renderOntologyDiscoveryGraph().catch(error => toast(error.message, true));
+    }
+
+    async function refreshOntologyDiscoverySelection() {
+        if (!ontologyDiscoveryGraph) {
+            await renderOntologyDiscoveryGraph();
+            return;
+        }
+        const selected = new Set(state.ontologyDiscoverySelected);
+        const related = new Set();
+        (state.ontologyDiscoverySourceGraph.edges || []).forEach(edge => {
+            if (selected.has(edge.source)) related.add(edge.target);
+            if (selected.has(edge.target)) related.add(edge.source);
+        });
+        const nodes = ontologyDiscoveryGraph.getNodeData().map(node => ({
+            ...node,
+            data: {
+                ...node.data,
+                selected: selected.has(node.id),
+                related: related.has(node.id),
+                faded: Boolean(selected.size && !selected.has(node.id) && !related.has(node.id)),
+            },
+        }));
+        const edges = ontologyDiscoveryGraph.getEdgeData().map(edge => ({
+            ...edge,
+            data: {
+                ...edge.data,
+                faded: Boolean(selected.size && !selected.has(edge.source) && !selected.has(edge.target)),
+            },
+        }));
+        await ontologyDiscoveryGraph.updateNodeData(nodes);
+        await ontologyDiscoveryGraph.updateEdgeData(edges);
+        await ontologyDiscoveryGraph.draw();
     }
 
     async function requestOntologyDiscoveryPlan() {
@@ -480,7 +687,8 @@
         const existing = ontologyDiscoveryExistingClass(className);
         state.selectedOntologyClassUid = existing?.id || null;
         state.ontologyDiscoveryPlan = null;
-        renderOntologyDiscovery();
+        renderOntologyDiscoveryDetails();
+        refreshOntologyDiscoverySelection().catch(error => toast(error.message, true));
     }
 
     async function applyOntologyDiscoveryProposal() {
@@ -527,7 +735,7 @@
                 await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/relationships`, { method: "POST", body: JSON.stringify({ sourceUid, targetUid, sourceRelationship: effective.name, targetName: effective.name, usage, strength: usage === "published_link" ? "context" : "weak", cardinality: effective.cardinality, requiredContext: usage === "published_link", description: `物理依据：${join.from_table}.${join.from_field} = ${join.to_table}.${join.to_field}` }) });
                 addedRelations += 1;
             }
-            state.ontologyValidation = null;
+            invalidateOntologyValidation();
             state.ontologyGovernanceStage = "model";
             state.ontologyDiscoverySelected = [];
             state.ontologyDiscoveryPlan = null;
@@ -647,7 +855,8 @@
             state.selectedOntologyClassUid = event.target.id;
             const selectedNode = state.ontologyGovernance.graph.nodes.find(item => item.id === event.target.id);
             state.ontologyDiscoverySelected = selectedNode?.data?.sourceClass ? [selectedNode.data.sourceClass] : [];
-            renderOntologyDiscovery();
+            renderOntologyDiscoveryDetails();
+            refreshOntologyDiscoverySelection().catch(error => toast(error.message, true));
             renderOntologyGraph().catch(error => toast(error.message, true));
         });
     }
@@ -714,6 +923,68 @@
         if (count) count.textContent = term ? `${visible} 项` : "";
     }
 
+    function setOntologyWorkflowNotice(type, message) {
+        state.ontologyWorkflowNotice = { type, message };
+        renderOntologyWorkflowControls();
+    }
+
+    function invalidateOntologyValidation() {
+        state.ontologyValidation = null;
+        state.ontologyWorkflowNotice = null;
+    }
+
+    function renderOntologyWorkflowControls() {
+        const workspace = state.ontologyGovernance.currentWorkspace;
+        const validate = $("#validatePublishOntology");
+        const approve = $("#approvePublishOntology");
+        const feedback = $("#ontologyWorkflowFeedback");
+        if (!workspace || !validate || !approve || !feedback) return;
+        const status = workspace.status;
+        const validationPassed = Boolean(state.ontologyValidation?.valid) || ["reviewed", "frozen"].includes(status);
+        const approvalCompleted = status === "frozen";
+        if (approvalCompleted) {
+            const active = state.ontologyGovernance.activeRelease;
+            validate.innerHTML = '<i>✓</i><span><strong>已校验</strong><small>模型检查通过</small></span>';
+            approve.innerHTML = `<i>✓</i><span><strong>${active ? `R${active.release_no} 已激活` : "版本已冻结"}</strong><small>不可变本体快照</small></span>`;
+        } else {
+            validate.innerHTML = '<i>1</i><span><strong>校验</strong><small>检查模型</small></span>';
+            approve.innerHTML = '<i>2</i><span><strong>生成冻结版本</strong><small>创建不可变快照</small></span>';
+        }
+        validate.classList.toggle("completed", validationPassed);
+        approve.classList.toggle("completed", approvalCompleted);
+        validate.classList.toggle("current", status === "draft" && !validationPassed);
+        approve.classList.toggle("current", status !== "frozen" && validationPassed);
+        validate.disabled = status === "frozen";
+        approve.disabled = status === "frozen";
+        validate.title = status === "frozen" ? "该工作区已经冻结" : "检查对象、属性、关系和上下文完整性";
+        approve.title = approvalCompleted ? "版本已经冻结" : "自动运行校验并生成不可变本体快照";
+        const latestRelease = state.ontologyGovernance.releases?.[0];
+        const activeRelease = state.ontologyGovernance.activeRelease;
+        const latestIsActive = Boolean(latestRelease && activeRelease && latestRelease.ontology_release_id === activeRelease.ontology_release_id);
+        let notice = state.ontologyWorkflowNotice;
+        if (latestIsActive && !["loading", "error"].includes(notice?.type)) {
+            const blockerCount = state.materialization?.plan?.blockers?.length || 0;
+            notice = {
+                type: blockerCount ? "warning" : "success",
+                message: blockerCount
+                    ? `本体 R${activeRelease.release_no} 已冻结并激活。模型没有丢失，当前存储在 ${state.ontologyGovernance.database}；下一步进入“数据治理”处理 ${blockerCount} 项发布门禁。`
+                    : `本体 R${activeRelease.release_no} 已冻结并激活。下一步可在“发布中心”生成 Camstar 数据版本。`,
+            };
+        } else if (!notice) {
+            if (status === "frozen") {
+                notice = { type: "success", message: `本体${latestRelease ? ` R${latestRelease.release_no}` : "版本"}已冻结为不可变快照。下一步可在“校验与发布历史”中激活该版本。` };
+            } else if (state.ontologyValidation) {
+                notice = state.ontologyValidation.valid
+                    ? { type: "success", message: `校验通过：${state.ontologyValidation.counts.classes} 个对象、${state.ontologyValidation.counts.properties} 个属性、${state.ontologyValidation.counts.relationships} 条关系。可以生成冻结版本。` }
+                    : { type: "error", message: `校验未通过：存在 ${state.ontologyValidation.errors.length} 个阻断项。已展开下方“校验与发布历史”，请修复后重试。` };
+            } else {
+                notice = { type: "", message: "本地只负责技术校验与生成冻结版本，不执行审批。未来接入 OA 后，由 OA 流程控制冻结权限并回传真实审计身份。" };
+            }
+        }
+        feedback.className = `ontology-workflow-feedback ${notice.type || ""}`.trim();
+        feedback.textContent = notice.message;
+    }
+
     function renderOntologyGovernance() {
         const data = state.ontologyGovernance;
         const workspace = data.currentWorkspace;
@@ -722,7 +993,7 @@
         const graph = data.graph || { nodes: [], edges: [], properties: [] };
         $("#ontologyGovernanceSummary").innerHTML = workspace ? `
             <span>发布库 <strong>${escapeHtml(data.database)}</strong></span>
-            <span>工作区 <strong>${statusLabel(workspace.status)} · r${workspace.revision}</strong></span>
+            <span>工作区 <strong>${workspace.status === "reviewed" ? "待冻结" : statusLabel(workspace.status)} · r${workspace.revision}</strong></span>
             <span>对象 <strong>${graph.nodes.length}</strong></span>
             <span>属性 <strong>${graph.properties.filter(item => item.published).length}</strong></span>
             <span>关系 <strong>${graph.edges.filter(item => item.data.usage === "published_link").length}</strong></span>
@@ -732,8 +1003,10 @@
             <div class="ontology-release-row" data-ontology-release="${item.ontology_release_id}"><div><strong>本体 R${item.release_no}</strong><small>${item.class_count} 对象 · ${item.property_count} 属性 · ${item.relationship_count} 关系</small></div><div class="card-action-buttons"><span class="status-pill ${item.status}">${statusLabel(item.status)}</span>${item.status !== "active" ? '<button class="mini-btn" data-action="activate-ontology-release">激活</button>' : ""}</div></div>`).join("") || '<div class="compact-row"><small>尚无冻结版本</small></div>';
         const validation = state.ontologyValidation;
         $("#ontologyValidationCount").textContent = validation ? (validation.valid ? "通过" : `${validation.errors.length} 阻断`) : "未校验";
-        $("#ontologyValidationIssues").innerHTML = validation ? [...validation.errors, ...validation.warnings].map(item => `<div class="issue-row ${validation.errors.includes(item) ? "error" : "warning"}"><strong>${escapeHtml(item.code)}</strong><span>${escapeHtml(item.message)}</span></div>`).join("") || '<div class="issue-row success"><strong>通过</strong><span>对象、属性、关系和上下文完整性均通过</span></div>' : '<p class="muted-copy">编辑后运行校验，批准前必须消除全部阻断项。</p>';
+        $("#ontologyValidationIssues").innerHTML = validation ? [...validation.errors, ...validation.warnings].map(item => `<div class="issue-row ${validation.errors.includes(item) ? "error" : "warning"}"><strong>${escapeHtml(item.code)}</strong><span>${escapeHtml(item.message)}</span></div>`).join("") || '<div class="issue-row success"><strong>通过</strong><span>对象、属性、关系和上下文完整性均通过</span></div>' : '<p class="muted-copy">编辑后运行校验，冻结前必须消除全部阻断项。</p>';
+        renderOntologyWorkflowControls();
         renderOntologyGovernanceStage();
+        renderReleaseStatus();
     }
 
     function openCustomOntologyClassDialog() {
@@ -749,7 +1022,7 @@
         state.dialogSubmit = async form => {
             const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
             await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes`, { method: "POST", body: JSON.stringify({ source_class: null, target_name: form.get("target_name"), label: form.get("label") || null, description: form.get("description") || null, role: form.get("role"), orphan_policy: form.get("orphan_policy") }) });
-            state.ontologyValidation = null; await loadOntologyGovernance(); toast("自定义本体对象已加入草案");
+            invalidateOntologyValidation(); await loadOntologyGovernance(); toast("自定义本体对象已加入草案");
         };
         $("#editDialog").showModal();
     }
@@ -773,7 +1046,7 @@
         state.dialogSubmit = async form => {
             const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
             await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/relationships`, { method: "POST", body: JSON.stringify({ sourceUid: form.get("source_uid"), targetUid: form.get("target_uid"), targetName: form.get("target_name"), sourceRelationship: form.get("source_relationship") || null, usage: form.get("usage"), strength: form.get("strength"), cardinality: form.get("cardinality"), requiredContext: form.get("required_context") === "on" }) });
-            state.ontologyValidation = null; await loadOntologyGovernance(); toast("发布关系已加入草案");
+            invalidateOntologyValidation(); await loadOntologyGovernance(); toast("发布关系已加入草案");
         };
         $("#editDialog").showModal();
     }
@@ -792,7 +1065,7 @@
         state.dialogSubmit = async form => {
             const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
             await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes/${encodeURIComponent(node.id)}/properties`, { method: "PUT", body: JSON.stringify({ targetName: form.get("target_name"), sourceName: form.get("source_name") || form.get("target_name"), sourcePath: form.get("source_path") || null, dataType: form.get("data_type"), description: form.get("description") || null, required: form.get("required") === "on", published: true, origin: form.get("source_path") ? "projection" : "custom" }) });
-            state.ontologyValidation = null; await loadOntologyGovernance(); toast("发布属性已保存");
+            invalidateOntologyValidation(); await loadOntologyGovernance(); toast("发布属性已保存");
         };
         $("#editDialog").showModal();
     }
@@ -979,6 +1252,7 @@
         $("#qualityResultCount").textContent = latest ? `${results.filter(item => !item.passed).length} 项未通过` : "0";
         $("#qualityResults").innerHTML = results.map(item => `<div class="profile-issue ${!item.passed && item.severity === "error" ? "error" : ""}"><span>${item.passed ? "通过" : item.severity === "error" ? "阻断" : "提醒"}</span><strong>${escapeHtml(item.message)}</strong><small>${Number(item.failed_rows || 0).toLocaleString()}/${Number(item.checked_rows || 0).toLocaleString()} · ${escapeHtml(item.rule_key)}</small></div>`).join("") || '<div class="profile-empty">运行治理预览后显示质量证据</div>';
         renderSchemaEvolution();
+        renderReleaseStatus();
     }
 
     function compatibilityLabel(value) {
@@ -1044,7 +1318,9 @@
         const blockers = plan?.blockers || [];
         $("#materializationPlan").innerHTML = plan ? `<div class="capability-chips"><span class="capability-chip ${plan.ready ? "" : "danger"}">门禁 <strong>${plan.ready ? "可执行" : `${blockers.length} 项阻断`}</strong></span><span class="capability-chip">批大小 <strong>${Number(plan.batchRows).toLocaleString()}</strong></span><span class="capability-chip">策略 <strong>不可变快照</strong></span><span class="capability-chip">回滚 <strong>指针切换</strong></span></div>${blockers.length ? `<div class="capability-warning">${blockers.map(escapeHtml).join("；")}</div>` : ""}` : "正在加载物化计划…";
         const releases = state.materialization?.releases || [];
-        $("#releaseRows").innerHTML = releases.map(item => `<tr data-release="${escapeHtml(item.release_id)}"><td><strong>R${item.release_no}</strong><br><small>${String(item.release_id).slice(0, 8)}</small></td><td><span class="status-pill ${item.is_active || item.status === "ready" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${item.is_active ? "活动" : escapeHtml(statusLabel(item.status))}</span></td><td>${Number(item.object_count || 0).toLocaleString()}</td><td>${Number(item.relationship_count || 0).toLocaleString()}</td><td>${Number(item.quarantine_count || 0).toLocaleString()}</td><td>${formatDate(item.started_at, true)}</td><td>${item.status === "ready" ? '<button class="mini-btn" data-action="activate-release">激活</button>' : "—"}</td></tr>`).join("") || '<tr class="empty-row"><td colspan="7">尚无治理快照；当前审批门禁会阻止实际写入</td></tr>';
+        $("#releaseRows").innerHTML = releases.map(item => `<tr data-release="${escapeHtml(item.release_id)}"><td><strong>R${item.release_no}</strong><br><small>${String(item.release_id).slice(0, 8)}</small></td><td><span class="status-pill ${item.is_active || item.status === "ready" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${item.is_active ? "活动" : escapeHtml(statusLabel(item.status))}</span></td><td>${Number(item.object_count || 0).toLocaleString()}</td><td>${Number(item.relationship_count || 0).toLocaleString()}</td><td>${Number(item.quarantine_count || 0).toLocaleString()}</td><td>${formatDate(item.started_at, true)}</td><td>${item.status === "ready" ? '<button class="mini-btn" data-action="activate-release">激活</button>' : "—"}</td></tr>`).join("") || '<tr class="empty-row"><td colspan="7">尚无数据版本；请先在“数据治理”处理上方门禁，再执行物化</td></tr>';
+        renderReleaseStatus();
+        renderOntologyWorkflowControls();
     }
 
     function renderDeployments() {
@@ -1055,7 +1331,8 @@
             if (item.status === "planned") actions = '<button class="mini-btn" data-action="approve-deployment">批准</button>';
             else if (item.status === "approved") actions = '<button class="mini-btn" data-action="apply-deployment">发布</button>';
             return `<tr data-deployment="${escapeHtml(item.deployment_id)}"><td>${escapeHtml(item.environment_key.toUpperCase())}</td><td>${String(item.curated_release_id).slice(0, 8)}</td><td>${escapeHtml(item.slot)}</td><td>${item.artifact_hash ? String(item.artifact_hash).slice(0, 10) : "—"}</td><td><span class="status-pill ${item.status === "active" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${escapeHtml(statusLabel(item.status))}</span></td><td>${formatDate(item.started_at, true)}</td><td>${actions}</td></tr>`;
-        }).join("") || '<tr class="empty-row"><td colspan="7">活动治理快照产生后，才能准备发布制品</td></tr>';
+        }).join("") || '<tr class="empty-row"><td colspan="7">活动数据版本产生后，才能准备发布制品</td></tr>';
+        renderReleaseStatus();
     }
 
     function renderObservability() {
@@ -1173,7 +1450,24 @@
         $("#dialogTitle").textContent = title;
         $("#dialogKicker").textContent = "AUDITED OPERATION";
         $("#dialogFields").innerHTML = field("actor", "操作人", "", { wide: true, placeholder: "工号或用户名" });
+        $("#dialogFeedback").hidden = true;
+        state.dialogSubmitLabel = "确认";
+        state.dialogBusyLabel = "提交中…";
+        $("#dialogSave").textContent = state.dialogSubmitLabel;
         state.dialogSubmit = async form => submit(form.get("actor"));
+        $("#editDialog").showModal();
+    }
+
+    function openOntologyFreezeDialog(submit) {
+        const graph = state.ontologyGovernance.graph || { nodes: [], edges: [], properties: [] };
+        $("#dialogTitle").textContent = "生成本体冻结版本";
+        $("#dialogKicker").textContent = "IMMUTABLE SNAPSHOT";
+        $("#dialogFields").innerHTML = `<div class="dialog-operation-note"><strong>将生成不可变本体快照</strong><br>系统会重新校验 ${graph.nodes.length} 个对象、${graph.properties.filter(item => item.published).length} 个属性和 ${graph.edges.length} 条关系。冻结版本不会立即激活，也不会直接发布到 Graph Studio；可在下方发布历史中确认后激活。<br><br>当前本地流程不执行审批，审计身份暂记为 <b>local-console</b>，未来由 OA 回调替代。</div>`;
+        $("#dialogFeedback").hidden = true;
+        state.dialogSubmitLabel = "确认生成冻结版本";
+        state.dialogBusyLabel = "正在校验并冻结…";
+        $("#dialogSave").textContent = state.dialogSubmitLabel;
+        state.dialogSubmit = async () => submit();
         $("#editDialog").showModal();
     }
 
@@ -1432,13 +1726,22 @@
     }
 
     function renderMenuSettings() {
-        $("#menuSettings").innerHTML = state.navigation.map(item => `
-            <div class="menu-setting-row" data-menu="${escapeHtml(item.menu_key)}">
-                <input class="field-input menu-label" value="${escapeHtml(item.label_zh)}" aria-label="中文菜单名">
-                <input class="field-input menu-order" type="number" min="0" max="10000" value="${item.sort_order}" aria-label="排序">
-                <input class="toggle menu-enabled" type="checkbox" ${item.enabled ? "checked" : ""} aria-label="启用">
-                <button class="mini-btn" data-action="save-menu">保存</button>
-            </div>`).join("");
+        const source = new Map(state.navigation.map(item => [item.menu_key, item]));
+        const groups = [
+            ...NAVIGATION_GROUPS,
+            ...ADVANCED_NAVIGATION.map(item => ({ ...item, sections: [item.key], advanced: true })),
+        ];
+        $("#menuSettings").innerHTML = `<div class="menu-setting-guidance">一级菜单按业务阶段组织；原来的连接、任务、投影、映射、版本和运行记录仍保留为组内页签。</div>${groups.map((group, index) => {
+            const items = group.sections.map(key => source.get(key)).filter(Boolean);
+            const enabled = items.some(item => item.enabled);
+            const detail = group.tabs?.map(item => item[1]).join(" · ") || (group.advanced ? "高级功能" : "独立页面");
+            return `<div class="menu-setting-row grouped" data-menu-group="${escapeHtml(group.key)}" data-menu-sections="${escapeHtml(group.sections.join(","))}">
+                <div class="setting-copy"><strong>${String(index + 1).padStart(2, "0")} · ${escapeHtml(group.label)}</strong><small>${escapeHtml(detail)}</small></div>
+                <span class="status-pill">${group.advanced ? "高级" : "主菜单"}</span>
+                <input class="toggle menu-enabled" type="checkbox" ${enabled ? "checked" : ""} aria-label="启用 ${escapeHtml(group.label)}">
+                <button class="mini-btn" data-action="save-menu-group">保存</button>
+            </div>`;
+        }).join("")}`;
     }
 
     function field(name, label, value = "", options = {}) {
@@ -1722,11 +2025,81 @@
         finally { button.disabled = false; button.textContent = previous; }
     }
 
+    async function syncActiveOntologyToDataGovernance(button) {
+        const active = state.ontologyGovernance?.activeRelease;
+        const profileKey = state.activeProfile?.profile?.profile_key;
+        if (!active || !profileKey) throw new Error("活动本体版本或数据治理配置尚未加载");
+        const previous = button.textContent;
+        button.disabled = true;
+        button.textContent = "正在补齐…";
+        let addedClasses = 0;
+        let addedRelationships = 0;
+        let skipped = 0;
+        try {
+            const drift = ontologyGovernanceDrift();
+            const candidateClasses = new Set((state.profileCandidates?.classes || []).map(item => item.class_name));
+            let priority = Math.max(0, ...(state.activeProfile.classes || []).map(item => Number(item.priority || 0))) + 10;
+            for (const item of drift.missingClasses) {
+                const data = item.class || {};
+                const className = data.targetName || data.sourceClass;
+                if (!candidateClasses.has(className)) { skipped += 1; continue; }
+                const role = ["core", "context", "reference", "on_demand"].includes(data.role) ? data.role : "context";
+                await request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/classes/${encodeURIComponent(className)}`, {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        role,
+                        orphan_policy: data.orphanPolicy || (role === "core" ? "reject" : "quarantine"),
+                        seed_enabled: role === "core",
+                        max_instances_per_run: null,
+                        priority,
+                        enabled: true,
+                        review_status: "draft",
+                    }),
+                });
+                priority += 10;
+                addedClasses += 1;
+            }
+            await loadGraphProfiles();
+            const refreshedDrift = ontologyGovernanceDrift();
+            const candidateRelationships = new Set((state.profileCandidates?.relationships || []).map(item => ontologyRelationKey(item.source_class, item.relationship_name, item.target_class)));
+            for (const item of refreshedDrift.missingRelationships) {
+                const source = item.source?.targetName || item.source?.sourceClass;
+                const target = item.target?.targetName || item.target?.sourceClass;
+                const name = item.relation?.targetName || item.relation?.sourceRelationship;
+                if (!candidateRelationships.has(ontologyRelationKey(source, name, target))) { skipped += 1; continue; }
+                await request(`/api/sync/profiles/${encodeURIComponent(profileKey)}/relationships/${encodeURIComponent(source)}/${encodeURIComponent(name)}/${encodeURIComponent(target)}`, {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        strength: item.relation?.strength || "context",
+                        required_context: Boolean(item.relation?.requiredContext),
+                        traverse: item.relation?.usage === "published_link",
+                        direction: "outbound",
+                        max_depth: 1,
+                        max_targets_per_source: 200,
+                        enabled: true,
+                        review_status: "draft",
+                    }),
+                });
+                addedRelationships += 1;
+            }
+            await Promise.all([loadGraphProfiles(), loadMaterialization()]);
+            toast(`已按本体 R${active.release_no} 补齐 ${addedClasses} 个对象、${addedRelationships} 条关系${skipped ? `；${skipped} 项因物理映射未解析而保留` : ""}`);
+        } finally {
+            button.disabled = false;
+            button.textContent = previous;
+        }
+    }
+
     document.addEventListener("click", async (event) => {
         const go = event.target.closest("[data-go]");
         if (go) { location.hash = go.dataset.go; setActiveSection(go.dataset.go); return; }
         const action = event.target.closest("[data-action]");
         if (!action) return;
+        if (action.dataset.action === "sync-ontology-to-data-governance") {
+            try { await syncActiveOntologyToDataGovernance(action); }
+            catch (error) { toast(`治理范围同步失败：${error.message}`, true); }
+            return;
+        }
         const connectionCard = action.closest("[data-connection]");
         const jobCard = action.closest("[data-job]");
         if (action.dataset.action === "toggle-ontology-discovery" || action.dataset.action === "add-ontology-neighbor") {
@@ -1744,7 +2117,7 @@
             action.disabled = true;
             try {
                 await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes`, { method: "POST", body: JSON.stringify({ source_class: action.dataset.sourceClass, target_name: action.dataset.sourceClass, role: "context", orphan_policy: "quarantine" }) });
-                state.ontologyValidation = null; await loadOntologyGovernance(); toast(`${action.dataset.sourceClass} 已加入发布本体草案`);
+                invalidateOntologyValidation(); await loadOntologyGovernance(); toast(`${action.dataset.sourceClass} 已加入发布本体草案`);
             } catch (error) { toast(error.message, true); }
             return;
         }
@@ -1753,7 +2126,7 @@
             const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
             try {
                 await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes/${encodeURIComponent(form.dataset.ontologyClass)}`, { method: "PUT", body: JSON.stringify({ targetName: $('[name="targetName"]', form).value, label: $('[name="label"]', form).value || null, description: $('[name="description"]', form).value || null, role: $('[name="role"]', form).value, orphanPolicy: $('[name="orphanPolicy"]', form).value }) });
-                state.ontologyValidation = null; await loadOntologyGovernance(); toast("本体对象配置已保存");
+                invalidateOntologyValidation(); await loadOntologyGovernance(); toast("本体对象配置已保存");
             } catch (error) { toast(error.message, true); }
             return;
         }
@@ -1762,7 +2135,7 @@
             const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
             try {
                 await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes/${encodeURIComponent(form.dataset.ontologyClass)}`, { method: "DELETE" });
-                state.selectedOntologyClassUid = null; state.ontologyValidation = null; await loadOntologyGovernance(); toast("本体对象已从草案移除");
+                state.selectedOntologyClassUid = null; invalidateOntologyValidation(); await loadOntologyGovernance(); toast("本体对象已从草案移除");
             } catch (error) { toast(error.message, true); }
             return;
         }
@@ -1775,7 +2148,7 @@
             const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
             try {
                 await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/relationships/${encodeURIComponent(action.dataset.relation)}`, { method: "DELETE" });
-                state.ontologyValidation = null; await loadOntologyGovernance(); toast("发布关系已删除");
+                invalidateOntologyValidation(); await loadOntologyGovernance(); toast("发布关系已删除");
             } catch (error) { toast(error.message, true); }
             return;
         }
@@ -1978,6 +2351,25 @@
             openRelationshipOverrideDialog(state.mappings.catalog.relationshipReview.find(item => item.sourceClass === sourceClass && item.relationshipName === relationshipName && item.targetClass === targetClass));
             return;
         }
+        if (action.dataset.action === "save-menu-group") {
+            const row = action.closest("[data-menu-group]");
+            const keys = row.dataset.menuSections.split(",").filter(Boolean);
+            const enabled = $(".menu-enabled", row).checked;
+            try {
+                await Promise.all(keys.map(key => {
+                    const item = state.navigation.find(menu => menu.menu_key === key);
+                    if (!item) return Promise.resolve();
+                    return request(`/api/sync/navigation/${encodeURIComponent(item.menu_key)}`, {
+                        method: "PUT",
+                        body: JSON.stringify({ label_zh: item.label_zh, label_en: item.label_en, sort_order: item.sort_order, enabled }),
+                    });
+                }));
+                toast(`${row.querySelector("strong").textContent.replace(/^\d+\s*·\s*/, "")} 已${enabled ? "启用" : "隐藏"}`);
+                await loadNavigation();
+                renderMenuSettings();
+            } catch (error) { toast(error.message, true); }
+            return;
+        }
         if (action.dataset.action === "save-menu") {
             const row = action.closest("[data-menu]");
             const item = state.navigation.find(menu => menu.menu_key === row.dataset.menu);
@@ -2000,6 +2392,10 @@
     });
 
     window.addEventListener("hashchange", () => setActiveSection(location.hash.slice(1)));
+    window.addEventListener("storage", event => {
+        if (![ONTOLOGY_PRIORITY_STORAGE_KEY, "camstar_priority_node_sizes_v1"].includes(event.key)) return;
+        renderOntologyDiscovery();
+    });
     $("#toggleSidebar").addEventListener("click", event => {
         const collapsed = $(".app-shell").classList.toggle("sidebar-collapsed");
         event.currentTarget.setAttribute("aria-label", collapsed ? "展开主菜单" : "折叠主菜单");
@@ -2025,27 +2421,36 @@
     $("#validatePublishOntology").addEventListener("click", async () => {
         const workspace = state.ontologyGovernance.currentWorkspace;
         if (!workspace) { toast("请先初始化工作区", true); return; }
+        const button = $("#validatePublishOntology");
+        button.classList.add("busy");
+        button.disabled = true;
+        setOntologyWorkflowNotice("loading", "正在检查对象、属性、关系和上下文完整性…");
         try {
             state.ontologyValidation = await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/validate`, { method: "POST" });
+            state.ontologyWorkflowNotice = null;
             renderOntologyGovernance();
-            $(".ontology-ledger").open = true;
+            $(".ontology-ledger").open = !state.ontologyValidation.valid;
             toast(state.ontologyValidation.valid ? "发布本体校验通过" : `存在 ${state.ontologyValidation.errors.length} 个阻断项`, !state.ontologyValidation.valid);
-        } catch (error) { toast(error.message, true); }
-    });
-    $("#reviewPublishOntology").addEventListener("click", () => {
-        const workspace = state.ontologyGovernance.currentWorkspace;
-        if (!workspace) { toast("请先初始化工作区", true); return; }
-        openActorDialog("提交本体复核", async actor => {
-            state.ontologyValidation = await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/review`, { method: "POST", body: JSON.stringify({ actor }) });
-            toast("本体草案已复核，等待另一人员批准"); await loadOntologyGovernance();
-        });
+        } catch (error) {
+            setOntologyWorkflowNotice("error", `校验失败：${error.message}`);
+            toast(error.message, true);
+        } finally {
+            button.classList.remove("busy");
+            renderOntologyWorkflowControls();
+        }
     });
     $("#approvePublishOntology").addEventListener("click", () => {
         const workspace = state.ontologyGovernance.currentWorkspace;
         if (!workspace) { toast("请先初始化工作区", true); return; }
-        openActorDialog("批准并冻结本体版本", async actor => {
-            const result = await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/approve`, { method: "POST", body: JSON.stringify({ actor }) });
-            toast(`不可变本体 R${result.releaseNo} 已冻结，激活后进入 RDF 构建`); await loadOntologyGovernance();
+        openOntologyFreezeDialog(async () => {
+            setOntologyWorkflowNotice("loading", "正在重新校验并生成不可变本体快照，请稍候…");
+            const result = await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/approve`, { method: "POST", body: JSON.stringify({ actor: "local-console" }) });
+            await loadOntologyGovernance();
+            setOntologyWorkflowNotice("success", result.duplicate
+                ? `内容与已有 R${result.releaseNo} 完全一致，已复用该冻结版本，没有创建重复快照。`
+                : `不可变本体 R${result.releaseNo} 已生成。它尚未激活，可在“校验与发布历史”中继续操作。`);
+            $(".ontology-ledger").open = true;
+            toast(result.duplicate ? `已复用本体 R${result.releaseNo}` : `不可变本体 R${result.releaseNo} 已生成`);
         });
     });
     $("#ontologyInspector").addEventListener("change", async event => {
@@ -2056,7 +2461,7 @@
         const workspace = state.ontologyGovernance.currentWorkspace.workspace_key;
         try {
             await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace)}/classes/${encodeURIComponent(prop.classUid)}/properties`, { method: "PUT", body: JSON.stringify({ uid: prop.uid, propertyKey: prop.sourceName || prop.targetName, sourceName: prop.sourceName || prop.targetName, targetName: prop.targetName, sourcePath: prop.sourcePath || null, dataType: prop.dataType || "String", description: prop.description || null, required: Boolean(prop.required), published: checkbox.checked, origin: prop.origin || "source" }) });
-            state.ontologyValidation = null; await loadOntologyGovernance();
+            invalidateOntologyValidation(); await loadOntologyGovernance();
         } catch (error) { checkbox.checked = !checkbox.checked; toast(error.message, true); }
     });
     $("#ontologyInspector").addEventListener("input", event => {
@@ -2158,15 +2563,33 @@
         event.preventDefault();
         if (!state.dialogSubmit) return;
         const save = $("#dialogSave");
+        const feedback = $("#dialogFeedback");
         save.disabled = true;
+        save.textContent = state.dialogBusyLabel || "处理中…";
+        feedback.hidden = true;
         try {
             await state.dialogSubmit(new FormData(event.currentTarget));
             $("#editDialog").close();
-        } catch (error) { toast(error.message, true); }
-        finally { save.disabled = false; }
+        } catch (error) {
+            const readable = String(error.message || error)
+                .replace("Ontology validation failed", "本体校验未通过")
+                .replace("Only a draft workspace may be frozen", "当前工作区不能重复冻结，请刷新后重试");
+            feedback.textContent = readable;
+            feedback.hidden = false;
+            toast(readable, true);
+        } finally {
+            save.disabled = false;
+            save.textContent = state.dialogSubmitLabel || "保存";
+        }
     });
     $("#dialogClose").addEventListener("click", () => $("#editDialog").close());
     $("#dialogCancel").addEventListener("click", () => $("#editDialog").close());
+    $("#editDialog").addEventListener("close", () => {
+        state.dialogSubmitLabel = "保存";
+        state.dialogBusyLabel = "处理中…";
+        $("#dialogSave").textContent = "保存";
+        $("#dialogFeedback").hidden = true;
+    });
 
     loadAll();
 })();
