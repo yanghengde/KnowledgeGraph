@@ -16,6 +16,8 @@ from typing import Any
 from neo4j import GraphDatabase
 from sqlalchemy import text
 
+from src.qa.sql_query_builder import build_query_builder_plan
+
 from .config import SyncSettings
 from .repository import ControlPlaneRepository
 
@@ -126,6 +128,103 @@ def source_candidates(settings: SyncSettings, query: str = "", limit: int = 100)
         return rows
     finally:
         driver.close()
+
+
+def _relationship_name_from_join(join: dict[str, Any]) -> str:
+    field = str(join.get("from_field") or "").strip()
+    field = re.sub(r"(?:Def|Ref)?Id$", "", field, flags=re.IGNORECASE)
+    words = re.findall(r"[A-Z]+(?=[A-Z][a-z]|$)|[A-Z]?[a-z]+|\d+", field)
+    suffix = "_".join(word.upper() for word in words if word)
+    return f"HAS_{suffix}" if suffix else "RELATED_TO"
+
+
+def build_discovery_plan(
+    settings: SyncSettings,
+    selected_classes: list[str],
+    *,
+    dialect: str = "sqlserver",
+) -> dict[str, Any]:
+    """Combine verified physical paths with source-ontology semantics.
+
+    This is deliberately read-only.  The result is a proposal that must be
+    reviewed in the publish workspace before it becomes part of a release.
+    """
+    plan = build_query_builder_plan(selected_classes, dialect=dialect)
+    planned_names = [str(item["id"]) for item in plan.get("nodes", [])]
+    selected = [str(item) for item in plan.get("selected_nodes", [])]
+    semantic_rows: list[dict[str, Any]] = []
+    neighbor_rows: list[dict[str, Any]] = []
+    if planned_names or selected:
+        driver = _driver(settings)
+        try:
+            with driver.session(database=settings.neo4j_database) as session:
+                if planned_names:
+                    semantic_rows = session.run(
+                        """
+                        MATCH (s:OntologyClass)-[r:ONTOLOGY_RELATION]->(t:OntologyClass)
+                        WHERE s.name IN $names AND t.name IN $names
+                        RETURN s.name AS source, t.name AS target,
+                               r.name AS name, r.cardinality AS cardinality,
+                               r.description AS description
+                        ORDER BY s.name, r.name, t.name
+                        """,
+                        names=planned_names,
+                    ).data()
+                if selected:
+                    neighbor_rows = session.run(
+                        """
+                        MATCH (s:OntologyClass)-[r:ONTOLOGY_RELATION]-(t:OntologyClass)
+                        WHERE s.name IN $selected AND NOT t.name IN $planned
+                        RETURN DISTINCT s.name AS anchor, t.name AS className,
+                               t.chineseName AS chineseName, r.name AS relationship,
+                               r.cardinality AS cardinality
+                        ORDER BY anchor, relationship, className
+                        LIMIT 80
+                        """,
+                        selected=selected,
+                        planned=planned_names,
+                    ).data()
+        finally:
+            driver.close()
+
+    semantic_by_pair: dict[frozenset[str], list[dict[str, Any]]] = {}
+    for item in semantic_rows:
+        semantic_by_pair.setdefault(
+            frozenset((str(item["source"]), str(item["target"]))), [],
+        ).append(_json_value(dict(item)))
+
+    enriched_joins = []
+    for join in plan.get("joins", []):
+        item = dict(join)
+        candidates = semantic_by_pair.get(
+            frozenset((str(item["from_table"]), str(item["to_table"]))), [],
+        )
+        physical_name = _relationship_name_from_join(item)
+        recommended = next(
+            (candidate for candidate in candidates if str(candidate.get("name") or "").upper() == physical_name),
+            candidates[0] if candidates else None,
+        )
+        item["semantic_candidates"] = candidates
+        item["recommended_name"] = (
+            str(recommended["name"]) if recommended else physical_name
+        )
+        item["recommended_source"] = (
+            str(recommended["source"]) if recommended else str(item["from_table"])
+        )
+        item["recommended_target"] = (
+            str(recommended["target"]) if recommended else str(item["to_table"])
+        )
+        item["cardinality"] = (
+            str(recommended.get("cardinality") or "many-to-one")
+            if recommended else "many-to-one"
+        )
+        enriched_joins.append(item)
+
+    plan["joins"] = enriched_joins
+    plan["semantic_relationships"] = [_json_value(dict(item)) for item in semantic_rows]
+    plan["neighbor_suggestions"] = [_json_value(dict(item)) for item in neighbor_rows]
+    plan["proposal_only"] = True
+    return plan
 
 
 def _workspace_row(repository: ControlPlaneRepository, workspace_key: str) -> dict[str, Any]:
@@ -909,6 +1008,11 @@ def ontology_governance_status(settings: SyncSettings, repository: ControlPlaneR
         ).mappings()]
     current = workspaces[0] if workspaces else None
     graph = workspace_graph(settings, current["workspace_key"]) if current else {"nodes": [], "edges": [], "properties": []}
+    current_active = active_release(repository, profile_key)
+    active_graph = (
+        release_graph(settings, str(current_active["ontology_release_id"]))
+        if current_active else {"classes": [], "relationships": []}
+    )
     return {
         "database": settings.publish_neo4j_database,
         "sourceDatabase": settings.neo4j_database,
@@ -916,5 +1020,6 @@ def ontology_governance_status(settings: SyncSettings, repository: ControlPlaneR
         "currentWorkspace": current,
         "graph": graph,
         "releases": releases,
-        "activeRelease": active_release(repository, profile_key),
+        "activeRelease": current_active,
+        "activeReleaseGraph": active_graph,
     }

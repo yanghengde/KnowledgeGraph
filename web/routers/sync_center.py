@@ -50,6 +50,7 @@ from src.graphstudio_sync.publish_ontology import (
     add_class as add_publish_class,
     add_relationship as add_publish_relationship,
     approve_workspace as approve_ontology_workspace,
+    build_discovery_plan as build_ontology_discovery_plan,
     initialize_governance,
     ontology_governance_status,
     remove_class as remove_publish_class,
@@ -160,6 +161,11 @@ class RelationshipOverrideUpdate(BaseModel):
 
 class OntologyActorRequest(BaseModel):
     actor: str = Field(min_length=2, max_length=200)
+
+
+class OntologyDiscoveryPlanRequest(BaseModel):
+    selected_classes: list[str] = Field(default_factory=list, max_length=16)
+    dialect: Literal["sqlserver", "oracle"] = "sqlserver"
 
 
 class PublishClassCreate(BaseModel):
@@ -1084,6 +1090,18 @@ def get_ontology_source_candidates(q: str = Query(default="", max_length=200), l
         return {"items": ontology_source_candidates(_settings(), q, limit)}
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"Source ontology unavailable: {exc}") from exc
+
+
+@router.post("/ontology-governance/discovery-plan")
+def get_ontology_discovery_plan(payload: OntologyDiscoveryPlanRequest):
+    try:
+        return build_ontology_discovery_plan(
+            _settings(), payload.selected_classes, dialect=payload.dialect,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Ontology discovery unavailable: {exc}") from exc
 
 
 @router.post("/ontology-governance/workspaces/{workspace_key}/classes")

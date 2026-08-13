@@ -14,6 +14,17 @@
         ontologyValidation: null,
         selectedOntologyClassUid: null,
         ontologyPropertyFilter: "",
+        ontologyGovernanceStage: "discover",
+        ontologyDiscoveryCandidates: [],
+        ontologyDiscoverySourceGraph: { nodes: [], edges: [] },
+        ontologyDiscoverySelected: [],
+        ontologyDiscoveryPlan: null,
+        ontologyDiscoveryNodePolicies: {},
+        ontologyDiscoveryJoinUsage: {},
+        ontologyDiscoveryJoinNames: {},
+        ontologyDiscoveryLoading: false,
+        ontologyDiscoverySearchTerm: "",
+        ontologyDiscoveryFocused: false,
         activeProfile: null,
         profileCandidates: { classes: [], relationships: [] },
         closurePlan: null,
@@ -31,6 +42,7 @@
         dialogSubmit: null,
     };
     let ontologyGovernanceGraph = null;
+    let ontologyDiscoveryGraph = null;
 
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -127,7 +139,7 @@
     function renderNavigation() {
         const nav = $("#syncNavigation");
         nav.innerHTML = state.navigation.map(item => `
-            <a class="nav-item" href="${escapeHtml(item.route)}" data-section-key="${escapeHtml(item.menu_key)}">
+            <a class="nav-item" href="${escapeHtml(item.route)}" data-section-key="${escapeHtml(item.menu_key)}" title="${escapeHtml(item.label_zh)}">
                 <span class="nav-icon">${iconCode(item.icon)}</span>
                 <span class="nav-label">${escapeHtml(item.label_zh)}</span>
             </a>`).join("");
@@ -174,6 +186,396 @@
         return ({ core: "#00b89c", context: "#2f86c9", reference: "#8b6fc5", on_demand: "#d99038", excluded: "#566b73" })[role] || "#2f86c9";
     }
 
+    function ontologyDiscoveryDialect() {
+        return state.connections.some(item => item.enabled && item.kind === "camstar_oracle") ? "oracle" : "sqlserver";
+    }
+
+    function ontologyDiscoveryJoinKey(join) {
+        return [join.from_table, join.from_field, join.to_table, join.to_field].join("|");
+    }
+
+    function ontologyDiscoveryEffectiveJoin(join) {
+        const key = ontologyDiscoveryJoinKey(join);
+        const selectedName = state.ontologyDiscoveryJoinNames[key] || join.recommended_name;
+        const semantic = (join.semantic_candidates || []).find(item => item.name === selectedName);
+        return {
+            name: selectedName,
+            source: semantic?.source || join.recommended_source || join.from_table,
+            target: semantic?.target || join.recommended_target || join.to_table,
+            cardinality: semantic?.cardinality || join.cardinality || "many-to-one",
+            semantic: Boolean(semantic),
+        };
+    }
+
+    function ontologyDiscoveryExistingClass(className) {
+        return (state.ontologyGovernance.graph?.nodes || []).find(node => node.data?.sourceClass === className);
+    }
+
+    function ontologyDiscoveryNodePolicy(node) {
+        if (state.ontologyDiscoveryNodePolicies[node.id]) return state.ontologyDiscoveryNodePolicies[node.id];
+        const existing = ontologyDiscoveryExistingClass(node.id);
+        if (existing) return existing.data?.role || "context";
+        if (node.bridge && !node.selected) return "path_only";
+        const hasCore = Object.values(state.ontologyDiscoveryNodePolicies).includes("core")
+            || (state.ontologyGovernance.graph?.nodes || []).some(item => item.data?.role === "core");
+        return hasCore ? "context" : "core";
+    }
+
+    function ontologyDiscoveryJoinDefault(join) {
+        const effective = ontologyDiscoveryEffectiveJoin(join);
+        const source = (state.ontologyDiscoveryPlan?.nodes || []).find(item => item.id === effective.source);
+        const target = (state.ontologyDiscoveryPlan?.nodes || []).find(item => item.id === effective.target);
+        const sourcePolicy = source ? ontologyDiscoveryNodePolicy(source) : "path_only";
+        const targetPolicy = target ? ontologyDiscoveryNodePolicy(target) : "path_only";
+        return [sourcePolicy, targetPolicy].some(value => ["path_only", "excluded"].includes(value))
+            ? "excluded"
+            : (join.semantic_candidates || []).length ? "published_link" : "context_only";
+    }
+
+    function renderOntologyDiscoveryCandidates() {
+        const graph = state.ontologyGovernance.graph || { nodes: [] };
+        const selected = new Set(state.ontologyDiscoverySelected);
+        const container = $("#ontologyDiscoveryCandidates");
+        if (!container) return;
+        $("#ontologyDiscoveryCatalogCount").textContent = `${state.ontologyDiscoveryCandidates.length} 个`;
+        container.innerHTML = state.ontologyDiscoveryCandidates.map(item => {
+            const existing = graph.nodes.some(node => node.data?.sourceClass === item.className);
+            const isSelected = selected.has(item.className);
+            const stateText = isSelected ? "已选入候选范围" : existing ? "已在发布草案" : "";
+            return `<div class="ontology-source-item ${isSelected ? "selected" : ""} ${existing ? "existing" : ""}"><div><strong>${escapeHtml(item.className)}</strong><small>${escapeHtml(item.chineseName || item.layer || "")} · ${item.propertyCount} 属性</small>${stateText ? `<span class="source-state">${stateText}</span>` : ""}</div><button class="mini-btn" data-action="toggle-ontology-discovery" data-source-class="${escapeHtml(item.className)}">${isSelected ? "移除" : "选择"}</button></div>`;
+        }).join("") || '<div class="ontology-discovery-empty">没有匹配的源本体对象</div>';
+    }
+
+    function ontologyDiscoveryModuleColor(module) {
+        const palette = ["#167d96", "#356cb0", "#6f5aae", "#9b6a34", "#287d69", "#8d4f61", "#4f7783"];
+        const key = String(module || "other");
+        let hash = 0;
+        for (let index = 0; index < key.length; index += 1) hash = ((hash << 5) - hash + key.charCodeAt(index)) | 0;
+        return palette[Math.abs(hash) % palette.length];
+    }
+
+    async function renderOntologyDiscoveryGraph() {
+        const container = $("#ontologyDiscoveryGraph");
+        if (!container || !window.G6) return;
+        if (ontologyDiscoveryGraph) {
+            ontologyDiscoveryGraph.destroy();
+            ontologyDiscoveryGraph = null;
+        }
+        const sourceGraph = state.ontologyDiscoverySourceGraph || { nodes: [], edges: [] };
+        if (!sourceGraph.nodes.length) {
+            container.innerHTML = '<div class="ontology-discovery-empty">正在读取完整源本体图谱…</div>';
+            return;
+        }
+        const plan = state.ontologyDiscoveryPlan || { nodes: [], joins: [] };
+        const selected = new Set(state.ontologyDiscoverySelected);
+        const planNodes = new Map(plan.nodes.map(item => [item.id, item]));
+        const active = state.ontologyDiscoverySelected.at(-1) || null;
+        const search = state.ontologyDiscoverySearchTerm.trim().toLowerCase();
+        const adjacency = new Map(sourceGraph.nodes.map(node => [node.id, new Set()]));
+        const degree = new Map(sourceGraph.nodes.map(node => [node.id, 0]));
+        sourceGraph.edges.forEach(edge => {
+            adjacency.get(edge.source)?.add(edge.target);
+            adjacency.get(edge.target)?.add(edge.source);
+            degree.set(edge.source, (degree.get(edge.source) || 0) + 1);
+            degree.set(edge.target, (degree.get(edge.target) || 0) + 1);
+        });
+        const related = new Set();
+        selected.forEach(id => adjacency.get(id)?.forEach(neighbor => related.add(neighbor)));
+        const visibleIds = new Set(sourceGraph.nodes.map(node => node.id));
+        if (state.ontologyDiscoveryFocused && selected.size) {
+            visibleIds.clear();
+            selected.forEach(id => visibleIds.add(id));
+            planNodes.forEach((_value, id) => visibleIds.add(id));
+            related.forEach(id => visibleIds.add(id));
+        }
+        const visibleNodes = sourceGraph.nodes.filter(node => visibleIds.has(node.id));
+        const orderedNodes = [...visibleNodes].sort((left, right) => {
+            const rank = node => selected.has(node.id) ? 0 : planNodes.has(node.id) ? 1 : related.has(node.id) ? 2 : 3;
+            return rank(left) - rank(right) || (degree.get(right.id) || 0) - (degree.get(left.id) || 0) || left.id.localeCompare(right.id);
+        });
+        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+        const positions = new Map();
+        const selectedNodes = orderedNodes.filter(node => selected.has(node.id));
+        const anchorNodes = selectedNodes.length ? selectedNodes : orderedNodes.filter(node => node.id === "Workflow").slice(0, 1);
+        anchorNodes.forEach((node, index) => {
+            const angle = anchorNodes.length === 1 ? 0 : index / anchorNodes.length * Math.PI * 2;
+            const radius = anchorNodes.length <= 1 ? 0 : Math.max(95, anchorNodes.length * 32);
+            positions.set(node.id, { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
+        });
+        const anchorIds = new Set(anchorNodes.map(node => node.id));
+        const otherNodes = orderedNodes.filter(node => !anchorIds.has(node.id));
+        const innerRadius = 155;
+        otherNodes.forEach((node, index) => {
+            const radius = Math.sqrt(innerRadius * innerRadius + index * 31 * 31);
+            const angle = index * goldenAngle;
+            positions.set(node.id, { x: Math.cos(angle) * radius * 1.18, y: Math.sin(angle) * radius * .82 });
+        });
+        const rawPositions = [...positions.values()];
+        const minX = Math.min(...rawPositions.map(item => item.x));
+        const maxX = Math.max(...rawPositions.map(item => item.x));
+        const minY = Math.min(...rawPositions.map(item => item.y));
+        const maxY = Math.max(...rawPositions.map(item => item.y));
+        const usableWidth = Math.max(200, container.clientWidth - 90);
+        const usableHeight = Math.max(200, container.clientHeight - 90);
+        const positionScale = Math.min(usableWidth / Math.max(1, maxX - minX), usableHeight / Math.max(1, maxY - minY));
+        positions.forEach((position, id) => positions.set(id, {
+            x: (position.x - (minX + maxX) / 2) * positionScale + container.clientWidth / 2,
+            y: (position.y - (minY + maxY) / 2) * positionScale + container.clientHeight / 2,
+        }));
+        const existing = new Set((state.ontologyGovernance.graph?.nodes || []).map(item => item.data?.sourceClass).filter(Boolean));
+        const graphNodes = visibleNodes.map(node => {
+            const text = `${node.id} ${node.data?.chineseName || ""}`.toLowerCase();
+            const searchMatch = Boolean(search && text.includes(search));
+            const position = positions.get(node.id);
+            return {
+                id: node.id,
+                style: { x: position?.x, y: position?.y },
+                data: {
+                    ...node.data,
+                    selected: selected.has(node.id),
+                    bridge: Boolean(planNodes.get(node.id)?.bridge && !selected.has(node.id)),
+                    unconnected: Boolean(planNodes.get(node.id)?.unconnected),
+                    related: related.has(node.id),
+                    existing: existing.has(node.id),
+                    searchMatch,
+                    faded: Boolean(selected.size && !selected.has(node.id) && !planNodes.has(node.id) && !related.has(node.id)),
+                },
+            };
+        });
+        const effectivePlanEdges = plan.joins.map((join, index) => {
+            const effective = ontologyDiscoveryEffectiveJoin(join);
+            return { id: `physical-plan-${index}`, source: effective.source, target: effective.target, name: effective.name, semantic: effective.semantic };
+        });
+        const planEdgeKeys = new Set(effectivePlanEdges.map(edge => `${edge.source}|${edge.target}|${edge.name}`));
+        const visibleSourceEdges = sourceGraph.edges.filter(edge => visibleIds.has(edge.source) && visibleIds.has(edge.target));
+        const scoredEdges = visibleSourceEdges.sort((left, right) => {
+            const score = edge => (selected.has(edge.source) || selected.has(edge.target) ? 10000 : 0) + (planNodes.has(edge.source) || planNodes.has(edge.target) ? 5000 : 0) + (degree.get(edge.source) || 0) + (degree.get(edge.target) || 0);
+            return score(right) - score(left);
+        });
+        const edgeLimit = state.ontologyDiscoveryFocused ? 500 : selected.size ? 300 : 220;
+        const graphEdges = scoredEdges.slice(0, edgeLimit).map((edge, index) => {
+            const name = edge.data?.label || "";
+            const isPlan = planEdgeKeys.has(`${edge.source}|${edge.target}|${name}`);
+            return { id: `source-edge-${index}`, source: edge.source, target: edge.target, data: { name, plan: isPlan, semantic: true, faded: Boolean(selected.size && !isPlan && !selected.has(edge.source) && !selected.has(edge.target)) } };
+        });
+        const renderedPlanKeys = new Set(graphEdges.filter(edge => edge.data.plan).map(edge => `${edge.source}|${edge.target}|${edge.data.name}`));
+        effectivePlanEdges.forEach(edge => {
+            const key = `${edge.source}|${edge.target}|${edge.name}`;
+            if (!renderedPlanKeys.has(key) && visibleIds.has(edge.source) && visibleIds.has(edge.target)) {
+                graphEdges.push({ id: edge.id, source: edge.source, target: edge.target, data: { name: edge.name, plan: true, semantic: edge.semantic, faded: false } });
+            }
+        });
+        container.innerHTML = "";
+        ontologyDiscoveryGraph = new G6.Graph({
+            container,
+            width: container.clientWidth,
+            height: container.clientHeight,
+            autoFit: false,
+            padding: [55, 65, 65, 65],
+            culling: false,
+            animation: false,
+            behaviors: ["drag-element", "drag-canvas", "zoom-canvas"],
+            node: { type: "circle", style: {
+                size: d => d.data?.selected ? 50 : d.data?.bridge ? 36 : d.data?.related || d.data?.searchMatch ? 30 : 24,
+                fill: d => d.data?.unconnected ? "#b64754" : d.data?.selected ? "#00ad94" : d.data?.bridge ? "#287fba" : d.data?.existing ? "#8061bd" : ontologyDiscoveryModuleColor(d.data?.module),
+                stroke: d => d.data?.selected ? "#42f0cb" : d.data?.searchMatch ? "#f2b84b" : d.data?.related ? "#42cdb1" : "rgba(116,166,178,.65)",
+                lineWidth: d => d.data?.selected ? 4 : d.data?.searchMatch || d.data?.related ? 2.5 : 1.3,
+                opacity: d => d.data?.faded ? .11 : 1,
+                labelText: d => d.id,
+                labelOpacity: d => d.data?.faded ? .04 : state.ontologyDiscoveryFocused || d.data?.selected || d.data?.bridge || d.data?.related || d.data?.searchMatch ? 1 : .28,
+                labelPlacement: "bottom", labelOffsetY: 7,
+                labelFill: "#dfeff0", labelFontSize: d => d.data?.selected ? 10 : 8, labelFontWeight: 650,
+                labelBackground: true, labelBackgroundFill: "#0a1d26", labelBackgroundRadius: 4, labelPadding: [2,5],
+                iconText: d => String(d.id).slice(0,2).toUpperCase(),
+                iconOpacity: d => d.data?.faded ? .06 : 1,
+                iconFill: "#fff", iconFontSize: 10, iconFontWeight: 750,
+                cursor: "pointer",
+            }},
+            edge: { type: "line", style: {
+                stroke: d => d.data?.plan ? d.data?.semantic ? "#2ed9b5" : "#d99d48" : "rgba(58,126,139,.28)",
+                lineWidth: d => d.data?.plan ? 2.5 : .8,
+                lineDash: d => d.data?.plan && !d.data?.semantic ? [5,4] : undefined,
+                opacity: d => d.data?.faded ? .08 : 1,
+                endArrow: d => Boolean(d.data?.plan),
+                labelText: d => d.data?.plan ? d.data?.name || "" : "",
+                labelFill: "#a7c3ca", labelFontSize: 8, labelAutoRotate: false,
+                labelBackground: true, labelBackgroundFill: "#0b232c", labelBackgroundRadius: 4, labelPadding: [3,5],
+            }},
+            data: { nodes: graphNodes, edges: graphEdges },
+        });
+        await ontologyDiscoveryGraph.render();
+        ontologyDiscoveryGraph.on("node:click", event => toggleOntologyDiscoveryClass(event.target.id));
+    }
+
+    function renderOntologyDiscoverySelection() {
+        const container = $("#ontologyDiscoverySelection");
+        const plan = state.ontologyDiscoveryPlan;
+        const button = $("#applyOntologyDiscovery");
+        if (!state.ontologyDiscoverySelected.length) {
+            container.innerHTML = '<div class="ontology-discovery-empty">直接点击中央源本体图谱选择业务对象；左侧搜索仅用于快速定位。系统会补充必要的中间对象，并将物理连接与源本体语义分别标识。</div>';
+            button.disabled = true;
+            return;
+        }
+        if (!plan) {
+            container.innerHTML = `<div class="ontology-discovery-empty">${state.ontologyDiscoveryLoading ? "正在分析连接路径…" : "尚未形成候选路径"}</div>`;
+            button.disabled = true;
+            return;
+        }
+        const nodeRows = plan.nodes.map(node => {
+            const policy = ontologyDiscoveryNodePolicy(node);
+            state.ontologyDiscoveryNodePolicies[node.id] = policy;
+            const existing = ontologyDiscoveryExistingClass(node.id);
+            return `<div class="ontology-discovery-node" data-discovery-node="${escapeHtml(node.id)}"><div><strong>${escapeHtml(node.id)}</strong><small>${existing ? "已在草案" : node.bridge && !node.selected ? "系统补充的中间对象" : "直接选择对象"}</small></div><select data-discovery-node-policy><option value="core" ${policy === "core" ? "selected" : ""}>核心对象</option><option value="context" ${policy === "context" ? "selected" : ""}>上下文对象</option><option value="reference" ${policy === "reference" ? "selected" : ""}>参考对象</option><option value="path_only" ${policy === "path_only" ? "selected" : ""}>仅连接路径</option><option value="excluded" ${policy === "excluded" ? "selected" : ""}>忽略</option></select></div>`;
+        }).join("");
+        const joinRows = plan.joins.map(join => {
+            const key = ontologyDiscoveryJoinKey(join);
+            const usage = state.ontologyDiscoveryJoinUsage[key] || ontologyDiscoveryJoinDefault(join);
+            state.ontologyDiscoveryJoinUsage[key] = usage;
+            const effective = ontologyDiscoveryEffectiveJoin(join);
+            const manuallyMatched = effective.name !== join.recommended_name;
+            const relationChoices = (join.semantic_candidates || []).length > 1
+                ? `<select data-discovery-join-name aria-label="匹配语义关系">${join.semantic_candidates.map(item => `<option value="${escapeHtml(item.name)}" ${item.name === effective.name ? "selected" : ""}>匹配：${escapeHtml(item.name)}</option>`).join("")}</select>`
+                : "";
+            const badgeClass = manuallyMatched ? "override" : effective.semantic ? "" : "physical";
+            const badgeText = manuallyMatched ? "人工匹配 · 需复核" : effective.semantic ? "源本体语义" : "仅物理外键";
+            return `<div class="ontology-discovery-join" data-discovery-join="${escapeHtml(key)}"><div class="ontology-discovery-join-head"><div><strong>${escapeHtml(effective.source)} → ${escapeHtml(effective.name)} → ${escapeHtml(effective.target)}</strong><small>${escapeHtml(join.from_table)}.${escapeHtml(join.from_field)} = ${escapeHtml(join.to_table)}.${escapeHtml(join.to_field)}</small></div><i class="ontology-semantic-badge ${badgeClass}">${badgeText}</i></div>${relationChoices}<select data-discovery-join-usage><option value="published_link" ${usage === "published_link" ? "selected" : ""}>发布为 Graph Studio 关系</option><option value="context_only" ${usage === "context_only" ? "selected" : ""}>仅用于上下文</option><option value="projection_only" ${usage === "projection_only" ? "selected" : ""}>仅用于属性投影</option><option value="excluded" ${usage === "excluded" ? "selected" : ""}>忽略此关系</option></select></div>`;
+        }).join("") || '<p class="muted-copy ontology-list-empty">当前选择尚未形成连接关系</p>';
+        const seenNeighbors = new Set();
+        const neighbors = (plan.neighbor_suggestions || []).filter(item => {
+            if (seenNeighbors.has(item.className)) return false;
+            seenNeighbors.add(item.className); return true;
+        }).slice(0, 10);
+        const neighborRows = neighbors.map(item => `<div class="ontology-neighbor-row"><div><strong>${escapeHtml(item.className)}</strong><small>${escapeHtml(item.anchor)} · ${escapeHtml(item.relationship)}</small></div><button class="mini-btn" data-action="add-ontology-neighbor" data-source-class="${escapeHtml(item.className)}">加入</button></div>`).join("") || '<p class="muted-copy ontology-list-empty">暂无额外语义邻居建议</p>';
+        container.innerHTML = `<section class="ontology-discovery-section"><div class="ontology-discovery-heading"><strong>对象处理方式</strong><span>${plan.selected_nodes.length} 已选 · ${plan.nodes.filter(item => item.bridge).length} 中间</span></div>${nodeRows}</section><section class="ontology-discovery-section"><div class="ontology-discovery-heading"><strong>关系处理方式</strong><span>${plan.joins.length} 条路径</span></div>${joinRows}</section><section class="ontology-discovery-section"><div class="ontology-discovery-heading"><strong>一跳语义邻居</strong><span>来自源 Neo4j</span></div>${neighborRows}</section>`;
+        button.disabled = !plan.nodes.some(node => !["path_only", "excluded"].includes(ontologyDiscoveryNodePolicy(node)));
+    }
+
+    function renderOntologyDiscovery() {
+        const selectedSource = state.ontologyDiscoverySelected[0];
+        const existing = selectedSource ? ontologyDiscoveryExistingClass(selectedSource) : null;
+        $("#ontologyDiscoveryPlanState").textContent = selectedSource
+            ? `${selectedSource} · ${existing ? "已在草案" : "可加入"}`
+            : `${state.ontologyDiscoverySourceGraph.nodes.length || 0} 对象 · 点击选择`;
+        renderOntologyInspector();
+        renderOntologyDiscoveryGraph().catch(error => toast(error.message, true));
+    }
+
+    async function requestOntologyDiscoveryPlan() {
+        state.ontologyDiscoveryLoading = true;
+        $("#ontologyDiscoveryPlanState").textContent = "分析路径";
+        renderOntologyDiscoveryCandidates();
+        renderOntologyDiscoverySelection();
+        try {
+            state.ontologyDiscoveryPlan = state.ontologyDiscoverySelected.length
+                ? await request("/api/sync/ontology-governance/discovery-plan", { method: "POST", body: JSON.stringify({ selected_classes: state.ontologyDiscoverySelected, dialect: ontologyDiscoveryDialect() }) })
+                : null;
+        } finally {
+            state.ontologyDiscoveryLoading = false;
+            renderOntologyDiscovery();
+        }
+    }
+
+    function toggleOntologyDiscoveryClass(className) {
+        state.ontologyDiscoverySelected = [className];
+        const existing = ontologyDiscoveryExistingClass(className);
+        state.selectedOntologyClassUid = existing?.id || null;
+        state.ontologyDiscoveryPlan = null;
+        renderOntologyDiscovery();
+    }
+
+    async function applyOntologyDiscoveryProposal() {
+        const plan = state.ontologyDiscoveryPlan;
+        const workspace = state.ontologyGovernance.currentWorkspace;
+        if (!workspace || !plan) return;
+        const included = plan.nodes.filter(node => !["path_only", "excluded"].includes(ontologyDiscoveryNodePolicy(node)));
+        if (!included.length) { toast("请至少选择一个需要进入发布模型的对象", true); return; }
+        const existingGraph = state.ontologyGovernance.graph || { nodes: [], edges: [] };
+        const existingBySource = new Map(existingGraph.nodes.map(node => [node.data?.sourceClass, node]));
+        const includedNames = new Set(included.map(node => node.id));
+        const hasCore = included.some(node => ontologyDiscoveryNodePolicy(node) === "core")
+            || existingGraph.nodes.some(node => node.data?.role === "core");
+        if (!hasCore) { toast("候选发布范围至少需要一个核心对象", true); return; }
+        const button = $("#applyOntologyDiscovery");
+        button.disabled = true;
+        button.textContent = "正在加入…";
+        let addedObjects = 0;
+        let addedRelations = 0;
+        try {
+            for (const node of included) {
+                const role = ontologyDiscoveryNodePolicy(node);
+                const existing = existingBySource.get(node.id);
+                if (existing) {
+                    if (existing.data?.role !== role) {
+                        await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/classes/${encodeURIComponent(existing.id)}`, { method: "PUT", body: JSON.stringify({ targetName: existing.data.targetName, label: existing.data.label || existing.data.targetName, description: existing.data.description || null, role, orphanPolicy: existing.data.orphanPolicy || "quarantine" }) });
+                    }
+                    continue;
+                }
+                await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/classes`, { method: "POST", body: JSON.stringify({ source_class: node.id, target_name: node.id, role, orphan_policy: role === "core" ? "reject" : "quarantine" }) });
+                addedObjects += 1;
+            }
+            const uidFor = className => existingBySource.get(className)?.id || `${workspace.workspace_key}::${className}`;
+            for (const join of plan.joins) {
+                const usage = state.ontologyDiscoveryJoinUsage[ontologyDiscoveryJoinKey(join)] || ontologyDiscoveryJoinDefault(join);
+                const effective = ontologyDiscoveryEffectiveJoin(join);
+                const sourceName = effective.source;
+                const targetName = effective.target;
+                if (usage === "excluded" || !includedNames.has(sourceName) || !includedNames.has(targetName)) continue;
+                const sourceUid = uidFor(sourceName);
+                const targetUid = uidFor(targetName);
+                const duplicate = existingGraph.edges.some(edge => edge.source === sourceUid && edge.target === targetUid && edge.data?.targetName === effective.name);
+                if (duplicate) continue;
+                await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/relationships`, { method: "POST", body: JSON.stringify({ sourceUid, targetUid, sourceRelationship: effective.name, targetName: effective.name, usage, strength: usage === "published_link" ? "context" : "weak", cardinality: effective.cardinality, requiredContext: usage === "published_link", description: `物理依据：${join.from_table}.${join.from_field} = ${join.to_table}.${join.to_field}` }) });
+                addedRelations += 1;
+            }
+            state.ontologyValidation = null;
+            state.ontologyGovernanceStage = "model";
+            state.ontologyDiscoverySelected = [];
+            state.ontologyDiscoveryPlan = null;
+            state.ontologyDiscoveryNodePolicies = {};
+            state.ontologyDiscoveryJoinUsage = {};
+            state.ontologyDiscoveryJoinNames = {};
+            await loadOntologyGovernance();
+            toast(`候选方案已加入发布模型：${addedObjects} 个新对象，${addedRelations} 条新关系`);
+        } finally {
+            button.disabled = false;
+            button.textContent = "加入发布模型";
+        }
+    }
+
+    function renderOntologyGovernanceStage() {
+        const unified = $("#ontologyUnifiedWorkbench");
+        if (unified) unified.hidden = !state.ontologyGovernance.currentWorkspace;
+        if (!state.ontologyGovernance.currentWorkspace) return;
+        renderOntologyDiscovery();
+        renderOntologyGraph().catch(error => toast(error.message, true));
+    }
+
+    function activeReleaseClassKeys() {
+        return new Set((state.ontologyGovernance.activeReleaseGraph?.classes || []).flatMap(item => {
+            const data = item.class || {};
+            return [data.sourceClass, data.sourceUid, data.targetName].filter(Boolean);
+        }));
+    }
+
+    function isActiveReleaseNode(node) {
+        const keys = activeReleaseClassKeys();
+        return [node.id, node.data?.sourceClass, node.data?.targetName].some(value => value && keys.has(value));
+    }
+
+    function isActiveReleaseEdge(edge, graph) {
+        const source = graph.nodes.find(node => node.id === edge.source)?.data || {};
+        const target = graph.nodes.find(node => node.id === edge.target)?.data || {};
+        return (state.ontologyGovernance.activeReleaseGraph?.relationships || []).some(item => {
+            const releasedSource = item.source || {};
+            const releasedTarget = item.target || {};
+            const relation = item.relation || {};
+            const sourceMatches = [source.sourceClass, source.targetName, edge.source].some(value => value && [releasedSource.sourceClass, releasedSource.targetName, releasedSource.sourceUid].includes(value));
+            const targetMatches = [target.sourceClass, target.targetName, edge.target].some(value => value && [releasedTarget.sourceClass, releasedTarget.targetName, releasedTarget.sourceUid].includes(value));
+            const relationMatches = [edge.data?.targetName, edge.data?.sourceRelationship, edge.id].some(value => value && [relation.targetName, relation.sourceRelationship, relation.relationshipKey].includes(value));
+            return sourceMatches && targetMatches && relationMatches;
+        });
+    }
+
     async function renderOntologyGraph() {
         const container = $("#ontologyGovernanceGraph");
         if (!container || !window.G6) return;
@@ -184,12 +586,12 @@
         const rawGraphData = state.ontologyGovernance.graph || { nodes: [], edges: [] };
         const pairCounts = new Map();
         const graphData = {
-            nodes: rawGraphData.nodes,
+            nodes: rawGraphData.nodes.map(node => ({ ...node, data: { ...node.data, released: isActiveReleaseNode(node) } })),
             edges: rawGraphData.edges.map(edge => {
                 const pair = `${edge.source}|${edge.target}`;
                 const index = pairCounts.get(pair) || 0;
                 pairCounts.set(pair, index + 1);
-                return { ...edge, data: { ...edge.data, curveOffset: index === 0 ? -30 : 30 + (index - 1) * 22 } };
+                return { ...edge, data: { ...edge.data, released: isActiveReleaseEdge(edge, rawGraphData), curveOffset: index === 0 ? -30 : 30 + (index - 1) * 22 } };
             }),
         };
         if (!graphData.nodes.length) {
@@ -210,8 +612,8 @@
                 type: "circle",
                 style: {
                     size: d => d.data?.role === "core" ? 68 : 58,
-                    fill: d => ontologyRoleColor(d.data?.role),
-                    stroke: d => d.id === state.selectedOntologyClassUid ? "#ffffff" : "#32d5b5",
+                    fill: d => d.data?.released ? "#347fc5" : "#08b99d",
+                    stroke: d => d.id === state.selectedOntologyClassUid ? "#ffffff" : d.data?.released ? "#74bdff" : "#42ebc9",
                     lineWidth: d => d.id === state.selectedOntologyClassUid ? 4 : 2,
                     labelText: d => d.data?.targetName || d.id,
                     labelFill: "#e7f4f5", labelFontSize: 12, labelFontWeight: 650,
@@ -226,7 +628,7 @@
             edge: {
                 type: "quadratic",
                 style: {
-                    stroke: d => d.data?.usage === "published_link" ? "#32d5b5" : "#557985",
+                    stroke: d => d.data?.released ? "#4b9fea" : d.data?.usage === "published_link" ? "#f2b84b" : "#557985",
                     lineWidth: d => d.data?.strength === "core" ? 3 : 1.5,
                     lineDash: d => d.data?.usage === "projection_only" ? [5, 5] : undefined,
                     endArrow: true,
@@ -243,7 +645,9 @@
         await ontologyGovernanceGraph.render();
         ontologyGovernanceGraph.on("node:click", event => {
             state.selectedOntologyClassUid = event.target.id;
-            renderOntologyInspector();
+            const selectedNode = state.ontologyGovernance.graph.nodes.find(item => item.id === event.target.id);
+            state.ontologyDiscoverySelected = selectedNode?.data?.sourceClass ? [selectedNode.data.sourceClass] : [];
+            renderOntologyDiscovery();
             renderOntologyGraph().catch(error => toast(error.message, true));
         });
     }
@@ -251,12 +655,21 @@
     function renderOntologyInspector() {
         const container = $("#ontologyInspector");
         const graph = state.ontologyGovernance.graph || { nodes: [], edges: [], properties: [] };
-        const node = graph.nodes.find(item => item.id === state.selectedOntologyClassUid);
+        const selectedSource = state.ontologyDiscoverySelected[0] || null;
+        let node = graph.nodes.find(item => item.id === state.selectedOntologyClassUid);
+        if (!node && selectedSource) node = graph.nodes.find(item => item.data?.sourceClass === selectedSource);
         if (!node) {
-            container.innerHTML = '<p class="muted-copy">选择画布中的对象，配置目标名称、角色、孤立策略和发布属性。</p>';
+            if (!selectedSource) {
+                container.innerHTML = '<p class="muted-copy">点击左侧源图谱中的对象，可直接加入 Graph Studio 发布本体；已加入的对象可在这里配置或移除。</p>';
+                return;
+            }
+            const source = state.ontologyDiscoverySourceGraph.nodes.find(item => item.id === selectedSource);
+            container.innerHTML = `<div class="ontology-source-selection"><div class="ontology-source-selection-head"><div><strong>${escapeHtml(selectedSource)}</strong><small>${escapeHtml(source?.data?.chineseName || source?.data?.module || "Camstar 源本体对象")}</small></div><span class="status-pill unknown">未加入</span></div><p class="ontology-source-selection-copy">加入后会复制源本体属性到当前发布草案。对象角色、孤立策略及发布属性仍可在此处继续调整。</p><button class="btn primary" data-action="add-source-ontology-class" data-source-class="${escapeHtml(selectedSource)}">加入 Graph Studio 发布本体</button></div>`;
             return;
         }
+        state.selectedOntologyClassUid = node.id;
         const data = node.data || {};
+        const released = isActiveReleaseNode(node);
         const properties = graph.properties.filter(item => item.classUid === node.id);
         const relations = graph.edges.filter(item => item.source === node.id || item.target === node.id);
         container.innerHTML = `
@@ -266,7 +679,7 @@
                 <label><span>对象角色</span><select name="role">${[["core","核心对象"],["context","上下文对象"],["reference","参考对象"],["on_demand","按需对象"],["excluded","不发布"]].map(([key,text]) => `<option value="${key}" ${data.role === key ? "selected" : ""}>${text}</option>`).join("")}</select></label>
                 <label><span>孤立策略</span><select name="orphanPolicy">${[["reject","拒绝发布"],["quarantine","隔离"],["allow","允许孤立"],["referenced_only","仅被引用时"]].map(([key,text]) => `<option value="${key}" ${data.orphanPolicy === key ? "selected" : ""}>${text}</option>`).join("")}</select></label>
                 <label><span>说明</span><textarea name="description">${escapeHtml(data.description || "")}</textarea></label>
-                <small class="muted-copy">来源：${escapeHtml(data.sourceClass || "自定义业务对象")}</small>
+                <small class="muted-copy">来源：${escapeHtml(data.sourceClass || "自定义业务对象")} · ${released ? "已发布到 Graph Studio" : "本次新增草案"}</small>
                 <div class="ontology-inspector-actions"><button class="mini-btn" data-action="save-publish-class">保存对象</button><button class="mini-btn danger" data-action="remove-publish-class">移除对象</button><button class="mini-btn" data-action="add-publish-property">新增属性</button></div>
             </div>
             <section class="ontology-property-section ontology-published-properties">
@@ -305,7 +718,6 @@
         const data = state.ontologyGovernance;
         const workspace = data.currentWorkspace;
         $("#ontologyGovernanceEmpty").hidden = Boolean(workspace);
-        $("#ontologyWorkbench").hidden = !workspace;
         $("#ontologyWorkspaceTitle").textContent = workspace?.title || "发布本体草案";
         const graph = data.graph || { nodes: [], edges: [], properties: [] };
         $("#ontologyGovernanceSummary").innerHTML = workspace ? `
@@ -316,17 +728,12 @@
             <span>关系 <strong>${graph.edges.filter(item => item.data.usage === "published_link").length}</strong></span>
             <span>活动版本 <strong>${data.activeRelease ? `R${data.activeRelease.release_no}` : "无"}</strong></span>`
             : '<span>尚未初始化发布本体数据库和工作区</span>';
-        $("#ontologySourceCandidates").innerHTML = state.ontologySourceCandidates.map(item => {
-            const existingNode = graph.nodes.find(node => node.data.sourceClass === item.className);
-            return `<div class="ontology-source-item"><div><strong>${escapeHtml(item.className)}</strong><small>${escapeHtml(item.chineseName || item.layer || "")} · ${item.propertyCount} 属性</small></div><button class="mini-btn" data-action="${existingNode ? "select-publish-class" : "add-source-ontology-class"}" data-source-class="${escapeHtml(item.className)}" ${existingNode ? `data-node-id="${escapeHtml(existingNode.id)}"` : ""}>${existingNode ? "查看" : "加入"}</button></div>`;
-        }).join("") || '<p class="muted-copy" style="padding:12px">搜索源本体对象</p>';
         $("#ontologyReleaseList").innerHTML = data.releases.map(item => `
             <div class="ontology-release-row" data-ontology-release="${item.ontology_release_id}"><div><strong>本体 R${item.release_no}</strong><small>${item.class_count} 对象 · ${item.property_count} 属性 · ${item.relationship_count} 关系</small></div><div class="card-action-buttons"><span class="status-pill ${item.status}">${statusLabel(item.status)}</span>${item.status !== "active" ? '<button class="mini-btn" data-action="activate-ontology-release">激活</button>' : ""}</div></div>`).join("") || '<div class="compact-row"><small>尚无冻结版本</small></div>';
         const validation = state.ontologyValidation;
         $("#ontologyValidationCount").textContent = validation ? (validation.valid ? "通过" : `${validation.errors.length} 阻断`) : "未校验";
         $("#ontologyValidationIssues").innerHTML = validation ? [...validation.errors, ...validation.warnings].map(item => `<div class="issue-row ${validation.errors.includes(item) ? "error" : "warning"}"><strong>${escapeHtml(item.code)}</strong><span>${escapeHtml(item.message)}</span></div>`).join("") || '<div class="issue-row success"><strong>通过</strong><span>对象、属性、关系和上下文完整性均通过</span></div>' : '<p class="muted-copy">编辑后运行校验，批准前必须消除全部阻断项。</p>';
-        renderOntologyInspector();
-        renderOntologyGraph().catch(error => toast(error.message, true));
+        renderOntologyGovernanceStage();
     }
 
     function openCustomOntologyClassDialog() {
@@ -1228,6 +1635,16 @@
         state.ontologySourceCandidates = (await request(`/api/sync/ontology-governance/source-candidates?q=${encodeURIComponent(q)}&limit=100`)).items;
         renderOntologyGovernance();
     }
+    async function loadOntologyDiscoveryCandidates(query = "") {
+        state.ontologyDiscoverySearchTerm = query;
+        state.ontologyDiscoveryCandidates = (await request(`/api/sync/ontology-governance/source-candidates?q=${encodeURIComponent(query)}&limit=150`)).items;
+        renderOntologyDiscoveryCandidates();
+        if (state.ontologyGovernanceStage === "discover") renderOntologyDiscoveryGraph().catch(error => toast(error.message, true));
+    }
+    async function loadOntologyDiscoverySourceGraph() {
+        state.ontologyDiscoverySourceGraph = await request("/api/graph/overview");
+        renderOntologyDiscovery();
+    }
     async function loadJobs() { state.jobs = (await request("/api/sync/jobs")).items; renderJobs(); }
     async function loadTablePolicies() { state.tablePolicies = (await request("/api/sync/jobs/camstar-full/table-policies")).items; renderTablePolicies(); }
     async function loadIncrementalCapabilities() { state.incrementalProbe = await request("/api/sync/jobs/camstar-full/incremental-capabilities"); renderIncrementalCapabilities(); }
@@ -1273,7 +1690,7 @@
         setAlert();
         try {
             await loadNavigation();
-            await Promise.all([loadConnections(), loadOntologyGovernance(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadAttributeProjections(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
+            await Promise.all([loadConnections(), loadOntologyGovernance(), loadOntologyDiscoverySourceGraph(), loadJobs(), loadTablePolicies(), loadIncrementalCapabilities(), loadMappings(), loadGraphProfiles(), loadAttributeProjections(), loadMaterialization(), loadDeployments(), loadObservability(), loadActions(), loadRuns(), loadSettings()]);
             await loadOverview();
         } catch (error) {
             setAlert(`同步中心加载失败：${error.message}`);
@@ -1312,6 +1729,10 @@
         if (!action) return;
         const connectionCard = action.closest("[data-connection]");
         const jobCard = action.closest("[data-job]");
+        if (action.dataset.action === "toggle-ontology-discovery" || action.dataset.action === "add-ontology-neighbor") {
+            toggleOntologyDiscoveryClass(action.dataset.sourceClass);
+            return;
+        }
         if (action.dataset.action === "select-publish-class") {
             state.selectedOntologyClassUid = action.dataset.nodeId;
             renderOntologyInspector();
@@ -1579,12 +2000,25 @@
     });
 
     window.addEventListener("hashchange", () => setActiveSection(location.hash.slice(1)));
+    $("#toggleSidebar").addEventListener("click", event => {
+        const collapsed = $(".app-shell").classList.toggle("sidebar-collapsed");
+        event.currentTarget.setAttribute("aria-label", collapsed ? "展开主菜单" : "折叠主菜单");
+        event.currentTarget.title = collapsed ? "展开主菜单" : "折叠主菜单";
+        window.setTimeout(() => {
+            ontologyDiscoveryGraph?.fitView();
+            ontologyGovernanceGraph?.fitView();
+        }, 230);
+    });
     $("#initializePublishOntology").addEventListener("click", () => openActorDialog("初始化发布本体工作区", async actor => {
         await request("/api/sync/ontology-governance/initialize?profile_key=opcenter2607-core", { method: "POST", body: JSON.stringify({ actor }) });
         toast("独立发布本体数据库和草案工作区已建立"); await Promise.all([loadOntologyGovernance(), loadConnections()]);
     }));
-    $("#searchOntologySource").addEventListener("click", () => searchOntologySources().catch(error => toast(error.message, true)));
-    $("#ontologySourceSearch").addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); searchOntologySources().catch(error => toast(error.message, true)); } });
+    $("#fitOntologyDiscoveryGraph").addEventListener("click", () => ontologyDiscoveryGraph?.fitView());
+    $("#toggleOntologyDiscoveryFocus").addEventListener("click", event => {
+        state.ontologyDiscoveryFocused = !state.ontologyDiscoveryFocused;
+        event.currentTarget.textContent = state.ontologyDiscoveryFocused ? "显示完整图谱" : "聚焦所选";
+        renderOntologyDiscoveryGraph().catch(error => toast(error.message, true));
+    });
     $("#newCustomOntologyClass").addEventListener("click", openCustomOntologyClassDialog);
     $("#newOntologyRelationship").addEventListener("click", openOntologyRelationshipDialog);
     $("#fitOntologyGraph").addEventListener("click", () => ontologyGovernanceGraph?.fitView());
@@ -1593,7 +2027,9 @@
         if (!workspace) { toast("请先初始化工作区", true); return; }
         try {
             state.ontologyValidation = await request(`/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspace.workspace_key)}/validate`, { method: "POST" });
-            renderOntologyGovernance(); toast(state.ontologyValidation.valid ? "发布本体校验通过" : `存在 ${state.ontologyValidation.errors.length} 个阻断项`, !state.ontologyValidation.valid);
+            renderOntologyGovernance();
+            $(".ontology-ledger").open = true;
+            toast(state.ontologyValidation.valid ? "发布本体校验通过" : `存在 ${state.ontologyValidation.errors.length} 个阻断项`, !state.ontologyValidation.valid);
         } catch (error) { toast(error.message, true); }
     });
     $("#reviewPublishOntology").addEventListener("click", () => {

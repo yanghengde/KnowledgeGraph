@@ -6,11 +6,12 @@
     <title>Opcenter Graph Sync</title>
     <meta name="description" content="Camstar 到 Graph Studio 的同步管理中心">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/sync.css?v=20260813-15">
+    <link rel="stylesheet" href="/static/sync.css?v=20260813-21">
 </head>
 <body>
     <div class="app-shell">
         <aside class="sidebar">
+            <button class="sidebar-toggle" id="toggleSidebar" type="button" aria-label="折叠主菜单" title="折叠主菜单">‹</button>
             <a class="brand" href="/sync" aria-label="同步中心首页">
                 <span class="brand-mark">GS</span>
                 <span><strong>Opcenter</strong><small>Graph Sync</small></span>
@@ -106,25 +107,23 @@
                         <p>将在当前 Enterprise Neo4j 中创建独立的 graphstudio-model database，并从业务图谱边界导入首批对象。</p>
                         <button class="btn primary" id="initializePublishOntology">初始化工作区</button>
                     </div>
-                    <div id="ontologyWorkbench" class="ontology-workbench" hidden>
-                        <aside class="ontology-source-panel panel">
-                            <div class="panel-heading"><div><span class="section-kicker">SOURCE</span><h3>源本体对象</h3></div><button class="mini-btn" id="newCustomOntologyClass">自定义对象</button></div>
-                            <label class="governance-search"><input id="ontologySourceSearch" placeholder="搜索 Product、Workflow…"><button class="mini-btn" id="searchOntologySource">搜索</button></label>
-                            <div id="ontologySourceCandidates" class="ontology-source-list"></div>
+                    <div id="ontologyUnifiedWorkbench" class="ontology-unified-workbench" hidden>
+                        <article class="ontology-discovery-canvas panel">
+                            <div class="panel-heading"><div><span class="section-kicker">SOURCE ONTOLOGY</span><h3>选择 Camstar 本体对象</h3></div><div class="card-action-buttons"><span id="ontologyDiscoveryPlanState" class="count-badge">加载图谱</span><button class="mini-btn" id="toggleOntologyDiscoveryFocus">聚焦所选</button><button class="mini-btn" id="fitOntologyDiscoveryGraph">适应画布</button></div></div>
+                            <div id="ontologyDiscoveryGraph" aria-label="Camstar 源本体 G6 画布"></div>
+                            <div class="ontology-discovery-legend"><span><i class="selected"></i>当前选择</span><span><i class="existing"></i>已在草案</span><span><i></i>源本体对象</span></div>
+                        </article>
+                        <aside class="ontology-inspector panel ontology-unified-inspector">
+                            <div class="panel-heading"><div><span class="section-kicker">OBJECT EDITOR</span><h3>对象配置</h3></div></div>
+                            <div id="ontologyInspector"><p class="muted-copy">点击左侧源图谱中的对象，可直接加入 Graph Studio 发布本体；已加入的对象可在这里配置或移除。</p></div>
                         </aside>
                         <article class="ontology-canvas-panel panel">
-                            <div class="panel-heading"><div><span class="section-kicker">G6 MODEL</span><h3 id="ontologyWorkspaceTitle">发布本体草案</h3></div><div class="card-action-buttons"><button class="mini-btn" id="fitOntologyGraph">适应画布</button><button class="mini-btn" id="newOntologyRelationship">新增关系</button></div></div>
+                            <div class="panel-heading"><div><span class="section-kicker">GRAPH STUDIO MODEL</span><h3 id="ontologyWorkspaceTitle">Graph Studio 发布本体</h3></div><div class="card-action-buttons"><button class="mini-btn" id="newCustomOntologyClass">自定义对象</button><button class="mini-btn" id="fitOntologyGraph">适应画布</button><button class="mini-btn" id="newOntologyRelationship">新增关系</button></div></div>
                             <div id="ontologyGovernanceGraph" aria-label="发布本体 G6 画布"></div>
+                            <div class="ontology-publish-legend"><span><i class="published"></i>已发布到 Graph Studio</span><span><i class="draft"></i>本次新增对象</span><span><b class="published"></b>已发布关系</span><span><b class="draft"></b>本次新增关系</span></div>
                         </article>
-                        <aside class="ontology-inspector panel">
-                            <div class="panel-heading"><div><span class="section-kicker">INSPECTOR</span><h3>对象配置</h3></div></div>
-                            <div id="ontologyInspector"><p class="muted-copy">选择画布中的对象，配置目标名称、角色、孤立策略和发布属性。</p></div>
-                        </aside>
                     </div>
-                    <div class="two-column ontology-ledger">
-                        <article class="panel"><div class="panel-heading"><div><span class="section-kicker">VALIDATION</span><h3>模型检查</h3></div><span id="ontologyValidationCount" class="count-badge">未校验</span></div><div id="ontologyValidationIssues" class="profile-issues"></div></article>
-                        <article class="panel"><div class="panel-heading"><div><span class="section-kicker">RELEASES</span><h3>本体版本</h3></div></div><div id="ontologyReleaseList" class="compact-list"></div></article>
-                    </div>
+                    <details class="ontology-ledger panel"><summary><span><b>校验与发布历史</b><small>查看模型检查结果和不可变本体版本</small></span><span id="ontologyValidationCount" class="count-badge">未校验</span></summary><div class="two-column ontology-ledger-body"><article><div class="panel-heading"><div><span class="section-kicker">VALIDATION</span><h3>模型检查</h3></div></div><div id="ontologyValidationIssues" class="profile-issues"></div></article><article><div class="panel-heading"><div><span class="section-kicker">RELEASES</span><h3>本体版本</h3></div></div><div id="ontologyReleaseList" class="compact-list"></div></article></div></details>
                 </section>
 
                 <section class="page-section" data-section="connections">
@@ -283,6 +282,6 @@
 
     <div id="toast" class="toast" hidden></div>
     <script src="/static/lib/g6.js"></script>
-    <script src="/static/sync.js?v=20260813-14"></script>
+    <script src="/static/sync.js?v=20260813-26"></script>
 </body>
 </html>
