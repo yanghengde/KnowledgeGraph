@@ -872,17 +872,55 @@ def _set_layer_enabled(
     encoded_graphmart: str,
     layer_uri: str,
     enabled: bool,
-) -> None:
+) -> str:
     """Enable or disable one layer without changing unrelated Graphmart layers."""
     action = "enableLayers" if enabled else "disableLayers"
-    _require(
-        session.patch(
-            f"{base}/api/graphmarts/{encoded_graphmart}/{action}",
-            json=[layer_uri],
-            timeout=60,
-        ),
-        f"{'Enable' if enabled else 'Disable'} Graph Studio layer",
+    response = session.patch(
+        f"{base}/api/graphmarts/{encoded_graphmart}/{action}",
+        json=[layer_uri],
+        timeout=60,
     )
+    if response.ok:
+        return "rest_api"
+
+    # Anzo 5.4.2/5.4.3 expose the /api endpoint but do not yet provide the
+    # enableLayers/disableLayers operations (added in 5.4.4).  Do not silently
+    # leave both blue and green online: verify a manual switch through the
+    # read-only status endpoint and proceed only when the requested state is
+    # already true in Graph Studio.
+    if response.status_code == 404 and "No handler found" in response.text:
+        graph_status = _require(
+            session.get(
+                f"{base}/api/graphmarts/{encoded_graphmart}/status",
+                params={"detail": "true"},
+                timeout=60,
+            ),
+            "Read Graphmart status for legacy layer switch",
+        )
+        layers = graph_status.get("childLayer") if isinstance(graph_status, dict) else None
+        layer_status = next(
+            (
+                item for item in (layers or [])
+                if isinstance(item, dict)
+                and (item.get("uri") or item.get("layerUri")) == layer_uri
+            ),
+            None,
+        )
+        actual = layer_status.get("enabled") if layer_status else None
+        if actual is enabled:
+            return "legacy_status_verified"
+
+        desired = "启用" if enabled else "停用"
+        observed = "未加载" if actual is None else ("已启用" if actual else "已停用")
+        raise RuntimeError(
+            "当前 Graph Studio 版本不支持 REST Layer 启停接口。"
+            f"请在 Graph Studio 的目标 Graphmart 中手工{desired} Layer {layer_uri}，"
+            f"当前状态：{observed}；完成 blue/green 切换后再次点击重试。"
+            "程序会先读取状态验证，验证通过前不会提交 checkpoint。"
+        )
+
+    _require(response, f"{'Enable' if enabled else 'Disable'} Graph Studio layer")
+    return "rest_api"
 
 
 def _reload_graphmart(
@@ -1105,12 +1143,13 @@ def apply_deployment(
                 text("UPDATE graphsync.deployment_release SET status='loading', step_uri=:step WHERE deployment_id=:id"),
                 {"id": deployment_id, "step": step_uri},
             )
-        _set_layer_enabled(
+        enabled_switch_mode = _set_layer_enabled(
             session, base, encoded_graphmart=encoded_graphmart,
             layer_uri=layer_uri, enabled=True,
         )
+        disabled_switch_mode = None
         if previous_layer_uri and previous_layer_uri != layer_uri:
-            _set_layer_enabled(
+            disabled_switch_mode = _set_layer_enabled(
                 session, base, encoded_graphmart=encoded_graphmart,
                 layer_uri=previous_layer_uri, enabled=False,
             )
@@ -1165,6 +1204,11 @@ def apply_deployment(
             "layerSwitch": {
                 "enabled": layer_uri,
                 "disabled": previous_layer_uri if layer_switched else None,
+                "mode": (
+                    "legacy_status_verified"
+                    if "legacy_status_verified" in {enabled_switch_mode, disabled_switch_mode}
+                    else "rest_api"
+                ),
             },
             "passed": True,
         }

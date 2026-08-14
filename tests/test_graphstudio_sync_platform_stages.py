@@ -223,6 +223,48 @@ def test_layer_switch_targets_only_the_requested_layer() -> None:
     assert kwargs["json"] == [layer_uri]
 
 
+class _LegacyLayerSession:
+    def __init__(self, *, enabled):
+        self.enabled = enabled
+
+    def patch(self, _url, **_kwargs):
+        response = _GraphStudioResponse(
+            {"detail": "No handler found"}, ok=False, status_code=404,
+        )
+        response.text = "No handler found for PATCH /api/graphmarts/example/enableLayers"
+        return response
+
+    def get(self, url, **kwargs):
+        assert url.endswith("/status")
+        assert kwargs["params"] == {"detail": "true"}
+        return _GraphStudioResponse({
+            "childLayer": [{"uri": "http://example.com/layer/green", "enabled": self.enabled}],
+        })
+
+
+def test_legacy_layer_switch_accepts_manually_verified_state() -> None:
+    mode = _set_layer_enabled(
+        _LegacyLayerSession(enabled=True),
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+        layer_uri="http://example.com/layer/green",
+        enabled=True,
+    )
+
+    assert mode == "legacy_status_verified"
+
+
+def test_legacy_layer_switch_requires_manual_change_before_retry() -> None:
+    with pytest.raises(RuntimeError, match="手工启用 Layer"):
+        _set_layer_enabled(
+            _LegacyLayerSession(enabled=False),
+            "https://graphstudio.example",
+            encoded_graphmart="urn%3Agraphmart",
+            layer_uri="http://example.com/layer/green",
+            enabled=True,
+        )
+
+
 def _contract(**overrides):
     return {
         "contract_key": "product-v1",
