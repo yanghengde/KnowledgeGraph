@@ -61,6 +61,15 @@ def test_deployment_plan_toggles_slot_per_route_not_per_environment(monkeypatch)
     )
 
     assert plan["slot"] == "green"
+
+
+def test_apply_deployment_lookup_qualifies_deployment_id_column() -> None:
+    """The previous-deployment self join must not make the lookup ambiguous."""
+    from pathlib import Path
+
+    source = Path("src/graphstudio_sync/deployment.py").read_text(encoding="utf-8")
+
+    assert "WHERE deployment.deployment_id=:deployment_id" in source
 from src.graphstudio_sync.materialization import (
     apply_transform,
     build_field_backfill_patch,

@@ -947,7 +947,7 @@ def apply_deployment(
                   ON release.release_id=deployment.curated_release_id
                 LEFT JOIN graphsync.deployment_release previous
                   ON previous.deployment_id=deployment.previous_deployment_id
-                WHERE deployment_id=:deployment_id
+                WHERE deployment.deployment_id=:deployment_id
                 """
             ),
             {"deployment_id": deployment_id},

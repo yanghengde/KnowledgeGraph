@@ -1102,10 +1102,20 @@ def approve_graph_deployment(deployment_id: str, request: ActorRequest):
 def apply_graph_deployment(deployment_id: str):
     try:
         return apply_deployment(_settings(), _repo(), deployment_id=uuid.UUID(deployment_id))
+    except ValueError as exc:
+        # UUID parsing and deployment-state errors are actionable client
+        # feedback, not opaque server failures.
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Deployment not found") from exc
-    except (ValueError, RuntimeError) as exc:
+    except RuntimeError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        # Keep unexpected preflight/database failures visible in the console.
+        # apply_deployment itself records failures once the external write stage
+        # begins, so this principally covers failures before Graph Studio is
+        # mutated.
+        raise HTTPException(status_code=422, detail=f"发布预检失败：{exc}") from exc
 
 
 @router.get("/profiles/{profile_key}/observability")
