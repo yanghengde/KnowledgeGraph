@@ -1,5 +1,5 @@
 /**
- * Camstar Ontology Explorer – G6 v5 Graph Application
+ * Camstar Manufacturing Ontology Workbench – G6 v5 Graph Application
  * ────────────────────────────────────────────────────
  * Features:
  *   • Layered loading: L0 = OntologyClass overview → L1 = click to drill
@@ -3926,7 +3926,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Opcenter Ontology Snapshot</title>
+    <title>Opcenter Manufacturing Ontology Snapshot</title>
     <style>
         ${cssContent}
         body { background: #000D1A; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
@@ -3941,7 +3941,7 @@
     <main id="app">
         <div id="graphContainer">
             <div style="position:absolute; top:20px; left:20px; z-index:10; color:rgba(255,255,255,0.5); font-size:12px; pointer-events:none;">
-                Opcenter Ontology Explorer - 离线快照<br/>导出时间: ${new Date().toLocaleString()}
+                Opcenter 制造本体建模工作台 · 离线快照<br/>导出时间: ${new Date().toLocaleString()}
             </div>
         </div>
         <aside id="detailPanel" class="panel-hidden">

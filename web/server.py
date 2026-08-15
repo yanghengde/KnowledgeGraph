@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from web.shared import PROJECT_ROOT
 
 
-app = FastAPI(title="Opcenter Graph Sync API")
+app = FastAPI(title="Opcenter Manufacturing Graph Platform API")
 
 app.add_middleware(
     CORSMiddleware,

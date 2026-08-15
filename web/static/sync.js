@@ -63,19 +63,19 @@
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
     const NAVIGATION_GROUPS = [
-        { key: "overview", label: "总览", icon: "OV", sections: ["overview"] },
-        { key: "ingestion", label: "数据接入", icon: "IN", sections: ["connections", "jobs"], tabs: [["connections", "连接与凭据"], ["jobs", "持续同步"]] },
-        { key: "ontology_governance", label: "本体治理", icon: "OG", sections: ["ontology_governance"] },
-        { key: "data_governance", label: "数据治理", icon: "DG", sections: ["profiles", "governance_exceptions", "model_changes", "governance_advanced", "projections", "mappings"], tabs: [["profiles", "快速治理"], ["governance_exceptions", "异常中心"], ["model_changes", "模型变更"], ["governance_advanced", "高级治理"]] },
-        { key: "publishing", label: "发布中心", icon: "PB", sections: ["releases", "deployments"], tabs: [["releases", "数据版本"], ["deployments", "环境发布"]] },
-        { key: "monitoring", label: "运行监控", icon: "MO", sections: ["observability", "runs"], tabs: [["observability", "健康与血缘"], ["runs", "运行记录"]] },
+        { key: "overview", label: "生产数据总览", icon: "OV", sections: ["overview"] },
+        { key: "ingestion", label: "制造数据接入", icon: "IN", sections: ["connections", "jobs"], tabs: [["connections", "数据源与发布端"], ["jobs", "增量生产同步"]] },
+        { key: "ontology_governance", label: "制造语义模型", icon: "OG", sections: ["ontology_governance"] },
+        { key: "data_governance", label: "发布数据治理", icon: "DG", sections: ["profiles", "governance_exceptions", "model_changes", "governance_advanced", "projections", "mappings"], tabs: [["profiles", "发布配置"], ["governance_exceptions", "发布待办"], ["model_changes", "源结构变更"], ["governance_advanced", "工程配置"]] },
+        { key: "publishing", label: "图谱版本发布", icon: "PB", sections: ["releases", "deployments"], tabs: [["releases", "制造数据版本"], ["deployments", "Graphmart 环境发布"]] },
+        { key: "monitoring", label: "生产运行监控", icon: "MO", sections: ["observability", "runs"], tabs: [["observability", "运行健康与血缘"], ["runs", "生产运行记录"]] },
     ];
     const ADVANCED_NAVIGATION = [
-        { key: "actions", label: "业务动作", icon: "AC" },
-        { key: "settings", label: "系统设置", icon: "ST" },
+        { key: "actions", label: "制造业务指令", icon: "AC" },
+        { key: "settings", label: "平台设置", icon: "ST" },
     ];
     const SECTION_TAB_GROUPS = {
-        advanced_governance: [["governance_advanced", "高级治理概览"], ["projections", "属性投影"], ["mappings", "物理映射"]],
+        advanced_governance: [["governance_advanced", "工程配置概览"], ["projections", "属性投影"], ["mappings", "物理映射"]],
     };
     const escapeHtml = (value) => String(value ?? "")
         .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
@@ -306,17 +306,17 @@
         const latestDeployment = deployments[0] || null;
         return [
             {
-                key: "ontology", index: "01", title: "本体模型",
+                key: "ontology", index: "01", title: "制造语义模型",
                 detail: ontology ? `R${ontology.release_no} 已激活` : "尚无活动版本",
                 status: ontology ? "complete" : "current", go: "ontology_governance",
             },
             {
-                key: "governance", index: "02", title: "数据治理",
+                key: "governance", index: "02", title: "发布数据治理",
                 detail: blockers.length ? `${blockers.length} 项门禁待处理` : ontology ? "门禁已通过" : "等待本体版本",
                 status: !ontology ? "waiting" : blockers.length ? "current" : "complete", go: "profiles",
             },
             {
-                key: "release", index: "03", title: "数据版本",
+                key: "release", index: "03", title: "制造数据版本",
                 detail: curated ? `R${curated.release_no || "—"} 已激活` : "尚未生成",
                 status: curated ? "complete" : !blockers.length && ontology ? "current" : "waiting", go: "releases",
             },
@@ -326,7 +326,7 @@
                 status: graphStudio ? "complete" : curated ? "current" : "waiting", go: "deployments",
             },
             {
-                key: "verify", index: "05", title: "SPARQL 验收",
+                key: "verify", index: "05", title: "发布验收",
                 detail: graphStudio ? "已随蓝绿发布通过" : "尚未执行",
                 status: graphStudio ? "complete" : "waiting", go: "observability",
             },
@@ -415,8 +415,8 @@
         container.innerHTML = `
             <div class="ontology-result-card primary"><span>当前活动本体</span><strong>R${active.release_no}</strong><small>${active.class_count} 对象 · ${active.property_count} 属性 · ${active.relationship_count} 关系</small></div>
             <div class="ontology-result-card"><span>实际存储位置</span><strong>${escapeHtml(state.ontologyGovernance.database || "graphstudio-model")}</strong><small>Neo4j 不可变发布本体库</small></div>
-            <div class="ontology-result-card ${missingCount ? "warning" : "success"}"><span>数据治理范围</span><strong>${missingCount ? `${missingCount} 项待对齐` : "已对齐"}</strong><small>${missingCount ? `${missing.length} 对象 · ${drift.missingRelationships.length} 关系` : `${releaseClasses.size} 个对象均来自 R${active.release_no}`}</small></div>
-            <div class="ontology-result-card ${blockerCount ? "warning" : "success"}"><span>下一发布门禁</span><strong>${blockerCount ? `${blockerCount} 项阻断` : "可以生成数据版本"}</strong><small>${blockerCount ? "进入数据治理逐项处理" : "进入发布中心执行物化"}</small></div>
+            <div class="ontology-result-card ${missingCount ? "warning" : "success"}"><span>发布治理范围</span><strong>${missingCount ? `${missingCount} 项待对齐` : "已对齐"}</strong><small>${missingCount ? `${missing.length} 对象 · ${drift.missingRelationships.length} 关系` : `${releaseClasses.size} 个对象均来自 R${active.release_no}`}</small></div>
+            <div class="ontology-result-card ${blockerCount ? "warning" : "success"}"><span>数据版本门禁</span><strong>${blockerCount ? `${blockerCount} 项阻断` : "可以生成制造数据版本"}</strong><small>${blockerCount ? "进入发布数据治理逐项处理" : "进入图谱版本发布执行物化"}</small></div>
             ${missingCount ? `<div class="ontology-result-actions"><div><strong>发现范围漂移</strong><small>${missing.length ? `缺少对象：${escapeHtml(missing.join("、"))}` : "对象已对齐"}；另有 ${drift.missingRelationships.length} 条关系未进入数据治理。</small></div><button class="mini-btn" data-action="sync-ontology-to-data-governance">按 R${active.release_no} 补齐治理范围</button></div>` : ""}`;
     }
 
@@ -1185,8 +1185,8 @@
             notice = {
                 type: blockerCount ? "warning" : "success",
                 message: blockerCount
-                    ? `本体 R${activeRelease.release_no} 已冻结并激活。模型没有丢失，当前存储在 ${state.ontologyGovernance.database}；下一步进入“数据治理”处理 ${blockerCount} 项发布门禁。`
-                    : `本体 R${activeRelease.release_no} 已冻结并激活。下一步可在“发布中心”生成 Camstar 数据版本。`,
+                    ? `制造语义模型 R${activeRelease.release_no} 已冻结并激活，当前存储在 ${state.ontologyGovernance.database}；下一步进入“发布数据治理”处理 ${blockerCount} 项质量门禁。`
+                    : `制造语义模型 R${activeRelease.release_no} 已冻结并激活。下一步可在“图谱版本发布”生成 Camstar 制造数据版本。`,
             };
         } else if (!notice) {
             if (status === "frozen") {
@@ -1450,7 +1450,7 @@
         if (/映射|物理/.test(message)) return { route: "mappings", focus: "propertyMappingPanel", actionLabel: "处理物理映射" };
         if (/投影/.test(message)) return { route: "projections", focus: "projectionContractPanel", actionLabel: "配置属性投影" };
         if (/增量|CDC|SCN|基线|大表/.test(message)) return { route: "jobs", focus: null, actionLabel: "配置同步策略" };
-        if (/本体/.test(message)) return { route: "ontology_governance", focus: null, actionLabel: "查看本体治理" };
+        if (/本体|语义模型/.test(message)) return { route: "ontology_governance", focus: null, actionLabel: "查看制造语义模型" };
         return { route: "governance_advanced", focus: "governanceValidationPanel", actionLabel: "前往检查" };
     }
 
@@ -1532,7 +1532,7 @@
             ? `<div class="current-issue-index"><span>当前阻断</span><strong>1 / ${blockers.length}</strong></div><div class="current-issue-copy"><span>${escapeHtml(currentBlocker.scope)}</span><strong>${escapeHtml(currentBlocker.title)}</strong><p>${escapeHtml(currentBlocker.message)}</p></div><button class="btn primary" ${currentBlocker.action ? `data-action="${currentBlocker.action}"` : `data-go="${currentBlocker.route}"${currentBlocker.focus ? ` data-focus="${currentBlocker.focus}"` : ""}`}>${escapeHtml(currentBlocker.actionLabel || "立即处理")}</button>`
             : '<div class="current-issue-index"><span>发布门禁</span><strong>✓</strong></div><div class="current-issue-copy"><strong>当前没有发布阻断</strong><p>可以继续运行预检；映射提醒不会和发布阻断混在一起。</p></div><button class="btn secondary" data-action="run-quick-governance-preview">运行预检</button>';
         const next = steps.find(item => !item.complete);
-        $("#quickGovernanceNext").innerHTML = next ? `<div class="quick-next-card"><span>下一步</span><strong>${escapeHtml(next.title)}</strong><p>${escapeHtml(next.note)}</p><button class="btn primary" ${next.action ? `data-action="${next.action}"` : `data-go="${next.go}"${next.focus ? ` data-focus="${next.focus}"` : ""}`}>${escapeHtml(next.actionLabel)}</button><button class="text-btn" data-go="governance_advanced">需要自定义？进入高级治理</button></div>` : '<div class="quick-next-card complete"><span>治理完成</span><strong>可以生成数据版本</strong><p>所有快速治理步骤均已完成。</p><button class="btn primary" data-go="releases">进入发布中心</button></div>';
+        $("#quickGovernanceNext").innerHTML = next ? `<div class="quick-next-card"><span>下一步</span><strong>${escapeHtml(next.title)}</strong><p>${escapeHtml(next.note)}</p><button class="btn primary" ${next.action ? `data-action="${next.action}"` : `data-go="${next.go}"${next.focus ? ` data-focus="${next.focus}"` : ""}`}>${escapeHtml(next.actionLabel)}</button><button class="text-btn" data-go="governance_advanced">需要自定义？进入工程配置</button></div>` : '<div class="quick-next-card complete"><span>治理完成</span><strong>可以生成制造数据版本</strong><p>当前发布范围已通过全部质量门禁。</p><button class="btn primary" data-go="releases">进入图谱版本发布</button></div>';
         const classDetails = new Map((state.activeProfile?.classes || []).map(item => [item.class_name, item]));
         const contractDetails = new Map((state.governance?.contracts || []).map(item => [item.class_name, item]));
         $("#quickGovernanceObjects").innerHTML = [...releaseClasses].sort().map(name => {
@@ -1554,14 +1554,14 @@
         const autoResolvable = items.filter(item => item.action === "sync-ontology-to-data-governance" || /未批准|尚未批准|仍为草案/.test(item.message)).length;
         const failedEvidence = (state.governance?.qualityResults || []).filter(item => !item.passed).length;
         $("#governanceExceptionMetrics").innerHTML = [
-            ["当前阻断", blockers ? "1" : "0", blockers ? `其余 ${Math.max(0, blockers - 1)} 项已排队` : "没有阻止发布的问题"], ["阻断队列", blockers, "与快速治理完全一致"], ["治理提醒", warnings, "不计入发布阻断"], ["质量证据", failedEvidence, "作为证据，不重复生成异常"],
+            ["当前阻断", blockers ? "1" : "0", blockers ? `其余 ${Math.max(0, blockers - 1)} 项已排队` : "没有阻止发布的问题"], ["阻断队列", blockers, "与发布数据治理口径一致"], ["治理提醒", warnings, "不计入发布阻断"], ["质量证据", failedEvidence, "作为审计证据，不重复生成待办"],
         ].map(([label, value, note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join("");
         $("#governanceExceptionFilters").innerHTML = [["all", `全部 ${items.length}`], ["blocker", `阻断 ${blockers}`], ["warning", `提醒 ${warnings}`]].map(([key, label]) => `<button class="mini-btn ${filter === key ? "active" : ""}" data-action="filter-governance-exceptions" data-filter="${key}">${label}</button>`).join("");
         const current = items.find(item => item.severity === "blocker") || items[0];
         $("#governanceCurrentIssue").classList.toggle("clear", !current);
         $("#governanceCurrentIssue").innerHTML = current
             ? `<div class="current-issue-index"><span>${current.severity === "blocker" ? "当前阻断" : "当前提醒"}</span><strong>${current.severity === "blocker" ? `1 / ${blockers}` : "1"}</strong></div><div class="current-issue-copy"><span>${escapeHtml(current.scope)}</span><strong>${escapeHtml(current.title)}</strong><p>${escapeHtml(current.message)}</p></div><button class="btn primary" ${current.action ? `data-action="${current.action}"` : `data-go="${current.route}"${current.focus ? ` data-focus="${current.focus}"` : ""}`}>${escapeHtml(current.actionLabel || "立即处理")}</button>`
-            : '<div class="current-issue-index"><span>处理队列</span><strong>✓</strong></div><div class="current-issue-copy"><strong>当前发布范围没有待处理事项</strong><p>异常中心和快速治理已使用同一统计口径。</p></div>';
+            : '<div class="current-issue-index"><span>处理队列</span><strong>✓</strong></div><div class="current-issue-copy"><strong>当前发布范围没有待处理事项</strong><p>发布待办与发布数据治理采用同一门禁口径。</p></div>';
         let blockerIndex = 0;
         $("#governanceExceptionList").innerHTML = visible.map(item => {
             if (item.severity === "blocker") blockerIndex += 1;
@@ -1581,7 +1581,7 @@
         const issues = collectGovernanceExceptions().slice(0, 5);
         $("#advancedGovernanceGuide").innerHTML = expert
             ? '<div class="advanced-guide-copy"><span>专家配置</span><strong>已展开全部高级设置</strong><p>对象边界、关系扩展与底层校验均可直接编辑；字段版本已独立到“模型变更”。</p></div><button class="btn secondary" data-action="set-advanced-governance-mode" data-mode="guided">返回任务视图</button>'
-            : `<div class="panel-heading"><div><span class="section-kicker">GUIDED TASKS</span><h3>只处理当前发布所需配置</h3></div><span class="count-badge">${issues.length} 项</span></div><div class="advanced-guide-list">${issues.map((item, index) => `<div><i>${index + 1}</i><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)}</small></span><button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.route}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(index ? "查看" : item.actionLabel || "处理")}</button></div>`).join("") || '<div class="advanced-guide-empty">当前没有必须人工处理的配置，可以返回快速治理运行预检。</div>'}</div>`;
+            : `<div class="panel-heading"><div><span class="section-kicker">GUIDED TASKS</span><h3>当前发布所需工程配置</h3></div><span class="count-badge">${issues.length} 项</span></div><div class="advanced-guide-list">${issues.map((item, index) => `<div><i>${index + 1}</i><span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.message)}</small></span><button class="mini-btn" ${item.action ? `data-action="${item.action}"` : `data-go="${item.route}"${item.focus ? ` data-focus="${item.focus}"` : ""}`}>${escapeHtml(index ? "查看" : item.actionLabel || "处理")}</button></div>`).join("") || '<div class="advanced-guide-empty">当前没有必须人工处理的工程配置，可以返回发布数据治理执行检验。</div>'}</div>`;
     }
 
     function renderGraphProfile() {
@@ -1708,7 +1708,7 @@
         $("#schemaDriftState").className = `count-badge ${summary.blockers ? "failed" : payload.scanned ? "online" : ""}`;
         $("#schemaDriftMetrics").innerHTML = [
             ["已检测对象", summary.contracts || 0, "当前数据契约范围"],
-            ["结构稳定", summary.stable || 0, "可继续持续同步"],
+            ["结构稳定", summary.stable || 0, "可继续增量生产同步"],
             ["破坏性漂移", summary.blockers || 0, "必须先处理"],
             ["可选新字段", summary.candidates || 0, "不会自动加入本体"],
         ].map(item => `<article class="metric-card"><span>${item[0]}</span><strong>${item[1]}</strong><small>${item[2]}</small></article>`).join("");
@@ -1774,7 +1774,7 @@
         ];
         const currentIndex = Math.max(0, steps.findIndex(item => !item.complete));
         const action = !plan?.ready
-            ? { label: "返回数据治理", attrs: 'data-go="profiles"', help: "先清除数据门禁" }
+            ? { label: "返回发布数据治理", attrs: 'data-go="profiles"', help: "先清除数据质量门禁" }
             : !activeRelease
                 ? { label: "生成数据版本", attrs: 'data-action="generate-release"', help: "生成后在版本记录中激活" }
                 : !devEnvironment?.apply_enabled
@@ -1786,7 +1786,7 @@
                             : { label: published ? "查看 Dev 发布结果" : "查看发布进度", attrs: 'data-go="deployments" data-focus="environment-dev"', help: published ? "R1 已写入 Graph Studio" : "继续完成当前发布" };
         $("#releasePublishGuide").innerHTML = `<div class="publish-guide-copy"><span>CURRENT RELEASE STATE</span><h3>${published ? `数据版本 R${activeRelease.release_no} 已发布到 Dev` : activeRelease ? `数据版本 R${activeRelease.release_no} 已就绪，下一步发布到 Dev` : "先生成可发布的数据版本"}</h3><p>${activeRelease ? `当前活动快照包含 ${Number(activeRelease.object_count || 0).toLocaleString()} 个对象实例和 ${Number(activeRelease.relationship_count || 0).toLocaleString()} 个关系实例。只有最后一步完成后，数据才真正写入 Graph Studio。` : "治理完成后生成不可变数据快照；这一步不会直接修改 Graph Studio。"}</p></div><div class="publish-guide-action"><button class="btn primary" ${action.attrs}>${escapeHtml(action.label)}</button><small>${escapeHtml(action.help)}</small></div><div class="publish-guide-steps">${steps.map((item, index) => `<div class="publish-step ${item.complete ? "complete" : index === currentIndex ? "current" : ""}"><i>${item.complete ? "✓" : index + 1}</i><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.note)}</small></div>`).join("")}</div>`;
         $("#materializationPlan").innerHTML = plan ? `<div class="capability-chips"><span class="capability-chip ${plan.ready ? "" : "danger"}">数据门禁 <strong>${plan.ready ? "已通过" : `${blockers.length} 项阻断`}</strong></span><span class="capability-chip">当前活动版本 <strong>${activeRelease ? `R${activeRelease.release_no}` : "无"}</strong></span><span class="capability-chip">批大小 <strong>${Number(plan.batchRows).toLocaleString()}</strong></span><span class="capability-chip">快照策略 <strong>不可变</strong></span></div>${blockers.length ? `<div class="capability-warning">${blockers.map(escapeHtml).join("；")}</div>` : ""}` : "正在加载数据版本计划…";
-        $("#releaseRows").innerHTML = releases.map(item => `<tr data-release="${escapeHtml(item.release_id)}"><td><strong>R${item.release_no}</strong><br><small>${String(item.release_id).slice(0, 8)}</small></td><td><span class="status-pill ${item.is_active || item.status === "ready" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${item.is_active ? "活动" : escapeHtml(statusLabel(item.status))}</span></td><td>${Number(item.object_count || 0).toLocaleString()}</td><td>${Number(item.relationship_count || 0).toLocaleString()}</td><td>${Number(item.quarantine_count || 0).toLocaleString()}</td><td>${formatDate(item.started_at, true)}</td><td>${item.status === "ready" ? '<button class="mini-btn" data-action="activate-release">激活</button>' : "—"}</td></tr>`).join("") || '<tr class="empty-row"><td colspan="7">尚无数据版本；请先在“数据治理”处理上方门禁，再执行物化</td></tr>';
+        $("#releaseRows").innerHTML = releases.map(item => `<tr data-release="${escapeHtml(item.release_id)}"><td><strong>R${item.release_no}</strong><br><small>${String(item.release_id).slice(0, 8)}</small></td><td><span class="status-pill ${item.is_active || item.status === "ready" ? "online" : item.status === "failed" ? "failed" : "unknown"}">${item.is_active ? "活动" : escapeHtml(statusLabel(item.status))}</span></td><td>${Number(item.object_count || 0).toLocaleString()}</td><td>${Number(item.relationship_count || 0).toLocaleString()}</td><td>${Number(item.quarantine_count || 0).toLocaleString()}</td><td>${formatDate(item.started_at, true)}</td><td>${item.status === "ready" ? '<button class="mini-btn" data-action="activate-release">激活</button>' : "—"}</td></tr>`).join("") || '<tr class="empty-row"><td colspan="7">尚无制造数据版本；请先在“发布数据治理”处理质量门禁，再生成不可变快照</td></tr>';
         $("#runMaterialization").textContent = activeRelease ? "重新生成数据版本" : "生成数据版本";
         $("#runMaterialization").disabled = !plan?.ready;
         $("#rollbackRelease").disabled = releases.length < 2;
@@ -2318,7 +2318,7 @@
             ...NAVIGATION_GROUPS,
             ...ADVANCED_NAVIGATION.map(item => ({ ...item, sections: [item.key], advanced: true })),
         ];
-        $("#menuSettings").innerHTML = `<div class="menu-setting-guidance">一级菜单按业务阶段组织；原来的连接、任务、投影、映射、版本和运行记录仍保留为组内页签。</div>${groups.map((group, index) => {
+        $("#menuSettings").innerHTML = `<div class="menu-setting-guidance">一级菜单按制造数据发布阶段组织；连接、同步、投影、映射、版本和运行记录作为阶段内功能保留。</div>${groups.map((group, index) => {
             const items = group.sections.map(key => source.get(key)).filter(Boolean);
             const enabled = items.some(item => item.enabled);
             const detail = group.tabs?.map(item => item[1]).join(" · ") || (group.advanced ? "高级功能" : "独立页面");
@@ -2678,7 +2678,7 @@
             renderDeployments();
             await loadOverview();
         } catch (error) {
-            setAlert(`同步中心加载失败：${error.message}`);
+            setAlert(`制造知识图谱发布平台加载失败：${error.message}`);
             $("#globalStatusDot").className = "status-dot offline";
             $("#globalStatusText").textContent = "控制面不可用";
         }
@@ -2701,7 +2701,7 @@
         button.textContent = "正在测试…";
         try {
             const result = await request("/api/sync/connections/test-all", { method: "POST" });
-            toast(result.ok ? "全部连接测试通过" : "部分连接测试失败，请查看连接管理", !result.ok);
+            toast(result.ok ? "全部数据链路巡检通过" : "部分数据链路异常，请查看“数据源与发布端”", !result.ok);
             await loadConnections(); await loadOverview();
         } catch (error) { toast(error.message, true); }
         finally { button.disabled = false; button.textContent = previous; }
@@ -2820,7 +2820,7 @@
                 updated += 1;
             }
             await Promise.all([loadGraphProfiles(), loadMaterialization()]);
-            toast(`已应用 ${updated} 项安全推荐；无法自动决定的事项保留在异常中心`);
+            toast(`已应用 ${updated} 项安全建议；无法自动判定的事项保留在发布待办`);
         } finally {
             button.disabled = false;
             button.textContent = previous;
@@ -2838,7 +2838,7 @@
         const missingContracts = (state.activeProfile?.classes || []).filter(item => item.enabled && !contractClasses.has(item.class_name)).length;
         $("#dialogTitle").textContent = "采用治理推荐配置";
         $("#dialogKicker").textContent = "SAFE RECOMMENDATIONS";
-        $("#dialogFields").innerHTML = `<div class="dialog-operation-note"><strong>只应用系统能够安全确定的配置</strong><br><br>将补齐 ${drift.missingClasses.length} 个对象和 ${drift.missingRelationships.length} 条可解析关系，确认 ${pendingClasses} 个对象角色、${pendingContracts} 个已有数据契约和 ${pendingRelationships} 个关系契约。<br><br>${missingContracts ? `另有 ${missingContracts} 个对象缺少数据契约，需要进入高级治理确认主键与字段范围。<br><br>` : ""}不会自动创建无法确认的物理映射，不会执行数据物化，也不会发布到 Graph Studio。所有无法安全决定的事项会继续保留在异常中心。</div>`;
+        $("#dialogFields").innerHTML = `<div class="dialog-operation-note"><strong>仅应用系统能够安全判定的配置</strong><br><br>将补齐 ${drift.missingClasses.length} 个对象和 ${drift.missingRelationships.length} 条可解析关系，确认 ${pendingClasses} 个对象角色、${pendingContracts} 个已有数据契约和 ${pendingRelationships} 个关系契约。<br><br>${missingContracts ? `另有 ${missingContracts} 个对象缺少数据契约，需要进入工程配置确认主键与字段范围。<br><br>` : ""}不会自动创建无法确认的物理映射，不会执行数据版本生成，也不会发布到 Graph Studio。所有无法安全判定的事项会继续保留在发布待办。</div>`;
         state.dialogSubmitLabel = "应用推荐配置";
         state.dialogBusyLabel = "正在应用推荐…";
         $("#dialogSave").textContent = state.dialogSubmitLabel;
@@ -3311,8 +3311,8 @@
         applyOntologyPropertyFilter();
     });
     $("#testConnectionsPage").addEventListener("click", event => runAllConnectionTests(event.currentTarget));
-    $("#runContinuousSync").addEventListener("click", () => openActorDialog("运行持续同步并发布到开发验证", async actor => {
-        toast("持续同步已开始：正在冻结窗口、治理数据并蓝绿发布");
+    $("#runContinuousSync").addEventListener("click", () => openActorDialog("执行增量生产同步并发布到开发验证环境", async actor => {
+        toast("增量生产同步已开始：正在冻结窗口、执行数据治理并进行蓝绿发布");
         const result = await request("/api/sync/jobs/camstar-full/continuous-sync", {
             method: "POST",
             body: JSON.stringify({ apply: true, profile_key: activeProfileKey(), environment_key: (state.deployments.routes || []).find(item => item.route_key === state.activeRouteKey)?.environment_key || "dev", route_key: state.activeRouteKey, actor }),

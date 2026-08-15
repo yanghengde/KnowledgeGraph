@@ -17,8 +17,8 @@
             englishTranslation: "英文描述", save: "保存", saved: "已保存并即时更新", saving: "保存中…",
             reset: "恢复默认", empty: "没有匹配的内容", loadMore: "加载更多", customized: "已自定义",
             catalogHint: "统一管理界面语言、节点与属性描述翻译及行业配置；修改后即时生效。",
-            searchPlaceholder: "搜索类名、属性…", classes: "类", attributes: "属性", relations: "关系",
-            queryBuilder: "查询构建", industrySettings: "行业设置", graphSettings: "平台设置",
+            searchPlaceholder: "搜索制造对象、属性或关系…", classes: "对象类", attributes: "属性", relations: "关系",
+            queryBuilder: "制造数据查询", industrySettings: "行业建模配置", graphSettings: "工作台设置",
             graphImport: "图谱导入", graphMaintenance: "图谱维护", maintenanceTitle: "图谱维护", maintenanceHelp: "集中管理会影响整个图谱的维护操作，请在执行前确认当前环境与数据范围。",
             importTitle: "导入物理结构", importHelp: "分别选择表定义 CSV 和字段定义 CSV。现有节点与项目本体库中的成熟业务模型会默认勾选；未知或技术型 CDO 保留人工审核。",
             databaseType: "描述来源数据库", descriptionColumn: "描述",
@@ -45,7 +45,7 @@
             exportGraph: "导出图谱", fitCanvas: "适应", sqlAssistant: "SQL 助手",
             loadingGraph: "正在加载本体图谱…", returnGraph: "返回图谱", industryList: "行业列表",
             newIndustry: "新建行业", editIndustry: "编辑行业信息", saveSettings: "保存设置",
-            industryPage: "行业设置", industryId: "行业唯一 ID", industryName: "行业名称", industryIcon: "行业图标",
+            industryPage: "行业建模配置", industryId: "行业唯一 ID", industryName: "行业名称", industryIcon: "行业图标",
             industryColor: "代表色彩", industryDescription: "行业建模场景描述", resetForm: "重置",
             promptTitle: "关系建模 AI 提示词", copyPrompt: "复制当前提示词", tipsTitle: "提示说明",
             industryIdPlaceholder: "例如：semiconductor、automotive", industryNamePlaceholder: "例如：半导体制造、汽车零部件",
@@ -65,8 +65,8 @@
             englishTranslation: "English description", save: "Save", saved: "Saved and updated instantly", saving: "Saving…",
             reset: "Restore default", empty: "No matching content", loadMore: "Load more", customized: "Customized",
             catalogHint: "Manage interface language, node and property descriptions, and industry configuration in one place. Changes take effect immediately.",
-            searchPlaceholder: "Search classes or properties…", classes: "Classes", attributes: "Properties", relations: "Relations",
-            queryBuilder: "Query Builder", industrySettings: "Industry Settings", graphSettings: "Platform Settings",
+            searchPlaceholder: "Search manufacturing objects, properties, or relations…", classes: "Object Classes", attributes: "Properties", relations: "Relations",
+            queryBuilder: "Manufacturing Data Query", industrySettings: "Industry Modeling", graphSettings: "Workbench Settings",
             graphImport: "Graph Import", graphMaintenance: "Graph Maintenance", maintenanceTitle: "Graph Maintenance", maintenanceHelp: "Manage operations that affect the entire graph. Verify the current environment and data scope before proceeding.",
             importTitle: "Import Physical Structure", importHelp: "Select the table and field definition CSV files. Existing nodes and mature business models from the curated ontology library are preselected; unknown or technical CDOs remain for review.",
             databaseType: "Description database", descriptionColumn: "Description",
@@ -93,7 +93,7 @@
             exportGraph: "Export Graph", fitCanvas: "Fit", sqlAssistant: "SQL Assistant",
             loadingGraph: "Loading ontology graph…", returnGraph: "Back to Graph", industryList: "Industry List",
             newIndustry: "New Industry", editIndustry: "Edit Industry", saveSettings: "Save Settings",
-            industryPage: "Industry Settings", industryId: "Unique Industry ID", industryName: "Industry Name", industryIcon: "Industry Icon",
+            industryPage: "Industry Modeling", industryId: "Unique Industry ID", industryName: "Industry Name", industryIcon: "Industry Icon",
             industryColor: "Brand Color", industryDescription: "Industry Modeling Scenario", resetForm: "Reset",
             promptTitle: "Relationship Modeling AI Prompt", copyPrompt: "Copy Prompt", tipsTitle: "Notes",
             industryIdPlaceholder: "e.g. semiconductor, automotive", industryNamePlaceholder: "e.g. Semiconductor Manufacturing, Automotive Parts",
@@ -105,10 +105,10 @@
     };
 
     const EXACT_EN = new Map(Object.entries({
-        "查询构建器": "Query Builder", "临时模式": "Temporary", "清空": "Clear", "已选对象": "Selected Objects",
-        "在主图中点击对象，确认物理关联后生成 SQL": "Click objects in the graph, verify physical joins, and generate SQL",
-        "请从右侧主图选择对象": "Select objects from the graph", "选择对象后，将在这里展示经过物理外键验证的 Join 路径": "Verified physical foreign-key join paths appear here after selecting objects",
-        "查询关系预览": "Relationship Preview", "等待选择": "Waiting", "查看关系": "View Relationship", "适应": "Fit",
+        "制造数据查询构建": "Manufacturing Data Query", "只读设计": "Read-only Design", "清空": "Clear", "已选制造对象": "Selected Manufacturing Objects",
+        "选择制造对象并核验物理关联，生成可审查的 SQL 查询骨架": "Select manufacturing objects, verify physical joins, and generate a reviewable SQL skeleton",
+        "请从右侧主图选择对象": "Select objects from the graph", "选择制造对象后，将在这里展示已由物理外键验证的 JOIN 路径": "Verified physical foreign-key JOIN paths appear here after selecting manufacturing objects",
+        "物理关联路径": "Physical Join Path", "等待选择": "Waiting", "查看关系": "View Relationship", "适应": "Fit",
         "已选对象": "Selected", "中间对象": "Bridge", "未连接": "Disconnected", "SQL 骨架": "SQL Skeleton",
         "复制": "Copy", "已复制": "Copied", "在助手中继续": "Continue in Assistant", "节点详情": "Node Details", "属性列表": "Properties",
         "点击关系线选中并查看物理 JOIN 条件": "Click a relationship to inspect its physical JOIN condition",
@@ -205,8 +205,8 @@
     function applyDom(root = document) {
         document.documentElement.lang = state.language;
         document.title = state.language === "zh-CN"
-            ? (document.body?.dataset.page === "industry" ? "行业与产品线设置 | Siemens Opcenter" : "Opcenter 本体图谱浏览器 | Siemens MES")
-            : (document.body?.dataset.page === "industry" ? "Industry & Product Line Settings | Siemens Opcenter" : "Opcenter Ontology Explorer | Siemens MES");
+            ? (document.body?.dataset.page === "industry" ? "制造行业与产品线配置 | Siemens Opcenter" : "Opcenter 制造本体建模工作台 | Siemens MES")
+            : (document.body?.dataset.page === "industry" ? "Manufacturing Industry & Product Line Configuration | Siemens Opcenter" : "Opcenter Manufacturing Ontology Workbench | Siemens MES");
         root.querySelectorAll?.("[data-i18n]").forEach((element) => {
             element.textContent = t(element.dataset.i18n);
         });
@@ -324,7 +324,7 @@
                         </section>
                         <section class="i18n-industry-section" hidden>
                             <iframe id="i18nIndustryFrame" class="i18n-industry-frame"
-                                title="行业设置" loading="lazy"></iframe>
+                                title="行业建模配置" loading="lazy"></iframe>
                         </section>
                         <section class="i18n-import-section" hidden>
                             <div class="i18n-import-heading">

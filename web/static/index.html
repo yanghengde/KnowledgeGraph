@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Opcenter Ontology Explorer | Siemens MES</title>
+    <title>Opcenter 制造本体建模工作台 | Siemens MES</title>
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg" />
     <meta name="description"
-        content="Interactive knowledge graph viewer for Opcenter MES Ontology powered by AntV G6" />
+        content="面向工业制造的 Opcenter MES 本体建模、关系核查与 SQL 语义辅助工作台" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
@@ -26,7 +26,7 @@
                             font-family="Inter">S</text>
                     </svg>
                 </span>
-                <h1>Opcenter <span class="accent">Ontology</span> Explorer</h1>
+                <h1>Opcenter <span class="accent">制造本体</span>工作台</h1>
             </a>
             <div class="product-line-selector" id="productLineSelector">
                 <select id="productLineSelect" title="切换产品线">
@@ -46,11 +46,11 @@
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input type="text" id="searchInput" placeholder="搜索类名、属性..." data-i18n-placeholder="searchPlaceholder" autocomplete="off" />
+                <input type="text" id="searchInput" placeholder="搜索制造对象、属性或关系..." data-i18n-placeholder="searchPlaceholder" autocomplete="off" />
             </div>
         </div>
         <div class="topbar-right">
-            <a class="nav-link-btn" href="/sync" title="打开 Camstar 到 Graph Studio 同步中心">同步中心</a>
+            <a class="nav-link-btn" href="/sync" title="返回制造知识图谱发布平台">发布平台</a>
             <div class="stat-chip" id="statClasses"><span class="stat-num">-</span> <span data-i18n="classes">类</span></div>
             <div class="stat-chip" id="statProps"><span class="stat-num">-</span> <span data-i18n="attributes">属性</span></div>
             <div class="stat-chip" id="statRels"><span class="stat-num">-</span> <span data-i18n="relations">关系</span></div>
@@ -63,7 +63,7 @@
                     <circle cx="12" cy="18" r="2" />
                     <path d="M7 7.5l3.5 8M17 7.5l-3.5 8M7 6h10" />
                 </svg>
-                <span data-i18n="queryBuilder">查询构建</span>
+                <span data-i18n="queryBuilder">制造数据查询</span>
             </button>
             <button class="icon-btn" id="btnRelMode" title="关系聚焦模式" style="display: none;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -140,18 +140,18 @@
         <div id="graphContainer"></div>
 
         <!-- Transient SQL Query Builder -->
-        <aside id="queryBuilderPanel" class="query-builder-hidden" aria-label="查询构建器">
+        <aside id="queryBuilderPanel" class="query-builder-hidden" aria-label="制造数据查询构建">
             <div class="query-builder-header">
                 <div>
                     <div class="query-builder-title-row">
-                        <h2>查询构建器</h2>
-                        <span class="query-builder-mode-badge">临时模式</span>
+                        <h2>制造数据查询构建</h2>
+                        <span class="query-builder-mode-badge">只读设计</span>
                         <button type="button" class="query-header-clear-btn"
                             id="btnClearQueryTop" disabled title="清空当前查询对象">
                             清空
                         </button>
                     </div>
-                    <p>在主图中点击对象，确认物理关联后生成 SQL</p>
+                    <p>选择制造对象并核验物理关联，生成可审查的 SQL 查询骨架</p>
                 </div>
                 <button type="button" class="icon-btn panel-close" id="btnCloseQueryMode"
                     aria-label="退出查询构建模式" title="退出查询构建模式">×</button>
@@ -159,7 +159,7 @@
             <div class="query-builder-body">
                 <section class="query-builder-section">
                     <div class="query-section-heading">
-                        <h3>已选对象</h3>
+                        <h3>已选制造对象</h3>
                         <span id="querySelectedCount">0 / 16</span>
                     </div>
                     <div id="querySelectedNodes" class="query-selected-nodes">
@@ -172,7 +172,7 @@
 
                 <section class="query-builder-section query-preview-section">
                     <div class="query-section-heading">
-                        <h3>查询关系预览</h3>
+                        <h3>物理关联路径</h3>
                         <div class="query-section-heading-actions">
                             <span id="queryPlanSummary">等待选择</span>
                             <button type="button" class="query-heading-btn" id="btnViewQueryRelationship"
@@ -196,7 +196,7 @@
                     </div>
                     <div id="queryPreviewCanvas" class="query-preview-canvas"></div>
                     <div id="queryPreviewEmpty" class="query-preview-empty">
-                        选择对象后，将在这里展示经过物理外键验证的 Join 路径
+                        选择制造对象后，将在这里展示已由物理外键验证的 JOIN 路径
                     </div>
                     <div class="query-preview-legend">
                         <span><i class="query-legend-dot selected"></i>已选对象</span>
