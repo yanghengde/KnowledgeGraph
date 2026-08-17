@@ -1600,7 +1600,7 @@ VALUES (
     'camstar-full',
     'Camstar 全量图谱同步',
     '从 Camstar SQL Server 和 Neo4j 本体生成 RDF 快照并发布到 Opcenter2607。',
-    'http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56',
+    'http://cambridgesemantics.com/Graphmart/fa5ee4d00d9744c996165abcdec9a647',
     'atomic_snapshot',
     '0 * * * *',
     'Asia/Shanghai',
@@ -1631,13 +1631,13 @@ INSERT INTO graphsync.deployment_environment
      apply_enabled, requires_approval, config)
 VALUES
     ('dev', '开发验证', 10,
-     'http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56',
+     'http://cambridgesemantics.com/Graphmart/fa5ee4d00d9744c996165abcdec9a647',
      false, false, '{"purpose":"integration","blueGreen":true}'::jsonb),
     ('uat', '业务验收', 20,
-     'http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56',
+     'http://cambridgesemantics.com/Graphmart/fa5ee4d00d9744c996165abcdec9a647',
      false, true, '{"purpose":"business_acceptance","blueGreen":true}'::jsonb),
     ('prod', '生产', 30,
-     'http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56',
+     'http://cambridgesemantics.com/Graphmart/fa5ee4d00d9744c996165abcdec9a647',
      false, true, '{"purpose":"production","blueGreen":true,"requireUat":true}'::jsonb)
 ON CONFLICT (environment_key) DO NOTHING;
 

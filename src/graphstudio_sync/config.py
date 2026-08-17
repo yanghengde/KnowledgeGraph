@@ -106,7 +106,7 @@ class SyncSettings:
             graphstudio_password=_required("GRAPHSTUDIO_PASSWORD"),
             graphmart_uri=os.getenv(
                 "GRAPHSTUDIO_GRAPHMART_URI",
-                "http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56",
+                "http://cambridgesemantics.com/Graphmart/fa5ee4d00d9744c996165abcdec9a647",
             ).strip(),
             state_database_url=_state_database_url(),
             shared_file_connection=os.getenv("GRAPHSTUDIO_FILE_CONNECTION") or None,

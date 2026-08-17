@@ -1,5 +1,6 @@
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.connections import _host_port, settings_from_profiles
+from src.graphstudio_sync.repository import ControlPlaneRepository
 
 
 def _settings() -> SyncSettings:
@@ -87,3 +88,77 @@ def test_oracle_source_profile_selects_driver_defaults_and_schema() -> None:
     assert resolved.source_schema == "CAMSTAR_OWNER"
     assert resolved.source_connect_mode == "service_name"
     assert resolved.source_password == "sql-secret"
+
+
+class _UpdateResult:
+    def __init__(self, *, row=None, rowcount=0):
+        self._row = row
+        self.rowcount = rowcount
+
+    def mappings(self):
+        return self
+
+    def one_or_none(self):
+        return self._row
+
+
+class _UpdateConnection:
+    def __init__(self):
+        self.calls = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args):
+        return False
+
+    def execute(self, statement, params):
+        sql = str(statement)
+        self.calls.append((sql, params))
+        if "SELECT database_name" in sql:
+            return _UpdateResult(row={"database_name": "urn:graphmart:old"})
+        if "UPDATE graphsync.connection_profile" in sql:
+            return _UpdateResult(row={
+                "connection_key": "graph-studio",
+                "database_name": "urn:graphmart:new",
+            })
+        if "UPDATE graphsync.graphstudio_target" in sql:
+            return _UpdateResult(rowcount=1)
+        if "UPDATE graphsync.deployment_environment" in sql:
+            return _UpdateResult(rowcount=3)
+        if "UPDATE graphsync.sync_job" in sql:
+            return _UpdateResult(rowcount=1)
+        raise AssertionError(sql)
+
+
+class _UpdateEngine:
+    def __init__(self):
+        self.connection = _UpdateConnection()
+
+    def begin(self):
+        return self.connection
+
+
+def test_graphstudio_connection_update_synchronizes_matching_default_references() -> None:
+    repository = ControlPlaneRepository.__new__(ControlPlaneRepository)
+    repository.engine = _UpdateEngine()
+
+    result = repository.update_connection(
+        "graph-studio",
+        kind="graph_studio",
+        display_name="Graph Studio",
+        endpoint="https://graph-new.example",
+        database_name="urn:graphmart:new",
+        username="publisher",
+        enabled=True,
+        config={},
+    )
+
+    assert result["synchronized_references"] == {
+        "targets": 1,
+        "environments": 3,
+        "jobs": 1,
+    }
+    cascade_calls = repository.engine.connection.calls[2:]
+    assert all(call[1]["old_uri"] == "urn:graphmart:old" for call in cascade_calls)
+    assert all(call[1]["new_uri"] == "urn:graphmart:new" for call in cascade_calls)

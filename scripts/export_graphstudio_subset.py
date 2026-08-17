@@ -37,7 +37,7 @@ DATA_FILE = OUTPUT_DIR / "product_mfgorder_data.ttl"
 ZIP_FILE = OUTPUT_DIR / "product_mfgorder_data.zip"
 MANIFEST_FILE = OUTPUT_DIR / "manifest.json"
 
-GRAPHMART_URI = "http://cambridgesemantics.com/Graphmart/ba6308d1b3764b8a8ad40d90500ddd56"
+GRAPHMART_URI = "http://cambridgesemantics.com/Graphmart/fa5ee4d00d9744c996165abcdec9a647"
 GRAPHMART_ID = GRAPHMART_URI.rsplit("/", 1)[-1]
 ONTOLOGY_URI = URIRef("https://opcenter.siemens.com/ontology/camstar/2607/ProductMfgOrder")
 ONT = Namespace(str(ONTOLOGY_URI) + "#")

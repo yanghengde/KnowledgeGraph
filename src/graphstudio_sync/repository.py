@@ -130,6 +130,19 @@ class ControlPlaneRepository:
         config: dict[str, Any],
     ) -> dict[str, Any]:
         with self.engine.begin() as connection:
+            previous = connection.execute(
+                text(
+                    """
+                    SELECT database_name
+                    FROM graphsync.connection_profile
+                    WHERE connection_key=:key
+                    FOR UPDATE
+                    """
+                ),
+                {"key": key},
+            ).mappings().one_or_none()
+            if previous is None:
+                raise KeyError(key)
             row = connection.execute(
                 text(
                     """
@@ -155,9 +168,47 @@ class ControlPlaneRepository:
                     "config": json.dumps(config, ensure_ascii=False),
                 },
             ).mappings().one_or_none()
-        if row is None:
-            raise KeyError(key)
-        return dict(row)
+            synchronized = {"targets": 0, "environments": 0, "jobs": 0}
+            previous_graphmart = previous["database_name"]
+            if (
+                key == "graph-studio"
+                and previous_graphmart
+                and database_name
+                and previous_graphmart != database_name
+            ):
+                synchronized["targets"] = connection.execute(
+                    text(
+                        """
+                        UPDATE graphsync.graphstudio_target
+                        SET graphmart_uri=:new_uri, updated_at=now()
+                        WHERE connection_key=:key AND graphmart_uri=:old_uri
+                        """
+                    ),
+                    {"key": key, "old_uri": previous_graphmart, "new_uri": database_name},
+                ).rowcount
+                synchronized["environments"] = connection.execute(
+                    text(
+                        """
+                        UPDATE graphsync.deployment_environment
+                        SET graphmart_uri=:new_uri, updated_at=now()
+                        WHERE graphmart_uri=:old_uri
+                        """
+                    ),
+                    {"old_uri": previous_graphmart, "new_uri": database_name},
+                ).rowcount
+                synchronized["jobs"] = connection.execute(
+                    text(
+                        """
+                        UPDATE graphsync.sync_job
+                        SET graphmart_uri=:new_uri, updated_at=now()
+                        WHERE graphmart_uri=:old_uri
+                        """
+                    ),
+                    {"old_uri": previous_graphmart, "new_uri": database_name},
+                ).rowcount
+        result = dict(row)
+        result["synchronized_references"] = synchronized
+        return result
 
     def list_navigation(self, *, include_disabled: bool = False) -> list[dict[str, Any]]:
         predicate = "" if include_disabled else "WHERE enabled"
