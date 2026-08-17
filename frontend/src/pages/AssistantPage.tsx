@@ -5,7 +5,6 @@ import {
   DeleteOutlined,
   PlusOutlined,
   ReloadOutlined,
-  SendOutlined,
   StopOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -37,6 +36,14 @@ const QUICK_QUESTIONS = [
   "按产品统计关联的制造订单数量。",
   "当前知识图谱中有哪些对象类型和关系？",
 ];
+
+function ComposerSendIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 19V5M6.5 10.5 12 5l5.5 5.5" />
+    </svg>
+  );
+}
 
 function MessageContent({ message }: { message: ChatMessage }) {
   return (
@@ -273,16 +280,17 @@ export function AssistantPage() {
               disabled={streaming}
             />
             <Button
+              className="composer-submit"
               type="primary"
               danger={streaming}
               shape="circle"
               size="large"
-              icon={streaming ? <StopOutlined /> : <SendOutlined />}
+              icon={streaming ? <StopOutlined /> : <ComposerSendIcon />}
+              aria-label={streaming ? "停止回答" : "发送问题"}
               disabled={!streaming && !question.trim()}
               onClick={() => void sendQuestion()}
             />
           </div>
-          <Typography.Text type="secondary">重要制造决策请结合 Camstar 源系统记录复核。</Typography.Text>
         </div>
       </section>
     </div>
