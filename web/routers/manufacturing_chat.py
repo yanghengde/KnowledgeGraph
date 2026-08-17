@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 
 from fastapi import APIRouter, HTTPException
@@ -13,6 +14,7 @@ from src.qa.graphstudio_assistant import (
     graphstudio_connection_status,
     graphstudio_query_stream,
 )
+from src.qa.graphstudio_saved_queries import public_query_catalog
 from src.qa.manufacturing_session_store import (
     append_exchange,
     create_session,
@@ -32,11 +34,25 @@ class SessionCreateRequest(BaseModel):
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
     session_id: str
+    query_mode: str = Field(default="auto", pattern="^(auto|dynamic)$")
+    query_uri: str | None = None
 
 
 @router.get("/status")
 async def status():
     return graphstudio_connection_status()
+
+
+@router.get("/queries")
+async def queries(refresh: bool = False):
+    try:
+        items = await asyncio.to_thread(
+            public_query_catalog,
+            force_refresh=refresh,
+        )
+    except GraphStudioAssistantError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return {"items": items, "count": len(items)}
 
 
 @router.get("/sessions")
@@ -84,7 +100,12 @@ async def ask(request: AskRequest):
         full_answer = ""
         error_message = None
         try:
-            async for chunk in graphstudio_query_stream(question, history):
+            async for chunk in graphstudio_query_stream(
+                question,
+                history,
+                query_mode=request.query_mode,
+                query_uri=request.query_uri,
+            ):
                 if isinstance(chunk, dict):
                     payload = chunk
                 else:

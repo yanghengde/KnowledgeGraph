@@ -14,6 +14,7 @@ import os
 import re
 import threading
 import time
+from pathlib import Path
 from typing import Any, AsyncIterator
 from urllib.parse import quote
 
@@ -22,6 +23,12 @@ from openai import AsyncOpenAI
 
 
 _SCHEMA_TTL_SECONDS = 300
+_SCHEMA_CACHE_PATH = Path(
+    os.getenv(
+        "MANUFACTURING_CHAT_SCHEMA_CACHE",
+        Path(__file__).resolve().parents[2] / "data" / "manufacturing_chat_schema.json",
+    )
+)
 _schema_lock = threading.Lock()
 _schema_cache: tuple[float, list[dict[str, str]]] | None = None
 _llm_client: AsyncOpenAI | None = None
@@ -74,13 +81,31 @@ def _sparql_endpoint(config: dict[str, str]) -> str:
 
 def _request_sparql(query: str, *, timeout: float = 45) -> dict[str, Any]:
     config = _configuration()
-    response = requests.post(
-        _sparql_endpoint(config),
-        data={"query": query},
-        headers={"Accept": "application/sparql-results+json"},
-        auth=(config["username"], config["password"]),
-        timeout=timeout,
-    )
+    response = None
+    last_error: requests.RequestException | None = None
+    for attempt in range(4):
+        try:
+            response = requests.post(
+                _sparql_endpoint(config),
+                data={"query": query},
+                headers={
+                    "Accept": "application/sparql-results+json",
+                    "User-Agent": "Opcenter-Manufacturing-QA/1.0",
+                },
+                auth=(config["username"], config["password"]),
+                timeout=timeout,
+            )
+            if response.status_code not in {502, 503, 504}:
+                break
+        except (requests.ConnectionError, requests.Timeout) as exc:
+            last_error = exc
+        if attempt < 3:
+            time.sleep(0.35 * (2**attempt))
+    if response is None:
+        raise GraphStudioAssistantError(
+            "Graph Studio 查询连接被远端中断，已自动重试 4 次。"
+            "请稍后重试或检查 Graph Studio 查询服务状态。"
+        ) from last_error
     if not response.ok:
         detail = response.text.strip().replace("\n", " ")[:500]
         raise GraphStudioAssistantError(
@@ -110,19 +135,62 @@ def _binding_rows(payload: dict[str, Any]) -> list[dict[str, str]]:
 
 
 def _discover_schema_uncached() -> list[dict[str, str]]:
+    # The 2026.0.1 endpoint used by this deployment closes the HTTP connection
+    # for DISTINCT patterns that combine FILTER with BIND/IF.  Keep discovery
+    # deliberately simple and classify rdf:type in Python instead.
     query = """
-        SELECT DISTINCT ?class ?property ?valueKind WHERE {
-          ?instance a ?class .
-          OPTIONAL {
-            ?instance ?property ?value .
-            FILTER(?property != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
-            BIND(IF(isIRI(?value), "资源关联", "数据属性") AS ?valueKind)
-          }
+        SELECT DISTINCT ?class ?property WHERE {
+          ?instance a ?class ; ?property ?value .
         }
         ORDER BY ?class ?property
         LIMIT 600
     """
-    return _binding_rows(_request_sparql(query))
+    rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+    rows = [
+        {**row, "valueKind": "属性或关联"}
+        for row in _binding_rows(_request_sparql(query))
+        if row.get("property") != rdf_type
+    ]
+    business_rows = [
+        row for row in rows
+        if "opcenter.siemens.com/ontology/" in row.get("class", "")
+    ]
+    return business_rows or rows
+
+
+def _load_persisted_schema() -> list[dict[str, str]]:
+    try:
+        payload = json.loads(_SCHEMA_CACHE_PATH.read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    try:
+        config = _configuration()
+    except GraphStudioAssistantError:
+        return []
+    if payload.get("graphmart_uri") != config["graphmart_uri"]:
+        return []
+    rows = payload.get("rows")
+    return rows if isinstance(rows, list) else []
+
+
+def _persist_schema(rows: list[dict[str, str]]) -> None:
+    try:
+        config = _configuration()
+        _SCHEMA_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _SCHEMA_CACHE_PATH.write_text(
+            json.dumps(
+                {
+                    "graphmart_uri": config["graphmart_uri"],
+                    "saved_at": time.time(),
+                    "rows": rows,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ) + "\n",
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
 
 
 def discover_schema() -> list[dict[str, str]]:
@@ -134,7 +202,13 @@ def discover_schema() -> list[dict[str, str]]:
         now = time.monotonic()
         if _schema_cache and now - _schema_cache[0] < _SCHEMA_TTL_SECONDS:
             return _schema_cache[1]
-        rows = _discover_schema_uncached()
+        try:
+            rows = _discover_schema_uncached()
+            _persist_schema(rows)
+        except GraphStudioAssistantError:
+            rows = _load_persisted_schema()
+            if not rows:
+                raise
         _schema_cache = (now, rows)
         return rows
 
@@ -259,21 +333,111 @@ async def _plan_query(
     )
 
 
+async def _select_saved_query(
+    question: str,
+    history: list[dict[str, Any]] | None,
+    queries: list[dict[str, str]],
+) -> tuple[dict[str, str] | None, str]:
+    """Select a governed saved Query only when it can directly support the question."""
+    if not queries:
+        return None, "当前没有可用的已保存 Query"
+    candidates = queries[:40]
+    catalog = [
+        {
+            "uri": item["uri"],
+            "title": item["title"],
+            "description": item.get("description", ""),
+            "sparql": item.get("sparql", "")[:1800],
+        }
+        for item in candidates
+    ]
+    client = _get_llm()
+    model = os.getenv("LLM_MODEL", "deepseek-v4-flash")
+    messages = [{
+        "role": "system",
+        "content": (
+            "你是制造知识问答的 Query 路由器。判断用户问题能否由某一条 Graph Studio 已保存 Query "
+            "直接提供主要证据。优先选语义最精确的 Query；不要因为只沾边就勉强选择。"
+            "如果都不适合，query_uri 必须为 null，以便系统生成动态只读查询。"
+            "只能返回目录中真实存在的 URI。输出严格 JSON："
+            '{"query_uri":"URI或null","reason":"一句中文理由"}。\n\n'
+            f"Query 目录：\n{json.dumps(catalog, ensure_ascii=False)}"
+        ),
+    }]
+    messages.extend(_history_for_model(history)[-6:])
+    messages.append({"role": "user", "content": question})
+    try:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=messages,
+            response_format={"type": "json_object"},
+            temperature=0.0,
+            max_tokens=500,
+        )
+    except Exception:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=0.0,
+            max_tokens=500,
+        )
+    selection = _extract_json(response.choices[0].message.content or "")
+    selected_uri = selection.get("query_uri")
+    selected = next((item for item in candidates if item["uri"] == selected_uri), None)
+    return selected, str(selection.get("reason") or "Query 能力匹配")
+
+
 async def graphstudio_query_stream(
     question: str,
     history: list[dict[str, Any]] | None = None,
+    *,
+    query_mode: str = "auto",
+    query_uri: str | None = None,
 ) -> AsyncIterator[str | dict[str, str]]:
     if not os.getenv("DEEPSEEK_API_KEY", "").strip():
         raise GraphStudioAssistantError("尚未配置 DEEPSEEK_API_KEY，无法启动制造知识问答")
 
-    yield {"type": "status", "content": "正在读取当前 Graphmart 语义结构…"}
-    schema_rows = await asyncio.to_thread(discover_schema)
-    schema_context = _schema_context(schema_rows)
-    if not schema_rows:
-        raise GraphStudioAssistantError("当前 Graphmart 没有可供问答的实例数据")
+    saved_query = None
+    routing_reason = ""
+    if query_mode != "dynamic":
+        yield {"type": "status", "content": "正在匹配 Graph Studio 已保存 Query…"}
+        try:
+            from src.qa.graphstudio_saved_queries import list_saved_queries
 
-    yield {"type": "status", "content": "正在生成并校验只读查询计划…"}
-    sparql, understanding = await _plan_query(question, history, schema_context)
+            saved_queries = await asyncio.to_thread(list_saved_queries)
+            if query_uri:
+                saved_query = next(
+                    (item for item in saved_queries if item["uri"] == query_uri),
+                    None,
+                )
+                if saved_query is None:
+                    raise GraphStudioAssistantError("指定的 Graph Studio Query 不存在或不是安全的 SELECT 查询")
+                routing_reason = "用户指定使用该 Query"
+            else:
+                saved_query, routing_reason = await _select_saved_query(
+                    question, history, saved_queries
+                )
+        except GraphStudioAssistantError:
+            if query_uri:
+                raise
+            saved_query = None
+
+    if saved_query:
+        sparql = validate_readonly_sparql(saved_query["sparql"])
+        understanding = f"使用已保存 Query：{saved_query['title']}（{routing_reason}）"
+        yield {
+            "type": "status",
+            "content": f"已匹配 Query「{saved_query['title']}」，正在执行…",
+        }
+    else:
+        yield {"type": "status", "content": "正在读取当前 Graphmart 语义结构…"}
+        schema_rows = await asyncio.to_thread(discover_schema)
+        schema_context = _schema_context(schema_rows)
+        if not schema_rows:
+            raise GraphStudioAssistantError("当前 Graphmart 没有可供问答的实例数据")
+
+        yield {"type": "status", "content": "正在生成并校验动态只读查询计划…"}
+        sparql, understanding = await _plan_query(question, history, schema_context)
 
     yield {"type": "status", "content": "正在查询 Graph Studio 当前发布数据…"}
     result = await asyncio.to_thread(_request_sparql, sparql)
@@ -326,10 +490,14 @@ async def graphstudio_query_stream(
         if chunk.choices and chunk.choices[0].delta.content:
             yield chunk.choices[0].delta.content
 
+    query_source = (
+        f"Graph Studio 已保存 Query「{saved_query['title']}」"
+        if saved_query else "动态生成并安全校验的只读查询"
+    )
     yield (
         "\n\n### 查询依据\n"
         f"- 数据源：当前 Graphmart（返回 {len(rows)} 条）\n"
-        "- 查询方式：经安全校验的只读 SPARQL SELECT\n\n"
+        f"- 查询方式：{query_source}\n\n"
         f"```sparql\n{sparql}\n```"
     )
 
@@ -345,19 +513,21 @@ def graphstudio_connection_status() -> dict[str, Any]:
             "llm": "已配置" if llm_configured else "未配置",
             "detail": str(exc),
         }
-    encoded = quote(config["graphmart_uri"], safe="")
     try:
-        response = requests.get(
-            f"{config['base_url']}/api/graphmarts/{encoded}/status",
-            params={"detail": "false"},
-            auth=(config["username"], config["password"]),
-            timeout=8,
+        payload = _request_sparql(
+            "SELECT (COUNT(*) AS ?statementCount) WHERE { ?s ?p ?o }",
+            timeout=15,
         )
-        response.raise_for_status()
+        rows = _binding_rows(payload)
+        statement_count = int(rows[0].get("statementCount", "0")) if rows else 0
         graphstudio = "在线"
         status = "ready" if llm_configured else "llm_missing"
-        detail = "制造知识问答已就绪" if llm_configured else "Graph Studio 在线，但 DeepSeek 未配置"
-    except requests.RequestException as exc:
+        detail = (
+            f"制造知识问答已就绪 · {statement_count:,} 条图谱语句"
+            if llm_configured
+            else "Graph Studio 在线，但 DeepSeek 未配置"
+        )
+    except (requests.RequestException, GraphStudioAssistantError, ValueError) as exc:
         graphstudio = "离线"
         status = "unavailable"
         detail = f"Graph Studio 连接失败：{exc}"

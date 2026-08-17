@@ -15,6 +15,9 @@
         send: $("#sendButton"),
         status: $("#streamStatus"),
         statusText: $("#streamStatusText"),
+        querySelect: $("#querySelect"),
+        queryCount: $("#queryCount"),
+        refreshQueries: $("#refreshQueries"),
         connectionDot: $("#connectionDot"),
         connectionLabel: $("#connectionLabel"),
         connectionDetail: $("#connectionDetail"),
@@ -27,6 +30,7 @@
         streaming: false,
         abortController: null,
         search: "",
+        queries: [],
     };
 
     function escapeHtml(value) {
@@ -141,6 +145,34 @@
         renderSessions();
     }
 
+    async function loadQueries(forceRefresh = false) {
+        elements.refreshQueries.disabled = true;
+        elements.queryCount.textContent = "正在同步 Queries…";
+        try {
+            const payload = await fetchJson(`/api/manufacturing-chat/queries${forceRefresh ? "?refresh=true" : ""}`);
+            state.queries = payload.items || [];
+            const previous = localStorage.getItem("manufacturing_qa_query_mode") || "auto";
+            elements.querySelect.innerHTML = [
+                `<option value="auto">自动匹配已保存 Query</option>`,
+                ...state.queries.map((item) => `<option value="${escapeHtml(item.uri)}">${escapeHtml(item.title)}</option>`),
+                `<option value="dynamic">动态只读查询</option>`,
+            ].join("");
+            elements.querySelect.value = [...elements.querySelect.options].some((option) => option.value === previous)
+                ? previous : "auto";
+            elements.queryCount.textContent = `已同步 ${state.queries.length} 条`;
+            elements.queryCount.title = state.queries.length
+                ? state.queries.map((item) => item.title).join("、")
+                : "当前 Graphmart 尚未保存安全的 SELECT Query";
+            if (forceRefresh) showToast(`已同步 ${state.queries.length} 条 Graph Studio Query`);
+        } catch (error) {
+            elements.queryCount.textContent = "Queries 暂不可用";
+            elements.queryCount.title = error.message;
+            if (forceRefresh) showToast(error.message);
+        } finally {
+            elements.refreshQueries.disabled = false;
+        }
+    }
+
     function setCurrentSession(session) {
         state.current = session;
         if (session) localStorage.setItem("manufacturing_qa_session_id", session.id);
@@ -226,6 +258,8 @@
             ? `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1" fill="currentColor" stroke="none"/></svg>`
             : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>`;
         elements.send.setAttribute("aria-label", value ? "停止生成" : "发送问题");
+        elements.querySelect.disabled = value;
+        elements.refreshQueries.disabled = value;
         if (!value) updateComposer();
     }
 
@@ -251,6 +285,10 @@
         state.abortController = new AbortController();
         setStreaming(true);
 
+        const queryChoice = elements.querySelect.value || "auto";
+        const queryMode = queryChoice === "dynamic" ? "dynamic" : "auto";
+        const queryUri = queryChoice !== "auto" && queryChoice !== "dynamic" ? queryChoice : null;
+
         try {
             const response = await fetch("/api/manufacturing-chat/ask", {
                 method: "POST",
@@ -258,6 +296,8 @@
                 body: JSON.stringify({
                     question,
                     session_id: state.current.id,
+                    query_mode: queryMode,
+                    query_uri: queryUri,
                 }),
                 signal: state.abortController.signal,
             });
@@ -331,6 +371,13 @@
         }
     });
     elements.send.addEventListener("click", () => sendQuestion());
+    elements.querySelect.addEventListener("change", () => {
+        localStorage.setItem("manufacturing_qa_query_mode", elements.querySelect.value);
+        const selected = state.queries.find((item) => item.uri === elements.querySelect.value);
+        elements.queryCount.textContent = selected ? `固定使用：${selected.title}` : `已同步 ${state.queries.length} 条`;
+        elements.queryCount.title = selected?.description || "";
+    });
+    elements.refreshQueries.addEventListener("click", () => loadQueries(true));
     $("#newChatButton").addEventListener("click", () => { if (!state.streaming) createSession(); });
     $("#clearConversation").addEventListener("click", () => state.current && deleteSession(state.current.id));
     elements.sessionSearch.addEventListener("input", () => { state.search = elements.sessionSearch.value; renderSessions(); });
@@ -368,7 +415,7 @@
 
     async function initialize() {
         updateComposer();
-        await Promise.allSettled([refreshSessions(), loadConnectionStatus()]);
+        await Promise.allSettled([refreshSessions(), loadConnectionStatus(), loadQueries()]);
         const lastSessionId = localStorage.getItem("manufacturing_qa_session_id");
         if (lastSessionId && state.sessions.some((item) => item.id === lastSessionId)) {
             await loadSession(lastSessionId);

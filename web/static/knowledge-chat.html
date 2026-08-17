@@ -6,7 +6,7 @@
     <title>制造知识问答 · Opcenter Manufacturing Graph</title>
     <meta name="description" content="基于 Graph Studio 当前发布数据的可追溯制造知识问答工作台">
     <link rel="icon" type="image/svg+xml" href="/static/siemens_logo.svg">
-    <link rel="stylesheet" href="/static/knowledge-chat.css?v=20260817-1">
+    <link rel="stylesheet" href="/static/knowledge-chat.css?v=20260817-2">
 </head>
 <body>
     <div class="qa-shell">
@@ -78,6 +78,15 @@
                 <div class="stream-status" id="streamStatus" hidden>
                     <span class="status-spinner"></span><span id="streamStatusText">正在查询</span>
                 </div>
+                <div class="query-routing" id="queryRouting">
+                    <span class="query-routing-label"><i></i>查询能力</span>
+                    <select id="querySelect" aria-label="选择 Graph Studio Query">
+                        <option value="auto">自动匹配已保存 Query</option>
+                        <option value="dynamic">动态只读查询</option>
+                    </select>
+                    <span class="query-count" id="queryCount">正在同步 Queries…</span>
+                    <button type="button" id="refreshQueries" title="重新同步 Graph Studio Queries" aria-label="重新同步 Graph Studio Queries">↻</button>
+                </div>
                 <div class="composer">
                     <textarea id="questionInput" rows="1" maxlength="4000" placeholder="询问制造订单、产品及其关系…" aria-label="输入制造知识问题"></textarea>
                     <button class="send-button" id="sendButton" type="button" disabled aria-label="发送问题">
@@ -90,6 +99,6 @@
     </div>
     <div class="sidebar-scrim" id="sidebarScrim"></div>
     <div class="toast" id="toast" role="status"></div>
-    <script src="/static/knowledge-chat.js?v=20260817-1"></script>
+    <script src="/static/knowledge-chat.js?v=20260817-2"></script>
 </body>
 </html>

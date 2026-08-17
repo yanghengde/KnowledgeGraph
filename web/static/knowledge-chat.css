@@ -141,6 +141,16 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visib
 .stream-status { display: flex; align-items: center; gap: 8px; width: min(820px, 100%); margin: 0 auto 7px; color: var(--muted); font-size: 9px; }
 .stream-status[hidden] { display: none !important; }
 .status-spinner { width: 12px; height: 12px; border: 2px solid rgba(38,217,182,.2); border-top-color: var(--teal); border-radius: 50%; animation: spin .8s linear infinite; }
+.query-routing { display: flex; align-items: center; gap: 8px; width: min(820px, 100%); min-height: 31px; margin: 0 auto 7px; color: var(--muted); font-size: 9px; }
+.query-routing-label { display: inline-flex; align-items: center; gap: 6px; font-weight: 750; white-space: nowrap; }
+.query-routing-label i { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+.query-routing select { min-width: 190px; max-width: 320px; height: 29px; padding: 0 28px 0 9px; border: 1px solid var(--line); border-radius: 8px; outline: 0; color: #d8eeee; background: #0c202b; font-size: 9px; cursor: pointer; }
+.query-routing select:focus { border-color: var(--line-strong); }
+.query-routing select:disabled { opacity: .6; cursor: default; }
+.query-count { overflow: hidden; color: var(--dim); text-overflow: ellipsis; white-space: nowrap; }
+.query-routing button { flex: 0 0 auto; width: 27px; height: 27px; margin-left: auto; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: rgba(255,255,255,.02); cursor: pointer; }
+.query-routing button:hover { color: var(--teal); border-color: var(--line-strong); }
+.query-routing button:disabled { opacity: .45; cursor: default; }
 .composer { display: flex; align-items: flex-end; gap: 10px; width: min(820px, 100%); margin: 0 auto; padding: 10px 10px 10px 17px; border: 1px solid var(--line); border-radius: 17px; background: #0c202b; box-shadow: 0 18px 55px rgba(0,0,0,.23); transition: .18s ease; }
 .composer:focus-within { border-color: var(--line-strong); box-shadow: 0 18px 55px rgba(0,0,0,.25), 0 0 0 3px rgba(38,217,182,.05); }
 .composer textarea { width: 100%; min-height: 28px; max-height: 180px; padding: 5px 0; resize: none; border: 0; outline: 0; color: var(--text); background: transparent; font-size: 13px; line-height: 1.55; }
@@ -176,4 +186,6 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visib
     .message { grid-template-columns: 29px minmax(0,1fr); gap: 10px; }
     .message.user { margin-left: 0; }
     .composer-area { padding: 9px 12px 12px; }
+    .query-routing-label { display: none; }
+    .query-routing select { min-width: 0; max-width: 62vw; }
 }
