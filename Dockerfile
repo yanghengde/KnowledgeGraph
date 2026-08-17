@@ -1,3 +1,11 @@
+FROM node:22-bookworm-slim AS frontend-build
+
+WORKDIR /build/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
 FROM python:3.12-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -29,6 +37,7 @@ RUN python -m pip install --upgrade pip \
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')"
 
 COPY . .
+COPY --from=frontend-build /build/web/static/react /app/web/static/react
 
 RUN mkdir -p /app/data /app/logs \
     && useradd --create-home --uid 10001 camstar \

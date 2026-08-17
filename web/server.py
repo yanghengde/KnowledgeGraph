@@ -71,6 +71,19 @@ def manufacturing_knowledge_chat():
     )
 
 
+@app.get("/app")
+@app.get("/app/{frontend_path:path}")
+def manufacturing_console(frontend_path: str = ""):
+    """Serve the new React console while legacy workspaces remain available."""
+    index_path = os.path.join(os.path.dirname(__file__), "static", "react", "index.html")
+    if not os.path.exists(index_path):
+        raise HTTPException(
+            status_code=503,
+            detail="React console is not built. Run npm install and npm run build in frontend/.",
+        )
+    return FileResponse(index_path)
+
+
 @app.get("/healthz", include_in_schema=False)
 def healthz():
     from web.shared import driver

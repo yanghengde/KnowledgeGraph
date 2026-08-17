@@ -51,3 +51,8 @@ run_server.bat
 
 # Scenarios
 scenarios/
+
+# React frontend build artifacts
+frontend/node_modules/
+frontend/*.tsbuildinfo
+web/static/react/
