@@ -6,7 +6,6 @@ import {
   PlusOutlined,
   ReloadOutlined,
   StopOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -46,24 +45,30 @@ function ComposerSendIcon() {
 }
 
 function MessageContent({ message }: { message: ChatMessage }) {
+  const isAssistant = message.role === "assistant";
   return (
     <div className={`chat-message ${message.role}`}>
-      <Avatar className="message-avatar" icon={message.role === "user" ? <UserOutlined /> : undefined}>
-        {message.role === "assistant" ? "MG" : undefined}
-      </Avatar>
+      {isAssistant && (
+        <div className="message-author">
+          <Avatar className="message-avatar" size={28}>MG</Avatar>
+          <span>制造知识助手</span>
+        </div>
+      )}
       <div className="message-column">
-        <div className="message-meta">{message.role === "assistant" ? "制造知识助手" : "您"}</div>
         <div className="message-bubble markdown-body">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content || "正在准备制造知识查询…"}</ReactMarkdown>
         </div>
-        {message.role === "assistant" && message.content && (
-          <Button
-            className="copy-answer"
-            type="text"
-            size="small"
-            icon={<CopyOutlined />}
-            onClick={() => navigator.clipboard.writeText(message.content)}
-          >复制回答</Button>
+        {isAssistant && message.content && (
+          <Tooltip title="复制回答">
+            <Button
+              className="copy-answer"
+              type="text"
+              size="small"
+              icon={<CopyOutlined />}
+              aria-label="复制回答"
+              onClick={() => navigator.clipboard.writeText(message.content)}
+            />
+          </Tooltip>
         )}
       </div>
     </div>
