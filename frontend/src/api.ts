@@ -4,6 +4,12 @@ import type {
   SavedQuery,
   ServiceStatus,
   StreamEvent,
+  SyncConnection,
+  SyncJob,
+  SyncRun,
+  GraphProfile,
+  GraphStudioTarget,
+  PublicationRoute,
 } from "./types";
 
 async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
@@ -40,6 +46,42 @@ export const manufacturingApi = {
   deleteSession: (id: string) => requestJson<{ status: string }>(
     `/api/manufacturing-chat/sessions/${encodeURIComponent(id)}`,
     { method: "DELETE" },
+  ),
+};
+
+export const syncApi = {
+  connections: () => requestJson<{ items: SyncConnection[] }>("/api/sync/connections"),
+  updateConnection: (connection: SyncConnection) => requestJson<SyncConnection>(
+    `/api/sync/connections/${encodeURIComponent(connection.connection_key)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: connection.kind,
+        display_name: connection.display_name,
+        endpoint: connection.endpoint,
+        database_name: connection.database_name || null,
+        username: connection.username || null,
+        enabled: connection.enabled,
+        config: connection.config || {},
+      }),
+    },
+  ),
+  testConnection: (key: string) => requestJson<{ ok: boolean; detail?: string }>(
+    `/api/sync/connections/${encodeURIComponent(key)}/test`, { method: "POST" },
+  ),
+  testAllConnections: () => requestJson<{ ok: boolean; items: Array<{ connection_key: string; ok: boolean; detail?: string }> }>(
+    "/api/sync/connections/test-all", { method: "POST" },
+  ),
+  jobs: () => requestJson<{ items: SyncJob[] }>("/api/sync/jobs"),
+  runs: (limit = 50) => requestJson<{ items: SyncRun[] }>(`/api/sync/runs?limit=${limit}`),
+  profiles: () => requestJson<{ items: GraphProfile[] }>("/api/sync/profiles"),
+  targets: () => requestJson<{ items: GraphStudioTarget[]; routes: PublicationRoute[] }>("/api/sync/graphstudio-targets"),
+  dryRun: (jobName: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/jobs/${encodeURIComponent(jobName)}/dry-run`, { method: "POST" },
+  ),
+  preview: (jobName: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/jobs/${encodeURIComponent(jobName)}/preview`, { method: "POST" },
   ),
 };
 

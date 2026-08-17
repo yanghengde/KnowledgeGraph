@@ -20,6 +20,8 @@ const routeTitles: Record<string, { title: string; description: string }> = {
   "/overview": { title: "制造数据发布总览", description: "Graph Studio 发布、质量与知识服务运行态势" },
   "/queries": { title: "图谱查询能力库", description: "统一管理可复用、可审计的制造业务 Queries" },
   "/assistant": { title: "制造知识问答", description: "基于当前发布图谱与受控 Query 的上下文问答" },
+  "/connections": { title: "数据源与连接", description: "制造数据链路、控制面与 Graph Studio 连接治理" },
+  "/publish": { title: "数据发布管理", description: "发布前检验、预览、路由与运行记录" },
 };
 
 export function AppShell() {
@@ -33,15 +35,15 @@ export function AppShell() {
     { key: "/overview", icon: <DashboardOutlined />, label: "制造数据总览" },
     { key: "/queries", icon: <ApiOutlined />, label: "图谱查询能力" },
     { key: "/assistant", icon: <CommentOutlined />, label: "制造知识问答" },
+    { key: "/connections", icon: <DatabaseOutlined />, label: "数据源与连接" },
+    { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },
   ];
   const legacyItems = [
-    { key: "legacy-sync", icon: <CloudUploadOutlined />, label: "数据发布管理" },
     { key: "legacy-ontology", icon: <ApartmentOutlined />, label: "制造语义模型" },
   ];
 
   const onMenuClick = ({ key }: { key: string }) => {
-    if (key === "legacy-sync") window.location.href = "/sync";
-    else if (key === "legacy-ontology") window.location.href = "/ontology";
+    if (key === "legacy-ontology") window.location.href = "/ontology";
     else navigate(key);
   };
 

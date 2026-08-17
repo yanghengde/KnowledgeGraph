@@ -54,9 +54,9 @@ export function OverviewPage() {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} xl={15}>
-          <Card title="前端现代化迁移路线" extra={<Tag color="processing">阶段 1 进行中</Tag>}>
+          <Card title="前端现代化迁移路线" extra={<Tag color="processing">阶段 2 进行中</Tag>}>
             <Steps
-              current={0}
+              current={1}
               items={[
                 { title: "平台框架", description: "统一导航、主题与接口层" },
                 { title: "知识问答", description: "历史会话与 Query 路由" },
@@ -68,11 +68,11 @@ export function OverviewPage() {
         </Col>
         <Col xs={24} xl={9}>
           <Card title="迁移完成度" extra="新旧页面并行">
-            <Progress percent={25} strokeColor="#28d7b5" trailColor="#19333e" />
+            <Progress percent={50} strokeColor="#28d7b5" trailColor="#19333e" />
             <Typography.Paragraph type="secondary" className="migration-note">
               现有发布流程保持可用。每个模块验证通过后，再将入口切换到新控制台。
             </Typography.Paragraph>
-            <Button type="link" icon={<RightOutlined />} onClick={() => navigate("/assistant")}>查看首个迁移页面</Button>
+            <Button type="link" icon={<RightOutlined />} onClick={() => navigate("/publish")}>查看发布管理页面</Button>
           </Card>
         </Col>
       </Row>

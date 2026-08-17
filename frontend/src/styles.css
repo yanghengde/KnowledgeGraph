@@ -57,6 +57,28 @@ button, input, textarea { font: inherit; }
 .query-name strong, .query-name > span { display: block; }
 .query-name > span:last-child { margin-top: 3px; font-size: 9px; }
 
+.operations-page { padding-bottom: 18px; }
+.operations-heading { align-items: flex-end; gap: 24px; padding: 4px 2px 2px; }
+.operations-heading > div:first-child { min-width: 0; }
+.operations-heading h2 { margin: 0 0 7px !important; font-size: 24px !important; }
+.operations-heading p { max-width: 760px; line-height: 1.7; }
+.page-loader { display: grid; min-height: 240px; place-items: center; }
+.connection-card { height: 100%; overflow: hidden; border-color: rgba(110, 164, 174, .18); }
+.connection-card .ant-card-head { min-height: 56px; }
+.connection-card .ant-card-body { min-height: 210px; }
+.connection-card .ant-card-actions li { margin: 7px 0; }
+.connection-kind { display: block; margin: -2px 0 17px; color: #6f9199; font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.connection-details .ant-descriptions-item-label { color: #718d94; font-size: 10px; }
+.connection-details .ant-descriptions-item-content { min-width: 0; font-size: 11px; }
+.connection-details .ant-typography { max-width: 100%; }
+.connection-error { margin-top: 12px; }
+.route-list { display: grid; gap: 4px; }
+.route-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 58px; padding: 9px 4px; border-bottom: 1px solid rgba(110, 164, 174, .14); }
+.route-item:last-child { border-bottom: 0; }
+.route-item strong, .route-item small { display: block; }
+.route-item strong { font-size: 12px; }
+.route-item small { max-width: 340px; margin-top: 4px; overflow: hidden; color: #718d94; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+
 .assistant-workspace { display: grid; grid-template-columns: 284px minmax(0, 1fr); height: calc(100vh - 120px); min-height: 620px; overflow: hidden; border: 1px solid rgba(110, 164, 174, .18); border-radius: 16px; background: #081923; box-shadow: 0 22px 70px rgba(0, 0, 0, .22); }
 .conversation-panel { display: flex; min-height: 0; flex-direction: column; gap: 12px; padding: 14px; border-right: 1px solid rgba(110, 164, 174, .16); background: #091c26; }
 .conversation-heading { display: flex; align-items: center; justify-content: space-between; padding: 3px 4px 0; color: #65828a; font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
@@ -160,6 +182,11 @@ html[data-theme="light"] .health-ring.ready { border-color: #16917f; color: #087
 html[data-theme="light"] .hero-health small { color: #71868e; }
 html[data-theme="light"] .metric-card { border-color: #d5dfe4; box-shadow: 0 4px 14px rgba(29, 57, 68, .045); }
 html[data-theme="light"] .section-intro p { color: #647b84; }
+html[data-theme="light"] .connection-card { border-color: #d5dfe4; box-shadow: 0 4px 14px rgba(29, 57, 68, .045); }
+html[data-theme="light"] .connection-kind { color: #607b85; }
+html[data-theme="light"] .connection-details .ant-descriptions-item-label { color: #617982; }
+html[data-theme="light"] .route-item { border-bottom-color: #e1e7ea; }
+html[data-theme="light"] .route-item small { color: #687f88; }
 
 html[data-theme="light"] .assistant-workspace { border-color: #ccd8de; background: #ffffff; box-shadow: 0 12px 34px rgba(28, 55, 66, .09); }
 html[data-theme="light"] .conversation-panel { border-right-color: #d5dfe4; background: #f3f7f9; }
@@ -205,4 +232,5 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
   .chat-message.user .message-column { max-width: 88%; }
   .chat-message.assistant .message-column { padding-left: 0; }
   .quick-question-grid { grid-template-columns: 1fr; }
+  .operations-heading { align-items: stretch; flex-direction: column; }
 }
