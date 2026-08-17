@@ -99,7 +99,7 @@ html, .app-shell, .app-shell * {
 .advanced-nav .nav-label { font-size: 10px; }
 .app-shell.sidebar-collapsed .advanced-nav { grid-template-columns: 1fr; }
 .app-shell.sidebar-collapsed .advanced-nav .nav-item { justify-content: center; padding: 0; }
-.workspace-link { display: flex; align-items: center; gap: 10px; padding: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.02); text-decoration: none; }
+.workspace-link { display: flex; align-items: center; gap: 10px; margin-top: 7px; padding: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.02); text-decoration: none; }
 .workspace-link:hover { color: var(--text); border-color: var(--line-strong); }
 .workspace-link strong, .workspace-link small { display: block; }
 .workspace-link strong { font-size: 12px; }

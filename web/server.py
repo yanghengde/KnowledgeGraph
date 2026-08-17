@@ -36,6 +36,7 @@ from web.routers.sql_builder import router as sql_builder_router
 from web.routers.i18n import router as i18n_router
 from web.routers.ontology_import import router as ontology_import_router
 from web.routers.sync_center import router as sync_center_router
+from web.routers.manufacturing_chat import router as manufacturing_chat_router
 
 app.include_router(graph_router)
 app.include_router(wiki_router)
@@ -44,6 +45,7 @@ app.include_router(sql_builder_router)
 app.include_router(i18n_router)
 app.include_router(ontology_import_router)
 app.include_router(sync_center_router)
+app.include_router(manufacturing_chat_router)
 
 
 @app.get("/")
@@ -59,6 +61,14 @@ def sync_center():
 @app.get("/ontology")
 def ontology_explorer():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "index.html"))
+
+
+@app.get("/chat")
+@app.get("/knowledge-chat")
+def manufacturing_knowledge_chat():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "knowledge-chat.html")
+    )
 
 
 @app.get("/healthz", include_in_schema=False)
