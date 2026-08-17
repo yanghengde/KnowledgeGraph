@@ -78,6 +78,45 @@ button, input, textarea { font: inherit; }
 .route-item strong, .route-item small { display: block; }
 .route-item strong { font-size: 12px; }
 .route-item small { max-width: 340px; margin-top: 4px; overflow: hidden; color: #718d94; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.release-control-card .ant-card-body { padding-top: 14px; }
+.release-plan-strip { display: flex; align-items: center; gap: 9px 22px; flex-wrap: wrap; margin-bottom: 15px; padding: 12px 14px; border: 1px solid rgba(110, 164, 174, .14); border-radius: 10px; background: rgba(255, 255, 255, .018); color: #829ba1; font-size: 10px; }
+.release-plan-strip strong { margin-left: 4px; color: #dceced; }
+.release-blockers { margin-bottom: 14px; }
+.version-cell strong, .version-cell small { display: block; }
+.version-cell strong { font-size: 13px; }
+.version-cell small { margin-top: 3px; color: #718d94; font-family: Consolas, monospace; font-size: 9px; }
+.promotion-section { display: grid; gap: 14px; }
+.promotion-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; padding: 4px 2px 0; }
+.promotion-title h3 { margin: 0 0 5px !important; }
+.promotion-card { height: 100%; overflow: hidden; border-color: rgba(110, 164, 174, .18); }
+.promotion-card .ant-card-head-title > div strong, .promotion-card .ant-card-head-title > div small { display: block; }
+.promotion-card .ant-card-head-title > div small { margin-top: 4px; overflow: hidden; color: #708b93; font-size: 9px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.promotion-card .ant-steps { margin: 4px 0 22px; }
+.promotion-card .ant-steps-item-title { font-size: 10px !important; }
+.promotion-details .ant-descriptions-item { padding-bottom: 7px !important; }
+.promotion-details .ant-descriptions-item-label { width: 110px; color: #718d94; font-size: 10px; }
+.promotion-details .ant-descriptions-item-content { font-size: 11px; }
+.promotion-message { margin-top: 11px; }
+.promotion-message .ant-alert-message { font-size: 11px; }
+.promotion-message .ant-alert-description { max-height: 72px; overflow: auto; font-size: 9px; line-height: 1.6; }
+.promotion-card .ant-divider { margin: 15px 0 12px; }
+.promotion-actions { min-height: 32px; }
+.safety-list { display: grid; gap: 13px; padding: 3px 0; }
+.safety-list span { display: flex; align-items: center; gap: 9px; font-size: 11px; }
+.safety-list .anticon { color: #28d7b5; }
+.safety-list span:last-child .anticon { color: #f4bb55; }
+.governed-operation-form { display: grid; gap: 16px; margin-top: 18px; }
+.governed-operation-form label, .governed-operation-form label > span { display: block; }
+.governed-operation-form label > span { margin-bottom: 7px; color: #81989e; font-size: 10px; }
+.governed-operation-form label > span strong { color: #eaf4f4; }
+.deployment-table .ant-table-cell { white-space: nowrap; }
+.deployment-table .ant-table-thead > tr > th { font-size: 10px; }
+.deployment-result { display: grid; min-width: 0; gap: 4px; white-space: normal; }
+.deployment-result strong, .deployment-result span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.deployment-result strong { font-size: 11px; }
+.deployment-result span { color: #718d94; font-size: 9px; }
+.deployment-result.failed strong { color: #ff7885; }
+.deployment-result.success strong { color: #4ed69a; }
 
 .assistant-workspace { display: grid; grid-template-columns: 284px minmax(0, 1fr); height: calc(100vh - 120px); min-height: 620px; overflow: hidden; border: 1px solid rgba(110, 164, 174, .18); border-radius: 16px; background: #081923; box-shadow: 0 22px 70px rgba(0, 0, 0, .22); }
 .conversation-panel { display: flex; min-height: 0; flex-direction: column; gap: 12px; padding: 14px; border-right: 1px solid rgba(110, 164, 174, .16); background: #091c26; }
@@ -187,6 +226,18 @@ html[data-theme="light"] .connection-kind { color: #607b85; }
 html[data-theme="light"] .connection-details .ant-descriptions-item-label { color: #617982; }
 html[data-theme="light"] .route-item { border-bottom-color: #e1e7ea; }
 html[data-theme="light"] .route-item small { color: #687f88; }
+html[data-theme="light"] .release-plan-strip { border-color: #dce5e9; background: #f7fafb; color: #607780; }
+html[data-theme="light"] .release-plan-strip strong { color: #233942; }
+html[data-theme="light"] .promotion-card { border-color: #d5dfe4; box-shadow: 0 4px 14px rgba(29, 57, 68, .045); }
+html[data-theme="light"] .promotion-card .ant-card-head-title > div small { color: #667e87; }
+html[data-theme="light"] .promotion-details .ant-descriptions-item-label { color: #607780; }
+html[data-theme="light"] .safety-list .anticon { color: #168c78; }
+html[data-theme="light"] .safety-list span:last-child .anticon { color: #b9780e; }
+html[data-theme="light"] .governed-operation-form label > span { color: #607780; }
+html[data-theme="light"] .governed-operation-form label > span strong { color: #233942; }
+html[data-theme="light"] .deployment-result span { color: #687f88; }
+html[data-theme="light"] .deployment-result.failed strong { color: #bd3f4c; }
+html[data-theme="light"] .deployment-result.success strong { color: #288557; }
 
 html[data-theme="light"] .assistant-workspace { border-color: #ccd8de; background: #ffffff; box-shadow: 0 12px 34px rgba(28, 55, 66, .09); }
 html[data-theme="light"] .conversation-panel { border-right-color: #d5dfe4; background: #f3f7f9; }
@@ -233,4 +284,5 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
   .chat-message.assistant .message-column { padding-left: 0; }
   .quick-question-grid { grid-template-columns: 1fr; }
   .operations-heading { align-items: stretch; flex-direction: column; }
+  .promotion-title { align-items: flex-start; flex-direction: column; }
 }

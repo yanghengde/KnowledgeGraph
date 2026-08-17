@@ -107,7 +107,87 @@ export type PublicationRoute = {
   target_key: string;
   target_title?: string;
   title: string;
+  promotion_order: number;
+  graphmart_uri?: string;
   apply_enabled: boolean;
   requires_approval: boolean;
   enabled: boolean;
+};
+
+export type CuratedRelease = {
+  release_id: string;
+  release_no: number;
+  status: string;
+  preview_only: boolean;
+  source_rows_read: number;
+  object_count: number;
+  relationship_count: number;
+  quarantine_count: number;
+  content_hash: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+  error?: unknown;
+  is_active: boolean;
+};
+
+export type MaterializationPlan = {
+  profileKey: string;
+  ready: boolean;
+  blockers: string[];
+  batchRows: number;
+  strategy: string;
+  activation: string;
+  rollback: string;
+  activeReleaseId?: string | null;
+  contracts: Array<Record<string, unknown>>;
+  relationships: string[];
+};
+
+export type MaterializationStatus = {
+  plan: MaterializationPlan;
+  releases: CuratedRelease[];
+};
+
+export type DeploymentRelease = {
+  deployment_id: string;
+  environment_key: "dev" | "uat" | "prod";
+  route_key: string;
+  curated_release_id: string;
+  status: string;
+  ontology_release_id?: string | null;
+  slot: "blue" | "green";
+  artifact_uri?: string | null;
+  artifact_hash?: string | null;
+  dataset_uri?: string | null;
+  layer_uri?: string | null;
+  step_uri?: string | null;
+  approved_by?: string | null;
+  started_at?: string | null;
+  finished_at?: string | null;
+  error?: string | { message?: string; retryable?: boolean; stage?: string } | null;
+};
+
+export type DeploymentStatus = {
+  environments: PublicationRoute[];
+  routes: PublicationRoute[];
+  targets: GraphStudioTarget[];
+  deployments: DeploymentRelease[];
+  activeCuratedRelease?: CuratedRelease | null;
+  activeOntologyRelease?: Record<string, unknown> | null;
+};
+
+export type DeploymentPlan = {
+  profileKey: string;
+  routeKey: string;
+  targetKey: string;
+  environment: PublicationRoute;
+  release?: CuratedRelease | null;
+  ontologyRelease?: Record<string, unknown> | null;
+  slot: "blue" | "green";
+  ready: boolean;
+  blockers: string[];
+  applyEnabled: boolean;
+  approvalRequired: boolean;
+  previousDeploymentId?: string | null;
+  strategy: string;
 };

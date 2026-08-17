@@ -10,6 +10,9 @@ import type {
   GraphProfile,
   GraphStudioTarget,
   PublicationRoute,
+  MaterializationStatus,
+  DeploymentStatus,
+  DeploymentPlan,
 } from "./types";
 
 async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
@@ -82,6 +85,66 @@ export const syncApi = {
   ),
   preview: (jobName: string) => requestJson<Record<string, unknown>>(
     `/api/sync/jobs/${encodeURIComponent(jobName)}/preview`, { method: "POST" },
+  ),
+  materialization: (profileKey: string) => requestJson<MaterializationStatus>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/materialization`,
+  ),
+  generateRelease: (profileKey: string, actor: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/materialization`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apply: true, activate: false, actor }),
+    },
+  ),
+  activateRelease: (profileKey: string, releaseId: string, actor: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/releases/${encodeURIComponent(releaseId)}/activate`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor }),
+    },
+  ),
+  rollbackRelease: (profileKey: string, actor: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/releases/rollback`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor }),
+    },
+  ),
+  deployments: (profileKey: string) => requestJson<DeploymentStatus>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/deployments`,
+  ),
+  deploymentPlan: (profileKey: string, route: PublicationRoute) => requestJson<DeploymentPlan>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/deployments/plan/${route.environment_key}?route_key=${encodeURIComponent(route.route_key)}`,
+  ),
+  setRouteWriteEnabled: (routeKey: string, applyEnabled: boolean) => requestJson<PublicationRoute>(
+    `/api/sync/publication-routes/${encodeURIComponent(routeKey)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apply_enabled: applyEnabled }),
+    },
+  ),
+  prepareDeployment: (profileKey: string, route: PublicationRoute, actor: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/deployments`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ environment_key: route.environment_key, route_key: route.route_key, actor }),
+    },
+  ),
+  approveDeployment: (deploymentId: string, actor: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/deployments/${encodeURIComponent(deploymentId)}/approve`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor }),
+    },
+  ),
+  applyDeployment: (deploymentId: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/deployments/${encodeURIComponent(deploymentId)}/apply`, { method: "POST" },
   ),
 };
 
