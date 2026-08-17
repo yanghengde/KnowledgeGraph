@@ -191,3 +191,92 @@ export type DeploymentPlan = {
   previousDeploymentId?: string | null;
   strategy: string;
 };
+
+export type OntologyWorkspace = {
+  workspace_id: string;
+  workspace_key: string;
+  profile_key: string;
+  title: string;
+  status: "draft" | "reviewed" | "frozen" | string;
+  revision: number;
+  graph_database: string;
+  created_by?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  updated_at?: string | null;
+  config?: Record<string, unknown>;
+};
+
+export type OntologyClass = {
+  uid: string;
+  targetName: string;
+  sourceClass?: string | null;
+  role: "core" | "context" | "excluded" | string;
+  orphanPolicy?: string | null;
+  origin?: string | null;
+  published?: boolean;
+  description?: string | null;
+  [key: string]: unknown;
+};
+
+export type OntologyProperty = {
+  uid: string;
+  classUid: string;
+  targetName: string;
+  sourceName?: string | null;
+  dataType?: string | null;
+  origin?: string | null;
+  description?: string | null;
+  published?: boolean;
+  required?: boolean;
+  sourcePath?: string | null;
+  [key: string]: unknown;
+};
+
+export type OntologyRelationship = {
+  relationshipKey: string;
+  targetName?: string | null;
+  usage?: string | null;
+  cardinality?: string | null;
+  requiredContext?: boolean;
+  origin?: string | null;
+  [key: string]: unknown;
+};
+
+export type OntologyGraph = {
+  nodes: Array<{ id: string; data: OntologyClass }>;
+  edges: Array<{ id: string; source: string; target: string; data: OntologyRelationship }>;
+  properties: OntologyProperty[];
+};
+
+export type OntologyRelease = {
+  ontology_release_id: string;
+  release_no: number;
+  status: "approved" | "active" | "superseded" | string;
+  content_hash: string;
+  class_count: number;
+  property_count: number;
+  relationship_count: number;
+  approved_by?: string | null;
+  activated_at?: string | null;
+  created_at?: string | null;
+};
+
+export type OntologyValidation = {
+  valid: boolean;
+  errors: Array<{ code: string; message: string }>;
+  warnings: Array<{ code: string; message: string }>;
+  contentHash: string;
+  counts: { classes: number; properties: number; relationships: number };
+};
+
+export type OntologyGovernanceStatus = {
+  database: string;
+  sourceDatabase: string;
+  workspaces: OntologyWorkspace[];
+  currentWorkspace?: OntologyWorkspace | null;
+  graph: OntologyGraph;
+  releases: OntologyRelease[];
+  activeRelease?: OntologyRelease | null;
+  activeReleaseGraph?: Record<string, unknown>;
+};

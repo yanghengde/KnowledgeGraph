@@ -22,6 +22,7 @@ const routeTitles: Record<string, { title: string; description: string }> = {
   "/assistant": { title: "制造知识问答", description: "基于当前发布图谱与受控 Query 的上下文问答" },
   "/connections": { title: "数据源与连接", description: "制造数据链路、控制面与 Graph Studio 连接治理" },
   "/publish": { title: "数据发布管理", description: "发布前检验、预览、路由与运行记录" },
+  "/ontology-model": { title: "制造语义模型", description: "本体对象、属性、关系与版本发布治理" },
 };
 
 export function AppShell() {
@@ -37,9 +38,10 @@ export function AppShell() {
     { key: "/assistant", icon: <CommentOutlined />, label: "制造知识问答" },
     { key: "/connections", icon: <DatabaseOutlined />, label: "数据源与连接" },
     { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },
+    { key: "/ontology-model", icon: <ApartmentOutlined />, label: "制造语义模型" },
   ];
   const legacyItems = [
-    { key: "legacy-ontology", icon: <ApartmentOutlined />, label: "制造语义模型" },
+    { key: "legacy-ontology", icon: <ApartmentOutlined />, label: "旧版图形工作台" },
   ];
 
   const onMenuClick = ({ key }: { key: string }) => {
@@ -68,7 +70,7 @@ export function AppShell() {
           onClick={onMenuClick}
           className="app-menu"
         />
-        <div className="nav-section-label legacy-label">{collapsed ? "" : "迁移中的工作台"}</div>
+        <div className="nav-section-label legacy-label">{collapsed ? "" : "兼容入口"}</div>
         <Menu
           mode="inline"
           theme="dark"

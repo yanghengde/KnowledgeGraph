@@ -118,6 +118,48 @@ button, input, textarea { font: inherit; }
 .deployment-result.failed strong { color: #ff7885; }
 .deployment-result.success strong { color: #4ed69a; }
 
+.ontology-page { padding-bottom: 18px; }
+.ontology-page > .ant-alert + .ant-alert { margin-top: -6px; }
+.ontology-lifecycle-card { overflow: hidden; border-color: rgba(110, 164, 174, .18); }
+.ontology-lifecycle-card .ant-steps { padding-right: 18px; }
+.ontology-lifecycle-card .ant-steps-item-title { font-size: 11px !important; }
+.ontology-workspace-details { margin-bottom: 10px; }
+.ontology-workspace-details .ant-descriptions-item-label { color: #718d94; font-size: 9px; }
+.ontology-workspace-details .ant-descriptions-item-content { font-size: 10px; }
+.ontology-browser-card { height: 100%; overflow: hidden; border-color: rgba(110, 164, 174, .18); }
+.ontology-topology-card { overflow: hidden; border-color: rgba(110, 164, 174, .18); }
+.ontology-topology-card .ant-card-body { padding: 8px 20px 14px; }
+.ontology-topology-wrap { min-width: 0; overflow: hidden; }
+.ontology-topology { display: block; width: 100%; height: 310px; --topology-line: #4dbdab; --topology-node: #102b37; --topology-node-border: #315663; --topology-node-selected: #0d766f; --topology-node-text: #e9f5f5; --topology-node-subtext: #8eb0b6; --topology-label-stroke: #081923; }
+.topology-edge line { stroke: var(--topology-line); stroke-width: 2; opacity: .8; }
+.topology-edge marker path, #ontology-arrow path { fill: var(--topology-line); }
+.topology-edge text { fill: var(--topology-node-subtext); stroke: var(--topology-label-stroke); stroke-width: 5px; paint-order: stroke; font-size: 10px; font-weight: 700; letter-spacing: .02em; }
+.topology-node { cursor: pointer; outline: none; }
+.topology-node rect { fill: var(--topology-node); stroke: var(--topology-node-border); stroke-width: 1.5; transition: fill .16s ease, stroke .16s ease, filter .16s ease; }
+.topology-node:hover rect, .topology-node:focus rect { stroke: var(--topology-line); filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .18)); }
+.topology-node.selected rect { fill: var(--topology-node-selected); stroke: #4ee1c8; stroke-width: 2; }
+.topology-node-title { fill: var(--topology-node-text); font-size: 13px; font-weight: 800; }
+.topology-node-role { fill: var(--topology-node-subtext); font-size: 9px; }
+.topology-node.selected .topology-node-role { fill: #c8fff4; }
+.topology-legend { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; color: #718d94; font-size: 9px; }
+.topology-legend span { display: flex; align-items: center; gap: 6px; }
+.topology-legend i { width: 8px; height: 8px; border-radius: 50%; background: #28d7b5; }
+.topology-legend i.context { background: #5e8ee6; }
+.ontology-browser-card > .ant-card-body { padding-top: 14px; }
+.ontology-browser-card .ant-input-affix-wrapper { margin-bottom: 12px; }
+.ontology-class-table .ant-table-row { cursor: pointer; }
+.ontology-class-table .ant-table-row:hover > .ant-table-cell,
+.ontology-class-table .selected-row > .ant-table-cell { background: rgba(40, 215, 181, .07) !important; }
+.ontology-class-table .selected-row > .ant-table-cell:first-child { box-shadow: inset 3px 0 #28d7b5; }
+.ontology-class-name strong, .ontology-class-name small,
+.ontology-property-name strong, .ontology-property-name small { display: block; }
+.ontology-class-name strong, .ontology-property-name strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.ontology-class-name small, .ontology-property-name small { margin-top: 3px; overflow: hidden; color: #718d94; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.ontology-property-card .ant-pagination { margin-bottom: 0; }
+.ontology-valid-icon { color: #36ce95; }
+.relationship-name { display: flex; align-items: center; gap: 8px; color: #7fe0ce; }
+.relationship-name strong { color: #e5f0f1; font-size: 11px; }
+
 .assistant-workspace { display: grid; grid-template-columns: 284px minmax(0, 1fr); height: calc(100vh - 120px); min-height: 620px; overflow: hidden; border: 1px solid rgba(110, 164, 174, .18); border-radius: 16px; background: #081923; box-shadow: 0 22px 70px rgba(0, 0, 0, .22); }
 .conversation-panel { display: flex; min-height: 0; flex-direction: column; gap: 12px; padding: 14px; border-right: 1px solid rgba(110, 164, 174, .16); background: #091c26; }
 .conversation-heading { display: flex; align-items: center; justify-content: space-between; padding: 3px 4px 0; color: #65828a; font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
@@ -238,6 +280,21 @@ html[data-theme="light"] .governed-operation-form label > span strong { color: #
 html[data-theme="light"] .deployment-result span { color: #687f88; }
 html[data-theme="light"] .deployment-result.failed strong { color: #bd3f4c; }
 html[data-theme="light"] .deployment-result.success strong { color: #288557; }
+html[data-theme="light"] .ontology-lifecycle-card,
+html[data-theme="light"] .ontology-browser-card,
+html[data-theme="light"] .ontology-topology-card { border-color: #d5dfe4; box-shadow: 0 4px 14px rgba(29, 57, 68, .045); }
+html[data-theme="light"] .ontology-topology { --topology-line: #087f86; --topology-node: #ffffff; --topology-node-border: #b8cbd1; --topology-node-selected: #08728a; --topology-node-text: #253c45; --topology-node-subtext: #627d86; --topology-label-stroke: #ffffff; }
+html[data-theme="light"] .topology-node.selected .topology-node-title { fill: #ffffff; }
+html[data-theme="light"] .topology-node.selected .topology-node-role { fill: #d8fbf4; }
+html[data-theme="light"] .topology-legend { color: #617982; }
+html[data-theme="light"] .ontology-workspace-details .ant-descriptions-item-label,
+html[data-theme="light"] .ontology-class-name small,
+html[data-theme="light"] .ontology-property-name small { color: #657d86; }
+html[data-theme="light"] .ontology-class-table .ant-table-row:hover > .ant-table-cell,
+html[data-theme="light"] .ontology-class-table .selected-row > .ant-table-cell { background: rgba(8, 112, 138, .065) !important; }
+html[data-theme="light"] .ontology-class-table .selected-row > .ant-table-cell:first-child { box-shadow: inset 3px 0 #08708a; }
+html[data-theme="light"] .relationship-name { color: #08708a; }
+html[data-theme="light"] .relationship-name strong { color: #233942; }
 
 html[data-theme="light"] .assistant-workspace { border-color: #ccd8de; background: #ffffff; box-shadow: 0 12px 34px rgba(28, 55, 66, .09); }
 html[data-theme="light"] .conversation-panel { border-right-color: #d5dfe4; background: #f3f7f9; }
@@ -285,4 +342,6 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
   .quick-question-grid { grid-template-columns: 1fr; }
   .operations-heading { align-items: stretch; flex-direction: column; }
   .promotion-title { align-items: flex-start; flex-direction: column; }
+  .ontology-topology { height: 250px; }
+  .ontology-topology-card .ant-card-extra { display: none; }
 }

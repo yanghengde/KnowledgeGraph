@@ -13,6 +13,8 @@ import type {
   MaterializationStatus,
   DeploymentStatus,
   DeploymentPlan,
+  OntologyGovernanceStatus,
+  OntologyValidation,
 } from "./types";
 
 async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
@@ -145,6 +147,37 @@ export const syncApi = {
   ),
   applyDeployment: (deploymentId: string) => requestJson<Record<string, unknown>>(
     `/api/sync/deployments/${encodeURIComponent(deploymentId)}/apply`, { method: "POST" },
+  ),
+  ontologyGovernance: (profileKey: string) => requestJson<OntologyGovernanceStatus>(
+    `/api/sync/ontology-governance?profile_key=${encodeURIComponent(profileKey)}`,
+  ),
+  validateOntologyWorkspace: (workspaceKey: string) => requestJson<OntologyValidation>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/validate`,
+    { method: "POST" },
+  ),
+  reviewOntologyWorkspace: (workspaceKey: string, actor: string) => requestJson<OntologyValidation>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/review`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor }),
+    },
+  ),
+  approveOntologyWorkspace: (workspaceKey: string, actor: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/approve`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor }),
+    },
+  ),
+  activateOntologyRelease: (profileKey: string, releaseId: string, actor: string) => requestJson<Record<string, unknown>>(
+    `/api/sync/ontology-governance/releases/${encodeURIComponent(releaseId)}/activate?profile_key=${encodeURIComponent(profileKey)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor }),
+    },
   ),
 };
 
