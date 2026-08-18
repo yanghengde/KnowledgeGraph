@@ -280,3 +280,46 @@ export type OntologyGovernanceStatus = {
   activeRelease?: OntologyRelease | null;
   activeReleaseGraph?: Record<string, unknown>;
 };
+
+export type SemanticGraphNode = {
+  id: string;
+  data: {
+    label: string;
+    chineseName?: string;
+    description?: string;
+    layer?: string;
+    propertyCount: number;
+    module: string;
+    type: string;
+  };
+};
+
+export type SemanticGraphEdge = {
+  id?: string;
+  source: string;
+  target: string;
+  data: {
+    label?: string;
+    cardinality?: string;
+    lineStyle?: string;
+  };
+};
+
+export type SemanticGraphOverview = {
+  nodes: SemanticGraphNode[];
+  edges: SemanticGraphEdge[];
+  combos: Array<{ id: string; data: { label: string } }>;
+};
+
+export type SemanticClassDetail = {
+  className: string;
+  properties: Array<{ name: string; dataType?: string; description?: string }>;
+  outgoing: Array<{ targetClass: string; relName?: string; cardinality?: string; description?: string }>;
+  incoming: Array<{ sourceClass: string; relName?: string; cardinality?: string; description?: string }>;
+};
+
+export type SemanticGraphStats = {
+  classCount: number;
+  propertyCount: number;
+  relationCount: number;
+};

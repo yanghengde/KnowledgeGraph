@@ -5,6 +5,7 @@ import {
   CommentOutlined,
   DashboardOutlined,
   DatabaseOutlined,
+  FileProtectOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   SafetyCertificateOutlined,
@@ -22,7 +23,8 @@ const routeTitles: Record<string, { title: string; description: string }> = {
   "/assistant": { title: "制造知识问答", description: "基于当前发布图谱与受控 Query 的上下文问答" },
   "/connections": { title: "数据源与连接", description: "制造数据链路、控制面与 Graph Studio 连接治理" },
   "/publish": { title: "数据发布管理", description: "发布前检验、预览、路由与运行记录" },
-  "/ontology-model": { title: "制造语义模型", description: "本体对象、属性、关系与版本发布治理" },
+  "/ontology-model": { title: "制造语义模型", description: "Neo4j 完整本体与 G6 关系浏览" },
+  "/ontology-governance": { title: "发布本体治理", description: "发布对象、属性、关系与不可变版本治理" },
 };
 
 export function AppShell() {
@@ -37,11 +39,12 @@ export function AppShell() {
     { key: "/queries", icon: <ApiOutlined />, label: "图谱查询能力" },
     { key: "/assistant", icon: <CommentOutlined />, label: "制造知识问答" },
     { key: "/connections", icon: <DatabaseOutlined />, label: "数据源与连接" },
-    { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },
     { key: "/ontology-model", icon: <ApartmentOutlined />, label: "制造语义模型" },
+    { key: "/ontology-governance", icon: <FileProtectOutlined />, label: "发布本体治理" },
+    { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },
   ];
   const legacyItems = [
-    { key: "legacy-ontology", icon: <ApartmentOutlined />, label: "旧版图形工作台" },
+    { key: "legacy-ontology", icon: <ApartmentOutlined />, label: "旧版语义工作台" },
   ];
 
   const onMenuClick = ({ key }: { key: string }) => {

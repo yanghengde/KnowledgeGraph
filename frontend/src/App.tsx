@@ -9,6 +9,7 @@ const AssistantPage = lazy(() => import("./pages/AssistantPage").then((module) =
 const ConnectionsPage = lazy(() => import("./pages/ConnectionsPage").then((module) => ({ default: module.ConnectionsPage })));
 const PublishManagementPage = lazy(() => import("./pages/PublishManagementPage").then((module) => ({ default: module.PublishManagementPage })));
 const OntologyGovernancePage = lazy(() => import("./pages/OntologyGovernancePage").then((module) => ({ default: module.OntologyGovernancePage })));
+const SemanticModelPage = lazy(() => import("./pages/SemanticModelPage").then((module) => ({ default: module.SemanticModelPage })));
 
 export default function App() {
   return (
@@ -20,7 +21,8 @@ export default function App() {
         <Route path="assistant" element={<Suspense fallback={<Spin fullscreen />}><AssistantPage /></Suspense>} />
         <Route path="connections" element={<Suspense fallback={<Spin fullscreen />}><ConnectionsPage /></Suspense>} />
         <Route path="publish" element={<Suspense fallback={<Spin fullscreen />}><PublishManagementPage /></Suspense>} />
-        <Route path="ontology-model" element={<Suspense fallback={<Spin fullscreen />}><OntologyGovernancePage /></Suspense>} />
+        <Route path="ontology-model" element={<Suspense fallback={<Spin fullscreen />}><SemanticModelPage /></Suspense>} />
+        <Route path="ontology-governance" element={<Suspense fallback={<Spin fullscreen />}><OntologyGovernancePage /></Suspense>} />
       </Route>
       <Route path="*" element={<Navigate to="overview" replace />} />
     </Routes>

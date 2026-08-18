@@ -210,7 +210,7 @@ export function OntologyGovernancePage() {
 
   return <div className="page-stack ontology-page">
     <section className="section-intro operations-heading">
-      <div><Typography.Title level={2}>制造语义模型</Typography.Title><Typography.Paragraph>集中治理 Camstar 制造对象、发布属性、业务关系和不可变本体版本，为数据发布与知识问答提供统一语义契约。</Typography.Paragraph></div>
+      <div><Typography.Title level={2}>发布本体治理</Typography.Title><Typography.Paragraph>集中治理进入 Graph Studio 的制造对象、发布属性、业务关系和不可变本体版本，为数据发布与知识问答提供受控语义契约。</Typography.Paragraph></div>
       <Space wrap>
         <Button icon={<ReloadOutlined />} loading={governance.isFetching} onClick={() => void governance.refetch()}>刷新</Button>
         <Button icon={<CheckCircleOutlined />} disabled={!workspace} loading={validateWorkspace.isPending} onClick={() => validateWorkspace.mutate()}>执行质量校验</Button>

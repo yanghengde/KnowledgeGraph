@@ -15,6 +15,9 @@ import type {
   DeploymentPlan,
   OntologyGovernanceStatus,
   OntologyValidation,
+  SemanticClassDetail,
+  SemanticGraphOverview,
+  SemanticGraphStats,
 } from "./types";
 
 async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
@@ -178,6 +181,18 @@ export const syncApi = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ actor }),
     },
+  ),
+};
+
+export const semanticApi = {
+  overview: (refresh = false) => requestJson<SemanticGraphOverview>(
+    `/api/graph/overview${refresh ? "?refresh=true" : ""}`,
+  ),
+  stats: (refresh = false) => requestJson<SemanticGraphStats>(
+    `/api/stats${refresh ? "?refresh=true" : ""}`,
+  ),
+  classDetail: (className: string, refresh = false) => requestJson<SemanticClassDetail>(
+    `/api/graph/class/${encodeURIComponent(className)}${refresh ? "?refresh=true" : ""}`,
   ),
 };
 
