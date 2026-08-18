@@ -154,6 +154,47 @@ export const syncApi = {
   ontologyGovernance: (profileKey: string) => requestJson<OntologyGovernanceStatus>(
     `/api/sync/ontology-governance?profile_key=${encodeURIComponent(profileKey)}`,
   ),
+  addOntologyClass: (workspaceKey: string, input: {
+    source_class: string; target_name: string; label?: string; description?: string;
+    role?: "core" | "context" | "reference" | "on_demand" | "excluded";
+    orphan_policy?: "reject" | "quarantine" | "allow" | "referenced_only";
+  }) => requestJson<{ workspaceKey: string; classUid: string; targetName: string }>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/classes`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) },
+  ),
+  updateOntologyClass: (workspaceKey: string, classUid: string, input: {
+    targetName: string; label?: string; description?: string;
+    role: "core" | "context" | "reference" | "on_demand" | "excluded";
+    orphanPolicy: "reject" | "quarantine" | "allow" | "referenced_only";
+  }) => requestJson<{ ok: boolean }>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/classes/${encodeURIComponent(classUid)}`,
+    { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) },
+  ),
+  removeOntologyClass: (workspaceKey: string, classUid: string) => requestJson<{ ok: boolean }>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/classes/${encodeURIComponent(classUid)}`,
+    { method: "DELETE" },
+  ),
+  updateOntologyProperty: (workspaceKey: string, classUid: string, input: {
+    uid?: string; propertyKey?: string; sourceName?: string; targetName: string;
+    sourcePath?: string; dataType?: string; description?: string; required?: boolean;
+    published?: boolean; origin?: "source" | "custom" | "projection";
+  }) => requestJson<{ uid: string }>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/classes/${encodeURIComponent(classUid)}/properties`,
+    { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) },
+  ),
+  addOntologyRelationship: (workspaceKey: string, input: {
+    relationshipKey?: string; sourceUid: string; targetUid: string; sourceRelationship?: string;
+    targetName: string; usage?: "published_link" | "projection_only" | "context_only" | "excluded";
+    strength?: "core" | "context" | "weak" | "on_demand"; cardinality?: string;
+    requiredContext?: boolean; description?: string;
+  }) => requestJson<{ relationshipKey: string }>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/relationships`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) },
+  ),
+  removeOntologyRelationship: (workspaceKey: string, relationshipKey: string) => requestJson<{ ok: boolean }>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/relationships/${encodeURIComponent(relationshipKey)}`,
+    { method: "DELETE" },
+  ),
   validateOntologyWorkspace: (workspaceKey: string) => requestJson<OntologyValidation>(
     `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/validate`,
     { method: "POST" },
