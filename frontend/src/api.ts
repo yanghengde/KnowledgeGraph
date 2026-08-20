@@ -155,7 +155,7 @@ export const syncApi = {
     `/api/sync/ontology-governance?profile_key=${encodeURIComponent(profileKey)}`,
   ),
   addOntologyClass: (workspaceKey: string, input: {
-    source_class: string; target_name: string; label?: string; description?: string;
+    source_class?: string | null; target_name: string; label?: string; description?: string;
     role?: "core" | "context" | "reference" | "on_demand" | "excluded";
     orphan_policy?: "reject" | "quarantine" | "allow" | "referenced_only";
   }) => requestJson<{ workspaceKey: string; classUid: string; targetName: string }>(

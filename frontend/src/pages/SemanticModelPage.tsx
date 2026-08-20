@@ -168,7 +168,7 @@ export function SemanticModelPage() {
       </div>
       <Space wrap>
         <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新 Neo4j</Button>
-        <Button href="/ontology">打开旧版工作台</Button>
+        <Tooltip title="仅用于生产观察期内的兼容回退；新建模与发布请使用当前页面"><Button href="/ontology">旧版兼容入口</Button></Tooltip>
       </Space>
     </section>
 

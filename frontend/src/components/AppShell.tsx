@@ -42,7 +42,7 @@ export function AppShell() {
     { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },
   ];
   const legacyItems = [
-    { key: "legacy-ontology", icon: <ApartmentOutlined />, label: "旧版语义工作台" },
+    { key: "legacy-ontology", icon: <ApartmentOutlined />, label: "旧版语义工作台（兼容）" },
   ];
 
   const onMenuClick = ({ key }: { key: string }) => {

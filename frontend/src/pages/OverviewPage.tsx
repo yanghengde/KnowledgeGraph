@@ -54,9 +54,9 @@ export function OverviewPage() {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} xl={15}>
-          <Card title="前端现代化迁移路线" extra={<Tag color="processing">阶段 4 进行中</Tag>}>
+          <Card title="前端现代化迁移路线" extra={<Tag color="success" icon={<CheckCircleOutlined />}>阶段 4 已完成</Tag>}>
             <Steps
-              current={3}
+              current={4}
               items={[
                 { title: "平台框架", description: "统一导航、主题与接口层" },
                 { title: "知识问答", description: "历史会话与 Query 路由" },
@@ -67,12 +67,12 @@ export function OverviewPage() {
           </Card>
         </Col>
         <Col xs={24} xl={9}>
-          <Card title="迁移完成度" extra="新旧页面并行">
-            <Progress percent={90} strokeColor="#28d7b5" trailColor="#19333e" />
+          <Card title="迁移完成度" extra="React 主流程已就绪">
+            <Progress percent={100} status="success" strokeColor="#28d7b5" trailColor="#19333e" />
             <Typography.Paragraph type="secondary" className="migration-note">
-              本体治理与版本流程已迁移；复杂图形化编辑暂保留旧版回退入口。
+              制造语义主图、发布模型抽取、自定义对象与关系、质量门禁和不可变版本流程均已迁入新工作台。
             </Typography.Paragraph>
-            <Button type="link" icon={<RightOutlined />} onClick={() => navigate("/publish")}>查看发布管理页面</Button>
+            <Button type="link" icon={<RightOutlined />} onClick={() => navigate("/ontology-model")}>进入制造语义模型</Button>
           </Card>
         </Col>
       </Row>
