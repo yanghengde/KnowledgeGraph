@@ -1207,13 +1207,34 @@ def execute_materialization(
                 for relationship in relationships:
                     source_columns = relationship["source_columns"]
                     target_columns = relationship["target_columns"]
-                    join_parts = [
-                        f"target.source_values ->> '{target.replace(chr(39), chr(39)*2)}' = source.source_values ->> '{source_col.replace(chr(39), chr(39)*2)}'"
-                        for source_col, target in zip(source_columns, target_columns, strict=True)
-                    ]
+                    match_pairs = [(source_columns, target_columns)]
+                    for alternative in (relationship.get("config") or {}).get("matchAlternatives", []):
+                        alternative_source = list(alternative.get("sourceColumns") or [])
+                        alternative_target = list(alternative.get("targetColumns") or [])
+                        if alternative_source and len(alternative_source) == len(alternative_target):
+                            match_pairs.append((alternative_source, alternative_target))
+
+                    def _source_value(column: str) -> str:
+                        escaped = column.replace(chr(39), chr(39) * 2)
+                        return f"source.source_values ->> '{escaped}'"
+
+                    match_groups = []
+                    meaningful_groups = []
+                    all_source_columns: list[str] = []
+                    for pair_source, pair_target in match_pairs:
+                        all_source_columns.extend(pair_source)
+                        match_groups.append("(" + " AND ".join(
+                            f"candidate.source_values ->> '{target.replace(chr(39), chr(39)*2)}' = {_source_value(source_col)}"
+                            for source_col, target in zip(pair_source, pair_target, strict=True)
+                        ) + ")")
+                        meaningful_groups.append("(" + " AND ".join(
+                            f"coalesce({_source_value(column)}, '') NOT IN ('', '0000000000000000')"
+                            for column in pair_source
+                        ) + ")")
+                    all_source_columns = list(dict.fromkeys(all_source_columns))
                     reference_parts = ", ".join(
                         f"'{column.replace(chr(39), chr(39)*2)}', source.source_values -> '{column.replace(chr(39), chr(39)*2)}'"
-                        for column in source_columns
+                        for column in all_source_columns
                     )
                     sql = f"""
                         INSERT INTO graphsync.relationship_version
@@ -1226,15 +1247,23 @@ def execute_materialization(
                                CASE WHEN target.object_uri IS NULL THEN 'pending' ELSE 'resolved' END,
                                md5(source.object_uri || ':' || coalesce(target.object_uri, ''))
                         FROM graphsync.object_version source
-                        LEFT JOIN graphsync.object_version target
-                          ON target.release_id=source.release_id
-                         AND target.contract_key=:target_contract
-                         AND target.record_status='active'
-                         AND {' AND '.join(join_parts)}
+                        LEFT JOIN LATERAL (
+                            SELECT candidate.object_uri
+                            FROM graphsync.object_version candidate
+                            WHERE candidate.release_id=source.release_id
+                              AND candidate.contract_key=:target_contract
+                              AND candidate.record_status='active'
+                              AND ({' OR '.join(match_groups)})
+                            ORDER BY CASE
+                                {' '.join(f'WHEN {group} THEN {position}' for position, group in enumerate(match_groups))}
+                                ELSE {len(match_groups)} END,
+                                candidate.object_uri
+                            LIMIT 1
+                        ) target ON true
                         WHERE source.release_id=:release_id
                           AND source.contract_key=:source_contract
                           AND source.record_status='active'
-                          AND ({' OR '.join(f"source.source_values ->> \'{column.replace(chr(39), chr(39)*2)}\' IS NOT NULL" for column in source_columns)})
+                          AND ({' OR '.join(meaningful_groups)})
                     """
                     connection.execute(
                         text(sql),

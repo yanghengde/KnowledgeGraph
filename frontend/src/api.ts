@@ -112,6 +112,17 @@ export const syncApi = {
       body: JSON.stringify({ actor }),
     },
   ),
+  configureDataSync: (
+    profileKey: string,
+    payload: { enabled: boolean; interval_minutes: number; max_attempts: number; retry_backoff_seconds: number },
+  ) => requestJson<{ ok: boolean; schedule: Record<string, unknown> }>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/data-sync/schedule`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  ),
   generateRelease: (profileKey: string, actor: string) => requestJson<Record<string, unknown>>(
     `/api/sync/profiles/${encodeURIComponent(profileKey)}/materialization`,
     {

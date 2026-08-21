@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import socket
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +17,7 @@ from .config import SyncSettings
 from .continuous_sync import execute_continuous_sync
 from .catalog import compile_catalog
 from .curation import build_curation_preview
+from .data_sync import run_due_data_sync
 from .deployment import create_deployment, deployment_status
 from .database import initialize_control_plane
 from .inventory import build_plan, check_graphstudio, read_ontology, read_source_catalog
@@ -163,6 +167,14 @@ def main(argv: list[str] | None = None) -> int:
     continuous_parser.add_argument("--apply", action="store_true")
     continuous_parser.add_argument("--actor", default="scheduler")
     continuous_parser.add_argument("--output", type=Path)
+    data_worker_parser = subparsers.add_parser(
+        "data-sync-worker",
+        help="Claim leased data-only synchronization windows; never publishes to Graph Studio",
+    )
+    data_worker_parser.add_argument("--worker-id", default=f"{socket.gethostname()}-{os.getpid()}")
+    data_worker_parser.add_argument("--poll-seconds", type=int, default=30)
+    data_worker_parser.add_argument("--once", action="store_true")
+    data_worker_parser.add_argument("--output", type=Path)
     publish_cycle_parser = subparsers.add_parser(
         "continuous-publish",
         help="Run the complete data lane through a blue-green Graph Studio deployment",
@@ -259,6 +271,25 @@ def main(argv: list[str] | None = None) -> int:
             "curation": preview_result,
             "materialization": materialized,
         }
+    elif args.command == "data-sync-worker":
+        repository = ControlPlaneRepository(settings)
+        if args.once:
+            payload = run_due_data_sync(
+                settings, repository, worker_id=args.worker_id,
+            )
+        else:
+            if args.poll_seconds < 5:
+                parser.error("--poll-seconds must be at least 5")
+            while True:
+                try:
+                    result = run_due_data_sync(
+                        settings, repository, worker_id=args.worker_id,
+                    )
+                    if result.get("claimed"):
+                        _write(result)
+                except Exception as exc:  # keep the durable worker alive for the next retry window
+                    _write({"ok": False, "workerId": args.worker_id, "error": str(exc)})
+                time.sleep(args.poll_seconds)
     elif args.command == "continuous-cycle":
         repository = ControlPlaneRepository(settings)
         probe_result = execute_incremental_probe(settings, repository, job_name=args.job)

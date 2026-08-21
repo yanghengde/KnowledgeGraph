@@ -101,3 +101,36 @@ def test_optional_relationship_missing_source_is_warning_only() -> None:
     )
     assert source_result["passed"] is True
     assert source_result["severity"] == "warning"
+
+
+def test_relationship_can_resolve_revision_or_base_identifier() -> None:
+    relationship = {
+        "relationship_contract_key": "workflowstep-spec-v1",
+        "status": "approved",
+        "source_columns": ["SpecId"],
+        "target_columns": ["SpecId"],
+        "required_context": False,
+        "config": {
+            "matchAlternatives": [
+                {"sourceColumns": ["SpecBaseId"], "targetColumns": ["SpecBaseId"]},
+            ],
+        },
+    }
+
+    results = evaluate_relationship_contract(
+        relationship,
+        [
+            {"SpecId": "SPEC-1", "SpecBaseId": "0000000000000000"},
+            {"SpecId": "0000000000000000", "SpecBaseId": "BASE-2"},
+            {"SpecId": "STALE", "SpecBaseId": "0000000000000000"},
+        ],
+        [
+            {"SpecId": "SPEC-1", "SpecBaseId": "BASE-1"},
+            {"SpecId": "SPEC-2", "SpecBaseId": "BASE-2"},
+        ],
+    )
+
+    target_result = next(
+        item for item in results if item["ruleKey"] == "relationship.target_resolved"
+    )
+    assert target_result["failedRows"] == 1

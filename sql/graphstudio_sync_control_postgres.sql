@@ -112,6 +112,57 @@ CREATE INDEX IF NOT EXISTS ix_graphsync_run_job_started
 CREATE INDEX IF NOT EXISTS ix_graphsync_run_status
     ON graphsync.sync_run (status, started_at DESC);
 
+-- The data lane is scheduled independently from Graph Studio publication.
+-- PostgreSQL owns the clock and lease so multiple API/worker replicas cannot
+-- execute the same due window twice.
+CREATE TABLE IF NOT EXISTS graphsync.data_sync_schedule (
+    profile_key          text PRIMARY KEY,
+    job_name             text NOT NULL REFERENCES graphsync.sync_job(job_name) ON DELETE CASCADE,
+    enabled              boolean NOT NULL DEFAULT false,
+    interval_minutes     integer NOT NULL DEFAULT 15 CHECK (interval_minutes BETWEEN 1 AND 10080),
+    max_attempts         integer NOT NULL DEFAULT 3 CHECK (max_attempts BETWEEN 1 AND 10),
+    retry_backoff_seconds integer NOT NULL DEFAULT 60 CHECK (retry_backoff_seconds BETWEEN 5 AND 86400),
+    next_run_at          timestamptz,
+    lease_token          uuid,
+    lease_until          timestamptz,
+    last_run_id          uuid,
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    updated_at           timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS graphsync.data_sync_execution (
+    run_id               uuid PRIMARY KEY,
+    profile_key          text NOT NULL REFERENCES graphsync.data_sync_schedule(profile_key) ON DELETE CASCADE,
+    job_name             text NOT NULL REFERENCES graphsync.sync_job(job_name) ON DELETE CASCADE,
+    trigger_type         text NOT NULL CHECK (trigger_type IN ('manual','scheduled','retry')),
+    status               text NOT NULL CHECK (status IN ('queued','running','succeeded','failed','skipped')),
+    attempt              integer NOT NULL DEFAULT 1 CHECK (attempt >= 1),
+    scheduled_for        timestamptz NOT NULL,
+    next_retry_at        timestamptz,
+    actor                text,
+    release_id           uuid,
+    error                jsonb,
+    metrics              jsonb NOT NULL DEFAULT '{}'::jsonb,
+    started_at           timestamptz,
+    finished_at          timestamptz,
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (profile_key, scheduled_for, attempt)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_data_sync_due
+    ON graphsync.data_sync_schedule (next_run_at) WHERE enabled;
+CREATE INDEX IF NOT EXISTS ix_graphsync_data_sync_execution_recent
+    ON graphsync.data_sync_execution (profile_key, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_graphsync_data_sync_retry_due
+    ON graphsync.data_sync_execution (next_retry_at)
+    WHERE status='failed' AND next_retry_at IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS graphsync.data_sync_worker_heartbeat (
+    worker_id             text PRIMARY KEY,
+    last_seen_at          timestamptz NOT NULL DEFAULT now(),
+    metadata              jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+
 CREATE TABLE IF NOT EXISTS graphsync.checkpoint (
     job_name              text NOT NULL REFERENCES graphsync.sync_job(job_name) ON DELETE CASCADE,
     partition_key         text NOT NULL,
@@ -1673,6 +1724,27 @@ ON CONFLICT (version) DO NOTHING;
 INSERT INTO graphsync.schema_version (version, description)
 VALUES (18, 'Effectively-once ingestion, split delivery checkpoints and reconciliation evidence')
 ON CONFLICT (version) DO NOTHING;
+
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (19, 'Leased data-lane scheduling, audited retries and worker heartbeat')
+ON CONFLICT (version) DO NOTHING;
+
+INSERT INTO graphsync.data_sync_schedule
+    (profile_key, job_name, enabled, interval_minutes, max_attempts,
+     retry_backoff_seconds, next_run_at)
+SELECT profile.profile_key, profile.job_name, false, 15, 3, 60, NULL
+FROM graphsync.graph_profile profile
+ON CONFLICT (profile_key) DO NOTHING;
+
+-- WorkflowStep may reference a fixed Spec revision (SpecId) or the current
+-- revision through SpecBaseId.  Preserve both representations in one audited
+-- relationship contract, with the revision-specific key taking precedence.
+UPDATE graphsync.relationship_contract
+SET config = config || '{"matchAlternatives":[{"sourceColumns":["SpecBaseId"],"targetColumns":["SpecBaseId"]}]}'::jsonb
+WHERE profile_key='opcenter2607-core'
+  AND source_contract_key='opcenter2607-core:workflowstep:v1'
+  AND target_contract_key='opcenter2607-core:spec:v1'
+  AND relationship_name='HAS_SPEC';
 
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)

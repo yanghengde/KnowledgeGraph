@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import socket
+import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import text
@@ -117,6 +121,42 @@ def data_sync_status(
             ),
             {"profile": profile_key},
         ).mappings().one()
+        schedule = connection.execute(
+            text(
+                """
+                SELECT profile_key, job_name, enabled, interval_minutes,
+                       max_attempts, retry_backoff_seconds, next_run_at,
+                       lease_until, last_run_id, updated_at
+                FROM graphsync.data_sync_schedule
+                WHERE profile_key=:profile
+                """
+            ),
+            {"profile": profile_key},
+        ).mappings().one_or_none()
+        recent_runs = connection.execute(
+            text(
+                """
+                SELECT run_id, trigger_type, status, attempt, scheduled_for,
+                       next_retry_at, actor, release_id, error, metrics,
+                       started_at, finished_at, created_at
+                FROM graphsync.data_sync_execution
+                WHERE profile_key=:profile
+                ORDER BY created_at DESC
+                LIMIT 12
+                """
+            ),
+            {"profile": profile_key},
+        ).mappings().all()
+        worker = connection.execute(
+            text(
+                """
+                SELECT worker_id, last_seen_at, metadata,
+                       (last_seen_at >= now() - interval '2 minutes') AS online
+                FROM graphsync.data_sync_worker_heartbeat
+                ORDER BY last_seen_at DESC LIMIT 1
+                """
+            )
+        ).mappings().one_or_none()
 
     count_by_class = {item["class_name"]: dict(item) for item in release_counts}
     reconciliation_by_class = {
@@ -197,7 +237,318 @@ def data_sync_status(
             "quality_and_count_reconcile",
             "activate_immutable_release",
         ],
+        "automation": {
+            "schedule": dict(schedule) if schedule else None,
+            "worker": dict(worker) if worker else None,
+            "recentRuns": [dict(item) for item in recent_runs],
+        },
     }
+
+
+def update_data_sync_schedule(
+    repository: ControlPlaneRepository,
+    *,
+    profile_key: str,
+    enabled: bool,
+    interval_minutes: int,
+    max_attempts: int,
+    retry_backoff_seconds: int,
+) -> dict[str, Any]:
+    """Configure the durable data-lane clock without enabling publication."""
+
+    if not 1 <= interval_minutes <= 10080:
+        raise ValueError("interval_minutes must be between 1 and 10080")
+    if not 1 <= max_attempts <= 10:
+        raise ValueError("max_attempts must be between 1 and 10")
+    if not 5 <= retry_backoff_seconds <= 86400:
+        raise ValueError("retry_backoff_seconds must be between 5 and 86400")
+    profile = repository.graph_profile(profile_key)["profile"]
+    with repository.engine.begin() as connection:
+        row = connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.data_sync_schedule
+                    (profile_key, job_name, enabled, interval_minutes,
+                     max_attempts, retry_backoff_seconds, next_run_at, updated_at)
+                VALUES (:profile, :job, :enabled, :interval, :attempts, :backoff,
+                        CASE WHEN :enabled THEN now() ELSE NULL END, now())
+                ON CONFLICT (profile_key) DO UPDATE SET
+                    job_name=EXCLUDED.job_name,
+                    enabled=EXCLUDED.enabled,
+                    interval_minutes=EXCLUDED.interval_minutes,
+                    max_attempts=EXCLUDED.max_attempts,
+                    retry_backoff_seconds=EXCLUDED.retry_backoff_seconds,
+                    next_run_at=CASE
+                        WHEN EXCLUDED.enabled AND NOT graphsync.data_sync_schedule.enabled
+                        THEN now()
+                        WHEN EXCLUDED.enabled THEN coalesce(graphsync.data_sync_schedule.next_run_at, now())
+                        ELSE NULL END,
+                    lease_token=CASE WHEN EXCLUDED.enabled THEN graphsync.data_sync_schedule.lease_token ELSE NULL END,
+                    lease_until=CASE WHEN EXCLUDED.enabled THEN graphsync.data_sync_schedule.lease_until ELSE NULL END,
+                    updated_at=now()
+                RETURNING profile_key, job_name, enabled, interval_minutes,
+                          max_attempts, retry_backoff_seconds, next_run_at,
+                          lease_until, last_run_id, updated_at
+                """
+            ),
+            {
+                "profile": profile_key,
+                "job": profile["job_name"],
+                "enabled": enabled,
+                "interval": interval_minutes,
+                "attempts": max_attempts,
+                "backoff": retry_backoff_seconds,
+            },
+        ).mappings().one()
+    return dict(row)
+
+
+def _create_manual_execution(
+    repository: ControlPlaneRepository,
+    *,
+    profile_key: str,
+    actor: str | None,
+) -> uuid.UUID:
+    profile = repository.graph_profile(profile_key)["profile"]
+    run_id = uuid.uuid4()
+    with repository.engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.data_sync_schedule (profile_key, job_name)
+                VALUES (:profile, :job)
+                ON CONFLICT (profile_key) DO NOTHING
+                """
+            ),
+            {"profile": profile_key, "job": profile["job_name"]},
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.data_sync_execution
+                    (run_id, profile_key, job_name, trigger_type, status,
+                     attempt, scheduled_for, actor)
+                VALUES (:run, :profile, :job, 'manual', 'queued', 1, now(), :actor)
+                """
+            ),
+            {"run": run_id, "profile": profile_key, "job": profile["job_name"], "actor": actor},
+        )
+    return run_id
+
+
+def claim_due_data_sync(
+    repository: ControlPlaneRepository,
+    *,
+    worker_id: str,
+) -> dict[str, Any] | None:
+    """Claim exactly one due retry/window using row locks and a renewable lease."""
+
+    lease_token = uuid.uuid4()
+    with repository.engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.data_sync_worker_heartbeat (worker_id, last_seen_at, metadata)
+                VALUES (:worker, now(), CAST(:metadata AS jsonb))
+                ON CONFLICT (worker_id) DO UPDATE SET
+                    last_seen_at=now(), metadata=EXCLUDED.metadata
+                """
+            ),
+            {"worker": worker_id, "metadata": json.dumps({"host": socket.gethostname()})},
+        )
+        retry = connection.execute(
+            text(
+                """
+                SELECT failed.profile_key, failed.job_name, failed.scheduled_for,
+                       failed.attempt + 1 AS attempt, schedule.retry_backoff_seconds
+                FROM graphsync.data_sync_execution failed
+                JOIN graphsync.data_sync_schedule schedule USING (profile_key)
+                WHERE schedule.enabled
+                  AND failed.status='failed'
+                  AND failed.next_retry_at <= now()
+                  AND failed.attempt < schedule.max_attempts
+                  AND NOT EXISTS (
+                      SELECT 1 FROM graphsync.data_sync_execution later
+                      WHERE later.profile_key=failed.profile_key
+                        AND later.scheduled_for=failed.scheduled_for
+                        AND later.attempt > failed.attempt
+                  )
+                  AND (schedule.lease_until IS NULL OR schedule.lease_until < now())
+                ORDER BY failed.next_retry_at
+                FOR UPDATE OF failed, schedule SKIP LOCKED
+                LIMIT 1
+                """
+            )
+        ).mappings().one_or_none()
+        trigger = "retry"
+        claim = retry
+        if claim is None:
+            claim = connection.execute(
+                text(
+                    """
+                    SELECT profile_key, job_name, next_run_at AS scheduled_for,
+                           1 AS attempt, retry_backoff_seconds
+                    FROM graphsync.data_sync_schedule
+                    WHERE enabled AND next_run_at <= now()
+                      AND (lease_until IS NULL OR lease_until < now())
+                    ORDER BY next_run_at
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT 1
+                    """
+                )
+            ).mappings().one_or_none()
+            trigger = "scheduled"
+        if claim is None:
+            return None
+        run_id = uuid.uuid4()
+        connection.execute(
+            text(
+                """
+                UPDATE graphsync.data_sync_schedule
+                SET lease_token=:token, lease_until=now() + interval '10 minutes',
+                    last_run_id=:run,
+                    next_run_at=CASE WHEN :trigger='scheduled'
+                        THEN now() + make_interval(mins => interval_minutes)
+                        ELSE next_run_at END,
+                    updated_at=now()
+                WHERE profile_key=:profile
+                """
+            ),
+            {"token": lease_token, "run": run_id, "trigger": trigger, "profile": claim["profile_key"]},
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.data_sync_execution
+                    (run_id, profile_key, job_name, trigger_type, status,
+                     attempt, scheduled_for, actor)
+                VALUES (:run, :profile, :job, :trigger, 'queued',
+                        :attempt, :scheduled_for, :actor)
+                """
+            ),
+            {
+                "run": run_id, "profile": claim["profile_key"], "job": claim["job_name"],
+                "trigger": trigger, "attempt": claim["attempt"],
+                "scheduled_for": claim["scheduled_for"], "actor": f"worker:{worker_id}",
+            },
+        )
+    return {**dict(claim), "runId": str(run_id), "leaseToken": str(lease_token), "triggerType": trigger}
+
+
+def execute_data_sync_execution(
+    settings: SyncSettings,
+    repository: ControlPlaneRepository,
+    *,
+    run_id: uuid.UUID,
+    lease_token: uuid.UUID | None = None,
+) -> dict[str, Any]:
+    with repository.engine.begin() as connection:
+        execution = connection.execute(
+            text("SELECT * FROM graphsync.data_sync_execution WHERE run_id=:run FOR UPDATE"),
+            {"run": run_id},
+        ).mappings().one_or_none()
+        if execution is None:
+            raise KeyError(str(run_id))
+        if execution["status"] not in {"queued", "running"}:
+            raise ValueError(f"Data sync execution is already {execution['status']}")
+        connection.execute(
+            text("UPDATE graphsync.data_sync_execution SET status='running', started_at=coalesce(started_at, now()) WHERE run_id=:run"),
+            {"run": run_id},
+        )
+    try:
+        result = execute_data_sync(
+            settings, repository, profile_key=execution["profile_key"], actor=execution["actor"],
+        )
+        release = (result.get("status") or {}).get("activeRelease") or {}
+        metrics = {
+            "activeObjects": ((result.get("status") or {}).get("summary") or {}).get("activeObjects", 0),
+            "pendingRelationships": ((result.get("status") or {}).get("summary") or {}).get("pendingRelationships", 0),
+            "graphStudioMutated": False,
+        }
+        with repository.engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE graphsync.data_sync_execution
+                    SET status='succeeded', release_id=:release,
+                        metrics=CAST(:metrics AS jsonb), next_retry_at=NULL,
+                        finished_at=now()
+                    WHERE run_id=:run
+                    """
+                ),
+                {"run": run_id, "release": release.get("release_id"), "metrics": json.dumps(metrics)},
+            )
+        return {**result, "executionId": str(run_id)}
+    except Exception as exc:
+        overlap = "already active" in str(exc).casefold()
+        with repository.engine.begin() as connection:
+            retry = connection.execute(
+                text("SELECT max_attempts, retry_backoff_seconds FROM graphsync.data_sync_schedule WHERE profile_key=:profile"),
+                {"profile": execution["profile_key"]},
+            ).mappings().one()
+            next_retry = (
+                None if overlap or int(execution["attempt"]) >= int(retry["max_attempts"])
+                else datetime.now(timezone.utc)
+            )
+            connection.execute(
+                text(
+                    """
+                    UPDATE graphsync.data_sync_execution
+                    SET status=:status, error=CAST(:error AS jsonb),
+                        next_retry_at=CASE WHEN :retry_due IS NULL THEN NULL
+                            ELSE now() + make_interval(secs => :backoff * power(2, :attempt - 1)::integer) END,
+                        finished_at=now()
+                    WHERE run_id=:run
+                    """
+                ),
+                {
+                    "run": run_id, "status": "skipped" if overlap else "failed",
+                    "error": json.dumps({"type": type(exc).__name__, "message": str(exc)}),
+                    "retry_due": next_retry, "backoff": int(retry["retry_backoff_seconds"]),
+                    "attempt": int(execution["attempt"]),
+                },
+            )
+        raise
+    finally:
+        if lease_token:
+            with repository.engine.begin() as connection:
+                connection.execute(
+                    text(
+                        """
+                        UPDATE graphsync.data_sync_schedule
+                        SET lease_token=NULL, lease_until=NULL, updated_at=now()
+                        WHERE profile_key=:profile AND lease_token=:token
+                        """
+                    ),
+                    {"profile": execution["profile_key"], "token": lease_token},
+                )
+
+
+def execute_audited_data_sync(
+    settings: SyncSettings,
+    repository: ControlPlaneRepository,
+    *,
+    profile_key: str,
+    actor: str | None,
+) -> dict[str, Any]:
+    run_id = _create_manual_execution(repository, profile_key=profile_key, actor=actor)
+    return execute_data_sync_execution(settings, repository, run_id=run_id)
+
+
+def run_due_data_sync(
+    settings: SyncSettings,
+    repository: ControlPlaneRepository,
+    *,
+    worker_id: str,
+) -> dict[str, Any]:
+    claim = claim_due_data_sync(repository, worker_id=worker_id)
+    if claim is None:
+        return {"ok": True, "claimed": False}
+    result = execute_data_sync_execution(
+        settings, repository, run_id=uuid.UUID(claim["runId"]),
+        lease_token=uuid.UUID(claim["leaseToken"]),
+    )
+    return {"ok": True, "claimed": True, "claim": claim, "result": result}
 
 
 def execute_data_sync(

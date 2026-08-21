@@ -1,12 +1,12 @@
 import {
   CheckCircleOutlined, ClockCircleOutlined, CloudSyncOutlined, DatabaseOutlined,
   ExclamationCircleOutlined, FileProtectOutlined, ReloadOutlined,
-  SafetyCertificateOutlined, SyncOutlined,
+  SafetyCertificateOutlined, SettingOutlined, SyncOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Alert, App, Button, Card, Col, Input, Modal, Row, Space, Statistic,
-  Steps, Table, Tag, Typography,
+  Alert, App, Button, Card, Col, Input, InputNumber, Modal, Row, Space, Statistic,
+  Steps, Switch, Table, Tag, Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
@@ -42,6 +42,11 @@ export function DataSynchronizationPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actor, setActor] = useState("local-console");
   const [confirmation, setConfirmation] = useState("");
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [intervalMinutes, setIntervalMinutes] = useState(15);
+  const [maxAttempts, setMaxAttempts] = useState(3);
+  const [retryBackoff, setRetryBackoff] = useState(60);
   const profileKey = "opcenter2607-core";
   const status = useQuery({
     queryKey: ["data-sync", profileKey],
@@ -58,6 +63,20 @@ export function DataSynchronizationPage() {
       void queryClient.invalidateQueries({ queryKey: ["data-sync"] });
       void queryClient.invalidateQueries({ queryKey: ["sync-materialization"] });
       void queryClient.invalidateQueries({ queryKey: ["sync-deployments"] });
+    },
+    onError: (error: Error) => message.error(error.message),
+  });
+  const configure = useMutation({
+    mutationFn: () => syncApi.configureDataSync(profileKey, {
+      enabled: scheduleEnabled,
+      interval_minutes: intervalMinutes,
+      max_attempts: maxAttempts,
+      retry_backoff_seconds: retryBackoff,
+    }),
+    onSuccess: () => {
+      message.success(scheduleEnabled ? "自动数据同步已启用" : "自动数据同步已停用");
+      setScheduleOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ["data-sync", profileKey] });
     },
     onError: (error: Error) => message.error(error.message),
   });
@@ -113,6 +132,14 @@ export function DataSynchronizationPage() {
         </div>
         <Space wrap>
           <Button icon={<ReloadOutlined />} loading={status.isFetching} onClick={() => void status.refetch()}>刷新状态</Button>
+          <Button icon={<SettingOutlined />} onClick={() => {
+            const schedule = data?.automation.schedule;
+            setScheduleEnabled(Boolean(schedule?.enabled));
+            setIntervalMinutes(Number(schedule?.interval_minutes || 15));
+            setMaxAttempts(Number(schedule?.max_attempts || 3));
+            setRetryBackoff(Number(schedule?.retry_backoff_seconds || 60));
+            setScheduleOpen(true);
+          }}>自动同步设置</Button>
           <Button type="primary" icon={<CloudSyncOutlined />} loading={run.isPending} disabled={coverageIncomplete || !data} onClick={() => { setActor("local-console"); setConfirmation(""); setDialogOpen(true); }}>执行数据同步</Button>
         </Space>
       </section>
@@ -147,6 +174,23 @@ export function DataSynchronizationPage() {
       {!coverageIncomplete && !!data?.blockers.length && <Alert type="warning" showIcon message="同步前置检查待刷新" description={`${data.blockers.join("；")}。点击“执行数据同步”会先重新运行质量检查，再决定是否生成新版本。`} />}
       {!!data?.summary.pendingRelationships && <Alert type="warning" showIcon message={`${data.summary.pendingRelationships} 条源关系引用尚未解析`} description={`当前活动版本共有 ${data.summary.relationships} 条关系记录，其中 ${data.summary.resolvedRelationships} 条已关联到目标对象。未解析引用会保留审计证据，但不会伪造成 Graph Studio 边。`} />}
 
+      <Card title="自动同步与运行记录" extra={data?.automation.schedule?.enabled ? <Tag color="processing">每 {data.automation.schedule.interval_minutes} 分钟</Tag> : <Tag>未启用</Tag>}>
+        {data?.automation.schedule?.enabled && !data?.automation.worker?.online && <Alert type="warning" showIcon message="自动同步已配置，但工作进程未在线" description="启动 python -m src.graphstudio_sync.cli data-sync-worker 后，工作进程会通过 PostgreSQL 租约领取任务；多个实例同时运行也不会重复同步。" />}
+        {data?.automation.worker?.online && <Alert type="success" showIcon message={`工作进程在线：${data.automation.worker.worker_id}`} description={data.automation.schedule?.next_run_at ? `下次计划：${new Date(data.automation.schedule.next_run_at).toLocaleString("zh-CN")}` : "等待计划"} />}
+        <Table
+          className="data-sync-run-table" size="small" rowKey="run_id"
+          dataSource={data?.automation.recentRuns || []} pagination={false}
+          locale={{ emptyText: "暂无运行记录" }}
+          columns={[
+            { title: "触发", dataIndex: "trigger_type", width: 100, render: (value: string) => ({ manual: "手工", scheduled: "计划", retry: "重试" }[value] || value) },
+            { title: "状态", dataIndex: "status", width: 110, render: (value: string) => <Tag color={value === "succeeded" ? "success" : value === "failed" ? "error" : value === "running" ? "processing" : "default"}>{value}</Tag> },
+            { title: "尝试", dataIndex: "attempt", width: 80, render: (value: number) => `第 ${value} 次` },
+            { title: "计划时间", dataIndex: "scheduled_for", width: 190, render: (value: string) => new Date(value).toLocaleString("zh-CN") },
+            { title: "结果", key: "result", render: (_: unknown, item: NonNullable<typeof data>["automation"]["recentRuns"][number]) => item.error?.message || (item.release_id ? `数据版本 ${item.release_id.slice(0, 8)}` : "—") },
+          ]}
+        />
+      </Card>
+
       <Card title="对象级同步清单" extra={<Tag color={data?.coverage.complete ? "success" : "error"}>{data?.coverage.complete ? "覆盖完整" : "覆盖不完整"}</Tag>} loading={status.isLoading}>
         <Table rowKey="className" columns={columns} dataSource={data?.classes || []} pagination={false} scroll={{ x: 1250 }} />
       </Card>
@@ -167,6 +211,20 @@ export function DataSynchronizationPage() {
         <div className="data-sync-confirm-form">
           <label><span>操作人标识</span><Input value={actor} onChange={(event) => setActor(event.target.value)} /></label>
           <label><span>请输入确认短语：<strong>同步数据</strong></span><Input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label>
+        </div>
+      </Modal>
+
+      <Modal
+        open={scheduleOpen} title="自动数据同步设置" okText="保存设置" cancelText="取消"
+        confirmLoading={configure.isPending} onCancel={() => !configure.isPending && setScheduleOpen(false)}
+        onOk={() => configure.mutate()}
+      >
+        <Alert type="info" showIcon message="自动同步只生成 PostgreSQL 不可变数据版本" description="它不会发布或切换 Graph Studio Layer。每个计划窗口由 PostgreSQL 租约唯一领取，失败按指数退避重试。" />
+        <div className="data-sync-confirm-form">
+          <label><span>启用自动同步</span><Switch checked={scheduleEnabled} onChange={setScheduleEnabled} /></label>
+          <label><span>同步间隔（分钟）</span><InputNumber min={1} max={10080} value={intervalMinutes} onChange={(value) => setIntervalMinutes(Number(value || 15))} /></label>
+          <label><span>最多尝试次数</span><InputNumber min={1} max={10} value={maxAttempts} onChange={(value) => setMaxAttempts(Number(value || 3))} /></label>
+          <label><span>首次重试等待（秒）</span><InputNumber min={5} max={86400} value={retryBackoff} onChange={(value) => setRetryBackoff(Number(value || 60))} /></label>
         </div>
       </Modal>
     </div>

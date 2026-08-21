@@ -17,7 +17,11 @@ from src.graphstudio_sync.continuous_sync import (
 from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
 from src.graphstudio_sync.curation import build_curation_preview
-from src.graphstudio_sync.data_sync import data_sync_status, execute_data_sync
+from src.graphstudio_sync.data_sync import (
+    data_sync_status,
+    execute_audited_data_sync,
+    update_data_sync_schedule,
+)
 from src.graphstudio_sync.actions import (
     approve_action,
     execute_action,
@@ -387,6 +391,13 @@ class ContinuousSyncRequest(BaseModel):
 
 class DataSyncRequest(BaseModel):
     actor: str = Field(default="local-console", min_length=2, max_length=200)
+
+
+class DataSyncScheduleRequest(BaseModel):
+    enabled: bool
+    interval_minutes: int = Field(default=15, ge=1, le=10080)
+    max_attempts: int = Field(default=3, ge=1, le=10)
+    retry_backoff_seconds: int = Field(default=60, ge=5, le=86400)
 
 
 class ReleaseActivation(BaseModel):
@@ -994,12 +1005,27 @@ def get_data_sync_status(profile_key: str):
 @router.post("/profiles/{profile_key}/data-sync")
 def run_data_sync(profile_key: str, request: DataSyncRequest):
     try:
-        return execute_data_sync(
+        return execute_audited_data_sync(
             _settings(), _repo(), profile_key=profile_key, actor=request.actor,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
     except RuntimeError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/profiles/{profile_key}/data-sync/schedule")
+def configure_data_sync_schedule(profile_key: str, request: DataSyncScheduleRequest):
+    try:
+        return {
+            "ok": True,
+            "schedule": update_data_sync_schedule(
+                _repo(), profile_key=profile_key, **request.model_dump(),
+            ),
+        }
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+    except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 

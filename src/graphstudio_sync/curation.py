@@ -263,6 +263,12 @@ def evaluate_relationship_contract(
     key = relationship["relationship_contract_key"]
     source_columns = list(relationship["source_columns"])
     target_columns = list(relationship["target_columns"])
+    match_pairs = [(source_columns, target_columns)]
+    for alternative in (relationship.get("config") or {}).get("matchAlternatives", []):
+        alternative_source = list(alternative.get("sourceColumns") or [])
+        alternative_target = list(alternative.get("targetColumns") or [])
+        if alternative_source and len(alternative_source) == len(alternative_target):
+            match_pairs.append((alternative_source, alternative_target))
     approved = relationship.get("status") == "approved"
     results = [
         _quality_result(
@@ -274,17 +280,29 @@ def evaluate_relationship_contract(
             relationship_contract_key=key,
         )
     ]
-    target_keys = {
-        _row_key(row, target_columns)
-        for row in target_rows
-        if all(value not in (None, "") for value in _row_key(row, target_columns))
-    }
-    source_keys = [_row_key(row, source_columns) for row in source_rows]
-    missing = [value for value in source_keys if any(item in (None, "") for item in value)]
-    unresolved = [
-        value for value in source_keys
-        if all(item not in (None, "") for item in value) and value not in target_keys
+    empty_values = (None, "", "0000000000000000")
+    target_keys = [
+        {
+            _row_key(row, pair_target)
+            for row in target_rows
+            if all(value not in empty_values for value in _row_key(row, pair_target))
+        }
+        for _, pair_target in match_pairs
     ]
+    missing: list[tuple[Any, ...]] = []
+    unresolved: list[tuple[Any, ...]] = []
+    for row in source_rows:
+        candidates = [
+            _row_key(row, pair_source) for pair_source, _ in match_pairs
+        ]
+        meaningful = [
+            (position, value) for position, value in enumerate(candidates)
+            if all(item not in empty_values for item in value)
+        ]
+        if not meaningful:
+            missing.append(candidates[0])
+        elif not any(value in target_keys[position] for position, value in meaningful):
+            unresolved.append(meaningful[0][1])
     severity = "error" if relationship.get("required_context") else "warning"
     results.append(
         _quality_result(

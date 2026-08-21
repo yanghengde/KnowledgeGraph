@@ -240,6 +240,35 @@ export type DataSyncStatus = {
     pendingRelationships: number;
   };
   pipeline: string[];
+  automation: {
+    schedule?: {
+      enabled: boolean;
+      interval_minutes: number;
+      max_attempts: number;
+      retry_backoff_seconds: number;
+      next_run_at?: string | null;
+      lease_until?: string | null;
+    } | null;
+    worker?: {
+      worker_id: string;
+      last_seen_at: string;
+      online: boolean;
+      metadata?: Record<string, unknown>;
+    } | null;
+    recentRuns: Array<{
+      run_id: string;
+      trigger_type: "manual" | "scheduled" | "retry";
+      status: "queued" | "running" | "succeeded" | "failed" | "skipped";
+      attempt: number;
+      scheduled_for: string;
+      next_retry_at?: string | null;
+      actor?: string | null;
+      release_id?: string | null;
+      error?: { message?: string } | null;
+      started_at?: string | null;
+      finished_at?: string | null;
+    }>;
+  };
 };
 
 export type DeploymentRelease = {
