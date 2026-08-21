@@ -108,23 +108,66 @@ def build_materialization_plan(
     attribute_projections: Iterable[dict[str, Any]] = (),
     profile_classes: Iterable[dict[str, Any]] = (),
     profile_relationships: Iterable[dict[str, Any]] = (),
+    ontology_classes: Iterable[dict[str, Any]] = (),
 ) -> dict[str, Any]:
     contracts = list(governance.get("contracts") or [])
     relationships = list(governance.get("relationships") or [])
     schema_changes = list(schema_changes)
+    profile_classes = list(profile_classes)
+    ontology_classes = list(ontology_classes)
     governed_classes = [item for item in profile_classes if item.get("enabled", True)]
+    data_governed_classes = [
+        item for item in governed_classes
+        if item.get("role") != "excluded"
+        and (item.get("config") or {}).get("instanceMode") != "model_only"
+    ]
     governed_relationships = [item for item in profile_relationships if item.get("enabled", True)]
-    if governed_classes:
-        governed_class_names = {item.get("class_name") for item in governed_classes}
+    if profile_classes:
+        governed_class_names = {item.get("class_name") for item in data_governed_classes}
         contracts = [item for item in contracts if item.get("class_name") in governed_class_names]
     latest = governance.get("latestRun")
     blockers: list[str] = []
     if not contracts:
         blockers.append("业务图谱没有数据契约")
     contract_classes = {item["class_name"] for item in contracts}
-    for item in governed_classes:
+    for item in data_governed_classes:
         if item["class_name"] not in contract_classes:
             blockers.append(f"发布对象缺少数据契约：{item['class_name']}")
+
+    profile_by_name = {item.get("class_name"): item for item in profile_classes}
+    ontology_coverage: list[dict[str, Any]] = []
+    for ontology_class in ontology_classes:
+        source_class = ontology_class.get("sourceClass")
+        if not source_class:
+            ontology_coverage.append({
+                "className": ontology_class.get("targetName"),
+                "status": "model_only",
+                "reason": "custom_class_without_source",
+            })
+            continue
+        configured = profile_by_name.get(source_class)
+        if configured is None:
+            blockers.append(f"活动本体发布对象尚未配置数据同步策略：{source_class}")
+            ontology_coverage.append({
+                "className": source_class,
+                "status": "missing",
+                "reason": "profile_class_missing",
+            })
+            continue
+        config = configured.get("config") or {}
+        if not configured.get("enabled", True) or configured.get("role") == "excluded":
+            status, reason = "excluded", "explicit_profile_exclusion"
+        elif config.get("instanceMode") == "model_only":
+            status, reason = "model_only", "explicit_model_only"
+        elif source_class in contract_classes:
+            status, reason = "synchronized", "approved_contract_required"
+        else:
+            status, reason = "missing", "data_contract_missing"
+        ontology_coverage.append({
+            "className": source_class,
+            "status": status,
+            "reason": reason,
+        })
     contract_relationships = {
         (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
         for item in relationships
@@ -187,6 +230,7 @@ def build_materialization_plan(
         approximate = int(item.get("approximate_rows") or 0)
         policy = policies.get(item["class_name"])
         strategy = (policy or {}).get("effective_strategy") or (policy or {}).get("strategy") or "snapshot"
+        window = windows.get(item["class_name"])
         extraction_mode = "keyset_snapshot"
         current_version = int(item["version"])
         previous_version = int(active_versions.get(item["contract_key"]) or 0)
@@ -227,6 +271,33 @@ def build_materialization_plan(
                 blockers.append(
                     f"数据契约 {item['contract_key']} 已从 v{previous_version} 升级到 v{current_version}，但找不到已应用的迁移记录"
                 )
+        elif strategy in {"watermark", "append_only", "cdc"} and window:
+            if window.get("status") == "baseline_required":
+                if approximate > large_table_threshold:
+                    blockers.append(
+                        f"大表 {item['class_name']} 尚无活动基线版本，必须先执行分区基线导入"
+                    )
+                else:
+                    extraction_mode = "baseline_snapshot"
+            elif window.get("status") == "verified" and (window.get("metadata") or {}).get("changeFile"):
+                if not active_release_id:
+                    blockers.append(f"增量对象 {item['class_name']} 尚无活动基线版本")
+                else:
+                    extraction_mode = "verified_incremental_package"
+                    if str((active_source_snapshot or {}).get(item["class_name"], {}).get("windowId")) == str(window["window_id"]):
+                        blockers.append(f"对象 {item['class_name']} 的最新增量窗口已被活动治理版本消费")
+            elif window.get("status") == "no_changes":
+                if active_release_id:
+                    extraction_mode = "copy_active"
+                else:
+                    blockers.append(f"增量对象 {item['class_name']} 尚无活动基线版本")
+            elif window.get("status") == "blocked":
+                blockers.append(
+                    f"对象 {item['class_name']} 的增量窗口不可用："
+                    f"{(window.get('metadata') or {}).get('reason') or 'unknown'}"
+                )
+            elif approximate > large_table_threshold:
+                blockers.append(f"大表 {item['class_name']} 没有已验证的增量变更包")
         elif approximate > large_table_threshold:
             if not policy or policy.get("requires_review"):
                 blockers.append(f"亿级/大表尚未显式配置同步策略：{item['class_name']}（约 {approximate} 行）")
@@ -235,7 +306,6 @@ def build_materialization_plan(
             elif not active_release_id:
                 blockers.append(f"大表 {item['class_name']} 尚无活动基线版本，必须先执行分区基线导入")
             else:
-                window = windows.get(item["class_name"])
                 if not window or window.get("status") != "verified" or not (window.get("metadata") or {}).get("changeFile"):
                     blockers.append(f"大表 {item['class_name']} 没有已验证的增量变更包")
                 else:
@@ -255,11 +325,16 @@ def build_materialization_plan(
                 "incrementalWindow": (
                     {
                         "windowId": str(windows[item["class_name"]]["window_id"]),
+                        "jobName": windows[item["class_name"]].get("job_name") or "camstar-full",
                         "runId": str(windows[item["class_name"]].get("run_id")) if windows[item["class_name"]].get("run_id") else None,
+                        "status": windows[item["class_name"]].get("status"),
+                        "adapter": windows[item["class_name"]].get("adapter"),
+                        "lowerBound": windows[item["class_name"]].get("lower_bound"),
                         "changeFile": (windows[item["class_name"]].get("metadata") or {}).get("changeFile"),
                         "upperBound": windows[item["class_name"]].get("upper_bound"),
                     }
-                    if extraction_mode == "verified_incremental_package" else None
+                    if extraction_mode in {"verified_incremental_package", "baseline_snapshot"}
+                    and window else None
                 ),
                 "fieldBackfill": field_backfill,
             }
@@ -290,6 +365,14 @@ def build_materialization_plan(
             }
             for item in projections
         ],
+        "ontologyCoverage": {
+            "classes": ontology_coverage,
+            "complete": not any(item["status"] == "missing" for item in ontology_coverage),
+            "synchronized": sum(item["status"] == "synchronized" for item in ontology_coverage),
+            "modelOnly": sum(item["status"] == "model_only" for item in ontology_coverage),
+            "excluded": sum(item["status"] == "excluded" for item in ontology_coverage),
+            "missing": sum(item["status"] == "missing" for item in ontology_coverage),
+        },
     }
 
 
@@ -452,13 +535,82 @@ def _chunks(iterator, size: int):
         yield page
 
 
+def collapse_change_events(
+    events: Iterable[dict[str, Any]],
+    primary_keys: Iterable[str],
+) -> list[dict[str, Any]]:
+    """Keep the final state-changing event for each object in source order.
+
+    CDC may legitimately contain several updates for one primary key inside a
+    frozen window. Applying them as independent inserts to one immutable release
+    would violate its object uniqueness constraint. The final event represents
+    the correct state at the window upper bound; all original events remain in
+    the durable inbox for audit.
+    """
+
+    keys = list(primary_keys)
+    latest: dict[str, dict[str, Any]] = {}
+    order: list[str] = []
+    for event in events:
+        source_key = event.get("key") or {}
+        identity = canonical_json({key: source_key.get(key) for key in keys})
+        if identity not in latest:
+            order.append(identity)
+        latest[identity] = event
+    return [latest[identity] for identity in order]
+
+
+def build_count_reconciliation(
+    *,
+    extraction_mode: str,
+    source_count: int | None,
+    release_count: int,
+    rows_written: int = 0,
+    quarantined: int = 0,
+) -> dict[str, Any]:
+    mode = {
+        "keyset_snapshot": "snapshot",
+        "baseline_snapshot": "baseline_snapshot",
+        "verified_incremental_package": "incremental",
+        "copy_active": "incremental",
+        "field_backfill": "field_backfill",
+    }[extraction_mode]
+    difference = release_count - source_count if source_count is not None else None
+    # Snapshot counts come directly from the frozen scan. Incremental counts are
+    # supplied only when the executor has derived an expected active-object count
+    # from the prior immutable release plus every state transition in the window.
+    strict_count_mode = source_count is not None
+    status = "failed" if strict_count_mode and difference != 0 else "verified"
+    return {
+        "mode": mode,
+        "sourceCount": source_count,
+        "releaseCount": release_count,
+        "difference": difference,
+        "status": status,
+        "details": {
+            "rowsWritten": rows_written,
+            "quarantined": quarantined,
+            "strictCountComparison": strict_count_mode,
+        },
+    }
+
+
 def _release_plan_from_repository(repository: ControlPlaneRepository, profile_key: str, batch_rows: int) -> tuple[dict[str, Any], dict[str, Any]]:
+    from .publish_ontology import active_release as active_ontology_release, release_graph
+
     governance = repository.governance_profile(profile_key)
     graph_profile = repository.graph_profile(profile_key)
     changes = repository.list_schema_changes(profile_key, limit=500)
     projections = repository.list_attribute_projections(profile_key)
     policies = repository.list_table_policies("camstar-full")
     windows = repository.latest_incremental_windows("camstar-full")
+    ontology_release = active_ontology_release(repository, profile_key)
+    ontology_classes: list[dict[str, Any]] = []
+    if ontology_release:
+        ontology_graph = release_graph(
+            repository.settings, str(ontology_release["ontology_release_id"]),
+        )
+        ontology_classes = [item["class"] for item in ontology_graph["classes"]]
     with repository.engine.connect() as connection:
         active_release = connection.execute(
             text("SELECT active.active_release_id, release.source_snapshot, release.contract_versions FROM graphsync.curated_release_activation active JOIN graphsync.curated_release release ON release.release_id=active.active_release_id WHERE active.profile_key=:profile_key"),
@@ -477,6 +629,7 @@ def _release_plan_from_repository(repository: ControlPlaneRepository, profile_ke
         attribute_projections=projections,
         profile_classes=graph_profile.get("classes") or [],
         profile_relationships=graph_profile.get("relationships") or [],
+        ontology_classes=ontology_classes,
     )
 
 
@@ -525,6 +678,33 @@ def execute_materialization(
         return {"ok": True, "previewOnly": True, "plan": plan, "mutations": []}
     if not plan["ready"]:
         raise RuntimeError("Materialization is blocked: " + "; ".join(plan["blockers"]))
+    if plan["contracts"] and all(
+        item["extractionMode"] == "copy_active" for item in plan["contracts"]
+    ):
+        with repository.engine.connect() as connection:
+            active = connection.execute(
+                text(
+                    """
+                    SELECT release_id, release_no, status, object_count,
+                           relationship_count, quarantine_count
+                    FROM graphsync.curated_release
+                    WHERE release_id=:release_id
+                    """
+                ),
+                {"release_id": uuid.UUID(str(plan["activeReleaseId"]))},
+            ).mappings().one()
+        return {
+            "ok": True,
+            "previewOnly": False,
+            "releaseId": str(active["release_id"]),
+            "releaseNo": active["release_no"],
+            "status": active["status"],
+            "objects": active["object_count"],
+            "relationships": active["relationship_count"],
+            "quarantine": active["quarantine_count"],
+            "noChanges": True,
+            "reused": True,
+        }
 
     governance = repository.governance_profile(profile_key)
     contracts = governance["contracts"]
@@ -588,12 +768,30 @@ def execute_materialization(
 
             source = None
             totals = {"read": 0, "objects": 0, "quarantine": 0, "batches": 0}
+            expected_release_counts: dict[str, int] = {}
             try:
                 for contract in contracts:
                     fields = fields_by_contract[contract["contract_key"]]
                     contract_plan = next(item for item in plan["contracts"] if item["contractKey"] == contract["contract_key"])
                     if contract_plan["extractionMode"] == "field_backfill":
                         previous_release = uuid.UUID(plan["activeReleaseId"])
+                        with repository.engine.connect() as connection:
+                            expected_release_counts[contract["contract_key"]] = int(
+                                connection.execute(
+                                    text(
+                                        """
+                                        SELECT count(*) FROM graphsync.object_version
+                                        WHERE release_id=:release_id
+                                          AND contract_key=:contract_key
+                                          AND record_status <> 'deleted'
+                                        """
+                                    ),
+                                    {
+                                        "release_id": previous_release,
+                                        "contract_key": contract["contract_key"],
+                                    },
+                                ).scalar_one()
+                            )
                         backfill = contract_plan.get("fieldBackfill") or {}
                         affected_keys = set(backfill.get("affectedFieldKeys") or [])
                         affected_fields = [
@@ -768,12 +966,76 @@ def execute_materialization(
                                 )
                             totals["batches"] += 1
                         continue
+                    if contract_plan["extractionMode"] == "copy_active":
+                        previous_release = uuid.UUID(plan["activeReleaseId"])
+                        with repository.engine.begin() as connection:
+                            expected_release_counts[contract["contract_key"]] = int(
+                                connection.execute(
+                                    text(
+                                        """
+                                        SELECT count(*) FROM graphsync.object_version
+                                        WHERE release_id=:previous_release
+                                          AND contract_key=:contract_key
+                                          AND record_status <> 'deleted'
+                                        """
+                                    ),
+                                    {
+                                        "previous_release": previous_release,
+                                        "contract_key": contract["contract_key"],
+                                    },
+                                ).scalar_one()
+                            )
+                            connection.execute(
+                                text(
+                                    """
+                                    INSERT INTO graphsync.object_version
+                                        (release_id, profile_key, contract_key,
+                                         contract_version, class_name, object_uri,
+                                         source_primary_key, business_key,
+                                         source_values, properties, source_hash,
+                                         source_change_at, record_status,
+                                         quality_issues, loaded_at)
+                                    SELECT :release_id, profile_key, contract_key,
+                                           :contract_version, class_name, object_uri,
+                                           source_primary_key, business_key,
+                                           source_values, properties, source_hash,
+                                           source_change_at, record_status,
+                                           quality_issues, now()
+                                    FROM graphsync.object_version
+                                    WHERE release_id=:previous_release
+                                      AND contract_key=:contract_key
+                                    """
+                                ),
+                                {
+                                    "release_id": release_id,
+                                    "previous_release": previous_release,
+                                    "contract_key": contract["contract_key"],
+                                    "contract_version": contract["version"],
+                                },
+                            )
+                        continue
                     if contract_plan["extractionMode"] == "verified_incremental_package":
                         previous_release = uuid.UUID(plan["activeReleaseId"])
                         change_path = Path(contract_plan["incrementalWindow"]["changeFile"])
                         if not change_path.is_file():
                             raise RuntimeError(f"Verified incremental change file is missing: {change_path}")
                         with repository.engine.begin() as connection:
+                            expected_release_counts[contract["contract_key"]] = int(
+                                connection.execute(
+                                    text(
+                                        """
+                                        SELECT count(*) FROM graphsync.object_version
+                                        WHERE release_id=:previous_release
+                                          AND contract_key=:contract_key
+                                          AND record_status <> 'deleted'
+                                        """
+                                    ),
+                                    {
+                                        "previous_release": previous_release,
+                                        "contract_key": contract["contract_key"],
+                                    },
+                                ).scalar_one()
+                            )
                             connection.execute(
                                 text(
                                     """
@@ -797,10 +1059,13 @@ def execute_materialization(
                             events = (json.loads(line) for line in stream if line.strip())
                             for batch_no, page in enumerate(_chunks(events, plan["batchRows"]), start=1):
                                 batch_id = uuid.uuid4()
+                                effective_page = collapse_change_events(
+                                    page, contract["primary_key_columns"],
+                                )
                                 upserts: list[dict[str, Any]] = []
                                 upsert_rows: list[dict[str, Any]] = []
                                 deleted: list[tuple[str, dict[str, Any]]] = []
-                                for event in page:
+                                for event in effective_page:
                                     key = {column: (event.get("key") or {}).get(column) for column in contract["primary_key_columns"]}
                                     uri = object_uri(contract["class_name"], key)
                                     if event.get("operation") == "delete":
@@ -822,6 +1087,33 @@ def execute_materialization(
                                 with repository.engine.begin() as connection:
                                     uris = [item["objectUri"] for item in upserts] + [item[0] for item in deleted]
                                     if uris:
+                                        prior_states = connection.execute(
+                                            text(
+                                                """
+                                                SELECT object_uri, record_status
+                                                FROM graphsync.object_version
+                                                WHERE release_id=:release_id
+                                                  AND contract_key=:contract_key
+                                                  AND object_uri=ANY(:uris)
+                                                """
+                                            ),
+                                            {
+                                                "release_id": release_id,
+                                                "contract_key": contract["contract_key"],
+                                                "uris": uris,
+                                            },
+                                        ).mappings().all()
+                                        old_count = sum(
+                                            item["record_status"] != "deleted"
+                                            for item in prior_states
+                                        )
+                                        new_count = sum(
+                                            item["recordStatus"] != "deleted"
+                                            for item in upserts
+                                        )
+                                        expected_release_counts[contract["contract_key"]] += (
+                                            new_count - old_count
+                                        )
                                         connection.execute(text("DELETE FROM graphsync.object_version WHERE release_id=:release_id AND contract_key=:contract_key AND object_uri=ANY(:uris)"), {"release_id": release_id, "contract_key": contract["contract_key"], "uris": uris})
                                     _insert_object_records(connection, [item for item in upserts if item["objectUri"]], release_id=release_id, profile_key=profile_key, contract=contract)
                                     if deleted:
@@ -970,15 +1262,111 @@ def execute_materialization(
                     if relationship.get("required_context"):
                         unresolved_required += int(counts["pending"])
 
+                reconciliation_failures = 0
+                reconciliation_summary: dict[str, dict[str, Any]] = {}
+                plan_by_contract = {
+                    item["contractKey"]: item for item in plan["contracts"]
+                }
+                for contract in contracts:
+                    batch_counts = connection.execute(
+                        text(
+                            """
+                            SELECT coalesce(sum(rows_read), 0) AS rows_read,
+                                   coalesce(sum(rows_written), 0) AS rows_written,
+                                   coalesce(sum(rows_quarantined), 0) AS quarantined
+                            FROM graphsync.materialization_batch
+                            WHERE release_id=:release_id
+                              AND contract_key=:contract_key
+                              AND status='verified'
+                            """
+                        ),
+                        {
+                            "release_id": release_id,
+                            "contract_key": contract["contract_key"],
+                        },
+                    ).mappings().one()
+                    release_count = int(connection.execute(
+                        text(
+                            """
+                            SELECT count(*) FROM graphsync.object_version
+                            WHERE release_id=:release_id
+                              AND contract_key=:contract_key
+                              AND record_status <> 'deleted'
+                            """
+                        ),
+                        {
+                            "release_id": release_id,
+                            "contract_key": contract["contract_key"],
+                        },
+                    ).scalar_one())
+                    contract_plan = plan_by_contract[contract["contract_key"]]
+                    extraction_mode = contract_plan["extractionMode"]
+                    source_count = (
+                        int(batch_counts["rows_read"])
+                        if extraction_mode in {"keyset_snapshot", "baseline_snapshot"}
+                        else expected_release_counts.get(contract["contract_key"])
+                    )
+                    reconciliation = build_count_reconciliation(
+                        extraction_mode=extraction_mode,
+                        source_count=source_count,
+                        release_count=release_count,
+                        rows_written=int(batch_counts["rows_written"]),
+                        quarantined=int(batch_counts["quarantined"]),
+                    )
+                    reconciliation_summary[contract["class_name"]] = reconciliation
+                    reconciliation_failures += int(reconciliation["status"] == "failed")
+                    connection.execute(
+                        text(
+                            """
+                            INSERT INTO graphsync.reconciliation_result
+                                (reconciliation_id, release_id, contract_key,
+                                 mode, source_count, release_count, difference,
+                                 status, details)
+                            VALUES (:id, :release_id, :contract_key, :mode,
+                                    :source_count, :release_count, :difference,
+                                    :status, CAST(:details AS jsonb))
+                            ON CONFLICT (release_id, contract_key) DO UPDATE SET
+                                mode=EXCLUDED.mode,
+                                source_count=EXCLUDED.source_count,
+                                release_count=EXCLUDED.release_count,
+                                difference=EXCLUDED.difference,
+                                status=EXCLUDED.status,
+                                details=EXCLUDED.details,
+                                created_at=now()
+                            """
+                        ),
+                        {
+                            "id": uuid.uuid4(),
+                            "release_id": release_id,
+                            "contract_key": contract["contract_key"],
+                            "mode": reconciliation["mode"],
+                            "source_count": reconciliation["sourceCount"],
+                            "release_count": reconciliation["releaseCount"],
+                            "difference": reconciliation["difference"],
+                            "status": reconciliation["status"],
+                            "details": canonical_json(reconciliation["details"]),
+                        },
+                    )
+
                 object_totals = connection.execute(
                     text("SELECT count(*) FILTER (WHERE record_status <> 'deleted') AS objects, count(*) FILTER (WHERE record_status='quarantined') AS quarantine FROM graphsync.object_version WHERE release_id=:release_id"),
                     {"release_id": release_id},
                 ).mappings().one()
                 totals["objects"] = int(object_totals["objects"] or 0)
                 totals["quarantine"] = int(object_totals["quarantine"] or 0)
-                ready = totals["quarantine"] == 0 and unresolved_required == 0
+                ready = (
+                    totals["quarantine"] == 0
+                    and unresolved_required == 0
+                    and reconciliation_failures == 0
+                )
                 release_hash = content_hash({"objects": totals["objects"], "relationships": relationship_count})
-                summary = {**totals, "relationships": relationship_count, "unresolvedRequired": unresolved_required}
+                summary = {
+                    **totals,
+                    "relationships": relationship_count,
+                    "unresolvedRequired": unresolved_required,
+                    "reconciliationFailures": reconciliation_failures,
+                    "reconciliation": reconciliation_summary,
+                }
                 connection.execute(
                     text(
                         """
@@ -1089,6 +1477,157 @@ def execute_materialization(
             )
 
 
+def _commit_ingestion_checkpoints(
+    connection,
+    *,
+    profile_key: str,
+    release_id: uuid.UUID,
+) -> None:
+    release = connection.execute(
+        text(
+            """
+            SELECT source_snapshot FROM graphsync.curated_release
+            WHERE release_id=:release_id AND profile_key=:profile_key
+            """
+        ),
+        {"release_id": release_id, "profile_key": profile_key},
+    ).mappings().one()
+    for class_name, snapshot in dict(release["source_snapshot"] or {}).items():
+        upper = snapshot.get("upperBound")
+        window_id = snapshot.get("windowId")
+        if not upper or not window_id:
+            continue
+        job_name = snapshot.get("jobName") or "camstar-full"
+        existing = connection.execute(
+            text(
+                """
+                SELECT committed_watermark, committed_release_id
+                FROM graphsync.checkpoint
+                WHERE job_name=:job_name AND partition_key=:partition_key
+                FOR UPDATE
+                """
+            ),
+            {"job_name": job_name, "partition_key": class_name},
+        ).mappings().one_or_none()
+        lower = snapshot.get("lowerBound")
+        if (
+            existing is not None
+            and existing["committed_release_id"] == release_id
+            and existing["committed_watermark"] == upper
+        ):
+            # Activating an already-active immutable release is a safe retry. The
+            # checkpoint/history/window/event changes were committed atomically
+            # with the first activation, so advancing them again is unnecessary.
+            continue
+        existing_watermark = existing["committed_watermark"] if existing is not None else None
+        if existing is not None and lower != existing_watermark:
+            raise RuntimeError(
+                f"Ingestion checkpoint continuity failed for {class_name}: "
+                f"window lower bound does not equal the committed upper bound"
+            )
+        schema_hash = connection.execute(
+            text(
+                """
+                SELECT observation.schema_hash
+                FROM graphsync.source_schema_observation observation
+                JOIN graphsync.data_contract contract
+                  ON contract.contract_key=observation.contract_key
+                WHERE observation.profile_key=:profile
+                  AND contract.class_name=:class_name
+                ORDER BY observation.observed_at DESC
+                LIMIT 1
+                """
+            ),
+            {"profile": profile_key, "class_name": class_name},
+        ).scalar_one_or_none()
+        run_id = snapshot.get("runId")
+        validation = {
+            "releaseId": str(release_id),
+            "windowId": str(window_id),
+            "mode": "baseline" if snapshot.get("status") == "baseline_required" else "incremental",
+        }
+        connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.checkpoint
+                    (job_name, partition_key, committed_watermark,
+                     committed_run_id, committed_release_id,
+                     source_schema_hash, validation, committed_at)
+                VALUES (:job_name, :partition_key, CAST(:watermark AS jsonb),
+                        :run_id, :release_id, :schema_hash,
+                        CAST(:validation AS jsonb), now())
+                ON CONFLICT (job_name, partition_key) DO UPDATE SET
+                    committed_watermark=EXCLUDED.committed_watermark,
+                    committed_run_id=EXCLUDED.committed_run_id,
+                    committed_release_id=EXCLUDED.committed_release_id,
+                    source_schema_hash=EXCLUDED.source_schema_hash,
+                    validation=EXCLUDED.validation,
+                    committed_at=now()
+                """
+            ),
+            {
+                "job_name": job_name,
+                "partition_key": class_name,
+                "watermark": canonical_json(upper),
+                "run_id": uuid.UUID(str(run_id)) if run_id else None,
+                "release_id": release_id,
+                "schema_hash": schema_hash,
+                "validation": canonical_json(validation),
+            },
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO graphsync.ingestion_checkpoint_history
+                    (job_name, partition_key, committed_release_id,
+                     committed_watermark, committed_run_id,
+                     source_schema_hash, validation, committed_at)
+                VALUES (:job_name, :partition_key, :release_id,
+                        CAST(:watermark AS jsonb), :run_id, :schema_hash,
+                        CAST(:validation AS jsonb), now())
+                ON CONFLICT (job_name, partition_key, committed_release_id)
+                DO UPDATE SET
+                    committed_watermark=EXCLUDED.committed_watermark,
+                    committed_run_id=EXCLUDED.committed_run_id,
+                    source_schema_hash=EXCLUDED.source_schema_hash,
+                    validation=EXCLUDED.validation,
+                    committed_at=EXCLUDED.committed_at
+                """
+            ),
+            {
+                "job_name": job_name,
+                "partition_key": class_name,
+                "release_id": release_id,
+                "watermark": canonical_json(upper),
+                "run_id": uuid.UUID(str(run_id)) if run_id else None,
+                "schema_hash": schema_hash,
+                "validation": canonical_json(validation),
+            },
+        )
+        connection.execute(
+            text(
+                """
+                UPDATE graphsync.incremental_window
+                SET status='committed', updated_at=now()
+                WHERE window_id=:window_id
+                  AND status IN ('verified', 'baseline_required')
+                """
+            ),
+            {"window_id": uuid.UUID(str(window_id))},
+        )
+        connection.execute(
+            text(
+                """
+                UPDATE graphsync.change_event
+                SET status='applied', applied_release_id=:release_id,
+                    applied_at=now()
+                WHERE window_id=:window_id AND status='captured'
+                """
+            ),
+            {"window_id": uuid.UUID(str(window_id)), "release_id": release_id},
+        )
+
+
 def activate_release(
     repository: ControlPlaneRepository,
     *,
@@ -1105,28 +1644,123 @@ def activate_release(
             raise KeyError(str(release_id))
         if release["status"] not in {"ready", "active"}:
             raise ValueError("Only a verified ready release can be activated")
-        previous = connection.execute(
-            text("SELECT active_release_id FROM graphsync.curated_release_activation WHERE profile_key=:profile_key"),
+        failed_reconciliation = int(connection.execute(
+            text(
+                """
+                SELECT count(*) FROM graphsync.reconciliation_result
+                WHERE release_id=:release_id AND status='failed'
+                """
+            ),
+            {"release_id": release_id},
+        ).scalar_one())
+        if failed_reconciliation:
+            raise ValueError("A release with failed source reconciliation cannot be activated")
+        activation = connection.execute(
+            text(
+                """
+                SELECT active_release_id, previous_release_id
+                FROM graphsync.curated_release_activation
+                WHERE profile_key=:profile_key
+                FOR UPDATE
+                """
+            ),
             {"profile_key": profile_key},
-        ).scalar_one_or_none()
+        ).mappings().one_or_none()
+        previous = activation["active_release_id"] if activation else None
+        reused = previous == release_id
+        rollback_target = activation["previous_release_id"] if reused and activation else previous
+        if not reused:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO graphsync.curated_release_activation
+                        (profile_key, active_release_id, previous_release_id, activated_by)
+                    VALUES (:profile_key, :release_id, :previous, :actor)
+                    ON CONFLICT (profile_key) DO UPDATE SET
+                        previous_release_id=graphsync.curated_release_activation.active_release_id,
+                        active_release_id=EXCLUDED.active_release_id,
+                        activated_at=now(), activated_by=EXCLUDED.activated_by
+                    """
+                ),
+                {"profile_key": profile_key, "release_id": release_id, "previous": previous, "actor": actor},
+            )
+            if previous:
+                connection.execute(
+                    text("UPDATE graphsync.curated_release SET status='superseded' WHERE release_id=:id"),
+                    {"id": previous},
+                )
+            connection.execute(
+                text("UPDATE graphsync.curated_release SET status='active' WHERE release_id=:id"),
+                {"id": release_id},
+            )
+        _commit_ingestion_checkpoints(
+            connection,
+            profile_key=profile_key,
+            release_id=release_id,
+        )
+    return {
+        "profileKey": profile_key,
+        "activeReleaseId": str(release_id),
+        "previousReleaseId": str(rollback_target) if rollback_target else None,
+        "reused": reused,
+    }
+
+
+def _restore_ingestion_checkpoints(
+    connection,
+    *,
+    profile_key: str,
+    release_id: uuid.UUID,
+) -> None:
+    job_name = connection.execute(
+        text("SELECT job_name FROM graphsync.graph_profile WHERE profile_key=:profile"),
+        {"profile": profile_key},
+    ).scalar_one()
+    partitions = connection.execute(
+        text(
+            """
+            SELECT class_name FROM graphsync.data_contract
+            WHERE profile_key=:profile AND status <> 'retired'
+            """
+        ),
+        {"profile": profile_key},
+    ).scalars().all()
+    if partitions:
         connection.execute(
             text(
                 """
-                INSERT INTO graphsync.curated_release_activation
-                    (profile_key, active_release_id, previous_release_id, activated_by)
-                VALUES (:profile_key, :release_id, :previous, :actor)
-                ON CONFLICT (profile_key) DO UPDATE SET
-                    previous_release_id=graphsync.curated_release_activation.active_release_id,
-                    active_release_id=EXCLUDED.active_release_id,
-                    activated_at=now(), activated_by=EXCLUDED.activated_by
+                DELETE FROM graphsync.checkpoint
+                WHERE job_name=:job_name
+                  AND partition_key=ANY(CAST(:partitions AS text[]))
                 """
             ),
-            {"profile_key": profile_key, "release_id": release_id, "previous": previous, "actor": actor},
+            {"job_name": job_name, "partitions": list(partitions)},
         )
-        if previous and previous != release_id:
-            connection.execute(text("UPDATE graphsync.curated_release SET status='superseded' WHERE release_id=:id"), {"id": previous})
-        connection.execute(text("UPDATE graphsync.curated_release SET status='active' WHERE release_id=:id"), {"id": release_id})
-    return {"profileKey": profile_key, "activeReleaseId": str(release_id), "previousReleaseId": str(previous) if previous else None}
+    connection.execute(
+        text(
+            """
+            INSERT INTO graphsync.checkpoint
+                (job_name, partition_key, committed_watermark,
+                 committed_run_id, committed_release_id,
+                 source_schema_hash, validation, committed_at)
+            SELECT job_name, partition_key, committed_watermark,
+                   committed_run_id, committed_release_id,
+                   source_schema_hash,
+                   validation || jsonb_build_object('restoredByRollback', true),
+                   now()
+            FROM graphsync.ingestion_checkpoint_history
+            WHERE committed_release_id=:release_id
+            ON CONFLICT (job_name, partition_key) DO UPDATE SET
+                committed_watermark=EXCLUDED.committed_watermark,
+                committed_run_id=EXCLUDED.committed_run_id,
+                committed_release_id=EXCLUDED.committed_release_id,
+                source_schema_hash=EXCLUDED.source_schema_hash,
+                validation=EXCLUDED.validation,
+                committed_at=EXCLUDED.committed_at
+            """
+        ),
+        {"release_id": release_id},
+    )
 
 
 def rollback_release(repository: ControlPlaneRepository, *, profile_key: str, actor: str | None) -> dict[str, Any]:
@@ -1157,6 +1791,11 @@ def rollback_release(repository: ControlPlaneRepository, *, profile_key: str, ac
         )
         connection.execute(text("UPDATE graphsync.curated_release SET status='rolled_back' WHERE release_id=:id"), {"id": active["active_release_id"]})
         connection.execute(text("UPDATE graphsync.curated_release SET status='active' WHERE release_id=:id"), {"id": active["previous_release_id"]})
+        _restore_ingestion_checkpoints(
+            connection,
+            profile_key=profile_key,
+            release_id=active["previous_release_id"],
+        )
     return {
         "profileKey": profile_key,
         "activeReleaseId": str(active["previous_release_id"]),

@@ -1,4 +1,5 @@
 from src.graphstudio_sync import incremental
+from src.graphstudio_sync.change_capture import ChangeRecord, change_event_identity
 
 from test_graphstudio_sync_connections import _settings
 
@@ -141,3 +142,62 @@ def test_empty_watermark_table_has_no_false_upper_bound(monkeypatch) -> None:
 
     assert window["status"] == "blocked"
     assert window["metadata"]["reason"] == "source_upper_bound_unavailable"
+
+
+def test_unchanged_source_position_is_an_explicit_noop() -> None:
+    table = {
+        "className": "HistoryMainline",
+        "nativeAdapter": "sqlserver_change_tracking",
+        "changeTracking": {"min_valid_version": 80},
+    }
+    checkpoints = {
+        "HistoryMainline": {"committed_watermark": {"changeTrackingVersion": 120}}
+    }
+
+    window = incremental.plan_incremental_windows(
+        _settings(), [_policy()], _probe(table, position=120), checkpoints,
+    )[0]
+
+    assert window["status"] == "no_changes"
+    assert window["metadata"]["reason"] == "source_position_unchanged"
+
+
+def test_source_position_rewind_is_blocked() -> None:
+    table = {
+        "className": "HistoryMainline",
+        "nativeAdapter": "sqlserver_change_tracking",
+        "changeTracking": {"min_valid_version": 80},
+    }
+    checkpoints = {
+        "HistoryMainline": {"committed_watermark": {"changeTrackingVersion": 120}}
+    }
+
+    window = incremental.plan_incremental_windows(
+        _settings(), [_policy()], _probe(table, position=119), checkpoints,
+    )[0]
+
+    assert window["status"] == "blocked"
+    assert window["metadata"]["reason"] == "source_change_tracking_version_moved_backwards"
+
+
+def test_change_event_identity_is_stable_but_detects_payload_drift() -> None:
+    first = ChangeRecord(
+        "update", {"MfgOrderId": 7}, {"Qty": 2},
+        {"changeTrackingVersion": 18},
+    )
+    same = ChangeRecord(
+        "update", {"MfgOrderId": 7}, {"Qty": 2},
+        {"changeTrackingVersion": 18},
+    )
+    drifted = ChangeRecord(
+        "update", {"MfgOrderId": 7}, {"Qty": 3},
+        {"changeTrackingVersion": 18},
+    )
+
+    first_identity = change_event_identity("camstar-full", "MfgOrder", first)
+    same_identity = change_event_identity("camstar-full", "MfgOrder", same)
+    drifted_identity = change_event_identity("camstar-full", "MfgOrder", drifted)
+
+    assert first_identity == same_identity
+    assert first_identity["eventKey"] == drifted_identity["eventKey"]
+    assert first_identity["payloadHash"] != drifted_identity["payloadHash"]

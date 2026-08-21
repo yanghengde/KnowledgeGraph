@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from dataclasses import asdict, dataclass
 from typing import Any, Iterator, Literal
@@ -21,6 +23,44 @@ class ChangeRecord:
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+def _canonical_change_json(value: Any) -> str:
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+
+
+def change_event_identity(
+    job_name: str,
+    class_name: str,
+    record: ChangeRecord | dict[str, Any],
+) -> dict[str, str]:
+    """Build the stable inbox identity for one at-least-once source event.
+
+    The row payload is deliberately excluded from ``eventKey``. Re-reading the
+    same source position must resolve to the same identity; ``payloadHash`` is
+    compared separately so a source adapter cannot silently return different
+    values for one immutable position.
+    """
+
+    data = record.as_dict() if isinstance(record, ChangeRecord) else dict(record)
+    identity = {
+        "jobName": job_name,
+        "className": class_name,
+        "operation": data["operation"],
+        "key": data["key"],
+        "position": data["position"],
+    }
+    event_key = hashlib.sha256(_canonical_change_json(identity).encode("utf-8")).hexdigest()
+    payload_hash = hashlib.sha256(
+        _canonical_change_json(data.get("row")).encode("utf-8")
+    ).hexdigest()
+    return {"eventKey": event_key, "payloadHash": payload_hash}
 
 
 def _identifier(value: str, kind: str, alias: str | None = None) -> str:

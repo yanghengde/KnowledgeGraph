@@ -14,6 +14,16 @@ class EmptyWindowRepository:
         return []
 
 
+class BaselineWindowRepository:
+    def latest_incremental_windows(self, job_name):
+        assert job_name == "camstar-full"
+        return [{
+            "window_id": "11111111-1111-1111-1111-111111111111",
+            "class_name": "WorkflowStep",
+            "status": "baseline_required",
+        }]
+
+
 def test_incremental_preview_is_safe_noop_without_windows() -> None:
     result = build_incremental_preview(
         _settings(), EmptyWindowRepository(), job_name="camstar-full"
@@ -22,6 +32,17 @@ def test_incremental_preview_is_safe_noop_without_windows() -> None:
     assert result["status"] == "no_incremental_windows"
     assert result["events"] == 0
     assert result["graphStudioMutated"] is False
+    assert result["checkpointCommitted"] is False
+
+
+def test_incremental_preview_leaves_baseline_for_snapshot_materialization() -> None:
+    result = build_incremental_preview(
+        _settings(), BaselineWindowRepository(), job_name="camstar-full",
+    )
+
+    assert result["status"] == "baseline_required"
+    assert result["baselineClasses"] == ["WorkflowStep"]
+    assert result["events"] == 0
     assert result["checkpointCommitted"] is False
 
 

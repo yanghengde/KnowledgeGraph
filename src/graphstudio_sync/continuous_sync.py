@@ -90,7 +90,8 @@ def continuous_sync_status(
         "schemaDrift": drift.get("summary") or {},
         "pipeline": [
             "freeze_source_window", "extract_changes", "quality_gate",
-            "materialize_immutable_release", "publish_blue_green", "commit_checkpoint",
+            "materialize_immutable_release", "commit_ingestion_checkpoint",
+            "publish_blue_green", "commit_publication_checkpoint",
         ],
     }
 

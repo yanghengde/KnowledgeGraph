@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS graphsync.checkpoint (
     partition_key         text NOT NULL,
     committed_watermark   jsonb NOT NULL,
     source_schema_hash    text,
-    committed_run_id      uuid NOT NULL REFERENCES graphsync.sync_run(run_id),
+    committed_run_id      uuid REFERENCES graphsync.sync_run(run_id),
     committed_at          timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (job_name, partition_key)
 );
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS graphsync.incremental_window (
                           )),
     adapter               text NOT NULL,
     status                text NOT NULL CHECK (status IN (
-                              'planned', 'baseline_required', 'blocked', 'extracting',
+                              'planned', 'baseline_required', 'no_changes', 'blocked', 'extracting',
                               'staged', 'verified', 'committed', 'failed', 'abandoned'
                           )),
     lower_bound           jsonb,
@@ -219,6 +219,14 @@ CREATE TABLE IF NOT EXISTS graphsync.incremental_window (
 
 CREATE INDEX IF NOT EXISTS ix_graphsync_incremental_window_status
     ON graphsync.incremental_window (job_name, status, class_name, created_at DESC);
+
+ALTER TABLE graphsync.incremental_window
+    DROP CONSTRAINT IF EXISTS incremental_window_status_check;
+ALTER TABLE graphsync.incremental_window
+    ADD CONSTRAINT incremental_window_status_check CHECK (status IN (
+        'planned', 'baseline_required', 'no_changes', 'blocked', 'extracting',
+        'staged', 'verified', 'committed', 'failed', 'abandoned'
+    ));
 
 CREATE TABLE IF NOT EXISTS graphsync.artifact (
     artifact_id           uuid PRIMARY KEY,
@@ -1021,6 +1029,84 @@ CREATE TABLE IF NOT EXISTS graphsync.relationship_version (
 CREATE INDEX IF NOT EXISTS ix_curated_relationship_target
     ON graphsync.relationship_version (release_id, target_contract_key, target_object_uri);
 
+-- Source ingestion is committed independently from Graph Studio delivery.
+-- A baseline snapshot may have no incremental sync_run, so the immutable
+-- curated release is the durable commit owner and committed_run_id is optional.
+ALTER TABLE graphsync.checkpoint
+    ALTER COLUMN committed_run_id DROP NOT NULL;
+ALTER TABLE graphsync.checkpoint
+    ADD COLUMN IF NOT EXISTS committed_release_id uuid
+    REFERENCES graphsync.curated_release(release_id);
+ALTER TABLE graphsync.checkpoint
+    ADD COLUMN IF NOT EXISTS validation jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+CREATE TABLE IF NOT EXISTS graphsync.ingestion_checkpoint_history (
+    job_name              text NOT NULL REFERENCES graphsync.sync_job(job_name) ON DELETE CASCADE,
+    partition_key         text NOT NULL,
+    committed_release_id  uuid NOT NULL REFERENCES graphsync.curated_release(release_id) ON DELETE CASCADE,
+    committed_watermark   jsonb NOT NULL,
+    committed_run_id      uuid REFERENCES graphsync.sync_run(run_id),
+    source_schema_hash    text,
+    validation            jsonb NOT NULL DEFAULT '{}'::jsonb,
+    committed_at          timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (job_name, partition_key, committed_release_id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_checkpoint_history_release
+    ON graphsync.ingestion_checkpoint_history (committed_release_id, partition_key);
+
+-- Durable inbox for at-least-once source capture. event_key is derived from
+-- source table + primary key + source position + operation, making retries of
+-- the same frozen window harmless.
+CREATE TABLE IF NOT EXISTS graphsync.change_event (
+    event_key             text PRIMARY KEY,
+    job_name              text NOT NULL REFERENCES graphsync.sync_job(job_name) ON DELETE CASCADE,
+    class_name            text NOT NULL,
+    window_id             uuid NOT NULL REFERENCES graphsync.incremental_window(window_id) ON DELETE CASCADE,
+    operation             text NOT NULL CHECK (operation IN (
+                              'insert', 'update', 'upsert', 'delete'
+                          )),
+    source_primary_key    jsonb NOT NULL,
+    source_position       jsonb NOT NULL,
+    row_payload           jsonb,
+    payload_hash          text NOT NULL,
+    status                text NOT NULL DEFAULT 'captured' CHECK (status IN (
+                              'captured', 'applied', 'ignored'
+                          )),
+    applied_release_id    uuid REFERENCES graphsync.curated_release(release_id),
+    captured_at           timestamptz NOT NULL DEFAULT now(),
+    applied_at            timestamptz,
+    UNIQUE (job_name, class_name, source_position, source_primary_key, operation)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_change_event_window
+    ON graphsync.change_event (window_id, status, captured_at);
+CREATE INDEX IF NOT EXISTS ix_graphsync_change_event_release
+    ON graphsync.change_event (applied_release_id, class_name);
+
+-- Count reconciliation is release evidence, not a transient UI calculation.
+CREATE TABLE IF NOT EXISTS graphsync.reconciliation_result (
+    reconciliation_id    uuid PRIMARY KEY,
+    release_id            uuid NOT NULL REFERENCES graphsync.curated_release(release_id) ON DELETE CASCADE,
+    contract_key          text NOT NULL REFERENCES graphsync.data_contract(contract_key),
+    mode                  text NOT NULL CHECK (mode IN (
+                              'snapshot', 'baseline_snapshot', 'incremental',
+                              'field_backfill'
+                          )),
+    source_count          bigint,
+    release_count         bigint NOT NULL,
+    difference            bigint,
+    status                text NOT NULL CHECK (status IN (
+                              'verified', 'warning', 'failed'
+                          )),
+    details               jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (release_id, contract_key)
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_reconciliation_release
+    ON graphsync.reconciliation_result (release_id, status, contract_key);
+
 -- A partially applied migration may have created both copies.  Merge only
 -- non-conflicting immutable rows, reject conflicting duplicates, then remove
 -- the legacy tables rather than silently choosing one copy.
@@ -1181,6 +1267,18 @@ CREATE INDEX IF NOT EXISTS ix_graphsync_deployment_env
 ALTER TABLE graphsync.deployment_release
     ADD COLUMN IF NOT EXISTS ontology_release_id uuid
     REFERENCES graphsync.ontology_release(ontology_release_id);
+
+-- Target delivery has its own checkpoint. It advances only after Layer switch
+-- and SPARQL acceptance have succeeded for one publication route.
+CREATE TABLE IF NOT EXISTS graphsync.publication_checkpoint (
+    route_key             text PRIMARY KEY REFERENCES graphsync.publication_route(route_key) ON DELETE CASCADE,
+    deployment_id         uuid NOT NULL REFERENCES graphsync.deployment_release(deployment_id),
+    ontology_release_id   uuid NOT NULL REFERENCES graphsync.ontology_release(ontology_release_id),
+    curated_release_id    uuid NOT NULL REFERENCES graphsync.curated_release(release_id),
+    artifact_hash         text NOT NULL,
+    validation            jsonb NOT NULL DEFAULT '{}'::jsonb,
+    committed_at          timestamptz NOT NULL DEFAULT now()
+);
 
 -- Runtime lineage, health metrics and alert lifecycle.
 CREATE TABLE IF NOT EXISTS graphsync.runtime_lineage_event (
@@ -1570,6 +1668,10 @@ ON CONFLICT (version) DO NOTHING;
 
 INSERT INTO graphsync.schema_version (version, description)
 VALUES (17, 'Continuous publication, live schema drift evidence and narrow field backfill')
+ON CONFLICT (version) DO NOTHING;
+
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (18, 'Effectively-once ingestion, split delivery checkpoints and reconciliation evidence')
 ON CONFLICT (version) DO NOTHING;
 
 INSERT INTO graphsync.menu_item

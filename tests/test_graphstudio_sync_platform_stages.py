@@ -109,6 +109,16 @@ def test_apply_deployment_lookup_qualifies_deployment_id_column() -> None:
     assert "WHERE deployment.deployment_id=:deployment_id" in source
 
 
+def test_graphstudio_acceptance_commits_only_publication_checkpoint() -> None:
+    """Source ingestion cursors belong to data activation, not target delivery."""
+    from pathlib import Path
+
+    source = Path("src/graphstudio_sync/deployment.py").read_text(encoding="utf-8")
+
+    assert "INSERT INTO graphsync.publication_checkpoint" in source
+    assert "INSERT INTO graphsync.checkpoint" not in source
+
+
 def test_previous_layer_resolution_allows_first_publish() -> None:
     assert _resolve_previous_layer({}, "http://example.test/graphmart/dev") == (
         None, None, False,
@@ -161,9 +171,11 @@ def test_ontology_validation_warns_for_isolated_context_object(monkeypatch) -> N
     assert {item["code"] for item in result["warnings"]} == {"class.isolated_context"}
 from src.graphstudio_sync.materialization import (
     apply_transform,
+    build_count_reconciliation,
     build_field_backfill_patch,
     build_materialization_plan,
     canonical_json,
+    collapse_change_events,
     normalize_object_record,
     object_uri,
 )
@@ -583,6 +595,47 @@ def test_materialization_plan_blocks_profile_scope_without_contracts() -> None:
     assert "发布关系缺少关系契约：Container.HAS_PRODUCT->Product" in plan["blockers"]
 
 
+def test_materialization_plan_blocks_active_ontology_class_missing_from_data_scope() -> None:
+    plan = build_materialization_plan(
+        _governance(),
+        [],
+        profile_key="core",
+        profile_classes=[
+            {"class_name": "Product", "enabled": True, "role": "core", "config": {}},
+        ],
+        ontology_classes=[
+            {"sourceClass": "Product", "targetName": "Product"},
+            {"sourceClass": "Spec", "targetName": "Spec"},
+        ],
+    )
+
+    assert plan["ready"] is False
+    assert "活动本体发布对象尚未配置数据同步策略：Spec" in plan["blockers"]
+    assert plan["ontologyCoverage"]["missing"] == 1
+
+
+def test_materialization_plan_accepts_explicit_model_only_and_excluded_classes() -> None:
+    plan = build_materialization_plan(
+        _governance(),
+        [],
+        profile_key="core",
+        profile_classes=[
+            {"class_name": "Product", "enabled": True, "role": "core", "config": {}},
+            {"class_name": "Spec", "enabled": True, "role": "context", "config": {"instanceMode": "model_only"}},
+            {"class_name": "Workflow", "enabled": False, "role": "excluded", "config": {}},
+        ],
+        ontology_classes=[
+            {"sourceClass": "Product", "targetName": "Product"},
+            {"sourceClass": "Spec", "targetName": "Spec"},
+            {"sourceClass": "Workflow", "targetName": "Workflow"},
+        ],
+    )
+
+    assert plan["ready"] is True
+    assert plan["ontologyCoverage"]["modelOnly"] == 1
+    assert plan["ontologyCoverage"]["excluded"] == 1
+
+
 def test_materialization_plan_ignores_retired_relationship_outside_active_scope() -> None:
     governance = _governance(relationships=[{
         "relationship_contract_key": "mfgorder-begin-product-v1",
@@ -752,6 +805,57 @@ def test_normalize_object_record_has_stable_uri_and_hash() -> None:
     assert first["properties"]["name"] == "A"
     assert first["sourceHash"] == second["sourceHash"]
     assert first["recordStatus"] == "active"
+
+
+def test_change_events_collapse_to_final_state_per_primary_key() -> None:
+    events = [
+        {"operation": "update", "key": {"ProductId": 7}, "row": {"Name": "A"}},
+        {"operation": "update", "key": {"ProductId": 8}, "row": {"Name": "B"}},
+        {"operation": "delete", "key": {"ProductId": 7}, "row": None},
+    ]
+
+    collapsed = collapse_change_events(events, ["ProductId"])
+
+    assert len(collapsed) == 2
+    assert collapsed[0]["operation"] == "delete"
+    assert collapsed[1]["key"] == {"ProductId": 8}
+
+
+def test_snapshot_count_reconciliation_fails_on_missing_rows() -> None:
+    result = build_count_reconciliation(
+        extraction_mode="keyset_snapshot",
+        source_count=24,
+        release_count=23,
+        rows_written=23,
+    )
+
+    assert result["status"] == "failed"
+    assert result["difference"] == -1
+
+
+def test_incremental_count_reconciliation_uses_durable_release_count() -> None:
+    result = build_count_reconciliation(
+        extraction_mode="verified_incremental_package",
+        source_count=None,
+        release_count=41,
+        rows_written=35,
+    )
+
+    assert result["status"] == "verified"
+    assert result["difference"] is None
+
+
+def test_incremental_count_reconciliation_blocks_transition_mismatch() -> None:
+    result = build_count_reconciliation(
+        extraction_mode="verified_incremental_package",
+        source_count=42,
+        release_count=41,
+        rows_written=5,
+    )
+
+    assert result["status"] == "failed"
+    assert result["difference"] == -1
+    assert result["details"]["strictCountComparison"] is True
 
 
 def test_normalize_object_record_quarantines_missing_required_value() -> None:

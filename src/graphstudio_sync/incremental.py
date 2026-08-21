@@ -273,6 +273,15 @@ def _hex_before(left: Any, right: Any) -> bool:
     return bytes.fromhex(left[2:]) < bytes.fromhex(right[2:])
 
 
+def _ordered_before(left: Any, right: Any) -> bool:
+    if left is None or right is None:
+        return False
+    try:
+        return left < right
+    except TypeError:
+        return str(left) < str(right)
+
+
 def plan_incremental_windows(
     settings: SyncSettings,
     policies: list[dict[str, Any]],
@@ -304,6 +313,8 @@ def plan_incremental_windows(
                 watermark_column=policy["watermark_column"],
             )
             upper = {"watermark": _json_value(value), "column": policy["watermark_column"]}
+            if lower and _ordered_before(upper.get("watermark"), lower.get("watermark")):
+                status, reason = "blocked", "source_watermark_moved_backwards"
         else:
             adapter = capability.get("nativeAdapter") or "unavailable"
             if adapter == "sqlserver_change_tracking":
@@ -313,13 +324,19 @@ def plan_incremental_windows(
                     status, reason = "blocked", "snapshot_isolation_required_for_change_tracking"
                 elif lower and minimum is not None and int(lower.get("changeTrackingVersion", -1)) < int(minimum):
                     status, reason = "blocked", "checkpoint_before_min_valid_change_tracking_version"
+                elif lower and int(upper.get("changeTrackingVersion") or -1) < int(lower.get("changeTrackingVersion") or -1):
+                    status, reason = "blocked", "source_change_tracking_version_moved_backwards"
             elif adapter == "sqlserver_cdc":
                 upper = {"cdcLsn": source_position.get("cdcMaxLsn")}
                 minimum = (capability.get("cdc") or {}).get("start_lsn")
                 if lower and minimum and _hex_before(lower.get("cdcLsn"), minimum):
                     status, reason = "blocked", "checkpoint_before_min_valid_cdc_lsn"
+                elif lower and _hex_before(upper.get("cdcLsn"), lower.get("cdcLsn")):
+                    status, reason = "blocked", "source_cdc_lsn_moved_backwards"
             elif adapter == "oracle_flashback_scn":
                 upper = {"scn": source_position.get("scn")}
+                if lower and int(upper.get("scn") or -1) < int(lower.get("scn") or -1):
+                    status, reason = "blocked", "source_scn_moved_backwards"
             else:
                 upper = {"unavailable": True}
                 status, reason = "blocked", "native_change_capture_not_enabled"
@@ -331,7 +348,22 @@ def plan_incremental_windows(
         }.get(adapter, False)
         if not upper_available:
             status, reason = "blocked", reason or "source_upper_bound_unavailable"
+        position_key = {
+            "database_watermark": "watermark",
+            "sqlserver_change_tracking": "changeTrackingVersion",
+            "sqlserver_cdc": "cdcLsn",
+            "oracle_flashback_scn": "scn",
+        }.get(adapter)
+        if (
+            status == "planned"
+            and lower
+            and position_key
+            and lower.get(position_key) == upper.get(position_key)
+        ):
+            status, reason = "no_changes", "source_position_unchanged"
         metadata = {"reason": reason} if reason else {}
+        if status == "baseline_required":
+            metadata["baselineUpperBoundFrozen"] = True
         if adapter == "sqlserver_cdc" and capability.get("cdc"):
             metadata["captureInstance"] = capability["cdc"].get("capture_instance")
         windows.append(

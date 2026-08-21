@@ -518,7 +518,8 @@ class ControlPlaneRepository:
                     text(
                         """
                         SELECT partition_key, committed_watermark, source_schema_hash,
-                               committed_run_id, committed_at
+                               committed_run_id, committed_release_id, validation,
+                               committed_at
                         FROM graphsync.checkpoint
                         WHERE job_name=:job_name
                         """
@@ -527,6 +528,113 @@ class ControlPlaneRepository:
                 )
             )
         return {row["partition_key"]: row for row in rows}
+
+    def stage_change_events(
+        self,
+        *,
+        job_name: str,
+        class_name: str,
+        window_id: uuid.UUID | str,
+        events: list[dict[str, Any]],
+    ) -> dict[str, int]:
+        """Idempotently persist captured changes and reject identity drift."""
+
+        if not events:
+            return {"received": 0, "inserted": 0, "duplicates": 0}
+        unique_events: dict[str, dict[str, Any]] = {}
+        for event in events:
+            event_key = str(event["event_key"])
+            previous = unique_events.get(event_key)
+            if previous and previous.get("payload_hash") != event.get("payload_hash"):
+                raise RuntimeError(
+                    f"Captured source position returned different payloads in one batch: {event_key}"
+                )
+            unique_events[event_key] = event
+        payload = json.dumps(list(unique_events.values()), ensure_ascii=False, default=str)
+        with self.engine.begin() as connection:
+            conflicts = connection.execute(
+                text(
+                    """
+                    WITH incoming AS (
+                        SELECT * FROM jsonb_to_recordset(CAST(:events AS jsonb)) AS item(
+                            event_key text, payload_hash text
+                        )
+                    )
+                    SELECT existing.event_key
+                    FROM incoming
+                    JOIN graphsync.change_event existing USING (event_key)
+                    WHERE existing.payload_hash <> incoming.payload_hash
+                    LIMIT 20
+                    """
+                ),
+                {"events": payload},
+            ).scalars().all()
+            if conflicts:
+                raise RuntimeError(
+                    "Captured source position returned a different payload: "
+                    + ", ".join(conflicts)
+                )
+            inserted = connection.execute(
+                text(
+                    """
+                    WITH incoming AS (
+                        SELECT * FROM jsonb_to_recordset(CAST(:events AS jsonb)) AS item(
+                            event_key text, operation text,
+                            source_primary_key jsonb, source_position jsonb,
+                            row_payload jsonb, payload_hash text
+                        )
+                    )
+                    INSERT INTO graphsync.change_event
+                        (event_key, job_name, class_name, window_id, operation,
+                         source_primary_key, source_position, row_payload,
+                         payload_hash)
+                    SELECT event_key, :job_name, :class_name, :window_id,
+                           operation, source_primary_key, source_position,
+                           row_payload, payload_hash
+                    FROM incoming
+                    ON CONFLICT (event_key) DO NOTHING
+                    RETURNING event_key
+                    """
+                ),
+                {
+                    "events": payload,
+                    "job_name": job_name,
+                    "class_name": class_name,
+                    "window_id": uuid.UUID(str(window_id)),
+                },
+            ).scalars().all()
+        inserted_count = len(inserted)
+        return {
+            "received": len(events),
+            "inserted": inserted_count,
+            "duplicates": len(events) - inserted_count,
+        }
+
+    def mark_change_events_applied(
+        self,
+        *,
+        release_id: uuid.UUID | str,
+        window_ids: list[uuid.UUID | str],
+    ) -> int:
+        if not window_ids:
+            return 0
+        with self.engine.begin() as connection:
+            result = connection.execute(
+                text(
+                    """
+                    UPDATE graphsync.change_event
+                    SET status='applied', applied_release_id=:release_id,
+                        applied_at=now()
+                    WHERE window_id=ANY(CAST(:window_ids AS uuid[]))
+                      AND status='captured'
+                    """
+                ),
+                {
+                    "release_id": uuid.UUID(str(release_id)),
+                    "window_ids": [str(item) for item in window_ids],
+                },
+            )
+        return int(result.rowcount or 0)
 
     def record_incremental_windows(
         self,

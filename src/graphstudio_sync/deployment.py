@@ -1527,50 +1527,34 @@ def apply_deployment(
             )
             if deployment["previous_deployment_id"] and previous_layer_in_target:
                 connection.execute(text("UPDATE graphsync.deployment_release SET status='rolled_back' WHERE deployment_id=:previous AND status='active'"), {"previous": deployment["previous_deployment_id"]})
-            for class_name, snapshot in (deployment["source_snapshot"] or {}).items():
-                if not snapshot.get("runId") or not snapshot.get("upperBound"):
-                    continue
-                schema_hash = connection.execute(
-                    text(
-                        """
-                        SELECT observation.schema_hash
-                        FROM graphsync.source_schema_observation observation
-                        JOIN graphsync.data_contract contract
-                          ON contract.contract_key=observation.contract_key
-                        WHERE observation.profile_key=:profile
-                          AND contract.class_name=:class_name
-                        ORDER BY observation.observed_at DESC
-                        LIMIT 1
-                        """
-                    ),
-                    {"profile": deployment["profile_key"], "class_name": class_name},
-                ).scalar_one_or_none()
-                connection.execute(
-                    text(
-                        """
-                        INSERT INTO graphsync.checkpoint
-                            (job_name, partition_key, committed_watermark,
-                             committed_run_id, source_schema_hash, committed_at)
-                        VALUES ('camstar-full', :partition_key,
-                                CAST(:watermark AS jsonb), :run_id, :schema_hash, now())
-                        ON CONFLICT (job_name, partition_key) DO UPDATE SET
-                            committed_watermark=EXCLUDED.committed_watermark,
-                            committed_run_id=EXCLUDED.committed_run_id,
-                            source_schema_hash=EXCLUDED.source_schema_hash,
-                            committed_at=now()
-                        """
-                    ),
-                    {
-                        "partition_key": class_name,
-                        "watermark": json.dumps(snapshot["upperBound"], default=str),
-                        "run_id": uuid.UUID(snapshot["runId"]),
-                        "schema_hash": schema_hash,
-                    },
-                )
-                connection.execute(
-                    text("UPDATE graphsync.incremental_window SET status='committed' WHERE window_id=:window_id AND status='verified'"),
-                    {"window_id": uuid.UUID(snapshot["windowId"])},
-                )
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO graphsync.publication_checkpoint
+                        (route_key, deployment_id, ontology_release_id,
+                         curated_release_id, artifact_hash, validation,
+                         committed_at)
+                    VALUES (:route_key, :deployment_id, :ontology_release_id,
+                            :curated_release_id, :artifact_hash,
+                            CAST(:validation AS jsonb), now())
+                    ON CONFLICT (route_key) DO UPDATE SET
+                        deployment_id=EXCLUDED.deployment_id,
+                        ontology_release_id=EXCLUDED.ontology_release_id,
+                        curated_release_id=EXCLUDED.curated_release_id,
+                        artifact_hash=EXCLUDED.artifact_hash,
+                        validation=EXCLUDED.validation,
+                        committed_at=EXCLUDED.committed_at
+                    """
+                ),
+                {
+                    "route_key": deployment["route_key"],
+                    "deployment_id": deployment_id,
+                    "ontology_release_id": deployment["ontology_release_id"],
+                    "curated_release_id": deployment["curated_release_id"],
+                    "artifact_hash": deployment["artifact_hash"],
+                    "validation": json.dumps(validation, default=str),
+                },
+            )
             connection.execute(
                 text("INSERT INTO graphsync.runtime_lineage_event (lineage_event_id, profile_key, run_type, run_id, source_asset, target_asset, field_mappings, row_count, content_hash) VALUES (:event, :profile, 'deployment', :run, :source, :target, '{}'::jsonb, 0, :hash)"),
                 {"event": uuid.uuid4(), "profile": deployment["profile_key"], "run": deployment_id, "source": f"rdf_artifact:{deployment['artifact_uri']}", "target": f"graphstudio:{graphmart_uri}:{layer_uri}", "hash": deployment["artifact_hash"]},

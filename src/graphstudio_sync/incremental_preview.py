@@ -16,6 +16,7 @@ from sqlalchemy import text
 
 from .change_capture import (
     ChangeRecord,
+    change_event_identity,
     iter_oracle_flashback_changes,
     iter_sqlserver_cdc,
     iter_sqlserver_change_tracking,
@@ -141,10 +142,33 @@ def build_incremental_preview(
             "graphStudioMutated": False,
             "checkpointCommitted": False,
         }
-    unsafe = [window for window in windows if window["status"] != "planned"]
+    baseline_windows = [
+        window for window in windows if window["status"] == "baseline_required"
+    ]
+    no_change_windows = [
+        window for window in windows if window["status"] == "no_changes"
+    ]
+    unsafe = [
+        window for window in windows
+        if window["status"] not in {"planned", "baseline_required", "no_changes"}
+    ]
     if unsafe:
         details = ", ".join(f"{item['class_name']}={item['status']}" for item in unsafe[:20])
         raise RuntimeError(f"Incremental preview requires planned windows only: {details}")
+    windows = [window for window in windows if window["status"] == "planned"]
+    if not windows:
+        return {
+            "jobName": job_name,
+            "windows": 0,
+            "events": 0,
+            "tombstones": 0,
+            "status": "baseline_required" if baseline_windows else "no_changes",
+            "baselineClasses": [item["class_name"] for item in baseline_windows],
+            "noChangeClasses": [item["class_name"] for item in no_change_windows],
+            "previewOnly": True,
+            "graphStudioMutated": False,
+            "checkpointCommitted": False,
+        }
 
     settings = resolved_settings(base_settings, repository)
     policies = {item["class_name"]: item for item in repository.list_table_policies(job_name)}
@@ -186,6 +210,8 @@ def build_incremental_preview(
                 source = connect_source(settings)
                 event_total = 0
                 tombstone_total = 0
+                staged_event_total = 0
+                duplicate_event_total = 0
                 event_files: list[Path] = []
                 window_results: list[dict[str, Any]] = []
                 for window in windows:
@@ -193,6 +219,22 @@ def build_incremental_preview(
                     path = directory / f"{class_name}.jsonl"
                     operations: Counter[str] = Counter()
                     last_position: dict[str, Any] | None = None
+                    stage_buffer: list[dict[str, Any]] = []
+
+                    def flush_stage_buffer() -> None:
+                        nonlocal staged_event_total, duplicate_event_total
+                        if not stage_buffer:
+                            return
+                        staged = repository.stage_change_events(
+                            job_name=job_name,
+                            class_name=class_name,
+                            window_id=window["window_id"],
+                            events=list(stage_buffer),
+                        )
+                        staged_event_total += int(staged["inserted"])
+                        duplicate_event_total += int(staged["duplicates"])
+                        stage_buffer.clear()
+
                     with path.open("w", encoding="utf-8", newline="\n") as stream:
                         for record in _change_iterator(
                             source,
@@ -202,12 +244,29 @@ def build_incremental_preview(
                             metadata[class_name],
                             sorted(columns_by_class[class_name]),
                         ):
-                            envelope = {"className": class_name, **record.as_dict()}
+                            identity = change_event_identity(job_name, class_name, record)
+                            envelope = {
+                                "className": class_name,
+                                "eventId": identity["eventKey"],
+                                "payloadHash": identity["payloadHash"],
+                                **record.as_dict(),
+                            }
                             stream.write(json.dumps(envelope, ensure_ascii=False, default=_json_default) + "\n")
+                            stage_buffer.append({
+                                "event_key": identity["eventKey"],
+                                "operation": record.operation,
+                                "source_primary_key": record.key,
+                                "source_position": record.position,
+                                "row_payload": record.row,
+                                "payload_hash": identity["payloadHash"],
+                            })
+                            if len(stage_buffer) >= 1000:
+                                flush_stage_buffer()
                             operations[record.operation] += 1
                             event_total += 1
                             tombstone_total += int(record.operation == "delete")
                             last_position = record.position
+                        flush_stage_buffer()
                     with path.open("r", encoding="utf-8") as stream:
                         for line in stream:
                             json.loads(line)
@@ -252,8 +311,12 @@ def build_incremental_preview(
                     "jobName": job_name,
                     "sourceKind": settings.source_kind,
                     "windows": window_results,
+                    "baselineClasses": [item["class_name"] for item in baseline_windows],
+                    "noChangeClasses": [item["class_name"] for item in no_change_windows],
                     "events": event_total,
                     "tombstones": tombstone_total,
+                    "stagedEvents": staged_event_total,
+                    "duplicateEvents": duplicate_event_total,
                     "archive": str(archive_path),
                     "archiveSha256": _sha256(archive_path),
                     "previewOnly": True,
@@ -289,6 +352,8 @@ def build_incremental_preview(
                                 "operation": "incremental_change_preview",
                                 "events": event_total,
                                 "tombstones": tombstone_total,
+                                "stagedEvents": staged_event_total,
+                                "duplicateEvents": duplicate_event_total,
                                 "graphStudioMutated": False,
                                 "checkpointCommitted": False,
                             }
