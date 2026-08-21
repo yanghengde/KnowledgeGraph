@@ -9,6 +9,7 @@ const AssistantPage = lazy(() => import("./pages/AssistantPage").then((module) =
 const ConnectionsPage = lazy(() => import("./pages/ConnectionsPage").then((module) => ({ default: module.ConnectionsPage })));
 const PublishManagementPage = lazy(() => import("./pages/PublishManagementPage").then((module) => ({ default: module.PublishManagementPage })));
 const SemanticModelPage = lazy(() => import("./pages/SemanticModelPage").then((module) => ({ default: module.SemanticModelPage })));
+const DataSynchronizationPage = lazy(() => import("./pages/DataSynchronizationPage").then((module) => ({ default: module.DataSynchronizationPage })));
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="queries" element={<Suspense fallback={<Spin fullscreen />}><QueryLibraryPage /></Suspense>} />
         <Route path="assistant" element={<Suspense fallback={<Spin fullscreen />}><AssistantPage /></Suspense>} />
         <Route path="connections" element={<Suspense fallback={<Spin fullscreen />}><ConnectionsPage /></Suspense>} />
+        <Route path="data-sync" element={<Suspense fallback={<Spin fullscreen />}><DataSynchronizationPage /></Suspense>} />
         <Route path="publish" element={<Suspense fallback={<Spin fullscreen />}><PublishManagementPage /></Suspense>} />
         <Route path="ontology-model" element={<Suspense fallback={<Spin fullscreen />}><SemanticModelPage /></Suspense>} />
         <Route path="ontology-governance" element={<Navigate to="../ontology-model" replace />} />

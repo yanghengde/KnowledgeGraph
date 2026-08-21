@@ -2,6 +2,7 @@ import {
   ApartmentOutlined,
   ApiOutlined,
   CloudUploadOutlined,
+  CloudSyncOutlined,
   CommentOutlined,
   DashboardOutlined,
   DatabaseOutlined,
@@ -21,6 +22,7 @@ const routeTitles: Record<string, { title: string; description: string }> = {
   "/queries": { title: "图谱查询能力库", description: "统一管理可复用、可审计的制造业务 Queries" },
   "/assistant": { title: "制造知识问答", description: "基于当前发布图谱与受控 Query 的上下文问答" },
   "/connections": { title: "数据源与连接", description: "制造数据链路、控制面与 Graph Studio 连接治理" },
+  "/data-sync": { title: "制造数据同步", description: "源窗口、增量事件、质量对账与不可变数据版本" },
   "/publish": { title: "数据发布管理", description: "发布前检验、预览、路由与运行记录" },
   "/ontology-model": { title: "制造语义模型", description: "主图理解、本体抽取、质量校验与 Graph Studio 发布" },
   "/ontology-governance": { title: "制造语义模型", description: "主图理解、本体抽取、质量校验与 Graph Studio 发布" },
@@ -38,6 +40,7 @@ export function AppShell() {
     { key: "/queries", icon: <ApiOutlined />, label: "图谱查询能力" },
     { key: "/assistant", icon: <CommentOutlined />, label: "制造知识问答" },
     { key: "/connections", icon: <DatabaseOutlined />, label: "数据源与连接" },
+    { key: "/data-sync", icon: <CloudSyncOutlined />, label: "制造数据同步" },
     { key: "/ontology-model", icon: <ApartmentOutlined />, label: "制造语义模型" },
     { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },
   ];

@@ -177,6 +177,71 @@ export type MaterializationStatus = {
   releases: CuratedRelease[];
 };
 
+export type DataSyncClassStatus = {
+  className: string;
+  coverageStatus: "synchronized" | "model_only" | "excluded" | "missing" | string;
+  coverageReason?: string | null;
+  role?: string | null;
+  sourceSchema?: string | null;
+  sourceTable?: string | null;
+  catalogRows: number;
+  contractKey?: string | null;
+  contractVersion?: number | null;
+  contractStatus?: string | null;
+  selectedColumns: number;
+  strategy?: string | null;
+  strategyExplicit: boolean;
+  extractionMode?: string | null;
+  activeObjectCount: number;
+  activeQuarantineCount: number;
+  pendingEvents: number;
+  appliedEvents: number;
+  reconciliation?: {
+    mode: string;
+    source_count?: number | null;
+    release_count: number;
+    difference?: number | null;
+    status: string;
+    created_at?: string | null;
+  } | null;
+  checkpoint?: {
+    committed_watermark?: Record<string, unknown> | null;
+    committed_release_id?: string | null;
+    committed_at?: string | null;
+  } | null;
+  incrementalWindow?: Record<string, unknown> | null;
+};
+
+export type DataSyncStatus = {
+  profileKey: string;
+  jobName: string;
+  ready: boolean;
+  blockers: string[];
+  coverage: {
+    complete: boolean;
+    synchronized: number;
+    modelOnly: number;
+    excluded: number;
+    missing: number;
+  };
+  activeRelease?: CuratedRelease | null;
+  classes: DataSyncClassStatus[];
+  summary: {
+    classes: number;
+    synchronized: number;
+    modelOnly: number;
+    excluded: number;
+    missing: number;
+    activeObjects: number;
+    pendingEvents: number;
+    failedReconciliations: number;
+    relationships: number;
+    resolvedRelationships: number;
+    pendingRelationships: number;
+  };
+  pipeline: string[];
+};
+
 export type DeploymentRelease = {
   deployment_id: string;
   environment_key: "dev" | "uat" | "prod";

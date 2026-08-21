@@ -11,6 +11,7 @@ import type {
   GraphStudioTarget,
   PublicationRoute,
   MaterializationStatus,
+  DataSyncStatus,
   DeploymentStatus,
   DeploymentPlan,
   OntologyGovernanceStatus,
@@ -96,6 +97,20 @@ export const syncApi = {
   ),
   materialization: (profileKey: string) => requestJson<MaterializationStatus>(
     `/api/sync/profiles/${encodeURIComponent(profileKey)}/materialization`,
+  ),
+  dataSync: (profileKey: string) => requestJson<DataSyncStatus>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/data-sync`,
+  ),
+  runDataSync: (profileKey: string, actor: string) => requestJson<{
+    ok: boolean; graphStudioMutated: boolean; status: DataSyncStatus;
+    materialization: Record<string, unknown>;
+  }>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/data-sync`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor }),
+    },
   ),
   generateRelease: (profileKey: string, actor: string) => requestJson<Record<string, unknown>>(
     `/api/sync/profiles/${encodeURIComponent(profileKey)}/materialization`,

@@ -631,5 +631,14 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
   .semantic-module-card .ant-card-extra { display: none; }
 }
 .ontology-create-form { margin-top: 18px; }
+.data-sync-class, .data-sync-source, .data-sync-strategy { display: flex; flex-direction: column; gap: 3px; }
+.data-sync-class small, .data-sync-source small, .data-sync-strategy small,
+.data-sync-reconciliation small { color: var(--muted); font-size: 12px; }
+.data-sync-reconciliation { display: flex; align-items: center; gap: 4px; }
+.data-sync-flow-card .ant-steps { padding: 8px 6px 2px; }
+.data-sync-confirm-form { display: grid; gap: 16px; margin-top: 18px; }
+.data-sync-confirm-form label { display: grid; gap: 7px; }
+.data-sync-confirm-form label > span { color: var(--muted); font-size: 13px; }
+.data-sync-confirm-form label strong { color: var(--text); }
 .ontology-form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 @media (max-width: 640px) { .ontology-form-grid { grid-template-columns: 1fr; gap: 0; } }

@@ -17,6 +17,7 @@ from src.graphstudio_sync.continuous_sync import (
 from src.graphstudio_sync.catalog import compile_catalog
 from src.graphstudio_sync.connections import test_all_connections, test_connection
 from src.graphstudio_sync.curation import build_curation_preview
+from src.graphstudio_sync.data_sync import data_sync_status, execute_data_sync
 from src.graphstudio_sync.actions import (
     approve_action,
     execute_action,
@@ -382,6 +383,10 @@ class ContinuousSyncRequest(BaseModel):
     environment_key: Literal["dev", "uat", "prod"] = "dev"
     route_key: str | None = Field(default=None, max_length=300)
     actor: str | None = Field(default="local-console", max_length=200)
+
+
+class DataSyncRequest(BaseModel):
+    actor: str = Field(default="local-console", min_length=2, max_length=200)
 
 
 class ReleaseActivation(BaseModel):
@@ -976,6 +981,26 @@ def get_materialization_status(profile_key: str):
         return materialization_status(_repo(), profile_key)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+@router.get("/profiles/{profile_key}/data-sync")
+def get_data_sync_status(profile_key: str):
+    try:
+        return data_sync_status(_repo(), profile_key=profile_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+@router.post("/profiles/{profile_key}/data-sync")
+def run_data_sync(profile_key: str, request: DataSyncRequest):
+    try:
+        return execute_data_sync(
+            _settings(), _repo(), profile_key=profile_key, actor=request.actor,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/profiles/{profile_key}/materialization")
