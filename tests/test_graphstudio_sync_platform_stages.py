@@ -23,6 +23,7 @@ def test_deployment_plan_selects_exact_route_and_only_checks_its_promotion_lane(
 
     release_id = uuid.uuid4()
     previous_id = uuid.uuid4()
+    ontology_release_id = uuid.uuid4()
     routes = [
         {"route_key": "lane-a-dev", "environment_key": "dev", "target_key": "a", "title": "A DEV", "promotion_order": 10, "apply_enabled": True, "requires_approval": False, "config": {"promotionLane": "a"}},
         {"route_key": "lane-b-dev", "environment_key": "dev", "target_key": "b-dev", "title": "B DEV", "promotion_order": 10, "apply_enabled": True, "requires_approval": False, "config": {"promotionLane": "b"}},
@@ -31,8 +32,8 @@ def test_deployment_plan_selects_exact_route_and_only_checks_its_promotion_lane(
     status = {
         "routes": routes,
         "activeCuratedRelease": {"release_id": release_id, "release_no": 3, "status": "active"},
-        "activeOntologyRelease": {"ontology_release_id": uuid.uuid4(), "release_no": 2},
-        "deployments": [{"deployment_id": previous_id, "route_key": "lane-b-dev", "status": "active", "curated_release_id": release_id, "slot": "blue"}],
+        "activeOntologyRelease": {"ontology_release_id": ontology_release_id, "release_no": 2},
+        "deployments": [{"deployment_id": previous_id, "route_key": "lane-b-dev", "status": "active", "curated_release_id": release_id, "ontology_release_id": ontology_release_id, "slot": "blue"}],
     }
     monkeypatch.setattr(deployment_module, "deployment_status", lambda _repo, _profile: status)
 
@@ -52,12 +53,13 @@ def test_deployment_plan_toggles_slot_per_route_not_per_environment(monkeypatch)
     from src.graphstudio_sync import deployment as deployment_module
 
     release_id = uuid.uuid4()
+    ontology_release_id = uuid.uuid4()
     route = {"route_key": "core-dev-two", "environment_key": "dev", "target_key": "two", "title": "Second Graphmart", "promotion_order": 10, "apply_enabled": True, "requires_approval": False, "config": {}}
     monkeypatch.setattr(deployment_module, "deployment_status", lambda _repo, _profile: {
         "routes": [route],
         "activeCuratedRelease": {"release_id": release_id, "release_no": 1, "status": "active"},
-        "activeOntologyRelease": {"ontology_release_id": uuid.uuid4(), "release_no": 1},
-        "deployments": [{"deployment_id": uuid.uuid4(), "route_key": route["route_key"], "status": "active", "curated_release_id": release_id, "slot": "blue"}],
+        "activeOntologyRelease": {"ontology_release_id": ontology_release_id, "release_no": 1},
+        "deployments": [{"deployment_id": uuid.uuid4(), "route_key": route["route_key"], "status": "active", "curated_release_id": release_id, "ontology_release_id": ontology_release_id, "slot": "blue"}],
     })
 
     plan = build_deployment_plan(
@@ -65,6 +67,37 @@ def test_deployment_plan_toggles_slot_per_route_not_per_environment(monkeypatch)
     )
 
     assert plan["slot"] == "green"
+
+
+def test_deployment_plan_requires_lower_environment_to_use_same_ontology(monkeypatch) -> None:
+    import uuid
+    from types import SimpleNamespace
+    from src.graphstudio_sync import deployment as deployment_module
+
+    release_id = uuid.uuid4()
+    active_ontology_id = uuid.uuid4()
+    routes = [
+        {"route_key": "core-dev", "environment_key": "dev", "target_key": "dev", "title": "DEV", "promotion_order": 10, "apply_enabled": True, "requires_approval": False, "config": {}},
+        {"route_key": "core-prod", "environment_key": "prod", "target_key": "prod", "title": "PROD", "promotion_order": 30, "apply_enabled": True, "requires_approval": True, "config": {}},
+    ]
+    monkeypatch.setattr(deployment_module, "deployment_status", lambda _repo, _profile: {
+        "routes": routes,
+        "activeCuratedRelease": {"release_id": release_id, "release_no": 1, "status": "active"},
+        "activeOntologyRelease": {"ontology_release_id": active_ontology_id, "release_no": 4},
+        "deployments": [{
+            "deployment_id": uuid.uuid4(), "route_key": "core-dev",
+            "status": "active", "curated_release_id": release_id,
+            "ontology_release_id": uuid.uuid4(), "slot": "blue",
+        }],
+    })
+
+    plan = build_deployment_plan(
+        SimpleNamespace(), profile_key="core", environment_key="prod",
+        route_key="core-prod",
+    )
+
+    assert plan["ready"] is False
+    assert plan["blockers"] == ["同一制品尚未通过前置环境：DEV"]
 
 
 def test_apply_deployment_lookup_qualifies_deployment_id_column() -> None:

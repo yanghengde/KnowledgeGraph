@@ -173,7 +173,7 @@ export type DeploymentStatus = {
   targets: GraphStudioTarget[];
   deployments: DeploymentRelease[];
   activeCuratedRelease?: CuratedRelease | null;
-  activeOntologyRelease?: Record<string, unknown> | null;
+  activeOntologyRelease?: OntologyRelease | null;
 };
 
 export type DeploymentPlan = {

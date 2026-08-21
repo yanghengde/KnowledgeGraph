@@ -399,6 +399,8 @@ def build_deployment_plan(
             and item["status"] == "active"
             and release
             and item["curated_release_id"] == release["release_id"]
+            and ontology_release
+            and item.get("ontology_release_id") == ontology_release["ontology_release_id"]
             for item in previous_deployments
         )
         if not promoted:
@@ -432,15 +434,45 @@ def build_deployment_plan(
     }
 
 
+def _ontology_release_metadata(
+    repository: ControlPlaneRepository,
+    profile_key: str,
+    ontology_release_id: str | uuid.UUID | None = None,
+) -> dict[str, Any] | None:
+    """Resolve either the active ontology or one immutable pinned release."""
+    if ontology_release_id is None:
+        return active_ontology_release(repository, profile_key)
+    with repository.engine.connect() as connection:
+        row = connection.execute(
+            text(
+                """
+                SELECT ontology_release_id, release_no, status, content_hash,
+                       class_count, property_count, relationship_count,
+                       approved_by, activated_at
+                FROM graphsync.ontology_release
+                WHERE ontology_release_id=:release_id AND profile_key=:profile_key
+                """
+            ),
+            {
+                "release_id": uuid.UUID(str(ontology_release_id)),
+                "profile_key": profile_key,
+            },
+        ).mappings().one_or_none()
+    return dict(row) if row else None
+
+
 def build_curated_rdf(
     repository: ControlPlaneRepository,
     *,
     profile_key: str,
     release_id: uuid.UUID,
+    ontology_release_id: str | uuid.UUID | None = None,
 ) -> dict[str, Any]:
-    ontology_meta = active_ontology_release(repository, profile_key)
+    ontology_meta = _ontology_release_metadata(
+        repository, profile_key, ontology_release_id,
+    )
     if not ontology_meta:
-        raise RuntimeError("No active publish ontology release")
+        raise RuntimeError("Pinned publish ontology release does not exist")
     ontology_release_id = str(ontology_meta["ontology_release_id"])
     model = release_graph(repository.settings, ontology_release_id)
     model_graph = Graph()
@@ -564,7 +596,10 @@ def build_curated_rdf(
             URIRef(item["target_object_uri"]),
         ))
         published_relationships += 1
-    output_dir = DEPLOYMENT_ROOT / str(release_id)
+    # One curated data snapshot can be deployed repeatedly with different
+    # immutable ontology contracts. Keep their artifacts separate so a model
+    # activation never overwrites an earlier deployment or rollback asset.
+    output_dir = DEPLOYMENT_ROOT / f"{release_id}--{ontology_release_id}"
     output_dir.mkdir(parents=True, exist_ok=True)
     model_path = output_dir / "curated_model.trig"
     ttl_path = output_dir / "curated_data.ttl"
@@ -635,7 +670,12 @@ def create_deployment(
     if not plan["ready"]:
         raise RuntimeError("Deployment is blocked: " + "; ".join(plan["blockers"]))
     selected_id = plan["release"]["release_id"]
-    artifact = build_curated_rdf(repository, profile_key=profile_key, release_id=selected_id)
+    artifact = build_curated_rdf(
+        repository,
+        profile_key=profile_key,
+        release_id=selected_id,
+        ontology_release_id=plan["ontologyRelease"]["ontology_release_id"],
+    )
     deployment_id = uuid.uuid4()
     status = "planned" if plan["approvalRequired"] else "approved"
     with repository.engine.begin() as connection:
@@ -1247,6 +1287,7 @@ def apply_deployment(
             repository,
             profile_key=deployment["profile_key"],
             release_id=deployment["curated_release_id"],
+            ontology_release_id=deployment["ontology_release_id"],
         )
         validation_plan.update({
             "expectedObjects": artifact["objectCount"],

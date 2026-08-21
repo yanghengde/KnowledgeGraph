@@ -1,0 +1,52 @@
+@prefix cam: <https://opcenter.siemens.com/ontology/camstar/2607/publish#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/MfgOrderId%3D0006548000000002> a cam:MfgOrder ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_name "MO-100076435" ;
+    cam:MfgOrder_orderStatus "001bd08000000005" ;
+    cam:MfgOrder_product "00062c8000000002" ;
+    cam:MfgOrder_qty 8e+01 ;
+    cam:REL_ORDERED_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/ProductId%3D00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/MfgOrderId%3D0006548000000003> a cam:MfgOrder ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_name "MO-100076436" ;
+    cam:MfgOrder_orderStatus "001bd08000000005" ;
+    cam:MfgOrder_product "00062c8000000002" ;
+    cam:MfgOrder_qty 9e+01 ;
+    cam:REL_ORDERED_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/ProductId%3D00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/MfgOrderId%3D0006548000000004> a cam:MfgOrder ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_name "MO-100076437" ;
+    cam:MfgOrder_orderStatus "001bd08000000005" ;
+    cam:MfgOrder_product "00062c8000000002" ;
+    cam:MfgOrder_qty 1e+02 ;
+    cam:REL_ORDERED_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/ProductId%3D00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/MfgOrderId%3D0006548000000005> a cam:MfgOrder ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_name "MO-100076438" ;
+    cam:MfgOrder_orderStatus "001bd08000000005" ;
+    cam:MfgOrder_product "00062c8000000002" ;
+    cam:MfgOrder_qty 8.5e+01 ;
+    cam:REL_ORDERED_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/ProductId%3D00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/MfgOrder/MfgOrderId%3D0006548000000006> a cam:MfgOrder ;
+    cam:MfgOrder_description "滚筒洗衣机 900A 生产工单" ;
+    cam:MfgOrder_name "MO-100076439" ;
+    cam:MfgOrder_orderStatus "001bd08000000005" ;
+    cam:MfgOrder_product "00062c8000000002" ;
+    cam:MfgOrder_qty 9.5e+01 ;
+    cam:REL_ORDERED_PRODUCT <https://opcenter.siemens.com/data/camstar/2607/ontology/Product/ProductId%3D00062c8000000002> .
+
+<https://opcenter.siemens.com/data/camstar/2607/ontology/Product/ProductId%3D00062c8000000002> a cam:Product ;
+    cam:Product_description "滚筒洗衣机 900A 型" ;
+    cam:Product_objectType "PRODUCT" ;
+    cam:Product_productBase "0006188000000002" ;
+    cam:Product_productType "0006228000000004" ;
+    cam:Product_revision "A" ;
+    cam:Product_status 1 ;
+    cam:Product_workflow "0005aa800000001b" .
+

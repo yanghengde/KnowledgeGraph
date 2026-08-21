@@ -68,6 +68,7 @@ export function PublishManagementPage() {
   })) });
   const activeJob = jobs.data?.items[0];
   const activeRelease = materialization.data?.releases.find((item) => item.is_active) || deployments.data?.activeCuratedRelease;
+  const activeOntologyRelease = deployments.data?.activeOntologyRelease;
   const planByRoute = new Map<string, DeploymentPlan>();
   (deployments.data?.routes || []).forEach((route, index) => {
     const plan = planQueries[index]?.data;
@@ -175,14 +176,21 @@ export function PublishManagementPage() {
         <Row gutter={[16, 16]}>
           {(deployments.data?.routes || []).map((route, index) => {
             const plan = planByRoute.get(route.route_key);
-            const latest = deployments.data?.deployments.find((item) => item.route_key === route.route_key && item.curated_release_id === activeRelease?.release_id);
+            // A deployable contract is the pair (data release, ontology release).
+            // An older active deployment must not hide the prepare action after
+            // a new ontology version is activated for the same data snapshot.
+            const latest = deployments.data?.deployments.find((item) =>
+              item.route_key === route.route_key
+              && item.curated_release_id === activeRelease?.release_id
+              && item.ontology_release_id === activeOntologyRelease?.ontology_release_id
+            );
             const status = latest ? deploymentStatusLabels[latest.status] || { color: "default", text: latest.status } : plan?.ready ? { color: "processing", text: "等待准备" } : { color: "default", text: "前置门禁" };
             const errorMessage = deploymentErrorMessage(latest);
             const stepCurrent = latest?.status === "active" ? 3 : latest?.status === "approved" || latest?.status === "failed" ? 2 : latest ? 1 : route.apply_enabled ? 1 : 0;
             return <Col xs={24} xl={8} key={route.route_key}><Card className={`promotion-card environment-${route.environment_key}`} title={<div><strong>{environmentLabels[route.environment_key]}</strong><small>{route.target_title || route.title}</small></div>} extra={<Tag color={status.color}>{status.text}</Tag>}>
               <Steps size="small" current={stepCurrent} status={latest?.status === "failed" ? "error" : latest?.status === "active" ? "finish" : "process"} items={[{ title: "授权" }, { title: "制品" }, { title: route.requires_approval ? "审批" : "就绪" }, { title: "发布" }]} />
               <Descriptions column={1} size="small" className="promotion-details">
-                <Descriptions.Item label="活动数据版本">{activeRelease ? `R${activeRelease.release_no}` : "无"}</Descriptions.Item><Descriptions.Item label="目标槽位">{plan?.slot ? plan.slot.toUpperCase() : "—"}</Descriptions.Item>
+                <Descriptions.Item label="活动数据版本">{activeRelease ? `R${activeRelease.release_no}` : "无"}</Descriptions.Item><Descriptions.Item label="活动本体版本">{activeOntologyRelease ? `R${activeOntologyRelease.release_no}` : "无"}</Descriptions.Item><Descriptions.Item label="目标槽位">{plan?.slot ? plan.slot.toUpperCase() : "—"}</Descriptions.Item>
                 <Descriptions.Item label="写入安全开关"><Tag icon={route.apply_enabled ? <UnlockOutlined /> : <LockOutlined />} color={route.apply_enabled ? "success" : "default"}>{route.apply_enabled ? "已开启" : "已锁定"}</Tag></Descriptions.Item><Descriptions.Item label="外部门禁">{route.requires_approval ? "需要审批" : "无需审批"}</Descriptions.Item>
               </Descriptions>
               {!plan?.ready && <Alert className="promotion-message" type="warning" showIcon message={plan?.blockers[0] || (planQueries[index]?.isLoading ? "正在计算发布门禁" : "发布计划不可用")} />}

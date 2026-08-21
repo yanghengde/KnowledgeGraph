@@ -50,6 +50,11 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
   const queryClient = useQueryClient();
   const workspace = governance?.currentWorkspace;
   const graph = governance?.graph;
+  const activeRelease = governance?.activeRelease;
+  const pendingRelease = governance?.releases.find((item) =>
+    item.status === "approved"
+    && item.release_no > (activeRelease?.release_no || 0)
+  );
   const [selectedId, setSelectedId] = useState("");
   const [search, setSearch] = useState("");
   const [propertySearch, setPropertySearch] = useState("");
@@ -305,7 +310,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
         <div><small>发布本体库</small><strong>{governance?.database || "graphstudio-model"}</strong></div>
         <span className="publish-flow-arrow">→</span><div><small>工作区草稿</small><strong>Rev. {workspace?.revision}</strong></div>
         <span className="publish-flow-arrow">→</span><div><small>模型状态</small><strong>{workspace?.status === "draft" ? "已保存 · 待校验" : workspace?.status}</strong></div>
-        <span className="publish-flow-arrow">→</span><div><small>Graph Studio</small><strong className="pending">尚未发布</strong></div>
+        <span className="publish-flow-arrow">→</span><div><small>Graph Studio 使用版本</small><strong className={pendingRelease ? "pending" : undefined}>{pendingRelease ? `活动 R${activeRelease?.release_no || "—"} · 待激活 R${pendingRelease.release_no}` : activeRelease ? `活动 R${activeRelease.release_no}` : "尚未发布"}</strong></div>
       </div>
       <div className="publish-ontology-preview-grid">
         <Card className="publish-ontology-graph-card" title={<Space><ApartmentOutlined /><span>Graph Studio Publish Ontology</span></Space>} extra={<Space><Tag>{graph?.nodes.length || 0} 个对象</Tag><Tag>{graph?.edges.length || 0} 条关系</Tag></Space>} styles={{ body: { padding: 0 } }}>
@@ -406,6 +411,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
         </div>
         <Space wrap><Button type="primary" icon={<CheckCircleOutlined />} loading={validate.isPending} onClick={() => validate.mutate()}>执行完整性校验</Button><Button disabled={!validation?.valid || workspace?.status !== "draft"} onClick={() => { setConfirmation(""); setOperation({ kind: "review", title: "提交同行复核", description: "校验通过的当前模型将进入复核状态。" }); }}>提交复核</Button><Button disabled={!validation?.valid || !["draft", "reviewed"].includes(workspace?.status || "")} onClick={() => { setConfirmation(""); setOperation({ kind: "approve", title: "批准并冻结本体版本", description: "当前对象、属性和关系将生成不可变版本。", phrase: "批准本体版本" }); }}>批准并冻结</Button><Button href="/app/publish" icon={<FileProtectOutlined />}>进入 Graph Studio 发布</Button></Space>
       </Card>
+      {pendingRelease && <Alert type="warning" showIcon message={`冻结版本 R${pendingRelease.release_no} 尚未激活`} description={`当前 Graph Studio 发布仍使用${activeRelease ? ` R${activeRelease.release_no}（${activeRelease.class_count} 个对象、${activeRelease.relationship_count} 条关系）` : "旧的或空的本体契约"}。必须先激活 R${pendingRelease.release_no}（${pendingRelease.class_count} 个对象、${pendingRelease.relationship_count} 条关系），再到数据发布管理准备新制品。`} action={<Button type="primary" onClick={() => { setConfirmation(""); setOperation({ kind: "activate", title: `激活本体版本 R${pendingRelease.release_no}`, description: "激活后，新的 Graph Studio 制品将使用该不可变语义契约。", phrase: `激活本体 R${pendingRelease.release_no}`, release: pendingRelease }); }}>激活 R{pendingRelease.release_no}</Button>} />}
       {validation && <Card title={`校验结果 · ${validation.errors.length} 个错误，${validation.warnings.length} 个提醒`}>
         {!issueCount ? <Alert type="success" showIcon message="模型完整性校验通过，可以进入复核与版本冻结。" /> : <div className="ontology-issue-list">{validation.errors.map((item) => <Alert key={`${item.code}-${item.message}`} type="error" showIcon icon={<WarningOutlined />} message={item.message} description={item.code} />)}{validation.warnings.map((item) => <Alert key={`${item.code}-${item.message}`} type="warning" showIcon message={item.message} description={item.code} />)}</div>}
       </Card>}
