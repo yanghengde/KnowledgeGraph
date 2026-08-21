@@ -5,6 +5,8 @@ from src.graphstudio_sync.deployment import (
     _catalog_entry,
     _ensure_dataset,
     _ensure_model,
+    _require_disabled_layer,
+    _require_enabled_layer,
     _resolve_previous_layer,
     _requires_dataset_replacement,
     _set_layer_enabled,
@@ -278,16 +280,36 @@ def test_layer_switch_targets_only_the_requested_layer() -> None:
 
 
 class _LegacyLayerSession:
-    def __init__(self, *, enabled, configured=True):
+    def __init__(self, *, enabled, configured=True, run_configuration_ok=False):
         self.enabled = enabled
         self.configured = configured
+        self.run_configuration_ok = run_configuration_ok
+        self.toggled = enabled is False
+        self.patch_calls = []
 
-    def patch(self, _url, **_kwargs):
+    def patch(self, url, **kwargs):
+        self.patch_calls.append((url, kwargs))
         response = _GraphStudioResponse(
             {"detail": "No handler found"}, ok=False, status_code=404,
         )
         response.text = "No handler found for PATCH /api/graphmarts/example/enableLayers"
         return response
+
+    def post(self, url, **kwargs):
+        assert url.endswith("/sparql")
+        if not self.run_configuration_ok:
+            return _GraphStudioResponse(
+                {"detail": "Run configuration update disabled"},
+                ok=False,
+                status_code=403,
+            )
+        if "update" in kwargs.get("data", {}):
+            self.toggled = "INSERT DATA" in kwargs["data"]["update"]
+            return _GraphStudioResponse("Update Successful")
+        binding = {"assumeDisabled": {"value": "false"}}
+        if self.toggled:
+            binding["toggledLayer"] = {"value": "http://example.com/layer/blue"}
+        return _GraphStudioResponse({"results": {"bindings": [binding]}})
 
     def get(self, url, **kwargs):
         if url.endswith("/layers"):
@@ -312,6 +334,82 @@ def test_legacy_layer_switch_accepts_manually_verified_state() -> None:
     )
 
     assert mode == "legacy_status_verified"
+
+
+def test_legacy_layer_switch_updates_design_run_configuration() -> None:
+    session = _LegacyLayerSession(enabled=True, run_configuration_ok=True)
+    layer_uri = "http://example.com/layer/blue"
+
+    mode = _set_layer_enabled(
+        session,
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+        layer_uri=layer_uri,
+        enabled=False,
+    )
+
+    assert mode == "legacy_run_configuration"
+    assert session.toggled is True
+
+
+def test_legacy_layer_switch_enables_by_removing_design_toggle() -> None:
+    session = _LegacyLayerSession(enabled=False, run_configuration_ok=True)
+
+    mode = _set_layer_enabled(
+        session,
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+        layer_uri="http://example.com/layer/blue",
+        enabled=True,
+    )
+
+    assert mode == "legacy_run_configuration"
+    assert session.toggled is False
+
+
+def test_legacy_layer_enable_defers_new_layer_verification_until_reload() -> None:
+    mode = _set_layer_enabled(
+        _LegacyLayerSession(enabled=None),
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+        layer_uri="http://example.com/layer/green",
+        enabled=True,
+    )
+
+    assert mode == "legacy_reload_pending"
+
+
+def test_post_reload_verification_requires_enabled_healthy_layer() -> None:
+    status = _require_enabled_layer({
+        "childLayer": [{
+            "uri": "http://example.com/layer/green",
+            "enabled": True,
+            "childFailed": False,
+        }],
+    }, "http://example.com/layer/green")
+
+    assert status["enabled"] is True
+
+
+def test_post_reload_verification_rejects_missing_layer() -> None:
+    with pytest.raises(RuntimeError, match="未返回发布 Layer 状态"):
+        _require_enabled_layer({"childLayer": []}, "http://example.com/layer/green")
+
+
+def test_post_reload_verification_accepts_omitted_disabled_layer() -> None:
+    assert _require_disabled_layer(
+        {"childLayer": []}, "http://example.com/layer/blue",
+    ) is None
+
+
+def test_post_reload_verification_rejects_enabled_predecessor() -> None:
+    with pytest.raises(RuntimeError, match="上一 Layer 仍处于启用状态"):
+        _require_disabled_layer({
+            "childLayer": [{
+                "uri": "http://example.com/layer/blue",
+                "enabled": True,
+            }],
+        }, "http://example.com/layer/blue")
 
 
 def test_legacy_layer_switch_requires_manual_change_before_retry() -> None:

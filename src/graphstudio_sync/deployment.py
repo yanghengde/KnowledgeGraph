@@ -9,7 +9,7 @@ import uuid
 import zipfile
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 import requests
 from rdflib import Dataset, Graph, Literal, Namespace, OWL, RDF, RDFS, URIRef, XSD
@@ -24,6 +24,8 @@ from .repository import ControlPlaneRepository
 DEPLOYMENT_ROOT = PROJECT_ROOT / "outputs" / "graphstudio" / "deployments"
 ONT = Namespace("https://opcenter.siemens.com/ontology/camstar/2607/publish#")
 GM_SELF = "http://cambridgesemantics.com/ontologies/Graphmarts#Self"
+GM_TOGGLED_LAYER = "http://cambridgesemantics.com/ontologies/Graphmarts#toggledLayer"
+GM_ASSUME_DISABLED = "http://cambridgesemantics.com/ontologies/Graphmarts#runConfigurationAssumeDisabled"
 
 
 def release_model_uri(ontology_release_id: str | uuid.UUID) -> str:
@@ -943,6 +945,20 @@ def _set_layer_enabled(
     # preferred path for future upgrades, and use read-only configuration and
     # runtime status for legacy verification.
     if response.status_code == 404 and "No handler found" in response.text:
+        # The legacy UI stores each switch as a toggledLayer entry on the
+        # active Design Run Configuration.  Mirror that canonical state when
+        # graphmart-level action endpoints are absent, then read it back.
+        try:
+            _set_run_configuration_layer_selected(
+                session, base,
+                graphmart_uri=unquote(encoded_graphmart),
+                layer_uri=layer_uri,
+                selected=enabled,
+            )
+            return "legacy_run_configuration"
+        except RuntimeError as exc:
+            legacy_write_error = str(exc)
+
         configured_layers = _require(
             session.get(
                 f"{base}/api/graphmarts/{encoded_graphmart}/layers",
@@ -995,6 +1011,15 @@ def _set_layer_enabled(
         if isinstance(configured_enabled, bool) and configured_enabled is enabled:
             return "legacy_configuration_verified"
 
+        # Older Graph Studio versions do not expose the configured enabled
+        # flag, and a newly-created Layer is absent from runtime status until
+        # the Graphmart has been reloaded for the first time.  Creation uses
+        # defaultSelected=True, so defer only this indeterminate enable case
+        # to the mandatory reload below.  The caller verifies the resulting
+        # runtime state before SPARQL acceptance or checkpoint commit.
+        if enabled and actual is None:
+            return "legacy_reload_pending"
+
         desired = "启用" if enabled else "停用"
         observed = "未加载" if actual is None else ("已启用" if actual else "已停用")
         raise RuntimeError(
@@ -1002,10 +1027,126 @@ def _set_layer_enabled(
             f"请在 Graph Studio 的目标 Graphmart 中手工{desired} Layer {layer_uri}，"
             f"当前状态：{observed}；完成 blue/green 切换后再次点击重试。"
             "程序会先读取状态验证，验证通过前不会提交 checkpoint。"
+            + (f" 自动兼容写入失败：{legacy_write_error}" if legacy_write_error else "")
         )
 
     _require(response, f"{'Enable' if enabled else 'Disable'} Graph Studio layer")
     return "rest_api"
+
+
+def _run_configuration_layer_selected(
+    session: requests.Session,
+    base: str,
+    *,
+    graphmart_uri: str,
+    layer_uri: str,
+) -> tuple[bool, bool]:
+    run_configuration = f"{graphmart_uri}_RunConfiguration-Design"
+    query = f"""
+        SELECT ?assumeDisabled ?toggledLayer WHERE {{
+          GRAPH <{graphmart_uri}> {{
+            <{run_configuration}> <{GM_ASSUME_DISABLED}> ?assumeDisabled .
+            OPTIONAL {{
+              <{run_configuration}> <{GM_TOGGLED_LAYER}> ?toggledLayer .
+              FILTER(?toggledLayer = <{layer_uri}>)
+            }}
+          }}
+        }}
+    """
+    payload = _require(
+        session.post(
+            f"{base}/sparql",
+            data={"query": query},
+            headers={"Accept": "application/sparql-results+json"},
+            timeout=60,
+        ),
+        "Read legacy Graphmart run configuration",
+    )
+    bindings = ((payload.get("results") or {}).get("bindings") or []) if isinstance(payload, dict) else []
+    if not bindings:
+        raise RuntimeError("Graph Studio Design Run Configuration 不存在")
+    assume_value = ((bindings[0].get("assumeDisabled") or {}).get("value") or "false").casefold()
+    assume_disabled = assume_value in {"true", "1"}
+    toggled = any((item.get("toggledLayer") or {}).get("value") == layer_uri for item in bindings)
+    selected = toggled if assume_disabled else not toggled
+    return selected, assume_disabled
+
+
+def _set_run_configuration_layer_selected(
+    session: requests.Session,
+    base: str,
+    *,
+    graphmart_uri: str,
+    layer_uri: str,
+    selected: bool,
+) -> None:
+    _, assume_disabled = _run_configuration_layer_selected(
+        session, base,
+        graphmart_uri=graphmart_uri,
+        layer_uri=layer_uri,
+    )
+    run_configuration = f"{graphmart_uri}_RunConfiguration-Design"
+    should_toggle = selected if assume_disabled else not selected
+    operation = "INSERT DATA" if should_toggle else "DELETE DATA"
+    update = f"""
+        {operation} {{ GRAPH <{graphmart_uri}> {{
+          <{run_configuration}> <{GM_TOGGLED_LAYER}> <{layer_uri}>
+        }} }}
+    """
+    _require(
+        session.post(
+            f"{base}/sparql",
+            data={"update": update},
+            timeout=60,
+        ),
+        "Update legacy Graphmart run configuration",
+    )
+    actual, _ = _run_configuration_layer_selected(
+        session, base,
+        graphmart_uri=graphmart_uri,
+        layer_uri=layer_uri,
+    )
+    if actual is not selected:
+        raise RuntimeError("Graph Studio Run Configuration 写入后状态未发生变化")
+
+
+def _require_enabled_layer(graph_status: dict[str, Any], layer_uri: str) -> dict[str, Any]:
+    """Verify that the deployment Layer is online after Graphmart reload."""
+    layers = graph_status.get("childLayer") if isinstance(graph_status, dict) else None
+    layer_status = next(
+        (
+            item for item in (layers or [])
+            if isinstance(item, dict)
+            and (item.get("uri") or item.get("layerUri")) == layer_uri
+        ),
+        None,
+    )
+    if layer_status is None:
+        raise RuntimeError(f"Graph Studio Reload 后未返回发布 Layer 状态：{layer_uri}")
+    if layer_status.get("enabled") is not True:
+        raise RuntimeError(f"Graph Studio Reload 后发布 Layer 仍未启用：{layer_uri}")
+    if layer_status.get("childFailed") is True:
+        raise RuntimeError(f"Graph Studio Reload 后发布 Layer 加载失败：{layer_uri}")
+    return layer_status
+
+
+def _require_disabled_layer(graph_status: dict[str, Any], layer_uri: str) -> dict[str, Any] | None:
+    """Verify that the predecessor Layer is no longer active after reload."""
+    layers = graph_status.get("childLayer") if isinstance(graph_status, dict) else None
+    layer_status = next(
+        (
+            item for item in (layers or [])
+            if isinstance(item, dict)
+            and (item.get("uri") or item.get("layerUri")) == layer_uri
+        ),
+        None,
+    )
+    # Legacy status responses may omit disabled layers entirely.
+    if layer_status is None:
+        return None
+    if layer_status.get("enabled") is not False:
+        raise RuntimeError(f"Graph Studio Reload 后上一 Layer 仍处于启用状态：{layer_uri}")
+    return layer_status
 
 
 def _reload_graphmart(
@@ -1250,6 +1391,9 @@ def apply_deployment(
         graph_status = _reload_graphmart(
             session, base, encoded_graphmart=encoded_graphmart,
         )
+        _require_enabled_layer(graph_status, layer_uri)
+        if previous_layer_uri and previous_layer_in_target:
+            _require_disabled_layer(graph_status, previous_layer_uri)
         class_uris = list(validation_plan.get("publishedClassUris") or [])
         relationship_uris = list(validation_plan.get("publishedRelationshipUris") or [])
         if not class_uris:
@@ -1300,7 +1444,12 @@ def apply_deployment(
                 "mode": (
                     "legacy_status_verified"
                     if {enabled_switch_mode, disabled_switch_mode}
-                    & {"legacy_status_verified", "legacy_configuration_verified"}
+                    & {
+                        "legacy_status_verified",
+                        "legacy_configuration_verified",
+                        "legacy_run_configuration",
+                        "legacy_reload_pending",
+                    }
                     else "target_reset"
                     if skipped_previous_layer_uri
                     else "rest_api"
