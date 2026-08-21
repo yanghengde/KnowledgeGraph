@@ -57,15 +57,18 @@ from src.graphstudio_sync.publish_ontology import (
     activate_release as activate_ontology_release,
     add_class as add_publish_class,
     add_relationship as add_publish_relationship,
+    apply_relationship_suggestions as apply_publish_relationship_suggestions,
     approve_workspace as approve_ontology_workspace,
     build_discovery_plan as build_ontology_discovery_plan,
     initialize_governance,
     ontology_governance_status,
     remove_class as remove_publish_class,
     remove_relationship as remove_publish_relationship,
+    relationship_suggestions as publish_relationship_suggestions,
     review_workspace as review_ontology_workspace,
     source_candidates as ontology_source_candidates,
     update_class as update_publish_class,
+    undo_relationship_suggestion_batch as undo_publish_relationship_suggestion_batch,
     upsert_property as upsert_publish_property,
     validate_workspace as validate_ontology_workspace,
 )
@@ -218,6 +221,11 @@ class PublishRelationshipUpdate(BaseModel):
     cardinality: str = Field(default="many-to-one", max_length=100)
     requiredContext: bool = False
     description: str | None = Field(default=None, max_length=4000)
+
+
+class RelationshipSuggestionApply(BaseModel):
+    classUid: str = Field(min_length=1, max_length=600)
+    suggestionIds: list[str] = Field(min_length=1, max_length=12)
 
 
 class GraphProfileUpdate(BaseModel):
@@ -1361,6 +1369,40 @@ def create_publish_relationship(workspace_key: str, payload: PublishRelationship
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/ontology-governance/workspaces/{workspace_key}/classes/{class_uid}/relationship-suggestions")
+def get_publish_relationship_suggestions(workspace_key: str, class_uid: str):
+    try:
+        return publish_relationship_suggestions(
+            _settings(), _repo(), workspace_key, class_uid, max_depth=2,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Publish class or workspace not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/ontology-governance/workspaces/{workspace_key}/relationship-suggestions/apply")
+def apply_publish_relation_suggestions(workspace_key: str, payload: RelationshipSuggestionApply):
+    try:
+        return apply_publish_relationship_suggestions(
+            _settings(), _repo(), workspace_key, payload.classUid, payload.suggestionIds,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Publish class or workspace not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.delete("/ontology-governance/workspaces/{workspace_key}/relationship-suggestion-batches/{batch_id}")
+def undo_publish_relation_suggestions(workspace_key: str, batch_id: str):
+    try:
+        return undo_publish_relationship_suggestion_batch(
+            _settings(), _repo(), workspace_key, batch_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Publish workspace not found") from exc
 
 
 @router.delete("/ontology-governance/workspaces/{workspace_key}/relationships/{relationship_key}")

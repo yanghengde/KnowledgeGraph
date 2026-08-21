@@ -249,6 +249,32 @@ export type OntologyGraph = {
   properties: OntologyProperty[];
 };
 
+export type RelationshipSuggestion = {
+  id: string;
+  anchorClass: string;
+  existingClass: string;
+  nodes: Array<{ sourceClass: string; label?: string; description?: string }>;
+  relationships: Array<{
+    sourceClass: string; targetClass: string; targetName: string;
+    cardinality?: string; description?: string;
+  }>;
+  missingNodes: Array<{ sourceClass: string; label?: string; description?: string }>;
+  missingRelationships: Array<{
+    sourceClass: string; targetClass: string; targetName: string;
+    cardinality?: string; description?: string;
+  }>;
+  score: number;
+  summary: string;
+  recommended: boolean;
+};
+
+export type RelationshipSuggestionResult = {
+  classUid: string;
+  sourceClass?: string | null;
+  items: RelationshipSuggestion[];
+  reason?: string | null;
+};
+
 export type OntologyRelease = {
   ontology_release_id: string;
   release_no: number;

@@ -18,6 +18,7 @@ import type {
   SemanticClassDetail,
   SemanticGraphOverview,
   SemanticGraphStats,
+  RelationshipSuggestionResult,
 } from "./types";
 
 async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
@@ -193,6 +194,24 @@ export const syncApi = {
   ),
   removeOntologyRelationship: (workspaceKey: string, relationshipKey: string) => requestJson<{ ok: boolean }>(
     `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/relationships/${encodeURIComponent(relationshipKey)}`,
+    { method: "DELETE" },
+  ),
+  relationshipSuggestions: (workspaceKey: string, classUid: string) => requestJson<RelationshipSuggestionResult>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/classes/${encodeURIComponent(classUid)}/relationship-suggestions`,
+  ),
+  applyRelationshipSuggestions: (workspaceKey: string, classUid: string, suggestionIds: string[]) => requestJson<{
+    batchId: string; addedNodeUids: string[]; addedRelationshipKeys: string[]; appliedSuggestionIds: string[];
+  }>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/relationship-suggestions/apply`,
+    {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ classUid, suggestionIds }),
+    },
+  ),
+  undoRelationshipSuggestionBatch: (workspaceKey: string, batchId: string) => requestJson<{
+    batchId: string; removedNodes: number; removedRelationships: number;
+  }>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/relationship-suggestion-batches/${encodeURIComponent(batchId)}`,
     { method: "DELETE" },
   ),
   validateOntologyWorkspace: (workspaceKey: string) => requestJson<OntologyValidation>(

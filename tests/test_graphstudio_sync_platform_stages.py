@@ -10,6 +10,7 @@ from src.graphstudio_sync.deployment import (
     build_deployment_plan,
     release_model_uri,
 )
+from src.graphstudio_sync.publish_ontology import validate_workspace
 
 
 def test_deployment_plan_selects_exact_route_and_only_checks_its_promotion_lane(monkeypatch) -> None:
@@ -70,6 +71,26 @@ def test_apply_deployment_lookup_qualifies_deployment_id_column() -> None:
     source = Path("src/graphstudio_sync/deployment.py").read_text(encoding="utf-8")
 
     assert "WHERE deployment.deployment_id=:deployment_id" in source
+
+
+def test_ontology_validation_warns_for_isolated_context_object(monkeypatch) -> None:
+    from types import SimpleNamespace
+    from src.graphstudio_sync import publish_ontology as ontology_module
+
+    monkeypatch.setattr(ontology_module, "_workspace_row", lambda _repo, _key: {"revision": 7})
+    monkeypatch.setattr(ontology_module, "workspace_graph", lambda _settings, _key: {
+        "nodes": [
+            {"id": "core", "data": {"targetName": "Container", "sourceClass": "Container", "role": "core"}},
+            {"id": "context", "data": {"targetName": "Spec", "sourceClass": "Spec", "role": "context"}},
+        ],
+        "edges": [{"source": "core", "target": "core", "data": {"usage": "published_link"}}],
+        "properties": [],
+    })
+
+    result = validate_workspace(SimpleNamespace(), SimpleNamespace(), "draft")
+
+    assert result["valid"] is True
+    assert {item["code"] for item in result["warnings"]} == {"class.isolated_context"}
 from src.graphstudio_sync.materialization import (
     apply_transform,
     build_field_backfill_patch,

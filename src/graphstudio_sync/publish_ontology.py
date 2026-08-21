@@ -272,6 +272,7 @@ def add_class(
     orphan_policy: str = "quarantine",
     label: str | None = None,
     description: str | None = None,
+    touch_workspace: bool = True,
 ) -> dict[str, Any]:
     _workspace_row(repository, workspace_key)
     if role not in ALLOWED_ROLES or orphan_policy not in ALLOWED_ORPHANS:
@@ -335,7 +336,8 @@ def add_class(
     finally:
         session.close()
         driver.close()
-    _touch_workspace(repository, workspace_key)
+    if touch_workspace:
+        _touch_workspace(repository, workspace_key)
     return {"workspaceKey": workspace_key, "classUid": uid, "targetName": target_name}
 
 
@@ -449,6 +451,8 @@ def add_relationship(
     repository: ControlPlaneRepository,
     workspace_key: str,
     values: dict[str, Any],
+    *,
+    touch_workspace: bool = True,
 ) -> dict[str, Any]:
     usage = str(values.get("usage") or "published_link")
     strength = str(values.get("strength") or "context")
@@ -491,7 +495,8 @@ def add_relationship(
     finally:
         session.close()
         driver.close()
-    _touch_workspace(repository, workspace_key)
+    if touch_workspace:
+        _touch_workspace(repository, workspace_key)
     return {"relationshipKey": relationship_key}
 
 
@@ -507,6 +512,243 @@ def remove_relationship(settings: SyncSettings, repository: ControlPlaneReposito
         session.close()
         driver.close()
     _touch_workspace(repository, workspace_key)
+
+
+def relationship_suggestions(
+    settings: SyncSettings,
+    repository: ControlPlaneRepository,
+    workspace_key: str,
+    class_uid: str,
+    *,
+    max_depth: int = 2,
+) -> dict[str, Any]:
+    """Find reviewable source-ontology paths from one draft class to the draft graph."""
+    _workspace_row(repository, workspace_key)
+    graph = workspace_graph(settings, workspace_key)
+    selected = next((item for item in graph["nodes"] if item["id"] == class_uid), None)
+    if not selected:
+        raise KeyError(class_uid)
+    source_class = selected["data"].get("sourceClass")
+    if not source_class:
+        return {"classUid": class_uid, "sourceClass": None, "items": [], "reason": "custom_class_has_no_source_ontology"}
+
+    current_by_source = {
+        str(item["data"].get("sourceClass") or item["data"].get("targetName")): item
+        for item in graph["nodes"]
+    }
+    existing_names = sorted(name for name in current_by_source if name != source_class)
+    if not existing_names:
+        return {"classUid": class_uid, "sourceClass": source_class, "items": [], "reason": "workspace_has_no_other_source_classes"}
+
+    depth = max(1, min(int(max_depth), 2))
+    driver = _driver(settings)
+    try:
+        with driver.session(database=settings.neo4j_database) as session:
+            rows = session.run(
+                f"""
+                MATCH p=(anchor:OntologyClass {{name:$sourceClass}})-[:ONTOLOGY_RELATION*1..{depth}]-(existing:OntologyClass)
+                WHERE existing.name IN $existingNames
+                  AND all(n IN nodes(p) WHERE single(m IN nodes(p) WHERE m=n))
+                RETURN [n IN nodes(p) | {{
+                           sourceClass:n.name,
+                           label:CASE WHEN trim(coalesce(n.chineseName, ''))='' THEN n.name ELSE n.chineseName END,
+                           description:coalesce(n.description, '')
+                       }}] AS nodes,
+                       [r IN relationships(p) | {{
+                           sourceClass:startNode(r).name,
+                           targetClass:endNode(r).name,
+                           targetName:coalesce(r.name, 'RELATED_TO'),
+                           cardinality:coalesce(r.cardinality, 'many-to-one'),
+                           description:coalesce(r.description, '')
+                       }}] AS relationships,
+                       existing.name AS existingClass
+                LIMIT 100
+                """,
+                sourceClass=source_class,
+                existingNames=existing_names,
+            ).data()
+    finally:
+        driver.close()
+
+    existing_edges = {
+        (
+            next((item["data"].get("sourceClass") or item["data"].get("targetName") for item in graph["nodes"] if item["id"] == edge["source"]), ""),
+            str(edge["data"].get("targetName") or edge["data"].get("relationshipKey")),
+            next((item["data"].get("sourceClass") or item["data"].get("targetName") for item in graph["nodes"] if item["id"] == edge["target"]), ""),
+        )
+        for edge in graph["edges"]
+    }
+    items: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for row in rows:
+        nodes = [_json_value(dict(item)) for item in row["nodes"]]
+        relationships = [_json_value(dict(item)) for item in row["relationships"]]
+        signature = "|".join(
+            f"{item['sourceClass']}::{item['targetName']}::{item['targetClass']}"
+            for item in relationships
+        )
+        if not signature or signature in seen:
+            continue
+        seen.add(signature)
+        missing_nodes = [item for item in nodes if item["sourceClass"] not in current_by_source]
+        missing_relationships = [
+            item for item in relationships
+            if (item["sourceClass"], item["targetName"], item["targetClass"]) not in existing_edges
+        ]
+        if not missing_relationships:
+            continue
+        existing = current_by_source.get(str(row["existingClass"]))
+        bridge_names = {item["sourceClass"] for item in missing_nodes}
+        score = 100 - 25 * (len(relationships) - 1)
+        if existing and existing["data"].get("role") == "core":
+            score += 10
+        if "WorkflowStep" in bridge_names:
+            score += 20
+        if any(item["targetName"] == "HAS_SPEC" for item in relationships):
+            score += 8
+        if any(item["targetName"] == "HAS_FIRST_STEP" for item in relationships):
+            score += 15
+        elif any(item["targetName"] == "HAS_SUB_WORKFLOW" for item in relationships):
+            score += 5
+        proposal_id = _hash([workspace_key, class_uid, signature])[:24]
+        items.append({
+            "id": proposal_id,
+            "anchorClass": source_class,
+            "existingClass": row["existingClass"],
+            "nodes": nodes,
+            "relationships": relationships,
+            "missingNodes": missing_nodes,
+            "missingRelationships": missing_relationships,
+            "score": score,
+            "summary": f"新增 {len(missing_nodes)} 个对象、{len(missing_relationships)} 条关系",
+        })
+    items.sort(key=lambda item: (-item["score"], len(item["missingNodes"]), item["existingClass"], item["id"]))
+    for index, item in enumerate(items):
+        item["recommended"] = index == 0
+    return {"classUid": class_uid, "sourceClass": source_class, "items": items[:30], "reason": None}
+
+
+def apply_relationship_suggestions(
+    settings: SyncSettings,
+    repository: ControlPlaneRepository,
+    workspace_key: str,
+    class_uid: str,
+    suggestion_ids: list[str],
+) -> dict[str, Any]:
+    """Apply selected, server-recomputed proposals and tag them as one undoable batch."""
+    proposal = relationship_suggestions(settings, repository, workspace_key, class_uid, max_depth=2)
+    selected = [item for item in proposal["items"] if item["id"] in set(suggestion_ids)]
+    if not selected:
+        raise ValueError("请选择至少一条仍然有效的关联建议")
+    batch_id = str(uuid.uuid4())
+    graph = workspace_graph(settings, workspace_key)
+    by_source = {
+        str(item["data"].get("sourceClass") or item["data"].get("targetName")): item["id"]
+        for item in graph["nodes"]
+    }
+    existing_edges = {
+        (edge["source"], str(edge["data"].get("targetName") or edge["data"].get("relationshipKey")), edge["target"])
+        for edge in graph["edges"]
+    }
+    added_nodes: list[str] = []
+    added_relationships: list[str] = []
+    try:
+        for item in selected:
+            for node in item["missingNodes"]:
+                name = str(node["sourceClass"])
+                if name in by_source:
+                    continue
+                result = add_class(
+                    settings, repository, workspace_key=workspace_key,
+                    source_class=name, target_name=name, role="context",
+                    orphan_policy="quarantine", touch_workspace=False,
+                )
+                by_source[name] = result["classUid"]
+                added_nodes.append(result["classUid"])
+            for relation in item["missingRelationships"]:
+                source_uid = by_source.get(str(relation["sourceClass"]))
+                target_uid = by_source.get(str(relation["targetClass"]))
+                edge_key = (source_uid, str(relation["targetName"]), target_uid)
+                if not source_uid or not target_uid or edge_key in existing_edges:
+                    continue
+                result = add_relationship(settings, repository, workspace_key, {
+                    "sourceUid": source_uid, "targetUid": target_uid,
+                    "sourceRelationship": relation["targetName"],
+                    "targetName": relation["targetName"],
+                    "cardinality": relation.get("cardinality") or "many-to-one",
+                    "strength": "context", "usage": "published_link",
+                    "description": relation.get("description") or "",
+                }, touch_workspace=False)
+                added_relationships.append(result["relationshipKey"])
+                existing_edges.add(edge_key)
+    except Exception:
+        for key in reversed(added_relationships):
+            remove_relationship(settings, repository, workspace_key, key)
+        for uid in reversed(added_nodes):
+            remove_class(settings, repository, workspace_key, uid)
+        raise
+
+    driver, session = _publish_session(settings)
+    try:
+        session.run(
+            "MATCH (c:PublishClass {workspaceKey:$workspaceKey}) WHERE c.uid IN $uids SET c.suggestionBatchId=$batchId",
+            workspaceKey=workspace_key, uids=added_nodes, batchId=batch_id,
+        ).consume()
+        session.run(
+            "MATCH ()-[r:PUBLISH_RELATION {workspaceKey:$workspaceKey}]->() WHERE r.relationshipKey IN $keys SET r.suggestionBatchId=$batchId",
+            workspaceKey=workspace_key, keys=added_relationships, batchId=batch_id,
+        ).consume()
+    finally:
+        session.close()
+        driver.close()
+    _touch_workspace(repository, workspace_key)
+    return {
+        "batchId": batch_id, "addedNodeUids": added_nodes,
+        "addedRelationshipKeys": added_relationships,
+        "appliedSuggestionIds": [item["id"] for item in selected],
+    }
+
+
+def undo_relationship_suggestion_batch(
+    settings: SyncSettings,
+    repository: ControlPlaneRepository,
+    workspace_key: str,
+    batch_id: str,
+) -> dict[str, Any]:
+    """Undo relations from a suggestion batch and remove now-unconnected batch nodes."""
+    _workspace_row(repository, workspace_key)
+    driver, session = _publish_session(settings)
+    try:
+        relation_record = session.run(
+            """
+            MATCH ()-[r:PUBLISH_RELATION {workspaceKey:$workspaceKey, suggestionBatchId:$batchId}]->()
+            WITH collect(r) AS items, count(r) AS removed
+            FOREACH (item IN items | DELETE item)
+            RETURN removed
+            """,
+            workspaceKey=workspace_key, batchId=batch_id,
+        ).single()
+        node_record = session.run(
+            """
+            MATCH (c:PublishClass {workspaceKey:$workspaceKey, suggestionBatchId:$batchId})
+            WHERE NOT EXISTS { MATCH (c)-[:PUBLISH_RELATION]-() }
+            OPTIONAL MATCH (c)-[:HAS_PROPERTY]->(p:PublishProperty)
+            WITH collect(DISTINCT c) AS classes, collect(DISTINCT p) AS properties
+            FOREACH (property IN properties | DETACH DELETE property)
+            FOREACH (class IN classes | DETACH DELETE class)
+            RETURN size(classes) AS removed
+            """,
+            workspaceKey=workspace_key, batchId=batch_id,
+        ).single()
+    finally:
+        session.close()
+        driver.close()
+    _touch_workspace(repository, workspace_key)
+    return {
+        "batchId": batch_id,
+        "removedRelationships": int(relation_record["removed"] if relation_record else 0),
+        "removedNodes": int(node_record["removed"] if node_record else 0),
+    }
 
 
 def workspace_graph(settings: SyncSettings, workspace_key: str) -> dict[str, Any]:
@@ -580,8 +822,12 @@ def validate_workspace(settings: SyncSettings, repository: ControlPlaneRepositor
         degree[edge["target"]] = degree.get(edge["target"], 0) + 1
     if len(nodes) > 1:
         for item in nodes:
-            if item["data"].get("role") == "core" and degree.get(item["id"], 0) == 0:
+            if degree.get(item["id"], 0) != 0 or item["data"].get("role") == "excluded":
+                continue
+            if item["data"].get("role") == "core":
                 errors.append({"code": "class.isolated_core", "message": f"核心对象 {item['data'].get('targetName')} 没有上下文关联"})
+            else:
+                warnings.append({"code": "class.isolated_context", "message": f"发布对象 {item['data'].get('targetName')} 尚未接入当前图谱"})
     for item in nodes:
         if not item["data"].get("sourceClass"):
             warnings.append({"code": "class.custom_without_source", "message": f"自定义对象 {item['data'].get('targetName')} 尚无实例来源"})

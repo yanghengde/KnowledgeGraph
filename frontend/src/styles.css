@@ -304,6 +304,22 @@ button, input, textarea { font: inherit; }
 .publish-preview-relations button span { grid-row: 1 / 3; align-self: center; color: #56cdb7; font-size: 8px; }
 .publish-preview-relations button strong { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .publish-preview-relations button small { color: #718d94; font-size: 8px; }
+.relationship-discovery-button { margin: 12px 0; }
+.relationship-batch-alert { margin-bottom: 12px; }
+.relationship-suggestion-drawer .ant-drawer-body { padding-top: 16px; }
+.relationship-suggestion-list { display: grid; gap: 10px; margin-top: 16px; }
+.relationship-suggestion-card { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 14px; border: 1px solid rgba(110, 164, 174, .18); border-radius: 10px; background: rgba(255,255,255,.018); cursor: pointer; transition: border-color .18s ease, background-color .18s ease; }
+.relationship-suggestion-card:hover,
+.relationship-suggestion-card.selected { border-color: rgba(40, 215, 181, .5); background: rgba(40, 215, 181, .045); }
+.relationship-suggestion-card > .ant-checkbox-wrapper { align-self: start; margin-top: 2px; }
+.relationship-suggestion-content { min-width: 0; }
+.relationship-suggestion-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.relationship-suggestion-heading > strong { font-size: 12px; }
+.relationship-path { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: 13px; padding: 10px; border-radius: 8px; background: rgba(4, 19, 27, .46); font-size: 10px; }
+.relationship-path strong { color: #dceced; }
+.relationship-path span { color: #48cdb6; font-size: 9px; }
+.relationship-new-nodes { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.relationship-new-nodes > span { color: #718d94; font-size: 9px; }
 .publish-diff-view { display: grid; gap: 14px; }
 .publish-diff-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .publish-diff-metrics .ant-card-body { display: flex; align-items: center; justify-content: space-between; }
@@ -523,6 +539,13 @@ html[data-theme="light"] .publish-ontology-legend,
 html[data-theme="light"] .publish-ontology-storage-badge { border-color: #d5dfe4; color: #657d86; background: rgba(255,255,255,.88); }
 html[data-theme="light"] .publish-ontology-canvas-overlay { background: rgba(248,251,252,.88); }
 html[data-theme="light"] .publish-preview-relations button { border-color: #d4dfe3; color: #334e57; background: #fafcfc; }
+html[data-theme="light"] .relationship-suggestion-card { border-color: #d7e1e5; background: #fafcfc; }
+html[data-theme="light"] .relationship-suggestion-card:hover,
+html[data-theme="light"] .relationship-suggestion-card.selected { border-color: rgba(8, 112, 138, .45); background: rgba(8, 112, 138, .045); }
+html[data-theme="light"] .relationship-path { background: #f0f5f7; }
+html[data-theme="light"] .relationship-path strong { color: #263f48; }
+html[data-theme="light"] .relationship-path span { color: #087d82; }
+html[data-theme="light"] .relationship-new-nodes > span { color: #617982; }
 html[data-theme="light"] .publish-diff-list section button { border-color: #d8e2e5; color: #405a63; background: #fafcfc; }
 html[data-theme="light"] .ontology-workspace-details .ant-descriptions-item-label,
 html[data-theme="light"] .ontology-class-name small,

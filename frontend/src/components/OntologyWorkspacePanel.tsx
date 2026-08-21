@@ -5,17 +5,17 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Alert, App, Button, Card, Descriptions, Empty, Form, Input, Modal, Popconfirm, Progress,
+  Alert, App, Button, Card, Checkbox, Descriptions, Drawer, Empty, Form, Input, Modal, Popconfirm, Progress,
   Segmented, Select, Space, Steps, Switch, Table, Tag, Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { syncApi } from "../api";
 import { PublishOntologyCanvas } from "./PublishOntologyCanvas";
 import { useThemeMode } from "../theme";
 import type {
   OntologyClass, OntologyGovernanceStatus, OntologyProperty, OntologyRelease,
-  OntologyValidation, SemanticGraphOverview,
+  OntologyValidation, RelationshipSuggestion, RelationshipSuggestionResult, SemanticGraphOverview,
 } from "../types";
 
 type View = "workspace" | "validation" | "versions";
@@ -61,6 +61,10 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
   const [createClassOpen, setCreateClassOpen] = useState(false);
   const [createPropertyOpen, setCreatePropertyOpen] = useState(false);
   const [createRelationshipOpen, setCreateRelationshipOpen] = useState(false);
+  const [suggestionOpen, setSuggestionOpen] = useState(false);
+  const [suggestionResult, setSuggestionResult] = useState<RelationshipSuggestionResult | null>(null);
+  const [selectedSuggestionIds, setSelectedSuggestionIds] = useState<string[]>([]);
+  const [lastSuggestionBatch, setLastSuggestionBatch] = useState<{ id: string; nodes: number; relationships: number } | null>(null);
   const [classForm] = Form.useForm();
   const [propertyForm] = Form.useForm();
   const [relationshipForm] = Form.useForm();
@@ -208,6 +212,42 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
     onSuccess: async (count) => { message.success(count ? `已补齐 ${count} 条模型内关系` : "模型内关系已经完整"); await refresh(); },
     onError: (error: Error) => message.error(error.message),
   });
+  const discoverRelationships = useMutation({
+    mutationFn: (classUid: string) => syncApi.relationshipSuggestions(workspace!.workspace_key, classUid),
+    onSuccess: (result) => {
+      setSuggestionResult(result);
+      setSelectedSuggestionIds(result.items.filter((item) => item.recommended).map((item) => item.id));
+      setSuggestionOpen(true);
+    },
+    onError: (error: Error) => message.error(error.message),
+  });
+  const applySuggestions = useMutation({
+    mutationFn: () => syncApi.applyRelationshipSuggestions(
+      workspace!.workspace_key,
+      suggestionResult!.classUid,
+      selectedSuggestionIds,
+    ),
+    onSuccess: async (result) => {
+      setLastSuggestionBatch({
+        id: result.batchId,
+        nodes: result.addedNodeUids.length,
+        relationships: result.addedRelationshipKeys.length,
+      });
+      setSuggestionOpen(false);
+      message.success(`已添加 ${result.addedNodeUids.length} 个桥接对象、${result.addedRelationshipKeys.length} 条关系`);
+      await refresh();
+    },
+    onError: (error: Error) => message.error(error.message),
+  });
+  const undoSuggestions = useMutation({
+    mutationFn: (batchId: string) => syncApi.undoRelationshipSuggestionBatch(workspace!.workspace_key, batchId),
+    onSuccess: async (result) => {
+      message.success(`已撤销 ${result.removedNodes} 个对象、${result.removedRelationships} 条关系`);
+      setLastSuggestionBatch(null);
+      await refresh();
+    },
+    onError: (error: Error) => message.error(error.message),
+  });
   const removeRelationship = useMutation({
     mutationFn: (key: string) => syncApi.removeOntologyRelationship(workspace!.workspace_key, key),
     onSuccess: async () => { message.success("关系已移出发布模型"); await refresh(); },
@@ -260,6 +300,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
     <Card className="publish-ontology-view-switch" styles={{ body: { padding: 10 } }}><Segmented block value={modelView} onChange={(value) => setModelView(value as typeof modelView)} options={[{ value: "preview", label: "发布本体图" }, { value: "scope", label: "范围与属性" }, { value: "diff", label: `版本差异 ${modelDiff.added.length + modelDiff.removed.length + modelDiff.modified.length + modelDiff.addedRelationships.length + modelDiff.removedRelationships.length}` }]} /></Card>
 
     {modelView === "preview" && <>
+      {lastSuggestionBatch && <Alert className="relationship-batch-alert" type="success" showIcon message="刚刚应用了一组关联建议" description={`新增 ${lastSuggestionBatch.nodes} 个桥接对象、${lastSuggestionBatch.relationships} 条关系；你可以逐项检查，也可以撤销本次添加。`} action={<Popconfirm title="撤销刚刚添加的关联？" description="仅移除本批次新增的关系以及没有其他关系的桥接对象。" onConfirm={() => undoSuggestions.mutate(lastSuggestionBatch.id)}><Button danger loading={undoSuggestions.isPending}>撤销本次补齐</Button></Popconfirm>} />}
       <div className="publish-ontology-status-strip">
         <div><small>发布本体库</small><strong>{governance?.database || "graphstudio-model"}</strong></div>
         <span className="publish-flow-arrow">→</span><div><small>工作区草稿</small><strong>Rev. {workspace?.revision}</strong></div>
@@ -278,6 +319,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
             <Table className="publish-preview-property-table" rowKey="uid" size="small" dataSource={selectedAllProperties.filter((item) => item.published !== false)} pagination={false} scroll={{ y: 245 }} columns={[{ title: "属性", dataIndex: "targetName", render: (value, item) => <div className="ontology-property-name"><strong>{value}</strong><small>{item.sourceName}</small></div> }, { title: "类型", dataIndex: "dataType", width: 100, render: (value) => <Tag>{value}</Tag> }, { title: "必填", dataIndex: "required", width: 58, align: "center", render: (value) => value ? <CheckCircleFilled className="ontology-valid-icon" /> : "—" }]} />
             <Typography.Text strong>发布关系</Typography.Text>
             <div className="publish-preview-relations">{incidentRelationships.length ? incidentRelationships.map((edge) => <button type="button" key={edge.id} onClick={() => setSelectedId(edge.source === selectedId ? edge.target : edge.source)}><span>{edge.source === selectedId ? "下游" : "上游"}</span><strong>{edge.data.targetName || edge.data.relationshipKey}</strong><small>{graph?.nodes.find((node) => node.id === (edge.source === selectedId ? edge.target : edge.source))?.data.targetName}</small></button>) : <Typography.Text type="secondary">当前对象暂无发布关系</Typography.Text>}</div>
+            <Button block icon={<BranchesOutlined />} loading={discoverRelationships.isPending} disabled={!selectedNode.data.sourceClass} onClick={() => discoverRelationships.mutate(selectedId)}>发现与现有图谱的关联</Button>
           </>}
         </Card>
       </div>
@@ -287,7 +329,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
       <div className="ontology-workspace-grid">
         <Card className="ontology-scope-card" title={<Space><ApartmentOutlined /><span>当前模型对象</span></Space>} extra={<Space><Tag>{filteredNodes.length} 个</Tag><Button size="small" icon={<PlusOutlined />} onClick={() => setCreateClassOpen(true)}>新建</Button></Space>}><Input allowClear prefix={<SearchOutlined />} placeholder="搜索当前模型对象" value={search} onChange={(event) => setSearch(event.target.value)} /><Table rowKey="id" size="small" columns={classColumns} dataSource={filteredNodes} pagination={false} scroll={{ x: 620, y: 520 }} onRow={(item) => ({ onClick: () => setSelectedId(item.id) })} rowClassName={(item) => item.id === selectedId ? "selected-row" : ""} /></Card>
         <Card className="ontology-object-editor" title={selectedNode ? <div className="semantic-detail-title"><span>{selectedNode.data.targetName}</span><small>{selectedNode.data.sourceClass || "自定义发布对象"}</small></div> : "对象配置"} extra={selectedNode && <Space><Tag color={roleLabels[selectedNode.data.role]?.color}>{roleLabels[selectedNode.data.role]?.text}</Tag><Button size="small" icon={<PlusOutlined />} onClick={() => setCreatePropertyOpen(true)}>新增属性</Button></Space>}>
-          {!selectedNode ? <Empty description="选择左侧对象进行配置" /> : <><Descriptions column={2} size="small"><Descriptions.Item label="来源">{selectedNode.data.origin}</Descriptions.Item><Descriptions.Item label="孤立策略">{selectedNode.data.orphanPolicy}</Descriptions.Item></Descriptions><Input allowClear prefix={<SearchOutlined />} placeholder="搜索对象属性" value={propertySearch} onChange={(event) => setPropertySearch(event.target.value)} /><Table rowKey="uid" size="small" columns={propertyColumns} dataSource={selectedProperties} pagination={false} scroll={{ x: 500, y: 300 }} /><div className="ontology-suggestion-block"><div><Typography.Text strong>一跳依赖建议</Typography.Text><Typography.Text type="secondary">加入必要上下游对象后，再补齐模型内关系。</Typography.Text></div>{suggestions.length ? <><div className="ontology-suggestion-tags">{suggestions.map((item) => <Button size="small" key={item.id} icon={<PlusOutlined />} loading={addClass.isPending && addClass.variables === item.id} onClick={() => addClass.mutate(item.id)}>{item.data.chineseName || item.id}</Button>)}</div><Button type="link" loading={addAllSuggestions.isPending} onClick={() => addAllSuggestions.mutate()}>全部加入当前一跳</Button></> : <Alert type="success" showIcon message="当前对象的一跳依赖均已纳入模型" />}</div></>}
+          {!selectedNode ? <Empty description="选择左侧对象进行配置" /> : <><Descriptions column={2} size="small"><Descriptions.Item label="来源">{selectedNode.data.origin}</Descriptions.Item><Descriptions.Item label="孤立策略">{selectedNode.data.orphanPolicy}</Descriptions.Item></Descriptions><Button className="relationship-discovery-button" type="primary" ghost block icon={<BranchesOutlined />} loading={discoverRelationships.isPending} disabled={!selectedNode.data.sourceClass} onClick={() => discoverRelationships.mutate(selectedId)}>发现与现有图谱的关联</Button><Input allowClear prefix={<SearchOutlined />} placeholder="搜索对象属性" value={propertySearch} onChange={(event) => setPropertySearch(event.target.value)} /><Table rowKey="uid" size="small" columns={propertyColumns} dataSource={selectedProperties} pagination={false} scroll={{ x: 500, y: 300 }} /><div className="ontology-suggestion-block"><div><Typography.Text strong>一跳依赖建议</Typography.Text><Typography.Text type="secondary">加入必要上下游对象后，再补齐模型内关系。</Typography.Text></div>{suggestions.length ? <><div className="ontology-suggestion-tags">{suggestions.map((item) => <Button size="small" key={item.id} icon={<PlusOutlined />} loading={addClass.isPending && addClass.variables === item.id} onClick={() => addClass.mutate(item.id)}>{item.data.chineseName || item.id}</Button>)}</div><Button type="link" loading={addAllSuggestions.isPending} onClick={() => addAllSuggestions.mutate()}>全部加入当前一跳</Button></> : <Alert type="success" showIcon message="当前对象的一跳依赖均已纳入模型" />}</div></>}
         </Card>
       </div>
       <Card title={<Space><LinkOutlined /><span>当前模型关系</span></Space>} extra={<Space><Tag>{graph?.edges.length || 0} 条</Tag><Button size="small" icon={<PlusOutlined />} disabled={(graph?.nodes.length || 0) < 2} onClick={openRelationshipEditor}>新建关系</Button></Space>}><Table rowKey="id" size="small" dataSource={graph?.edges || []} pagination={false} columns={[{ title: "源对象", dataIndex: "source", render: (value) => graph?.nodes.find((node) => node.id === value)?.data.targetName || value }, { title: "关系", key: "relation", render: (_, item) => <Tag color="cyan">{item.data.targetName || item.data.relationshipKey}</Tag> }, { title: "目标对象", dataIndex: "target", render: (value) => graph?.nodes.find((node) => node.id === value)?.data.targetName || value }, { title: "基数", dataIndex: ["data", "cardinality"], width: 130 }, { title: "操作", key: "action", width: 80, render: (_, item) => <Popconfirm title="移出该发布关系？" onConfirm={() => removeRelationship.mutate(item.data.relationshipKey)}><Button type="text" danger icon={<DeleteOutlined />} /></Popconfirm> }]} /></Card>
@@ -327,6 +369,29 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
         <Form.Item name="description" label="业务说明"><Input.TextArea rows={2} placeholder="说明该关系在制造业务中的含义" /></Form.Item>
       </Form>
     </Modal>
+    <Drawer
+      className="relationship-suggestion-drawer"
+      title={`为 ${suggestionResult?.sourceClass || selectedNode?.data.targetName || "当前对象"} 发现关联`}
+      width={680}
+      open={suggestionOpen}
+      onClose={() => !applySuggestions.isPending && setSuggestionOpen(false)}
+      extra={<Space><Typography.Text type="secondary">已选 {selectedSuggestionIds.length} 条路径</Typography.Text><Button type="primary" icon={<BranchesOutlined />} loading={applySuggestions.isPending} disabled={!selectedSuggestionIds.length} onClick={() => applySuggestions.mutate()}>应用选中关联</Button></Space>}
+    >
+      <Alert type="info" showIcon message="先预览，再写入草稿" description="建议只来自制造语义主图中的已有关系。路径中标记为“新增”的桥接对象会随关系一起加入，应用后仍可逐项删除或整批撤销。" />
+      <div className="relationship-suggestion-list">
+        {suggestionResult?.items.length ? suggestionResult.items.map((item) => {
+          const checked = selectedSuggestionIds.includes(item.id);
+          return <label className={`relationship-suggestion-card ${checked ? "selected" : ""}`} key={item.id}>
+            <Checkbox checked={checked} onChange={(event) => setSelectedSuggestionIds((values) => event.target.checked ? [...values, item.id] : values.filter((value) => value !== item.id))} />
+            <div className="relationship-suggestion-content">
+              <div className="relationship-suggestion-heading"><strong>{item.anchorClass} 接入 {item.existingClass}</strong><Space size={6}>{item.recommended && <Tag color="cyan">推荐</Tag>}<Tag>{item.summary}</Tag></Space></div>
+              <div className="relationship-path">{formatSuggestionPath(item)}</div>
+              {!!item.missingNodes.length && <div className="relationship-new-nodes"><span>将新增桥接对象</span>{item.missingNodes.map((node) => <Tag color="geekblue" key={node.sourceClass}>{node.label || node.sourceClass}</Tag>)}</div>}
+            </div>
+          </label>;
+        }) : <Empty description={suggestionResult?.reason === "custom_class_has_no_source_ontology" ? "自定义对象没有源本体，无法自动发现关系" : "未找到通往当前草稿对象的两跳内关系路径"} />}
+      </div>
+    </Drawer>
   </div>;
 
   if (view === "validation") {
@@ -360,6 +425,18 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
 function formatRelationshipDiff(value: string) {
   const [source, relation, target] = value.split("\0");
   return `${source} — ${relation} → ${target}`;
+}
+
+function formatSuggestionPath(item: RelationshipSuggestion) {
+  const path: ReactNode[] = [];
+  if (item.nodes[0]) path.push(<strong key="node-0">{item.nodes[0].label || item.nodes[0].sourceClass}</strong>);
+  item.relationships.forEach((relation, index) => {
+    const current = item.nodes[index]?.sourceClass;
+    const next = item.nodes[index + 1];
+    path.push(<span key={`relation-${index}`}>{relation.sourceClass === current ? `— ${relation.targetName} →` : `← ${relation.targetName} —`}</span>);
+    if (next) path.push(<strong key={`node-${index + 1}`}>{next.label || next.sourceClass}</strong>);
+  });
+  return path;
 }
 
 function DiffGroup({ title, color, items }: { title: string; color: string; items: string[] }) {
