@@ -5,6 +5,7 @@ from src.graphstudio_sync.deployment import (
     _catalog_entry,
     _ensure_dataset,
     _ensure_model,
+    _resolve_previous_layer,
     _requires_dataset_replacement,
     _set_layer_enabled,
     build_deployment_plan,
@@ -71,6 +72,38 @@ def test_apply_deployment_lookup_qualifies_deployment_id_column() -> None:
     source = Path("src/graphstudio_sync/deployment.py").read_text(encoding="utf-8")
 
     assert "WHERE deployment.deployment_id=:deployment_id" in source
+
+
+def test_previous_layer_resolution_allows_first_publish() -> None:
+    assert _resolve_previous_layer({}, "http://example.test/graphmart/dev") == (
+        None, None, False,
+    )
+
+
+def test_previous_layer_resolution_keeps_layer_for_same_graphmart() -> None:
+    deployment = {
+        "previous_layer_uri": "http://example.test/layer/blue",
+        "previous_validation_plan": {
+            "graphmartUri": "http://example.test/graphmart/dev/",
+        },
+    }
+
+    assert _resolve_previous_layer(
+        deployment, "http://example.test/graphmart/dev",
+    ) == ("http://example.test/layer/blue", None, False)
+
+
+def test_previous_layer_resolution_skips_layer_from_another_graphmart() -> None:
+    deployment = {
+        "previous_layer_uri": "http://example.test/layer/blue",
+        "previous_validation_plan": {
+            "graphmartUri": "http://example.test/graphmart/old",
+        },
+    }
+
+    assert _resolve_previous_layer(
+        deployment, "http://example.test/graphmart/dev",
+    ) == (None, "http://example.test/layer/blue", True)
 
 
 def test_ontology_validation_warns_for_isolated_context_object(monkeypatch) -> None:

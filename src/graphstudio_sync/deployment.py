@@ -84,6 +84,31 @@ def _same_graphmart(left: str | None, right: str | None) -> bool:
     return bool(left and right and left.rstrip("/") == right.rstrip("/"))
 
 
+def _resolve_previous_layer(
+    deployment: dict[str, Any], graphmart_uri: str,
+) -> tuple[str | None, str | None, bool]:
+    """Keep a previous Layer only when it belongs to the current Graphmart.
+
+    Returns ``(previous_layer_uri, skipped_layer_uri, target_mismatch)``.  A
+    legacy deployment without a target snapshot is retained and is verified
+    against Graph Studio later, where older servers can report that the Layer
+    is absent without blocking a fresh blue/green lineage.
+    """
+    previous_layer_uri = deployment.get("previous_layer_uri")
+    previous_target = _deployment_graphmart_uri({
+        "validation_plan": deployment.get("previous_validation_plan"),
+        "validation_result": deployment.get("previous_validation_result"),
+    })
+    target_mismatch = bool(
+        previous_layer_uri
+        and previous_target
+        and not _same_graphmart(previous_target, graphmart_uri)
+    )
+    if target_mismatch:
+        return None, previous_layer_uri, True
+    return previous_layer_uri, None, False
+
+
 def deployment_status(repository: ControlPlaneRepository, profile_key: str) -> dict[str, Any]:
     with repository.engine.connect() as connection:
         targets = [dict(row) for row in connection.execute(
@@ -1134,21 +1159,9 @@ def apply_deployment(
     base = settings.graphstudio_base_url
     graphmart_uri = deployment["graphmart_uri"]
     encoded_graphmart = quote(graphmart_uri, safe="")
-    previous_target = _deployment_graphmart_uri({
-        "validation_plan": deployment.get("previous_validation_plan"),
-        "validation_result": deployment.get("previous_validation_result"),
-    })
-    previous_target_mismatch = bool(
-        previous_layer_uri and previous_target
-        and not _same_graphmart(previous_target, graphmart_uri)
+    previous_layer_uri, skipped_previous_layer_uri, previous_target_mismatch = (
+        _resolve_previous_layer(deployment, graphmart_uri)
     )
-    skipped_previous_layer_uri = previous_layer_uri if previous_target_mismatch else None
-    if previous_target_mismatch:
-        # The route now points at a different Graphmart.  The previous Layer is
-        # not part of this target and cannot participate in its blue/green
-        # switch.  Start a fresh target-local lineage while retaining the old
-        # deployment and Layer for audit/rollback in its original Graphmart.
-        previous_layer_uri = None
     with repository.engine.begin() as connection:
         connection.execute(
             text(
@@ -1164,7 +1177,6 @@ def apply_deployment(
     dataset_uri = deployment.get("dataset_uri")
     layer_uri = deployment.get("layer_uri")
     step_uri = deployment.get("step_uri")
-    previous_layer_uri = deployment.get("previous_layer_uri")
     layer_switched = False
     try:
         model_uri = validation_plan["modelUri"]
