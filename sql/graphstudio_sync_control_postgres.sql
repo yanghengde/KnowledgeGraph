@@ -921,6 +921,7 @@ CREATE TABLE IF NOT EXISTS graphsync.curated_release (
     object_count          bigint NOT NULL DEFAULT 0,
     relationship_count    bigint NOT NULL DEFAULT 0,
     quarantine_count      bigint NOT NULL DEFAULT 0,
+    scope_exclusion_count bigint NOT NULL DEFAULT 0,
     content_hash          text,
     summary               jsonb NOT NULL DEFAULT '{}'::jsonb,
     error                 jsonb,
@@ -1055,6 +1056,18 @@ CREATE TABLE IF NOT EXISTS graphsync.object_version (
     PRIMARY KEY (release_id, contract_key, object_uri)
 );
 
+-- Existing releases keep the original source record for audit while the
+-- publication view excludes records outside the approved business scope.
+ALTER TABLE graphsync.object_version
+    DROP CONSTRAINT IF EXISTS object_version_record_status_check;
+ALTER TABLE graphsync.object_version
+    ADD CONSTRAINT object_version_record_status_check CHECK (record_status IN (
+        'active', 'out_of_scope', 'quarantined', 'deleted'
+    ));
+
+ALTER TABLE graphsync.curated_release
+    ADD COLUMN IF NOT EXISTS scope_exclusion_count bigint NOT NULL DEFAULT 0;
+
 CREATE INDEX IF NOT EXISTS ix_curated_object_lookup
     ON graphsync.object_version (profile_key, contract_key, object_uri);
 CREATE INDEX IF NOT EXISTS ix_curated_object_source_key
@@ -1079,6 +1092,28 @@ CREATE TABLE IF NOT EXISTS graphsync.relationship_version (
 
 CREATE INDEX IF NOT EXISTS ix_curated_relationship_target
     ON graphsync.relationship_version (release_id, target_contract_key, target_object_uri);
+
+CREATE TABLE IF NOT EXISTS graphsync.row_scope_policy (
+    policy_key            text PRIMARY KEY,
+    profile_key           text NOT NULL REFERENCES graphsync.graph_profile(profile_key) ON DELETE CASCADE,
+    source_contract_key   text NOT NULL REFERENCES graphsync.data_contract(contract_key) ON DELETE CASCADE,
+    anchor_contract_key   text NOT NULL REFERENCES graphsync.data_contract(contract_key) ON DELETE CASCADE,
+    source_columns        jsonb NOT NULL,
+    anchor_columns        jsonb NOT NULL,
+    action                text NOT NULL DEFAULT 'out_of_scope' CHECK (action='out_of_scope'),
+    reason                text NOT NULL,
+    enabled               boolean NOT NULL DEFAULT true,
+    version               integer NOT NULL DEFAULT 1 CHECK (version > 0),
+    config                jsonb NOT NULL DEFAULT '{}'::jsonb,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    updated_at            timestamptz NOT NULL DEFAULT now(),
+    CHECK (jsonb_typeof(source_columns)='array' AND jsonb_array_length(source_columns) > 0),
+    CHECK (jsonb_typeof(anchor_columns)='array' AND jsonb_array_length(anchor_columns) > 0),
+    CHECK (jsonb_array_length(source_columns)=jsonb_array_length(anchor_columns))
+);
+
+CREATE INDEX IF NOT EXISTS ix_graphsync_row_scope_profile
+    ON graphsync.row_scope_policy (profile_key, enabled, source_contract_key);
 
 -- Source ingestion is committed independently from Graph Studio delivery.
 -- A baseline snapshot may have no incremental sync_run, so the immutable
@@ -1729,6 +1764,10 @@ INSERT INTO graphsync.schema_version (version, description)
 VALUES (19, 'Leased data-lane scheduling, audited retries and worker heartbeat')
 ON CONFLICT (version) DO NOTHING;
 
+INSERT INTO graphsync.schema_version (version, description)
+VALUES (20, 'Audited row scope isolation for business graph publication')
+ON CONFLICT (version) DO NOTHING;
+
 INSERT INTO graphsync.data_sync_schedule
     (profile_key, job_name, enabled, interval_minutes, max_attempts,
      retry_backoff_seconds, next_run_at)
@@ -1745,6 +1784,20 @@ WHERE profile_key='opcenter2607-core'
   AND source_contract_key='opcenter2607-core:workflowstep:v1'
   AND target_contract_key='opcenter2607-core:spec:v1'
   AND relationship_name='HAS_SPEC';
+
+INSERT INTO graphsync.row_scope_policy
+    (policy_key, profile_key, source_contract_key, anchor_contract_key,
+     source_columns, anchor_columns, reason, config)
+VALUES
+    ('opcenter2607-core:workflowstep:manufacturing-workflow:v1',
+     'opcenter2607-core',
+     'opcenter2607-core:workflowstep:v1',
+     'opcenter2607-core:workflow:v1',
+     '["WorkflowId"]'::jsonb,
+     '["WorkflowId"]'::jsonb,
+     'WorkflowStep belongs to a Camstar internal workflow outside the governed manufacturing Workflow set',
+     '{"labelZh":"隔离 Camstar 内部部署审批步骤","generatedBy":"stage4-scope-governance"}'::jsonb)
+ON CONFLICT (policy_key) DO NOTHING;
 
 INSERT INTO graphsync.menu_item
     (menu_key, label_zh, label_en, route, icon, sort_order, enabled, capability)

@@ -53,7 +53,8 @@ def data_sync_status(
                 """
                 SELECT release.release_id, release.release_no, release.status,
                        release.object_count, release.relationship_count,
-                       release.quarantine_count, release.started_at,
+                       release.quarantine_count, release.scope_exclusion_count,
+                       release.started_at,
                        release.finished_at
                 FROM graphsync.curated_release_activation active
                 JOIN graphsync.curated_release release
@@ -67,7 +68,8 @@ def data_sync_status(
             text(
                 """
                 SELECT object.class_name,
-                       count(*) FILTER (WHERE object.record_status <> 'deleted') AS object_count,
+                       count(*) FILTER (WHERE object.record_status='active') AS object_count,
+                       count(*) FILTER (WHERE object.record_status='out_of_scope') AS scope_exclusion_count,
                        count(*) FILTER (WHERE object.record_status='quarantined') AS quarantine_count
                 FROM graphsync.curated_release_activation active
                 JOIN graphsync.object_version object
@@ -157,6 +159,24 @@ def data_sync_status(
                 """
             )
         ).mappings().one_or_none()
+        scope_policies = connection.execute(
+            text(
+                """
+                SELECT policy.policy_key, source.class_name AS source_class,
+                       anchor.class_name AS anchor_class, policy.source_columns,
+                       policy.anchor_columns, policy.reason, policy.enabled,
+                       policy.version, policy.config
+                FROM graphsync.row_scope_policy policy
+                JOIN graphsync.data_contract source
+                  ON source.contract_key=policy.source_contract_key
+                JOIN graphsync.data_contract anchor
+                  ON anchor.contract_key=policy.anchor_contract_key
+                WHERE policy.profile_key=:profile
+                ORDER BY policy.policy_key
+                """
+            ),
+            {"profile": profile_key},
+        ).mappings().all()
 
     count_by_class = {item["class_name"]: dict(item) for item in release_counts}
     reconciliation_by_class = {
@@ -194,6 +214,9 @@ def data_sync_status(
                 "activeQuarantineCount": int(
                     (count_by_class.get(class_name) or {}).get("quarantine_count") or 0
                 ),
+                "scopeExclusionCount": int(
+                    (count_by_class.get(class_name) or {}).get("scope_exclusion_count") or 0
+                ),
                 "reconciliation": reconciliation_by_class.get(class_name),
                 "checkpoint": checkpoints.get(class_name),
                 "incrementalWindow": windows.get(class_name),
@@ -222,6 +245,7 @@ def data_sync_status(
             "excluded": int(coverage_summary.get("excluded") or 0),
             "missing": int(coverage_summary.get("missing") or 0),
             "activeObjects": sum(item["activeObjectCount"] for item in rows),
+            "scopeExclusions": sum(item["scopeExclusionCount"] for item in rows),
             "pendingEvents": sum(item["pendingEvents"] for item in rows),
             "failedReconciliations": sum(
                 (item.get("reconciliation") or {}).get("status") == "failed"
@@ -242,6 +266,7 @@ def data_sync_status(
             "worker": dict(worker) if worker else None,
             "recentRuns": [dict(item) for item in recent_runs],
         },
+        "scopePolicies": [dict(item) for item in scope_policies],
     }
 
 

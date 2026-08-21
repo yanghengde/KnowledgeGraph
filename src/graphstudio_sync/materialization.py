@@ -24,6 +24,7 @@ from .config import SyncSettings
 from .connections import resolved_settings
 from .preview import _iter_rows
 from .repository import ControlPlaneRepository
+from .row_scope import apply_release_row_scope, list_row_scope_policies
 from .source_database import connect_source
 
 
@@ -641,7 +642,8 @@ def materialization_status(repository: ControlPlaneRepository, profile_key: str)
                 SELECT release.release_id, release.release_no, release.status,
                        release.preview_only, release.source_rows_read,
                        release.object_count, release.relationship_count,
-                       release.quarantine_count, release.content_hash,
+                       release.quarantine_count, release.scope_exclusion_count,
+                       release.content_hash,
                        release.summary, release.error, release.started_at,
                        release.finished_at,
                        (active.active_release_id=release.release_id) AS is_active
@@ -686,7 +688,8 @@ def execute_materialization(
                 text(
                     """
                     SELECT release_id, release_no, status, object_count,
-                           relationship_count, quarantine_count
+                           relationship_count, quarantine_count,
+                           scope_exclusion_count
                     FROM graphsync.curated_release
                     WHERE release_id=:release_id
                     """
@@ -702,6 +705,7 @@ def execute_materialization(
             "objects": active["object_count"],
             "relationships": active["relationship_count"],
             "quarantine": active["quarantine_count"],
+            "scopeExclusions": active["scope_exclusion_count"],
             "noChanges": True,
             "reused": True,
         }
@@ -709,6 +713,7 @@ def execute_materialization(
     governance = repository.governance_profile(profile_key)
     contracts = governance["contracts"]
     relationships = governance["relationships"]
+    scope_policies = list_row_scope_policies(repository, profile_key=profile_key)
     fields_by_contract = {
         item["contract_key"]: repository.contract_schema(item["contract_key"])["fields"]
         for item in contracts
@@ -1197,6 +1202,11 @@ def execute_materialization(
                 if source is not None:
                     source.close()
 
+            with repository.engine.begin() as connection:
+                scope_exclusions = apply_release_row_scope(
+                    connection, release_id=release_id, policies=scope_policies,
+                )
+
             unresolved_required = 0
             relationship_count = 0
             with repository.engine.begin() as connection:
@@ -1378,10 +1388,12 @@ def execute_materialization(
                     )
 
                 object_totals = connection.execute(
-                    text("SELECT count(*) FILTER (WHERE record_status <> 'deleted') AS objects, count(*) FILTER (WHERE record_status='quarantined') AS quarantine FROM graphsync.object_version WHERE release_id=:release_id"),
+                    text("SELECT count(*) FILTER (WHERE record_status <> 'deleted') AS objects, count(*) FILTER (WHERE record_status='active') AS active, count(*) FILTER (WHERE record_status='out_of_scope') AS scope_exclusions, count(*) FILTER (WHERE record_status='quarantined') AS quarantine FROM graphsync.object_version WHERE release_id=:release_id"),
                     {"release_id": release_id},
                 ).mappings().one()
                 totals["objects"] = int(object_totals["objects"] or 0)
+                totals["active"] = int(object_totals["active"] or 0)
+                totals["scopeExclusions"] = int(object_totals["scope_exclusions"] or 0)
                 totals["quarantine"] = int(object_totals["quarantine"] or 0)
                 ready = (
                     totals["quarantine"] == 0
@@ -1395,6 +1407,7 @@ def execute_materialization(
                     "unresolvedRequired": unresolved_required,
                     "reconciliationFailures": reconciliation_failures,
                     "reconciliation": reconciliation_summary,
+                    "scopePolicies": scope_exclusions,
                 }
                 connection.execute(
                     text(
@@ -1402,7 +1415,9 @@ def execute_materialization(
                         UPDATE graphsync.curated_release
                         SET status=:status, source_rows_read=:source_rows,
                             object_count=:objects, relationship_count=:relationships,
-                            quarantine_count=:quarantine, content_hash=:content_hash,
+                            quarantine_count=:quarantine,
+                            scope_exclusion_count=:scope_exclusions,
+                            content_hash=:content_hash,
                             summary=CAST(:summary AS jsonb), finished_at=now()
                         WHERE release_id=:release_id
                         """
@@ -1414,6 +1429,7 @@ def execute_materialization(
                         "objects": totals["objects"],
                         "relationships": relationship_count,
                         "quarantine": totals["quarantine"],
+                        "scope_exclusions": totals["scopeExclusions"],
                         "content_hash": release_hash,
                         "summary": canonical_json(summary),
                     },

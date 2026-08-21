@@ -20,6 +20,7 @@ from sqlalchemy import text
 from .config import PROJECT_ROOT, SyncSettings
 from .connections import resolved_settings
 from .repository import ControlPlaneRepository
+from .row_scope import evaluate_row_scope, list_row_scope_policies
 from .source_database import (
     ORACLE_KIND,
     connect_source,
@@ -39,7 +40,11 @@ def _safe_identifier(value: str, kind: str) -> str:
     return quote_identifier(value, kind)
 
 
-def _columns(contract: dict[str, Any], relationships: Iterable[dict[str, Any]]) -> list[str]:
+def _columns(
+    contract: dict[str, Any],
+    relationships: Iterable[dict[str, Any]],
+    scope_policies: Iterable[dict[str, Any]] = (),
+) -> list[str]:
     values = {
         *contract["primary_key_columns"],
         *contract["business_key_columns"],
@@ -53,6 +58,11 @@ def _columns(contract: dict[str, Any], relationships: Iterable[dict[str, Any]]) 
             values.update(relationship["source_columns"])
         if relationship["target_contract_key"] == contract["contract_key"]:
             values.update(relationship["target_columns"])
+    for policy in scope_policies:
+        if policy["source_contract_key"] == contract["contract_key"]:
+            values.update(policy["source_columns"])
+        if policy["anchor_contract_key"] == contract["contract_key"]:
+            values.update(policy["anchor_columns"])
     return sorted(values, key=str.casefold)
 
 
@@ -61,8 +71,9 @@ def _read_contract_rows(
     settings: SyncSettings,
     contract: dict[str, Any],
     relationships: list[dict[str, Any]],
+    scope_policies: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    columns = _columns(contract, relationships)
+    columns = _columns(contract, relationships, scope_policies or [])
     selected = ", ".join(_safe_identifier(column, settings.source_kind) for column in columns)
     table = (
         f"{_safe_identifier(contract['source_schema'], settings.source_kind)}."
@@ -397,6 +408,7 @@ def build_curation_preview(
         if (item.get("source_class"), item.get("relationship_name"), item.get("target_class"))
         in active_relationships
     ]
+    scope_policies = list_row_scope_policies(repository, profile_key=profile_key)
     if not contracts:
         raise RuntimeError(f"No data contracts configured for business graph profile: {profile_key}")
     run_id = uuid.uuid4()
@@ -442,7 +454,9 @@ def build_curation_preview(
                     quarantined_by_contract: dict[str, set[tuple[Any, ...]]] = {}
                     truncated_contracts: list[str] = []
                     for contract in contracts:
-                        rows = _read_contract_rows(source, settings, contract, relationships)
+                        rows = _read_contract_rows(
+                            source, settings, contract, relationships, scope_policies,
+                        )
                         rows_by_contract[contract["contract_key"]] = rows
                         entity_results, quarantined = evaluate_entity_contract(contract, rows)
                         results.extend(entity_results)
@@ -462,12 +476,33 @@ def build_curation_preview(
                                     details={"approximateRows": approximate, "previewLimit": contract["preview_row_limit"]},
                                 )
                             )
+                    scoped_rows_by_contract, scope_exclusions = evaluate_row_scope(
+                        rows_by_contract, scope_policies,
+                    )
+                    for policy in scope_policies:
+                        excluded_count = len(scope_exclusions.get(policy["policy_key"], []))
+                        results.append(
+                            _quality_result(
+                                "row_scope.anchor_exists",
+                                True,
+                                len(rows_by_contract.get(policy["source_contract_key"], [])),
+                                0,
+                                f"{excluded_count} 行位于制造业务图谱作用域之外，保留审计但不发布",
+                                severity="warning",
+                                contract_key=policy["source_contract_key"],
+                                details={
+                                    "policyKey": policy["policy_key"],
+                                    "excludedRows": excluded_count,
+                                    "reason": policy["reason"],
+                                },
+                            )
+                        )
                     for relationship in relationships:
                         results.extend(
                             evaluate_relationship_contract(
                                 relationship,
-                                rows_by_contract[relationship["source_contract_key"]],
-                                rows_by_contract[relationship["target_contract_key"]],
+                                scoped_rows_by_contract[relationship["source_contract_key"]],
+                                scoped_rows_by_contract[relationship["target_contract_key"]],
                             )
                         )
                 finally:
@@ -479,6 +514,7 @@ def build_curation_preview(
                 ]
                 source_rows = sum(len(rows) for rows in rows_by_contract.values())
                 quarantined_rows = sum(len(values) for values in quarantined_by_contract.values())
+                scope_excluded_rows = sum(len(values) for values in scope_exclusions.values())
                 approvals_complete = all(item["status"] == "approved" for item in contracts) and all(
                     item["status"] == "approved" for item in relationships
                 )
@@ -507,7 +543,9 @@ def build_curation_preview(
                     "graphStudioMutated": False,
                     "sourceRowsRead": source_rows,
                     "acceptedRows": source_rows - quarantined_rows,
+                    "publishableRows": source_rows - quarantined_rows - scope_excluded_rows,
                     "quarantinedRows": quarantined_rows,
+                    "scopeExcludedRows": scope_excluded_rows,
                     "publishable": publishable,
                     "summary": summary,
                     "qualityResults": results,

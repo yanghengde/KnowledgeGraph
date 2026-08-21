@@ -640,5 +640,6 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
 .data-sync-confirm-form label { display: grid; gap: 7px; }
 .data-sync-confirm-form label > span { color: var(--muted); font-size: 13px; }
 .data-sync-confirm-form label strong { color: var(--text); }
+.data-sync-scope-policy { display: grid; gap: 8px; padding: 4px 0; }
 .ontology-form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 @media (max-width: 640px) { .ontology-form-grid { grid-template-columns: 1fr; gap: 0; } }

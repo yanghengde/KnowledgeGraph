@@ -105,8 +105,8 @@ export function DataSynchronizationPage() {
       render: (_, item) => item.contractKey ? <Space size={4}><Tag color={item.contractStatus === "approved" ? "success" : "warning"}>v{item.contractVersion}</Tag><span>{item.selectedColumns} 字段</span></Space> : <Typography.Text type="secondary">未建立</Typography.Text>,
     },
     {
-      title: "活动实例", dataIndex: "activeObjectCount", align: "right", width: 105,
-      render: (value, item) => <Typography.Text type={item.coverageStatus === "synchronized" && Number(value) === 0 ? "warning" : undefined}>{Number(value || 0).toLocaleString()}</Typography.Text>,
+      title: "活动 / 隔离", dataIndex: "activeObjectCount", align: "right", width: 125,
+      render: (value, item) => <Space size={4}><Typography.Text type={item.coverageStatus === "synchronized" && Number(value) === 0 ? "warning" : undefined}>{Number(value || 0).toLocaleString()}</Typography.Text>{item.scopeExclusionCount > 0 && <Tag color="default">隔离 {item.scopeExclusionCount}</Tag>}</Space>,
     },
     {
       title: "源/版本对账", key: "reconciliation", width: 185,
@@ -173,6 +173,14 @@ export function DataSynchronizationPage() {
       {coverageIncomplete && <Alert type="error" showIcon icon={<ExclamationCircleOutlined />} message={`仍有 ${data?.summary.missing} 个本体对象未配置数据同步`} description={(data?.blockers || []).join("；")} />}
       {!coverageIncomplete && !!data?.blockers.length && <Alert type="warning" showIcon message="同步前置检查待刷新" description={`${data.blockers.join("；")}。点击“执行数据同步”会先重新运行质量检查，再决定是否生成新版本。`} />}
       {!!data?.summary.pendingRelationships && <Alert type="warning" showIcon message={`${data.summary.pendingRelationships} 条源关系引用尚未解析`} description={`当前活动版本共有 ${data.summary.relationships} 条关系记录，其中 ${data.summary.resolvedRelationships} 条已关联到目标对象。未解析引用会保留审计证据，但不会伪造成 Graph Studio 边。`} />}
+      {!!data?.summary.scopeExclusions && <Alert type="info" showIcon message={`${data.summary.scopeExclusions} 条系统记录已与制造业务图谱隔离`} description="源记录仍保存在不可变数据版本中用于审计，但不会作为 Graph Studio 节点或关系发布。当前规则要求 WorkflowStep.WorkflowId 必须存在于受治理的制造 Workflow 集合。" />}
+
+      {!!data?.scopePolicies.length && <Card title="业务图谱作用域规则">
+        {data.scopePolicies.map((policy) => <div className="data-sync-scope-policy" key={policy.policy_key}>
+          <Space wrap><Tag color={policy.enabled ? "success" : "default"}>{policy.enabled ? "已启用" : "已停用"}</Tag><strong>{policy.config?.labelZh || policy.policy_key}</strong><Typography.Text code>v{policy.version}</Typography.Text></Space>
+          <Typography.Text type="secondary">{policy.source_class}.{policy.source_columns.join("+")} 必须关联到 {policy.anchor_class}.{policy.anchor_columns.join("+")}；不匹配的数据仅保留审计。</Typography.Text>
+        </div>)}
+      </Card>}
 
       <Card title="自动同步与运行记录" extra={data?.automation.schedule?.enabled ? <Tag color="processing">每 {data.automation.schedule.interval_minutes} 分钟</Tag> : <Tag>未启用</Tag>}>
         {data?.automation.schedule?.enabled && !data?.automation.worker?.online && <Alert type="warning" showIcon message="自动同步已配置，但工作进程未在线" description="启动 python -m src.graphstudio_sync.cli data-sync-worker 后，工作进程会通过 PostgreSQL 租约领取任务；多个实例同时运行也不会重复同步。" />}

@@ -194,6 +194,7 @@ export type DataSyncClassStatus = {
   extractionMode?: string | null;
   activeObjectCount: number;
   activeQuarantineCount: number;
+  scopeExclusionCount: number;
   pendingEvents: number;
   appliedEvents: number;
   reconciliation?: {
@@ -233,6 +234,7 @@ export type DataSyncStatus = {
     excluded: number;
     missing: number;
     activeObjects: number;
+    scopeExclusions: number;
     pendingEvents: number;
     failedReconciliations: number;
     relationships: number;
@@ -269,6 +271,17 @@ export type DataSyncStatus = {
       finished_at?: string | null;
     }>;
   };
+  scopePolicies: Array<{
+    policy_key: string;
+    source_class: string;
+    anchor_class: string;
+    source_columns: string[];
+    anchor_columns: string[];
+    reason: string;
+    enabled: boolean;
+    version: number;
+    config?: { labelZh?: string };
+  }>;
 };
 
 export type DeploymentRelease = {
