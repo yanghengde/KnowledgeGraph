@@ -224,8 +224,9 @@ def test_layer_switch_targets_only_the_requested_layer() -> None:
 
 
 class _LegacyLayerSession:
-    def __init__(self, *, enabled):
+    def __init__(self, *, enabled, configured=True):
         self.enabled = enabled
+        self.configured = configured
 
     def patch(self, _url, **_kwargs):
         response = _GraphStudioResponse(
@@ -235,6 +236,11 @@ class _LegacyLayerSession:
         return response
 
     def get(self, url, **kwargs):
+        if url.endswith("/layers"):
+            return _GraphStudioResponse(
+                [{"uri": "http://example.com/layer/green"}]
+                if self.configured else []
+            )
         assert url.endswith("/status")
         assert kwargs["params"] == {"detail": "true"}
         return _GraphStudioResponse({
@@ -263,6 +269,48 @@ def test_legacy_layer_switch_requires_manual_change_before_retry() -> None:
             layer_uri="http://example.com/layer/green",
             enabled=True,
         )
+
+
+def test_legacy_layer_switch_skips_predecessor_from_another_graphmart() -> None:
+    mode = _set_layer_enabled(
+        _LegacyLayerSession(enabled=None, configured=False),
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+        layer_uri="http://example.com/layer/from-old-target",
+        enabled=False,
+    )
+
+    assert mode == "legacy_layer_not_in_target"
+
+
+def test_deployment_plan_starts_new_lineage_after_graphmart_target_change(monkeypatch) -> None:
+    import uuid
+    from types import SimpleNamespace
+    from src.graphstudio_sync import deployment as deployment_module
+
+    release_id = uuid.uuid4()
+    route = {
+        "route_key": "core-dev", "environment_key": "dev", "target_key": "new-target",
+        "graphmart_uri": "http://example.com/graphmart/new", "title": "New Graphmart",
+        "promotion_order": 10, "apply_enabled": True, "requires_approval": False, "config": {},
+    }
+    monkeypatch.setattr(deployment_module, "deployment_status", lambda _repo, _profile: {
+        "routes": [route],
+        "activeCuratedRelease": {"release_id": release_id, "release_no": 2, "status": "active"},
+        "activeOntologyRelease": {"ontology_release_id": uuid.uuid4(), "release_no": 1},
+        "deployments": [{
+            "deployment_id": uuid.uuid4(), "route_key": route["route_key"], "status": "active",
+            "curated_release_id": release_id, "slot": "blue",
+            "validation_result": {"reload": {"graphmartUri": "http://example.com/graphmart/old"}},
+        }],
+    })
+
+    plan = build_deployment_plan(
+        SimpleNamespace(), profile_key="core", environment_key="dev", route_key=route["route_key"],
+    )
+
+    assert plan["slot"] == "blue"
+    assert plan["previousDeploymentId"] is None
 
 
 def _contract(**overrides):

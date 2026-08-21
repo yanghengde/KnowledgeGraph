@@ -64,6 +64,26 @@ def _find_uri(value: Any, keys: tuple[str, ...]) -> str | None:
     return None
 
 
+def _deployment_graphmart_uri(deployment: dict[str, Any] | None) -> str | None:
+    """Read the immutable target snapshot, with support for legacy records."""
+    if not deployment:
+        return None
+    plan = deployment.get("validation_plan") or {}
+    if isinstance(plan, dict) and plan.get("graphmartUri"):
+        return str(plan["graphmartUri"])
+    result = deployment.get("validation_result") or {}
+    reload_status = result.get("reload") if isinstance(result, dict) else None
+    if isinstance(reload_status, dict):
+        value = reload_status.get("graphmartUri") or reload_status.get("uri")
+        if value:
+            return str(value)
+    return None
+
+
+def _same_graphmart(left: str | None, right: str | None) -> bool:
+    return bool(left and right and left.rstrip("/") == right.rstrip("/"))
+
+
 def deployment_status(repository: ControlPlaneRepository, profile_key: str) -> dict[str, Any]:
     with repository.engine.connect() as connection:
         targets = [dict(row) for row in connection.execute(
@@ -104,7 +124,8 @@ def deployment_status(repository: ControlPlaneRepository, profile_key: str) -> d
                        deployment.slot, deployment.artifact_uri,
                        deployment.artifact_hash, deployment.dataset_uri,
                        deployment.layer_uri, deployment.step_uri,
-                       deployment.validation_result, deployment.approved_by,
+                       deployment.validation_plan, deployment.validation_result,
+                       deployment.approved_by,
                        deployment.started_at, deployment.finished_at,
                        deployment.error
                 FROM graphsync.deployment_release deployment
@@ -355,10 +376,17 @@ def build_deployment_plan(
         )
         if not promoted:
             blockers.append(f"同一制品尚未通过前置环境：{required['title']}")
-    active_in_environment = next(
-        (item for item in previous_deployments if item.get("route_key") == environment["route_key"] and item["status"] == "active"),
-        None,
-    )
+    target_graphmart_uri = environment.get("graphmart_uri")
+    active_in_environment = next((
+        item for item in previous_deployments
+        if item.get("route_key") == environment["route_key"]
+        and item["status"] == "active"
+        and (
+            not target_graphmart_uri
+            or not _deployment_graphmart_uri(item)
+            or _same_graphmart(_deployment_graphmart_uri(item), target_graphmart_uri)
+        )
+    ), None)
     slot = "green" if active_in_environment and active_in_environment["slot"] == "blue" else "blue"
     return {
         "profileKey": profile_key,
@@ -621,6 +649,8 @@ def create_deployment(
                     "modelUri": artifact["modelUri"],
                     "modelPath": artifact["modelPath"],
                     "ontologyReleaseId": artifact["ontologyReleaseId"],
+                    "targetKey": plan["targetKey"],
+                    "graphmartUri": plan["environment"].get("graphmart_uri"),
                     "publishedClassUris": artifact["publishedClassUris"],
                     "publishedRelationshipUris": artifact["publishedRelationshipUris"],
                     "checks": ["reload_complete", "no_failed_assets", "sparql_counts"],
@@ -884,11 +914,38 @@ def _set_layer_enabled(
         return "rest_api"
 
     # Anzo 5.4.2/5.4.3 expose the /api endpoint but do not yet provide the
-    # enableLayers/disableLayers operations (added in 5.4.4).  Do not silently
-    # leave both blue and green online: verify a manual switch through the
-    # read-only status endpoint and proceed only when the requested state is
-    # already true in Graph Studio.
+    # enableLayers/disableLayers operations (added in 5.4.4).  Keep REST as the
+    # preferred path for future upgrades, and use read-only configuration and
+    # runtime status for legacy verification.
     if response.status_code == 404 and "No handler found" in response.text:
+        configured_layers = _require(
+            session.get(
+                f"{base}/api/graphmarts/{encoded_graphmart}/layers",
+                timeout=60,
+            ),
+            "List Graphmart layers for legacy layer switch",
+        )
+        configured_layer = next(
+            (
+                item for item in (configured_layers or [])
+                if isinstance(item, dict)
+                and (item.get("uri") or item.get("layerUri")) == layer_uri
+            ),
+            None,
+        )
+
+        # A predecessor from another Graphmart must never block a new target.
+        # This occurs when a publication route is repointed after a successful
+        # deployment.  The foreign Layer cannot be disabled in this Graphmart
+        # and must be treated as the start of a new blue/green lineage.
+        if configured_layer is None and not enabled:
+            return "legacy_layer_not_in_target"
+        if configured_layer is None:
+            raise RuntimeError(
+                f"Layer {layer_uri} 不属于当前目标 Graphmart，无法启用。"
+                "请检查发布目标是否在部署过程中发生了变更。"
+            )
+
         graph_status = _require(
             session.get(
                 f"{base}/api/graphmarts/{encoded_graphmart}/status",
@@ -909,6 +966,9 @@ def _set_layer_enabled(
         actual = layer_status.get("enabled") if layer_status else None
         if actual is enabled:
             return "legacy_status_verified"
+        configured_enabled = configured_layer.get("enabled")
+        if isinstance(configured_enabled, bool) and configured_enabled is enabled:
+            return "legacy_configuration_verified"
 
         desired = "启用" if enabled else "停用"
         observed = "未加载" if actual is None else ("已启用" if actual else "已停用")
@@ -975,7 +1035,9 @@ def apply_deployment(
                 """
                 SELECT deployment.*, environment.graphmart_uri,
                        route.apply_enabled, release.source_snapshot,
-                       previous.layer_uri AS previous_layer_uri
+                       previous.layer_uri AS previous_layer_uri,
+                       previous.validation_plan AS previous_validation_plan,
+                       previous.validation_result AS previous_validation_result
                 FROM graphsync.deployment_release deployment
                 JOIN graphsync.publication_route route
                   ON route.route_key=deployment.route_key
@@ -1072,6 +1134,21 @@ def apply_deployment(
     base = settings.graphstudio_base_url
     graphmart_uri = deployment["graphmart_uri"]
     encoded_graphmart = quote(graphmart_uri, safe="")
+    previous_target = _deployment_graphmart_uri({
+        "validation_plan": deployment.get("previous_validation_plan"),
+        "validation_result": deployment.get("previous_validation_result"),
+    })
+    previous_target_mismatch = bool(
+        previous_layer_uri and previous_target
+        and not _same_graphmart(previous_target, graphmart_uri)
+    )
+    skipped_previous_layer_uri = previous_layer_uri if previous_target_mismatch else None
+    if previous_target_mismatch:
+        # The route now points at a different Graphmart.  The previous Layer is
+        # not part of this target and cannot participate in its blue/green
+        # switch.  Start a fresh target-local lineage while retaining the old
+        # deployment and Layer for audit/rollback in its original Graphmart.
+        previous_layer_uri = None
     with repository.engine.begin() as connection:
         connection.execute(
             text(
@@ -1148,12 +1225,16 @@ def apply_deployment(
             layer_uri=layer_uri, enabled=True,
         )
         disabled_switch_mode = None
+        previous_layer_in_target = not previous_target_mismatch
         if previous_layer_uri and previous_layer_uri != layer_uri:
             disabled_switch_mode = _set_layer_enabled(
                 session, base, encoded_graphmart=encoded_graphmart,
                 layer_uri=previous_layer_uri, enabled=False,
             )
-            layer_switched = True
+            previous_layer_in_target = disabled_switch_mode != "legacy_layer_not_in_target"
+            layer_switched = previous_layer_in_target
+            if not previous_layer_in_target:
+                skipped_previous_layer_uri = previous_layer_uri
         graph_status = _reload_graphmart(
             session, base, encoded_graphmart=encoded_graphmart,
         )
@@ -1206,9 +1287,13 @@ def apply_deployment(
                 "disabled": previous_layer_uri if layer_switched else None,
                 "mode": (
                     "legacy_status_verified"
-                    if "legacy_status_verified" in {enabled_switch_mode, disabled_switch_mode}
+                    if {enabled_switch_mode, disabled_switch_mode}
+                    & {"legacy_status_verified", "legacy_configuration_verified"}
+                    else "target_reset"
+                    if skipped_previous_layer_uri
                     else "rest_api"
                 ),
+                "skippedPreviousLayer": skipped_previous_layer_uri,
             },
             "passed": True,
         }
@@ -1238,7 +1323,7 @@ def apply_deployment(
                     "actor": deployment.get("approved_by") or deployment.get("requested_by"),
                 },
             )
-            if deployment["previous_deployment_id"]:
+            if deployment["previous_deployment_id"] and previous_layer_in_target:
                 connection.execute(text("UPDATE graphsync.deployment_release SET status='rolled_back' WHERE deployment_id=:previous AND status='active'"), {"previous": deployment["previous_deployment_id"]})
             for class_name, snapshot in (deployment["source_snapshot"] or {}).items():
                 if not snapshot.get("runId") or not snapshot.get("upperBound"):
