@@ -115,6 +115,7 @@ def append_exchange(
     question: str,
     answer: str,
     error: str | None = None,
+    runtime_snapshot: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     with _lock:
         payload = load_session(session_id)
@@ -122,8 +123,13 @@ def append_exchange(
             raise FileNotFoundError(session_id)
         payload["messages"].extend([
             {"role": "user", "content": question, "timestamp": _now()},
-            {"role": "assistant", "content": answer, "timestamp": _now(), "error": error},
+            {
+                "role": "assistant", "content": answer, "timestamp": _now(),
+                "error": error, "runtime": runtime_snapshot,
+            },
         ])
+        if runtime_snapshot:
+            payload["runtime"] = runtime_snapshot
         if len(payload["messages"]) == 2:
             compact = " ".join(question.split())
             payload["title"] = compact[:36] + ("…" if len(compact) > 36 else "")

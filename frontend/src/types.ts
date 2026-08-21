@@ -1,9 +1,32 @@
+export type QaRuntimeSnapshot = {
+  profileKey: string;
+  routeKey: string;
+  environmentKey?: string;
+  deploymentId: string;
+  ontologyReleaseId: string;
+  ontologyReleaseNo: number;
+  ontologyClassCount: number;
+  ontologyRelationshipCount: number;
+  curatedReleaseId: string;
+  curatedReleaseNo: number;
+  objectCount: number;
+  relationshipCount: number;
+  graphmartUri: string;
+  modelUri: string;
+  layerUri: string;
+  artifactHash: string;
+  finishedAt?: string;
+  cacheKey: string;
+};
+
 export type ServiceStatus = {
   status: string;
   graphstudio: string;
   llm: string;
   graphmart_uri?: string;
   detail?: string;
+  runtime?: QaRuntimeSnapshot;
+  schema_rows?: number;
 };
 
 export type SavedQuery = {
@@ -12,11 +35,15 @@ export type SavedQuery = {
   description?: string;
   modified?: string;
   forced_limit?: string;
+  compatible?: boolean;
+  missing_uris?: string[];
+  ontology_release_no?: number;
 };
 
 export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
+  runtime?: QaRuntimeSnapshot;
 };
 
 export type ChatSessionSummary = {
@@ -29,6 +56,7 @@ export type ChatSessionSummary = {
 
 export type ChatSession = ChatSessionSummary & {
   messages: ChatMessage[];
+  runtime?: QaRuntimeSnapshot;
 };
 
 export type StreamEvent = {
@@ -36,6 +64,7 @@ export type StreamEvent = {
   content?: string;
   session_id?: string;
   session_title?: string;
+  runtime?: QaRuntimeSnapshot;
 };
 
 export type SyncConnection = {

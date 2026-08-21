@@ -37,7 +37,9 @@ async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 export const manufacturingApi = {
-  status: () => requestJson<ServiceStatus>("/api/manufacturing-chat/status"),
+  status: (refresh = false) => requestJson<ServiceStatus>(
+    `/api/manufacturing-chat/status${refresh ? "?refresh=true" : ""}`,
+  ),
   queries: (refresh = false) => requestJson<{ items: SavedQuery[]; count: number }>(
     `/api/manufacturing-chat/queries${refresh ? "?refresh=true" : ""}`,
   ),

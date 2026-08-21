@@ -13,6 +13,7 @@ from src.qa.graphstudio_assistant import (
     GraphStudioAssistantError,
     graphstudio_connection_status,
     graphstudio_query_stream,
+    resolve_runtime_snapshot,
 )
 from src.qa.graphstudio_saved_queries import public_query_catalog
 from src.qa.manufacturing_session_store import (
@@ -39,16 +40,20 @@ class AskRequest(BaseModel):
 
 
 @router.get("/status")
-async def status():
-    return graphstudio_connection_status()
+async def status(refresh: bool = False):
+    return await asyncio.to_thread(
+        graphstudio_connection_status, force_refresh=refresh,
+    )
 
 
 @router.get("/queries")
 async def queries(refresh: bool = False):
     try:
+        runtime_snapshot = await asyncio.to_thread(resolve_runtime_snapshot)
         items = await asyncio.to_thread(
             public_query_catalog,
             force_refresh=refresh,
+            runtime_snapshot=runtime_snapshot,
         )
     except GraphStudioAssistantError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
@@ -94,17 +99,37 @@ async def ask(request: AskRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if session is None:
         raise HTTPException(status_code=404, detail="Manufacturing chat session not found")
-    history = session.get("messages", [])
+    try:
+        runtime_snapshot = await asyncio.to_thread(resolve_runtime_snapshot)
+    except GraphStudioAssistantError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    previous_runtime = session.get("runtime") or {}
+    version_changed = bool(
+        previous_runtime
+        and previous_runtime.get("cacheKey") != runtime_snapshot.get("cacheKey")
+    )
+    # Do not let answers grounded in an older deployment influence planning
+    # against the new ontology/data contract.
+    history = [] if version_changed else session.get("messages", [])
 
     async def generate():
         full_answer = ""
         error_message = None
         try:
+            if version_changed:
+                yield "data: " + json.dumps({
+                    "type": "status",
+                    "content": (
+                        f"图谱已更新到本体 R{runtime_snapshot['ontologyReleaseNo']} / "
+                        f"数据 R{runtime_snapshot['curatedReleaseNo']}，已切换到最新证据。"
+                    ),
+                }, ensure_ascii=False) + "\n\n"
             async for chunk in graphstudio_query_stream(
                 question,
                 history,
                 query_mode=request.query_mode,
                 query_uri=request.query_uri,
+                runtime_snapshot=runtime_snapshot,
             ):
                 if isinstance(chunk, dict):
                     payload = chunk
@@ -129,11 +154,13 @@ async def ask(request: AskRequest):
             question=question,
             answer=full_answer,
             error=error_message,
+            runtime_snapshot=runtime_snapshot,
         )
         yield "data: " + json.dumps({
             "type": "done",
             "session_id": saved["id"],
             "session_title": saved["title"],
+            "runtime": runtime_snapshot,
         }, ensure_ascii=False) + "\n\n"
 
     return StreamingResponse(

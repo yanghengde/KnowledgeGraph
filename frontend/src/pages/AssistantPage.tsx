@@ -59,16 +59,10 @@ function MessageContent({ message }: { message: ChatMessage }) {
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content || "正在准备制造知识查询…"}</ReactMarkdown>
         </div>
         {isAssistant && message.content && (
-          <Tooltip title="复制回答">
-            <Button
-              className="copy-answer"
-              type="text"
-              size="small"
-              icon={<CopyOutlined />}
-              aria-label="复制回答"
-              onClick={() => navigator.clipboard.writeText(message.content)}
-            />
-          </Tooltip>
+          <Space size={6} wrap>
+            {message.runtime && <Tag color="cyan">本体 R{message.runtime.ontologyReleaseNo} · 数据 R{message.runtime.curatedReleaseNo}</Tag>}
+            <Tooltip title="复制回答"><Button className="copy-answer" type="text" size="small" icon={<CopyOutlined />} aria-label="复制回答" onClick={() => navigator.clipboard.writeText(message.content)} /></Tooltip>
+          </Space>
         )}
       </div>
     </div>
@@ -84,12 +78,31 @@ export function AssistantPage() {
   const [queryChoice, setQueryChoice] = useState("auto");
   const [streaming, setStreaming] = useState(false);
   const [streamStatus, setStreamStatus] = useState("");
+  const [refreshingKnowledge, setRefreshingKnowledge] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const sessions = useQuery({ queryKey: ["chat-sessions"], queryFn: manufacturingApi.sessions });
   const savedQueries = useQuery({ queryKey: ["saved-queries"], queryFn: () => manufacturingApi.queries() });
-  const serviceStatus = useQuery({ queryKey: ["manufacturing-status"], queryFn: manufacturingApi.status });
+  const serviceStatus = useQuery({ queryKey: ["manufacturing-status"], queryFn: () => manufacturingApi.status(), refetchInterval: 30_000 });
+  const runtime = serviceStatus.data?.runtime;
+
+  const refreshKnowledge = async () => {
+    setRefreshingKnowledge(true);
+    try {
+      const [queries, status] = await Promise.all([
+        manufacturingApi.queries(true),
+        manufacturingApi.status(true),
+      ]);
+      queryClient.setQueryData(["saved-queries"], queries);
+      queryClient.setQueryData(["manufacturing-status"], status);
+      message.success(`已同步本体 R${status.runtime?.ontologyReleaseNo || "—"} / 数据 R${status.runtime?.curatedReleaseNo || "—"}`);
+    } catch (error) {
+      message.error((error as Error).message);
+    } finally {
+      setRefreshingKnowledge(false);
+    }
+  };
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -104,7 +117,7 @@ export function AssistantPage() {
 
   const queryOptions = [
     { value: "auto", label: "自动匹配已保存 Query" },
-    ...(savedQueries.data?.items || []).map((item: SavedQuery) => ({ value: item.uri, label: queryBusinessTitle(item) })),
+    ...(savedQueries.data?.items || []).filter((item) => item.compatible !== false).map((item: SavedQuery) => ({ value: item.uri, label: queryBusinessTitle(item) })),
     { value: "dynamic", label: "动态只读查询" },
   ];
 
@@ -165,7 +178,7 @@ export function AssistantPage() {
     const workingMessages: ChatMessage[] = [
       ...(activeSession.messages || []),
       { role: "user", content: text },
-      { role: "assistant", content: "" },
+      { role: "assistant", content: "", runtime },
     ];
     setCurrent({ ...activeSession, messages: workingMessages });
     setQuestion("");
@@ -190,7 +203,7 @@ export function AssistantPage() {
             setCurrent((previous) => {
               if (!previous) return previous;
               const messages = [...previous.messages];
-              messages[messages.length - 1] = { role: "assistant", content: answer };
+              messages[messages.length - 1] = { ...messages[messages.length - 1], role: "assistant", content: answer };
               return { ...previous, messages, title: event.session_title || previous.title };
             });
           }
@@ -199,12 +212,17 @@ export function AssistantPage() {
             setCurrent((previous) => {
               if (!previous) return previous;
               const messages = [...previous.messages];
-              messages[messages.length - 1] = { role: "assistant", content: answer };
+              messages[messages.length - 1] = { ...messages[messages.length - 1], role: "assistant", content: answer };
               return { ...previous, messages };
             });
           }
           if (event.type === "done" && event.session_title) {
-            setCurrent((previous) => previous ? { ...previous, title: event.session_title! } : previous);
+            setCurrent((previous) => {
+              if (!previous) return previous;
+              const messages = [...previous.messages];
+              messages[messages.length - 1] = { ...messages[messages.length - 1], runtime: event.runtime || messages[messages.length - 1].runtime };
+              return { ...previous, messages, title: event.session_title!, runtime: event.runtime || previous.runtime };
+            });
           }
         },
         controller.signal,
@@ -239,17 +257,19 @@ export function AssistantPage() {
         />
         <div className="assistant-service-card">
           <CheckCircleFilled className={serviceStatus.data?.status === "ready" ? "online" : "checking"} />
-          <span><strong>{serviceStatus.data?.status === "ready" ? "制造知识服务在线" : "正在检查知识服务"}</strong><small>{savedQueries.data?.count ?? 0} 条受控 Query</small></span>
+          <span><strong>{serviceStatus.data?.status === "ready" ? "制造知识服务在线" : "正在检查知识服务"}</strong><small>{runtime ? `本体 R${runtime.ontologyReleaseNo} · 数据 R${runtime.curatedReleaseNo}` : `${savedQueries.data?.count ?? 0} 条受控 Query`}</small></span>
         </div>
       </aside>
 
       <section className="chat-panel">
         <div className="chat-toolbar">
-          <div><Typography.Text strong>{current?.title || "制造知识问答"}</Typography.Text><Typography.Text type="secondary">答案严格基于当前 Graphmart 发布证据</Typography.Text></div>
+          <div><Typography.Text strong>{current?.title || "制造知识问答"}</Typography.Text><Typography.Text type="secondary">答案严格基于当前活动部署、本体契约与 Graphmart 证据</Typography.Text></div>
           <Space>
+            {runtime && <Tag color="cyan">本体 R{runtime.ontologyReleaseNo} · {runtime.ontologyClassCount} 类 / {runtime.ontologyRelationshipCount} 关系</Tag>}
+            {runtime && <Tag color="blue">数据 R{runtime.curatedReleaseNo}</Tag>}
             <ApiOutlined />
             <Select value={queryChoice} options={queryOptions} onChange={setQueryChoice} disabled={streaming} popupMatchSelectWidth={300} />
-            <Tooltip title="同步 Graph Studio Queries"><Button icon={<ReloadOutlined />} onClick={() => queryClient.invalidateQueries({ queryKey: ["saved-queries"] })} /></Tooltip>
+            <Tooltip title="强制同步最新部署、Schema 与 Graph Studio Queries"><Button icon={<ReloadOutlined />} loading={refreshingKnowledge} onClick={() => void refreshKnowledge()} /></Tooltip>
           </Space>
         </div>
 

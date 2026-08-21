@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 import time
 from pathlib import Path
@@ -16,6 +17,8 @@ from src.qa.graphstudio_assistant import (
     GraphStudioAssistantError,
     _binding_rows,
     _configuration,
+    discover_schema,
+    resolve_runtime_snapshot,
     validate_readonly_sparql,
 )
 
@@ -29,7 +32,8 @@ _CATALOG_CACHE_PATH = Path(
     )
 )
 _catalog_lock = threading.Lock()
-_catalog_cache: tuple[float, list[dict[str, str]]] | None = None
+_catalog_cache: tuple[str, float, list[dict[str, Any]]] | None = None
+_PUBLISH_NAMESPACE = "https://opcenter.siemens.com/ontology/camstar/2607/publish#"
 
 
 def _journal_endpoint() -> str:
@@ -146,28 +150,84 @@ def _parse_catalog(payload: dict[str, Any]) -> list[dict[str, str]]:
     return queries
 
 
-def _load_persisted_catalog() -> list[dict[str, str]]:
+def _publish_uris(sparql: str) -> set[str]:
+    """Expand publish-namespace URIs used by a saved SPARQL query."""
+    uris = {
+        uri for uri in re.findall(r"<([^>]+)>", sparql)
+        if uri.startswith(_PUBLISH_NAMESPACE) and uri != _PUBLISH_NAMESPACE
+    }
+    prefixes = {
+        prefix: namespace
+        for prefix, namespace in re.findall(
+            r"\bPREFIX\s+([A-Za-z][\w-]*):\s*<([^>]+)>",
+            sparql,
+            flags=re.IGNORECASE,
+        )
+    }
+    for prefix, namespace in prefixes.items():
+        if namespace != _PUBLISH_NAMESPACE:
+            continue
+        for local_name in re.findall(
+            rf"(?<![\w-]){re.escape(prefix)}:([A-Za-z_][\w.-]*)",
+            sparql,
+        ):
+            uris.add(namespace + local_name)
+    return uris
+
+
+def _annotate_compatibility(
+    queries: list[dict[str, Any]],
+    schema_rows: list[dict[str, Any]],
+    runtime_snapshot: dict[str, Any],
+) -> list[dict[str, Any]]:
+    allowed = {
+        str(row.get(key))
+        for row in schema_rows
+        for key in ("class", "property", "targetClass")
+        if str(row.get(key) or "").startswith(_PUBLISH_NAMESPACE)
+    }
+    annotated = []
+    for query in queries:
+        missing = sorted(_publish_uris(str(query.get("sparql") or "")) - allowed)
+        annotated.append({
+            **query,
+            "compatible": not missing,
+            "missing_uris": missing,
+            "ontology_release_id": runtime_snapshot["ontologyReleaseId"],
+            "ontology_release_no": runtime_snapshot["ontologyReleaseNo"],
+        })
+    return annotated
+
+
+def _load_persisted_catalog(
+    runtime_snapshot: dict[str, Any],
+) -> list[dict[str, Any]]:
     try:
         payload = json.loads(_CATALOG_CACHE_PATH.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError):
         return []
-    try:
-        graphmart_uri = _configuration()["graphmart_uri"]
-    except GraphStudioAssistantError:
-        return []
     rows = payload.get("queries")
-    if payload.get("graphmart_uri") != graphmart_uri or not isinstance(rows, list):
+    if (
+        payload.get("runtime_key") != runtime_snapshot.get("cacheKey")
+        or not isinstance(rows, list)
+    ):
         return []
     return [row for row in rows if isinstance(row, dict)]
 
 
-def _persist_catalog(queries: list[dict[str, str]]) -> None:
+def _persist_catalog(
+    queries: list[dict[str, Any]], runtime_snapshot: dict[str, Any],
+) -> None:
     try:
         _CATALOG_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
         _CATALOG_CACHE_PATH.write_text(
             json.dumps(
                 {
-                    "graphmart_uri": _configuration()["graphmart_uri"],
+                    "runtime_key": runtime_snapshot["cacheKey"],
+                    "graphmart_uri": runtime_snapshot["graphmartUri"],
+                    "deployment_id": runtime_snapshot["deploymentId"],
+                    "ontology_release_id": runtime_snapshot["ontologyReleaseId"],
+                    "curated_release_id": runtime_snapshot["curatedReleaseId"],
                     "saved_at": time.time(),
                     "queries": queries,
                 },
@@ -180,29 +240,53 @@ def _persist_catalog(queries: list[dict[str, str]]) -> None:
         pass
 
 
-def list_saved_queries(*, force_refresh: bool = False) -> list[dict[str, str]]:
+def list_saved_queries(
+    *,
+    force_refresh: bool = False,
+    runtime_snapshot: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     """Return safe SELECT bookmarks from the active Graphmart configuration graph."""
     global _catalog_cache
+    runtime_snapshot = runtime_snapshot or resolve_runtime_snapshot()
+    runtime_key = str(runtime_snapshot["cacheKey"])
     now = time.monotonic()
-    if not force_refresh and _catalog_cache and now - _catalog_cache[0] < _CATALOG_TTL_SECONDS:
-        return _catalog_cache[1]
+    if (
+        not force_refresh and _catalog_cache
+        and _catalog_cache[0] == runtime_key
+        and now - _catalog_cache[1] < _CATALOG_TTL_SECONDS
+    ):
+        return _catalog_cache[2]
     with _catalog_lock:
         now = time.monotonic()
-        if not force_refresh and _catalog_cache and now - _catalog_cache[0] < _CATALOG_TTL_SECONDS:
-            return _catalog_cache[1]
-        config = _configuration()
+        if (
+            not force_refresh and _catalog_cache
+            and _catalog_cache[0] == runtime_key
+            and now - _catalog_cache[1] < _CATALOG_TTL_SECONDS
+        ):
+            return _catalog_cache[2]
         try:
-            queries = _parse_catalog(_request_journal(_catalog_query(config["graphmart_uri"])))
-            _persist_catalog(queries)
+            queries = _parse_catalog(_request_journal(
+                _catalog_query(str(runtime_snapshot["graphmartUri"]))
+            ))
+            queries = _annotate_compatibility(
+                queries,
+                discover_schema(runtime_snapshot),
+                runtime_snapshot,
+            )
+            _persist_catalog(queries, runtime_snapshot)
         except GraphStudioAssistantError:
-            queries = _load_persisted_catalog()
+            queries = _load_persisted_catalog(runtime_snapshot)
             if not queries:
                 raise
-        _catalog_cache = (now, queries)
+        _catalog_cache = (runtime_key, now, queries)
         return queries
 
 
-def public_query_catalog(*, force_refresh: bool = False) -> list[dict[str, str]]:
+def public_query_catalog(
+    *,
+    force_refresh: bool = False,
+    runtime_snapshot: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     """Return browser-safe Query metadata without exposing the complete SPARQL body."""
     return [
         {
@@ -211,6 +295,12 @@ def public_query_catalog(*, force_refresh: bool = False) -> list[dict[str, str]]
             "description": item.get("description", ""),
             "modified": item.get("modified", ""),
             "forced_limit": item.get("forced_limit", ""),
+            "compatible": bool(item.get("compatible", True)),
+            "missing_uris": item.get("missing_uris", []),
+            "ontology_release_no": item.get("ontology_release_no"),
         }
-        for item in list_saved_queries(force_refresh=force_refresh)
+        for item in list_saved_queries(
+            force_refresh=force_refresh,
+            runtime_snapshot=runtime_snapshot,
+        )
     ]

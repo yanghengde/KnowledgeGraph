@@ -36,7 +36,7 @@ function latestDeployment(route: PublicationRoute, items: DeploymentRelease[]) {
 
 export function OverviewPage() {
   const navigate = useNavigate();
-  const statusQuery = useQuery({ queryKey: ["manufacturing-status"], queryFn: manufacturingApi.status });
+  const statusQuery = useQuery({ queryKey: ["manufacturing-status"], queryFn: () => manufacturingApi.status() });
   const savedQueries = useQuery({ queryKey: ["saved-queries"], queryFn: () => manufacturingApi.queries() });
   const connections = useQuery({ queryKey: ["sync-connections"], queryFn: syncApi.connections });
   const jobs = useQuery({ queryKey: ["sync-jobs"], queryFn: syncApi.jobs });

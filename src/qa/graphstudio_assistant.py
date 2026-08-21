@@ -21,6 +21,11 @@ from urllib.parse import quote
 import requests
 from openai import AsyncOpenAI
 
+from src.graphstudio_sync.config import SyncSettings
+from src.graphstudio_sync.deployment import deployment_status
+from src.graphstudio_sync.publish_ontology import release_graph
+from src.graphstudio_sync.repository import ControlPlaneRepository
+
 
 _SCHEMA_TTL_SECONDS = 300
 _SCHEMA_CACHE_PATH = Path(
@@ -30,8 +35,14 @@ _SCHEMA_CACHE_PATH = Path(
     )
 )
 _schema_lock = threading.Lock()
-_schema_cache: tuple[float, list[dict[str, str]]] | None = None
+_schema_cache: tuple[str, float, list[dict[str, Any]]] | None = None
 _llm_client: AsyncOpenAI | None = None
+
+_PUBLISH_NAMESPACE = "https://opcenter.siemens.com/ontology/camstar/2607/publish#"
+_SCHEMA_INVENTORY_QUESTION = re.compile(
+    r"(?:有哪些|列出|当前|全部).*(?:对象类型|对象类|类和关系|类型和关系|本体关系|图谱结构)",
+    re.IGNORECASE,
+)
 
 _FORBIDDEN_SPARQL = re.compile(
     r"\b(?:INSERT|DELETE|LOAD|CLEAR|CREATE|DROP|COPY|MOVE|ADD|SERVICE|USING)\b",
@@ -45,6 +56,80 @@ _SELECT_START = re.compile(
 
 class GraphStudioAssistantError(RuntimeError):
     """A safe, user-displayable Graph Studio assistant error."""
+
+
+def _runtime_cache_key(snapshot: dict[str, Any]) -> str:
+    return "::".join(str(snapshot.get(key) or "") for key in (
+        "profileKey", "routeKey", "deploymentId", "ontologyReleaseId",
+        "curatedReleaseId", "artifactHash",
+    ))
+
+
+def resolve_runtime_snapshot() -> dict[str, Any]:
+    """Resolve the exact active Graph Studio deployment used by one answer."""
+    profile_key = os.getenv(
+        "MANUFACTURING_CHAT_PROFILE_KEY", "opcenter2607-core",
+    ).strip() or "opcenter2607-core"
+    route_key = os.getenv("MANUFACTURING_CHAT_ROUTE_KEY", "").strip()
+    try:
+        settings = SyncSettings.from_env()
+        repository = ControlPlaneRepository(settings)
+        status = deployment_status(repository, profile_key)
+    except Exception as exc:
+        raise GraphStudioAssistantError(
+            f"无法解析制造问答活动发布版本：{exc}"
+        ) from exc
+
+    active_data = status.get("activeCuratedRelease") or {}
+    active_ontology = status.get("activeOntologyRelease") or {}
+    if not active_data or not active_ontology:
+        raise GraphStudioAssistantError("制造问答没有可用的活动数据版本或本体版本")
+
+    routes = {item["route_key"]: item for item in status.get("routes", [])}
+    candidates = [
+        item for item in status.get("deployments", [])
+        if item.get("status") == "active"
+        and str(item.get("curated_release_id")) == str(active_data.get("release_id"))
+        and str(item.get("ontology_release_id")) == str(active_ontology.get("ontology_release_id"))
+        and (not route_key or item.get("route_key") == route_key)
+    ]
+    if not candidates:
+        detail = f"（路由 {route_key}）" if route_key else ""
+        raise GraphStudioAssistantError(
+            "当前活动数据/本体组合尚未成功发布到 Graph Studio" + detail
+        )
+    deployment = candidates[0]
+    route = routes.get(deployment.get("route_key"), {})
+    validation_plan = dict(deployment.get("validation_plan") or {})
+    graphmart_uri = str(
+        validation_plan.get("graphmartUri")
+        or route.get("graphmart_uri")
+        or settings.graphmart_uri
+    )
+    model_uri = str(validation_plan.get("modelUri") or "")
+    if not graphmart_uri or not model_uri or not deployment.get("layer_uri"):
+        raise GraphStudioAssistantError("活动部署缺少 Graphmart、Model 或 Layer 版本证据")
+    snapshot = {
+        "profileKey": profile_key,
+        "routeKey": deployment.get("route_key"),
+        "environmentKey": deployment.get("environment_key"),
+        "deploymentId": str(deployment["deployment_id"]),
+        "ontologyReleaseId": str(active_ontology["ontology_release_id"]),
+        "ontologyReleaseNo": int(active_ontology["release_no"]),
+        "ontologyClassCount": int(active_ontology.get("class_count") or 0),
+        "ontologyRelationshipCount": int(active_ontology.get("relationship_count") or 0),
+        "curatedReleaseId": str(active_data["release_id"]),
+        "curatedReleaseNo": int(active_data["release_no"]),
+        "objectCount": int(active_data.get("object_count") or 0),
+        "relationshipCount": int(active_data.get("relationship_count") or 0),
+        "graphmartUri": graphmart_uri,
+        "modelUri": model_uri,
+        "layerUri": str(deployment["layer_uri"]),
+        "artifactHash": str(deployment.get("artifact_hash") or ""),
+        "finishedAt": str(deployment.get("finished_at") or ""),
+    }
+    snapshot["cacheKey"] = _runtime_cache_key(snapshot)
+    return snapshot
 
 
 def _get_llm() -> AsyncOpenAI:
@@ -74,19 +159,30 @@ def _configuration() -> dict[str, str]:
     return values
 
 
-def _sparql_endpoint(config: dict[str, str]) -> str:
-    encoded = quote(config["graphmart_uri"], safe="")
+def _sparql_endpoint(
+    config: dict[str, str], graphmart_uri: str | None = None,
+) -> str:
+    encoded = quote(graphmart_uri or config["graphmart_uri"], safe="")
     return f"{config['base_url']}/sparql/graphmart/{encoded}"
 
 
-def _request_sparql(query: str, *, timeout: float = 45) -> dict[str, Any]:
+def _request_sparql(
+    query: str,
+    *,
+    timeout: float = 45,
+    runtime_snapshot: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     config = _configuration()
     response = None
     last_error: requests.RequestException | None = None
     for attempt in range(4):
         try:
             response = requests.post(
-                _sparql_endpoint(config),
+                _sparql_endpoint(
+                    config,
+                    str(runtime_snapshot.get("graphmartUri"))
+                    if runtime_snapshot else None,
+                ),
                 data={"query": query},
                 headers={
                     "Accept": "application/sparql-results+json",
@@ -134,53 +230,124 @@ def _binding_rows(payload: dict[str, Any]) -> list[dict[str, str]]:
     return rows
 
 
-def _discover_schema_uncached() -> list[dict[str, str]]:
-    # The 2026.0.1 endpoint used by this deployment closes the HTTP connection
-    # for DISTINCT patterns that combine FILTER with BIND/IF.  Keep discovery
-    # deliberately simple and classify rdf:type in Python instead.
+def _instance_counts(runtime_snapshot: dict[str, Any]) -> dict[str, int]:
     query = """
-        SELECT DISTINCT ?class ?property WHERE {
-          ?instance a ?class ; ?property ?value .
+        SELECT ?class (COUNT(DISTINCT ?instance) AS ?instanceCount) WHERE {
+          ?instance a ?class .
         }
-        ORDER BY ?class ?property
+        GROUP BY ?class
         LIMIT 600
     """
-    rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-    rows = [
-        {**row, "valueKind": "属性或关联"}
-        for row in _binding_rows(_request_sparql(query))
-        if row.get("property") != rdf_type
-    ]
-    business_rows = [
-        row for row in rows
-        if "opcenter.siemens.com/ontology/" in row.get("class", "")
-    ]
-    return business_rows or rows
+    try:
+        rows = _binding_rows(_request_sparql(
+            query, runtime_snapshot=runtime_snapshot,
+        ))
+    except GraphStudioAssistantError:
+        return {}
+    counts: dict[str, int] = {}
+    for row in rows:
+        class_uri = row.get("class", "")
+        if class_uri.startswith(_PUBLISH_NAMESPACE):
+            try:
+                counts[class_uri] = int(row.get("instanceCount", "0"))
+            except ValueError:
+                counts[class_uri] = 0
+    return counts
 
 
-def _load_persisted_schema() -> list[dict[str, str]]:
+def _schema_rows_from_release(
+    model: dict[str, Any], instance_counts: dict[str, int],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for entry in model.get("classes", []):
+        ontology_class = entry.get("class") or {}
+        target_name = str(ontology_class.get("targetName") or "")
+        if not target_name:
+            continue
+        class_uri = _PUBLISH_NAMESPACE + target_name
+        base = {
+            "class": class_uri,
+            "classLabel": str(ontology_class.get("label") or target_name),
+            "role": str(ontology_class.get("role") or "context"),
+            "instanceCount": instance_counts.get(class_uri, 0),
+        }
+        rows.append({**base, "property": "", "valueKind": "对象类型"})
+        for prop in entry.get("properties", []):
+            if not prop.get("published"):
+                continue
+            rows.append({
+                **base,
+                "property": f"{_PUBLISH_NAMESPACE}{target_name}_{prop['targetName']}",
+                "propertyLabel": str(prop.get("targetName") or ""),
+                "dataType": str(prop.get("dataType") or "String"),
+                "valueKind": "属性",
+            })
+    for entry in model.get("relationships", []):
+        relation = entry.get("relation") or {}
+        if relation.get("usage") != "published_link":
+            continue
+        source = entry.get("source") or {}
+        target = entry.get("target") or {}
+        source_name = str(source.get("targetName") or "")
+        target_name = str(target.get("targetName") or "")
+        relation_name = str(relation.get("targetName") or "")
+        if not source_name or not target_name or not relation_name:
+            continue
+        class_uri = _PUBLISH_NAMESPACE + source_name
+        rows.append({
+            "class": class_uri,
+            "classLabel": str(source.get("label") or source_name),
+            "role": str(source.get("role") or "context"),
+            "instanceCount": instance_counts.get(class_uri, 0),
+            "property": _PUBLISH_NAMESPACE + "REL_" + relation_name,
+            "propertyLabel": relation_name,
+            "targetClass": _PUBLISH_NAMESPACE + target_name,
+            "valueKind": "关系",
+        })
+    return rows
+
+
+def _discover_schema_uncached(
+    runtime_snapshot: dict[str, Any],
+) -> list[dict[str, Any]]:
+    try:
+        settings = SyncSettings.from_env()
+        model = release_graph(
+            settings, str(runtime_snapshot["ontologyReleaseId"]),
+        )
+    except Exception as exc:
+        raise GraphStudioAssistantError(
+            f"无法读取活动本体 R{runtime_snapshot.get('ontologyReleaseNo')}：{exc}"
+        ) from exc
+    return _schema_rows_from_release(model, _instance_counts(runtime_snapshot))
+
+
+def _load_persisted_schema(
+    runtime_snapshot: dict[str, Any],
+) -> list[dict[str, Any]]:
     try:
         payload = json.loads(_SCHEMA_CACHE_PATH.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError):
         return []
-    try:
-        config = _configuration()
-    except GraphStudioAssistantError:
-        return []
-    if payload.get("graphmart_uri") != config["graphmart_uri"]:
+    if payload.get("runtime_key") != runtime_snapshot.get("cacheKey"):
         return []
     rows = payload.get("rows")
     return rows if isinstance(rows, list) else []
 
 
-def _persist_schema(rows: list[dict[str, str]]) -> None:
+def _persist_schema(
+    rows: list[dict[str, Any]], runtime_snapshot: dict[str, Any],
+) -> None:
     try:
-        config = _configuration()
         _SCHEMA_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
         _SCHEMA_CACHE_PATH.write_text(
             json.dumps(
                 {
-                    "graphmart_uri": config["graphmart_uri"],
+                    "runtime_key": runtime_snapshot["cacheKey"],
+                    "graphmart_uri": runtime_snapshot["graphmartUri"],
+                    "deployment_id": runtime_snapshot["deploymentId"],
+                    "ontology_release_id": runtime_snapshot["ontologyReleaseId"],
+                    "curated_release_id": runtime_snapshot["curatedReleaseId"],
                     "saved_at": time.time(),
                     "rows": rows,
                 },
@@ -193,23 +360,37 @@ def _persist_schema(rows: list[dict[str, str]]) -> None:
         pass
 
 
-def discover_schema() -> list[dict[str, str]]:
+def discover_schema(
+    runtime_snapshot: dict[str, Any] | None = None,
+    *,
+    force_refresh: bool = False,
+) -> list[dict[str, Any]]:
     global _schema_cache
+    runtime_snapshot = runtime_snapshot or resolve_runtime_snapshot()
+    runtime_key = str(runtime_snapshot["cacheKey"])
     now = time.monotonic()
-    if _schema_cache and now - _schema_cache[0] < _SCHEMA_TTL_SECONDS:
-        return _schema_cache[1]
+    if (
+        not force_refresh and _schema_cache
+        and _schema_cache[0] == runtime_key
+        and now - _schema_cache[1] < _SCHEMA_TTL_SECONDS
+    ):
+        return _schema_cache[2]
     with _schema_lock:
         now = time.monotonic()
-        if _schema_cache and now - _schema_cache[0] < _SCHEMA_TTL_SECONDS:
-            return _schema_cache[1]
+        if (
+            not force_refresh and _schema_cache
+            and _schema_cache[0] == runtime_key
+            and now - _schema_cache[1] < _SCHEMA_TTL_SECONDS
+        ):
+            return _schema_cache[2]
         try:
-            rows = _discover_schema_uncached()
-            _persist_schema(rows)
+            rows = _discover_schema_uncached(runtime_snapshot)
+            _persist_schema(rows, runtime_snapshot)
         except GraphStudioAssistantError:
-            rows = _load_persisted_schema()
+            rows = _load_persisted_schema(runtime_snapshot)
             if not rows:
                 raise
-        _schema_cache = (now, rows)
+        _schema_cache = (runtime_key, now, rows)
         return rows
 
 
@@ -217,30 +398,70 @@ def _local_name(uri: str) -> str:
     return uri.rsplit("#", 1)[-1].rsplit("/", 1)[-1]
 
 
-def _schema_context(rows: list[dict[str, str]]) -> str:
-    grouped: dict[str, list[str]] = {}
+def _schema_context(rows: list[dict[str, Any]]) -> str:
+    grouped: dict[str, dict[str, Any]] = {}
     for row in rows:
         class_uri = row.get("class", "")
         if not class_uri:
             continue
         class_text = f"{_local_name(class_uri)} <{class_uri}>"
-        properties = grouped.setdefault(class_text, [])
+        group = grouped.setdefault(class_text, {
+            "role": row.get("role", "context"),
+            "instanceCount": int(row.get("instanceCount") or 0),
+            "properties": [],
+            "relationships": [],
+        })
         property_uri = row.get("property", "")
-        if property_uri:
-            property_text = (
-                f"{_local_name(property_uri)} <{property_uri}>"
-                f"（{row.get('valueKind', '属性')}）"
+        if not property_uri:
+            continue
+        if row.get("valueKind") == "关系":
+            relationship_text = (
+                f"{row.get('propertyLabel') or _local_name(property_uri)} "
+                f"<{property_uri}> → {_local_name(str(row.get('targetClass') or ''))}"
             )
-            if property_text not in properties:
-                properties.append(property_text)
+            if relationship_text not in group["relationships"]:
+                group["relationships"].append(relationship_text)
+        else:
+            property_text = (
+                f"{row.get('propertyLabel') or _local_name(property_uri)} "
+                f"<{property_uri}>（{row.get('dataType', 'String')}）"
+            )
+            if property_text not in group["properties"]:
+                group["properties"].append(property_text)
     if not grouped:
-        return "当前 Graphmart 未发现可查询的实例类型。"
+        return "当前活动本体没有可查询的发布对象。"
     lines = []
-    for class_text, properties in list(grouped.items())[:120]:
-        lines.append(f"- 类：{class_text}")
-        if properties:
-            lines.append("  属性：" + "；".join(properties[:80]))
+    for class_text, group in list(grouped.items())[:120]:
+        lines.append(
+            f"- 类：{class_text}；角色：{group['role']}；"
+            f"当前实例数：{group['instanceCount']}"
+        )
+        if group["properties"]:
+            lines.append("  属性：" + "；".join(group["properties"][:80]))
+        if group["relationships"]:
+            lines.append("  关系：" + "；".join(group["relationships"][:80]))
     return "\n".join(lines)
+
+
+def _schema_inventory_sparql(rows: list[dict[str, Any]]) -> str:
+    class_uris = sorted({str(row.get("class") or "") for row in rows if row.get("class")})
+    values = " ".join(f"<{uri}>" for uri in class_uris)
+    return validate_readonly_sparql(f"""
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        SELECT ?class ?label ?relation ?targetClass WHERE {{
+          VALUES ?class {{ {values} }}
+          ?class a owl:Class .
+          OPTIONAL {{ ?class rdfs:label ?label . }}
+          OPTIONAL {{
+            ?relation a owl:ObjectProperty ;
+                      rdfs:domain ?class ;
+                      rdfs:range ?targetClass .
+          }}
+        }}
+        ORDER BY ?class ?relation ?targetClass
+        LIMIT 500
+    """)
 
 
 def _history_for_model(history: list[dict[str, Any]] | None) -> list[dict[str, str]]:
@@ -341,7 +562,9 @@ async def _select_saved_query(
     """Select a governed saved Query only when it can directly support the question."""
     if not queries:
         return None, "当前没有可用的已保存 Query"
-    candidates = queries[:40]
+    candidates = [item for item in queries if item.get("compatible", True)][:40]
+    if not candidates:
+        return None, "当前已保存 Query 均与活动本体版本不兼容"
     catalog = [
         {
             "uri": item["uri"],
@@ -393,25 +616,49 @@ async def graphstudio_query_stream(
     *,
     query_mode: str = "auto",
     query_uri: str | None = None,
-) -> AsyncIterator[str | dict[str, str]]:
+    runtime_snapshot: dict[str, Any] | None = None,
+) -> AsyncIterator[str | dict[str, Any]]:
     if not os.getenv("DEEPSEEK_API_KEY", "").strip():
         raise GraphStudioAssistantError("尚未配置 DEEPSEEK_API_KEY，无法启动制造知识问答")
 
+    runtime_snapshot = runtime_snapshot or await asyncio.to_thread(
+        resolve_runtime_snapshot
+    )
+    yield {
+        "type": "status",
+        "content": (
+            f"已连接本体 R{runtime_snapshot['ontologyReleaseNo']} / "
+            f"数据 R{runtime_snapshot['curatedReleaseNo']}，正在读取版本化语义契约…"
+        ),
+    }
+    schema_rows = await asyncio.to_thread(discover_schema, runtime_snapshot)
+    schema_context = _schema_context(schema_rows)
+    if not schema_rows:
+        raise GraphStudioAssistantError("当前活动本体没有可供问答的发布对象")
+
     saved_query = None
     routing_reason = ""
-    if query_mode != "dynamic":
+    schema_inventory = bool(_SCHEMA_INVENTORY_QUESTION.search(question))
+    if query_mode != "dynamic" and not schema_inventory:
         yield {"type": "status", "content": "正在匹配 Graph Studio 已保存 Query…"}
         try:
             from src.qa.graphstudio_saved_queries import list_saved_queries
 
-            saved_queries = await asyncio.to_thread(list_saved_queries)
+            saved_queries = await asyncio.to_thread(
+                list_saved_queries, runtime_snapshot=runtime_snapshot,
+            )
             if query_uri:
                 saved_query = next(
-                    (item for item in saved_queries if item["uri"] == query_uri),
+                    (
+                        item for item in saved_queries
+                        if item["uri"] == query_uri and item.get("compatible", True)
+                    ),
                     None,
                 )
                 if saved_query is None:
-                    raise GraphStudioAssistantError("指定的 Graph Studio Query 不存在或不是安全的 SELECT 查询")
+                    raise GraphStudioAssistantError(
+                        "指定的 Graph Studio Query 不存在、不安全或与当前本体版本不兼容"
+                    )
                 routing_reason = "用户指定使用该 Query"
             else:
                 saved_query, routing_reason = await _select_saved_query(
@@ -422,7 +669,13 @@ async def graphstudio_query_stream(
                 raise
             saved_query = None
 
-    if saved_query:
+    if schema_inventory:
+        sparql = _schema_inventory_sparql(schema_rows)
+        understanding = (
+            f"读取活动本体 R{runtime_snapshot['ontologyReleaseNo']} 的完整对象与关系定义"
+        )
+        yield {"type": "status", "content": "正在核对活动本体中的全部对象和关系…"}
+    elif saved_query:
         sparql = validate_readonly_sparql(saved_query["sparql"])
         understanding = f"使用已保存 Query：{saved_query['title']}（{routing_reason}）"
         yield {
@@ -430,20 +683,17 @@ async def graphstudio_query_stream(
             "content": f"已匹配 Query「{saved_query['title']}」，正在执行…",
         }
     else:
-        yield {"type": "status", "content": "正在读取当前 Graphmart 语义结构…"}
-        schema_rows = await asyncio.to_thread(discover_schema)
-        schema_context = _schema_context(schema_rows)
-        if not schema_rows:
-            raise GraphStudioAssistantError("当前 Graphmart 没有可供问答的实例数据")
-
         yield {"type": "status", "content": "正在生成并校验动态只读查询计划…"}
         sparql, understanding = await _plan_query(question, history, schema_context)
 
     yield {"type": "status", "content": "正在查询 Graph Studio 当前发布数据…"}
-    result = await asyncio.to_thread(_request_sparql, sparql)
+    result = await asyncio.to_thread(
+        _request_sparql, sparql, runtime_snapshot=runtime_snapshot,
+    )
     rows = _binding_rows(result)
     variables = ((result.get("head") or {}).get("vars") or [])
     evidence = {
+        "runtime": runtime_snapshot,
         "variables": variables,
         "rowCount": len(rows),
         "rows": rows[:100],
@@ -456,7 +706,6 @@ async def graphstudio_query_stream(
 
     client = _get_llm()
     model = os.getenv("LLM_MODEL", "deepseek-v4-flash")
-    config = _configuration()
     messages = [{
         "role": "system",
         "content": (
@@ -472,7 +721,9 @@ async def graphstudio_query_stream(
         "content": (
             f"用户问题：{question}\n"
             f"查询理解：{understanding}\n"
-            f"Graphmart：{config['graphmart_uri']}\n"
+            f"Graphmart：{runtime_snapshot['graphmartUri']}\n"
+            f"活动本体：R{runtime_snapshot['ontologyReleaseNo']}\n"
+            f"活动数据：R{runtime_snapshot['curatedReleaseNo']}\n"
             f"只读SPARQL：\n{sparql}\n"
             f"查询证据JSON：\n{evidence_text}"
         ),
@@ -492,20 +743,28 @@ async def graphstudio_query_stream(
 
     query_source = (
         f"Graph Studio 已保存 Query「{saved_query['title']}」"
-        if saved_query else "动态生成并安全校验的只读查询"
+        if saved_query else (
+            "活动本体清单查询" if schema_inventory
+            else "动态生成并安全校验的只读查询"
+        )
     )
     yield (
         "\n\n### 查询依据\n"
+        f"- 发布版本：本体 R{runtime_snapshot['ontologyReleaseNo']} · "
+        f"数据 R{runtime_snapshot['curatedReleaseNo']}\n"
+        f"- 部署：`{runtime_snapshot['deploymentId'][:8]}` · "
+        f"Layer `{_local_name(runtime_snapshot['layerUri'])}`\n"
         f"- 数据源：当前 Graphmart（返回 {len(rows)} 条）\n"
         f"- 查询方式：{query_source}\n\n"
         f"```sparql\n{sparql}\n```"
     )
 
 
-def graphstudio_connection_status() -> dict[str, Any]:
+def graphstudio_connection_status(*, force_refresh: bool = False) -> dict[str, Any]:
     llm_configured = bool(os.getenv("DEEPSEEK_API_KEY", "").strip())
     try:
         config = _configuration()
+        runtime_snapshot = resolve_runtime_snapshot()
     except GraphStudioAssistantError as exc:
         return {
             "status": "not_configured",
@@ -517,13 +776,21 @@ def graphstudio_connection_status() -> dict[str, Any]:
         payload = _request_sparql(
             "SELECT (COUNT(*) AS ?statementCount) WHERE { ?s ?p ?o }",
             timeout=15,
+            runtime_snapshot=runtime_snapshot,
+        )
+        schema_rows = discover_schema(
+            runtime_snapshot, force_refresh=force_refresh,
         )
         rows = _binding_rows(payload)
         statement_count = int(rows[0].get("statementCount", "0")) if rows else 0
         graphstudio = "在线"
         status = "ready" if llm_configured else "llm_missing"
         detail = (
-            f"制造知识问答已就绪 · {statement_count:,} 条图谱语句"
+            f"制造知识问答已就绪 · 本体 R{runtime_snapshot['ontologyReleaseNo']} · "
+            f"数据 R{runtime_snapshot['curatedReleaseNo']} · "
+            f"{runtime_snapshot['ontologyClassCount']} 类 / "
+            f"{runtime_snapshot['ontologyRelationshipCount']} 关系 · "
+            f"{statement_count:,} 条图谱语句"
             if llm_configured
             else "Graph Studio 在线，但 DeepSeek 未配置"
         )
@@ -535,6 +802,8 @@ def graphstudio_connection_status() -> dict[str, Any]:
         "status": status,
         "graphstudio": graphstudio,
         "llm": "已配置" if llm_configured else "未配置",
-        "graphmart_uri": config["graphmart_uri"],
+        "graphmart_uri": runtime_snapshot.get("graphmartUri", config["graphmart_uri"]),
+        "runtime": runtime_snapshot,
+        "schema_rows": len(schema_rows) if status == "ready" else 0,
         "detail": detail,
     }
