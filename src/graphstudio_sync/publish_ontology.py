@@ -532,7 +532,8 @@ def add_relationship(
             SET r.workspaceKey=$workspaceKey, r.sourceRelationship=$sourceRelationship,
                 r.targetName=$targetName, r.usage=$usage,
                 r.strength=$strength, r.cardinality=$cardinality,
-                r.requiredContext=$requiredContext, r.description=$description,
+                r.requiredContext=$requiredContext,
+                r.questionEnabled=$questionEnabled, r.description=$description,
                 r.updatedAt=datetime()
             RETURN r.relationshipKey AS key
             """,
@@ -546,6 +547,7 @@ def add_relationship(
             strength=strength,
             cardinality=str(values.get("cardinality") or "many-to-one"),
             requiredContext=bool(values.get("requiredContext", False)),
+            questionEnabled=bool(values.get("questionEnabled", True)),
             description=str(values.get("description") or ""),
         ).single()
         if not result:

@@ -83,7 +83,13 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
   }, [graph?.nodes, selectedId]);
   const openRelationshipEditor = () => {
     relationshipForm.resetFields();
-    relationshipForm.setFieldsValue({ sourceUid: selectedId || undefined, cardinality: "many-to-one", strength: "context" });
+    relationshipForm.setFieldsValue({
+      sourceUid: selectedId || undefined,
+      cardinality: "many-to-one",
+      strength: "context",
+      usage: "published_link",
+      questionEnabled: true,
+    });
     setCreateRelationshipOpen(true);
   };
 
@@ -167,15 +173,32 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
     onError: (error: Error) => message.error(error.message),
   });
   const createCustomRelationship = useMutation({
-    mutationFn: (values: { sourceUid: string; targetUid: string; targetName: string; cardinality: string; strength: "core" | "context" | "weak" | "on_demand"; description?: string }) => syncApi.addOntologyRelationship(workspace!.workspace_key, {
+    mutationFn: (values: { sourceUid: string; targetUid: string; targetName: string; cardinality: string; strength: "core" | "context" | "weak" | "on_demand"; usage: "published_link" | "projection_only" | "context_only" | "excluded"; questionEnabled?: boolean; description?: string }) => syncApi.addOntologyRelationship(workspace!.workspace_key, {
       sourceUid: values.sourceUid, targetUid: values.targetUid, sourceRelationship: values.targetName.trim(),
       targetName: values.targetName.trim(), cardinality: values.cardinality, strength: values.strength,
-      usage: "published_link", description: values.description?.trim(),
+      usage: values.usage, questionEnabled: Boolean(values.questionEnabled), description: values.description?.trim(),
     }),
     onSuccess: async () => {
       message.success("自定义发布关系已写入草稿");
       setCreateRelationshipOpen(false); relationshipForm.resetFields(); await refresh();
     },
+    onError: (error: Error) => message.error(error.message),
+  });
+  const updateRelationship = useMutation({
+    mutationFn: ({ edge, changes }: { edge: NonNullable<typeof graph>["edges"][number]; changes: { questionEnabled?: boolean } }) => syncApi.addOntologyRelationship(workspace!.workspace_key, {
+      relationshipKey: edge.data.relationshipKey,
+      sourceUid: edge.source,
+      targetUid: edge.target,
+      sourceRelationship: edge.data.sourceRelationship || edge.data.targetName || "RELATED_TO",
+      targetName: edge.data.targetName || edge.data.relationshipKey,
+      usage: (edge.data.usage || "published_link") as "published_link" | "projection_only" | "context_only" | "excluded",
+      strength: (edge.data.strength || "context") as "core" | "context" | "weak" | "on_demand",
+      cardinality: edge.data.cardinality || "many-to-one",
+      requiredContext: Boolean(edge.data.requiredContext),
+      questionEnabled: changes.questionEnabled ?? edge.data.questionEnabled ?? true,
+      description: edge.data.description || undefined,
+    }),
+    onSuccess: async () => { message.success("关系问答策略已更新"); await refresh(); },
     onError: (error: Error) => message.error(error.message),
   });
   const removeClass = useMutation({
@@ -338,7 +361,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
           {!selectedNode ? <Empty description="选择左侧对象进行配置" /> : <><Descriptions column={2} size="small"><Descriptions.Item label="来源">{selectedNode.data.origin}</Descriptions.Item><Descriptions.Item label="孤立策略">{selectedNode.data.orphanPolicy}</Descriptions.Item></Descriptions><Button className="relationship-discovery-button" type="primary" ghost block icon={<BranchesOutlined />} loading={discoverRelationships.isPending} disabled={!selectedNode.data.sourceClass} onClick={() => discoverRelationships.mutate(selectedId)}>发现与现有图谱的关联</Button><Input allowClear prefix={<SearchOutlined />} placeholder="搜索对象属性" value={propertySearch} onChange={(event) => setPropertySearch(event.target.value)} /><Table rowKey="uid" size="small" columns={propertyColumns} dataSource={selectedProperties} pagination={false} scroll={{ x: 500, y: 300 }} /><div className="ontology-suggestion-block"><div><Typography.Text strong>一跳依赖建议</Typography.Text><Typography.Text type="secondary">加入必要上下游对象后，再补齐模型内关系。</Typography.Text></div>{suggestions.length ? <><div className="ontology-suggestion-tags">{suggestions.map((item) => <Button size="small" key={item.id} icon={<PlusOutlined />} loading={addClass.isPending && addClass.variables === item.id} onClick={() => addClass.mutate(item.id)}>{item.data.chineseName || item.id}</Button>)}</div><Button type="link" loading={addAllSuggestions.isPending} onClick={() => addAllSuggestions.mutate()}>全部加入当前一跳</Button></> : <Alert type="success" showIcon message="当前对象的一跳依赖均已纳入模型" />}</div></>}
         </Card>
       </div>
-      <Card title={<Space><LinkOutlined /><span>当前模型关系</span></Space>} extra={<Space><Tag>{graph?.edges.length || 0} 条</Tag><Button size="small" icon={<PlusOutlined />} disabled={(graph?.nodes.length || 0) < 2} onClick={openRelationshipEditor}>新建关系</Button></Space>}><Table rowKey="id" size="small" dataSource={graph?.edges || []} pagination={false} columns={[{ title: "源对象", dataIndex: "source", render: (value) => graph?.nodes.find((node) => node.id === value)?.data.targetName || value }, { title: "关系", key: "relation", render: (_, item) => <Tag color="cyan">{item.data.targetName || item.data.relationshipKey}</Tag> }, { title: "目标对象", dataIndex: "target", render: (value) => graph?.nodes.find((node) => node.id === value)?.data.targetName || value }, { title: "基数", dataIndex: ["data", "cardinality"], width: 130 }, { title: "操作", key: "action", width: 80, render: (_, item) => <Popconfirm title="移出该发布关系？" onConfirm={() => removeRelationship.mutate(item.data.relationshipKey)}><Button type="text" danger icon={<DeleteOutlined />} /></Popconfirm> }]} /></Card>
+      <Card title={<Space><LinkOutlined /><span>当前模型关系</span></Space>} extra={<Space><Tag>{graph?.edges.length || 0} 条</Tag><Button size="small" icon={<PlusOutlined />} disabled={(graph?.nodes.length || 0) < 2} onClick={openRelationshipEditor}>新建关系</Button></Space>}><Table rowKey="id" size="small" dataSource={graph?.edges || []} pagination={false} columns={[{ title: "源对象", dataIndex: "source", render: (value) => graph?.nodes.find((node) => node.id === value)?.data.targetName || value }, { title: "关系", key: "relation", render: (_, item) => <Tag color="cyan">{item.data.targetName || item.data.relationshipKey}</Tag> }, { title: "目标对象", dataIndex: "target", render: (value) => graph?.nodes.find((node) => node.id === value)?.data.targetName || value }, { title: "用途", key: "usage", width: 120, render: (_, item) => <Tag color={(item.data.usage || "published_link") === "published_link" ? "success" : "default"}>{(item.data.usage || "published_link") === "published_link" ? "发布关系" : "仅建模"}</Tag> }, { title: "问答可用", key: "questionEnabled", width: 100, align: "center", render: (_, item) => <Switch size="small" checked={item.data.questionEnabled !== false} disabled={(item.data.usage || "published_link") !== "published_link"} loading={updateRelationship.isPending && updateRelationship.variables?.edge.id === item.id} onChange={(questionEnabled) => updateRelationship.mutate({ edge: item, changes: { questionEnabled } })} /> }, { title: "基数", dataIndex: ["data", "cardinality"], width: 130 }, { title: "操作", key: "action", width: 80, render: (_, item) => <Popconfirm title="移出该发布关系？" onConfirm={() => removeRelationship.mutate(item.data.relationshipKey)}><Button type="text" danger icon={<DeleteOutlined />} /></Popconfirm> }]} /></Card>
     </>}
 
     {modelView === "presentation" && <OntologyPresentationPanel graph={graph} workspaceKey={workspace?.workspace_key} selectedId={selectedId} onSelect={setSelectedId} onSaved={refresh} />}
@@ -370,10 +393,11 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
     </Modal>
     <Modal title="新建发布关系" open={createRelationshipOpen} okText="保存关系" cancelText="取消" confirmLoading={createCustomRelationship.isPending} onCancel={() => { setCreateRelationshipOpen(false); relationshipForm.resetFields(); }} onOk={() => relationshipForm.validateFields().then((values) => createCustomRelationship.mutate(values))}>
       <Alert type="info" showIcon message="关系只作用于当前 Graph Studio 发布草稿" description="不会反向修改 Neo4j 制造语义主图，版本冻结后将作为不可变发布契约。" />
-      <Form form={relationshipForm} layout="vertical" initialValues={{ sourceUid: selectedId || undefined, cardinality: "many-to-one", strength: "context" }} className="ontology-create-form">
+      <Form form={relationshipForm} layout="vertical" initialValues={{ sourceUid: selectedId || undefined, cardinality: "many-to-one", strength: "context", usage: "published_link", questionEnabled: true }} className="ontology-create-form">
         <div className="ontology-form-grid"><Form.Item name="sourceUid" label="源对象" rules={[{ required: true }]}><Select showSearch optionFilterProp="label" options={(graph?.nodes || []).map((node) => ({ value: node.id, label: node.data.targetName }))} /></Form.Item><Form.Item name="targetUid" label="目标对象" dependencies={["sourceUid"]} rules={[{ required: true }, ({ getFieldValue }) => ({ validator(_, value) { return !value || value !== getFieldValue("sourceUid") ? Promise.resolve() : Promise.reject(new Error("源对象与目标对象不能相同")); } })]}><Select showSearch optionFilterProp="label" options={(graph?.nodes || []).map((node) => ({ value: node.id, label: node.data.targetName }))} /></Form.Item></div>
         <Form.Item name="targetName" label="关系技术名" rules={[{ required: true, message: "请输入关系技术名" }, { pattern: /^[A-Za-z_][A-Za-z0-9_]*$/, message: "请使用英文字母开头的字母、数字或下划线" }]}><Input placeholder="例如 IMPACTS_QUALITY" /></Form.Item>
         <div className="ontology-form-grid"><Form.Item name="cardinality" label="基数"><Select options={[{ value: "one-to-one", label: "一对一" }, { value: "one-to-many", label: "一对多" }, { value: "many-to-one", label: "多对一" }, { value: "many-to-many", label: "多对多" }]} /></Form.Item><Form.Item name="strength" label="关系强度"><Select options={[{ value: "core", label: "核心关系" }, { value: "context", label: "上下文关系" }, { value: "weak", label: "弱关系" }, { value: "on_demand", label: "按需关系" }]} /></Form.Item></div>
+        <div className="ontology-form-grid"><Form.Item name="usage" label="关系用途"><Select options={[{ value: "published_link", label: "发布为对象关系" }, { value: "context_only", label: "仅作建模上下文" }, { value: "projection_only", label: "仅作属性投影" }, { value: "excluded", label: "不发布" }]} /></Form.Item><Form.Item name="questionEnabled" label="允许知识问答使用" valuePropName="checked"><Switch checkedChildren="允许" unCheckedChildren="禁用" /></Form.Item></div>
         <Form.Item name="description" label="业务说明"><Input.TextArea rows={2} placeholder="说明该关系在制造业务中的含义" /></Form.Item>
       </Form>
     </Modal>

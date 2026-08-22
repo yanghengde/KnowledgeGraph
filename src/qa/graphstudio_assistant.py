@@ -255,8 +255,46 @@ def _instance_counts(runtime_snapshot: dict[str, Any]) -> dict[str, int]:
     return counts
 
 
+def _relationship_counts(
+    runtime_snapshot: dict[str, Any],
+) -> dict[str, int] | None:
+    """Count materialized publish relationships in the active Graphmart."""
+    query = f"""
+        SELECT ?relationship (COUNT(*) AS ?relationshipCount) WHERE {{
+          ?source ?relationship ?target .
+          FILTER(STRSTARTS(
+            STR(?relationship),
+            "{_PUBLISH_NAMESPACE}REL_"
+          ))
+        }}
+        GROUP BY ?relationship
+        LIMIT 600
+    """
+    try:
+        rows = _binding_rows(_request_sparql(
+            query, runtime_snapshot=runtime_snapshot,
+        ))
+    except GraphStudioAssistantError:
+        # Preserve ontology-only planning when the count probe is temporarily
+        # unavailable; an unavailable probe is not evidence of zero edges.
+        return None
+    counts: dict[str, int] = {}
+    for row in rows:
+        relationship_uri = row.get("relationship", "")
+        if relationship_uri.startswith(_PUBLISH_NAMESPACE + "REL_"):
+            try:
+                counts[relationship_uri] = int(
+                    row.get("relationshipCount", "0")
+                )
+            except ValueError:
+                counts[relationship_uri] = 0
+    return counts
+
+
 def _schema_rows_from_release(
-    model: dict[str, Any], instance_counts: dict[str, int],
+    model: dict[str, Any],
+    instance_counts: dict[str, int],
+    relationship_counts: dict[str, int] | None = None,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for entry in model.get("classes", []):
@@ -294,15 +332,21 @@ def _schema_rows_from_release(
         if not source_name or not target_name or not relation_name:
             continue
         class_uri = _PUBLISH_NAMESPACE + source_name
+        relationship_uri = _PUBLISH_NAMESPACE + "REL_" + relation_name
         rows.append({
             "class": class_uri,
             "classLabel": str(source.get("label") or source_name),
             "role": str(source.get("role") or "context"),
             "instanceCount": instance_counts.get(class_uri, 0),
-            "property": _PUBLISH_NAMESPACE + "REL_" + relation_name,
+            "property": relationship_uri,
             "propertyLabel": relation_name,
             "targetClass": _PUBLISH_NAMESPACE + target_name,
             "valueKind": "关系",
+            "questionEnabled": relation.get("questionEnabled", True) is not False,
+            "relationshipCount": (
+                relationship_counts.get(relationship_uri, 0)
+                if relationship_counts is not None else None
+            ),
         })
     return rows
 
@@ -319,7 +363,11 @@ def _discover_schema_uncached(
         raise GraphStudioAssistantError(
             f"无法读取活动本体 R{runtime_snapshot.get('ontologyReleaseNo')}：{exc}"
         ) from exc
-    return _schema_rows_from_release(model, _instance_counts(runtime_snapshot))
+    return _schema_rows_from_release(
+        model,
+        _instance_counts(runtime_snapshot),
+        _relationship_counts(runtime_snapshot),
+    )
 
 
 def _load_persisted_schema(
@@ -410,17 +458,24 @@ def _schema_context(rows: list[dict[str, Any]]) -> str:
             "instanceCount": int(row.get("instanceCount") or 0),
             "properties": [],
             "relationships": [],
+            "disabledRelationships": [],
         })
         property_uri = row.get("property", "")
         if not property_uri:
             continue
         if row.get("valueKind") == "关系":
+            count = row.get("relationshipCount")
+            enabled = row.get("questionEnabled", True) is not False
+            executable = enabled and (count is None or int(count) > 0)
             relationship_text = (
                 f"{row.get('propertyLabel') or _local_name(property_uri)} "
-                f"<{property_uri}> → {_local_name(str(row.get('targetClass') or ''))}"
+                f"<{property_uri}> → {_local_name(str(row.get('targetClass') or ''))}；"
+                f"当前关系实例数：{'未知' if count is None else int(count)}；"
+                f"问答可用：{'是' if executable else '否'}"
             )
-            if relationship_text not in group["relationships"]:
-                group["relationships"].append(relationship_text)
+            target_group = "relationships" if executable else "disabledRelationships"
+            if relationship_text not in group[target_group]:
+                group[target_group].append(relationship_text)
         else:
             property_text = (
                 f"{row.get('propertyLabel') or _local_name(property_uri)} "
@@ -439,7 +494,15 @@ def _schema_context(rows: list[dict[str, Any]]) -> str:
         if group["properties"]:
             lines.append("  属性：" + "；".join(group["properties"][:80]))
         if group["relationships"]:
-            lines.append("  关系：" + "；".join(group["relationships"][:80]))
+            lines.append(
+                "  可执行关系（查询连接只能使用这些关系）："
+                + "；".join(group["relationships"][:80])
+            )
+        if group["disabledRelationships"]:
+            lines.append(
+                "  禁止用于查询连接的关系："
+                + "；".join(group["disabledRelationships"][:80])
+            )
     return "\n".join(lines)
 
 
@@ -524,6 +587,8 @@ async def _plan_query(
     system = (
         "你是工业制造知识图谱的只读查询规划器。根据提供的 Graph Studio 实际类和属性，"
         "把用户问题转换为一条 SPARQL SELECT。只能使用上下文中存在的完整 URI，不得猜测字段。"
+        "关系连接只能使用标记为‘问答可用：是’的可执行关系；标记为‘问答可用：否’的关系即使路径更短也禁止使用。"
+        "对象之间必须使用 REL_ 开头的关系 URI连接，Navigation/ID 普通属性不得代替对象关系。"
         "禁止 INSERT、DELETE、LOAD、CLEAR、CREATE、DROP、COPY、MOVE、ADD 和 SERVICE。"
         "明细查询最多返回100条。输出严格 JSON："
         '{"sparql":"...","understanding":"一句中文查询理解"}。'

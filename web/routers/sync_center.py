@@ -235,6 +235,7 @@ class PublishRelationshipUpdate(BaseModel):
     strength: Literal["core", "context", "weak", "on_demand"] = "context"
     cardinality: str = Field(default="many-to-one", max_length=100)
     requiredContext: bool = False
+    questionEnabled: bool = True
     description: str | None = Field(default=None, max_length=4000)
 
 

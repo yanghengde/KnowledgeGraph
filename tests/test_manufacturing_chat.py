@@ -145,6 +145,88 @@ def test_release_schema_includes_classes_without_instances_and_all_relationships
     assert "VALUES ?class" in _schema_inventory_sparql(rows)
 
 
+def test_schema_context_marks_empty_and_disabled_relationships_as_unusable():
+    namespace = "https://opcenter.siemens.com/ontology/camstar/2607/publish#"
+    model = {
+        "classes": [
+            {"class": {"targetName": "MfgOrder"}, "properties": []},
+            {"class": {"targetName": "Product"}, "properties": []},
+            {"class": {"targetName": "Workflow"}, "properties": []},
+        ],
+        "relationships": [
+            {
+                "source": {"targetName": "MfgOrder"},
+                "target": {"targetName": "Workflow"},
+                "relation": {
+                    "targetName": "HAS_IS_WORKFLOW",
+                    "usage": "published_link",
+                },
+            },
+            {
+                "source": {"targetName": "MfgOrder"},
+                "target": {"targetName": "Product"},
+                "relation": {
+                    "targetName": "ORDERED_PRODUCT",
+                    "usage": "published_link",
+                },
+            },
+            {
+                "source": {"targetName": "Product"},
+                "target": {"targetName": "Workflow"},
+                "relation": {
+                    "targetName": "LEGACY_WORKFLOW",
+                    "usage": "published_link",
+                    "questionEnabled": False,
+                },
+            },
+        ],
+    }
+    rows = _schema_rows_from_release(model, {}, {
+        namespace + "REL_HAS_IS_WORKFLOW": 0,
+        namespace + "REL_ORDERED_PRODUCT": 5,
+        namespace + "REL_LEGACY_WORKFLOW": 8,
+    })
+
+    context = assistant._schema_context(rows)
+
+    assert "ORDERED_PRODUCT" in context
+    assert "当前关系实例数：5；问答可用：是" in context
+    assert "禁止用于查询连接的关系" in context
+    assert "HAS_IS_WORKFLOW" in context
+    assert "当前关系实例数：0；问答可用：否" in context
+    assert "LEGACY_WORKFLOW" in context
+
+
+def test_relationship_counts_reads_only_materialized_publish_edges(monkeypatch):
+    namespace = "https://opcenter.siemens.com/ontology/camstar/2607/publish#"
+    captured = {}
+
+    def fake_request(query, *, runtime_snapshot):
+        captured["query"] = query
+        captured["runtime"] = runtime_snapshot
+        return {"results": {"bindings": [{
+            "relationship": {"value": namespace + "REL_ORDERED_PRODUCT"},
+            "relationshipCount": {"value": "5"},
+        }]}}
+
+    monkeypatch.setattr(assistant, "_request_sparql", fake_request)
+
+    counts = assistant._relationship_counts({"cacheKey": "release-15"})
+
+    assert counts == {namespace + "REL_ORDERED_PRODUCT": 5}
+    assert "REL_" in captured["query"]
+    assert captured["runtime"]["cacheKey"] == "release-15"
+
+
+def test_relationship_count_probe_failure_does_not_turn_unknown_into_zero(monkeypatch):
+    def fail_request(*_args, **_kwargs):
+        raise GraphStudioAssistantError("temporary failure")
+
+    monkeypatch.setattr(assistant, "_request_sparql", fail_request)
+
+    assert assistant._relationship_counts({"cacheKey": "release-15"}) is None
+
+
 def test_schema_cache_is_invalidated_by_runtime_version(monkeypatch):
     calls = []
     monkeypatch.setattr(assistant, "_schema_cache", None)

@@ -220,7 +220,7 @@ export const syncApi = {
     relationshipKey?: string; sourceUid: string; targetUid: string; sourceRelationship?: string;
     targetName: string; usage?: "published_link" | "projection_only" | "context_only" | "excluded";
     strength?: "core" | "context" | "weak" | "on_demand"; cardinality?: string;
-    requiredContext?: boolean; description?: string;
+    requiredContext?: boolean; questionEnabled?: boolean; description?: string;
   }) => requestJson<{ relationshipKey: string }>(
     `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/relationships`,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) },

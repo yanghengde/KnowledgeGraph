@@ -390,6 +390,10 @@ export type OntologyRelationship = {
   usage?: string | null;
   cardinality?: string | null;
   requiredContext?: boolean;
+  questionEnabled?: boolean;
+  strength?: "core" | "context" | "weak" | "on_demand" | string | null;
+  description?: string | null;
+  sourceRelationship?: string | null;
   origin?: string | null;
   [key: string]: unknown;
 };
