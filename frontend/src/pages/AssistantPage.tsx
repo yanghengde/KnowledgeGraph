@@ -5,7 +5,6 @@ import {
   DeleteOutlined,
   PlusOutlined,
   ReloadOutlined,
-  StopOutlined,
 } from "@ant-design/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -40,6 +39,14 @@ function ComposerSendIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 19V5M6.5 10.5 12 5l5.5 5.5" />
+    </svg>
+  );
+}
+
+function ComposerStopIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="8" y="8" width="8" height="8" rx="1" />
     </svg>
   );
 }
@@ -305,12 +312,11 @@ export function AssistantPage() {
               disabled={streaming}
             />
             <Button
-              className="composer-submit"
+              className={`composer-submit ${streaming ? "is-streaming" : ""}`}
               type="primary"
-              danger={streaming}
               shape="circle"
               size="large"
-              icon={streaming ? <StopOutlined /> : <ComposerSendIcon />}
+              icon={streaming ? <ComposerStopIcon /> : <ComposerSendIcon />}
               aria-label={streaming ? "停止回答" : "发送问题"}
               disabled={!streaming && !question.trim()}
               onClick={() => void sendQuestion()}
