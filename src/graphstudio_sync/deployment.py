@@ -16,6 +16,7 @@ from rdflib import Dataset, Graph, Literal, Namespace, OWL, RDF, RDFS, URIRef, X
 from sqlalchemy import text
 
 from .config import PROJECT_ROOT, SyncSettings
+from .entity_labels import resolve_entity_label
 from .materialization import content_hash
 from .publish_ontology import active_release as active_ontology_release, release_graph
 from .repository import ControlPlaneRepository
@@ -486,6 +487,8 @@ def build_curated_rdf(
     ontology_uri = URIRef(model_uri)
     model_graph.add((ontology_uri, RDF.type, OWL.Ontology))
     model_graph.add((ontology_uri, RDFS.label, Literal(f"Governed publish ontology release {ontology_meta['release_no']}")))
+    model_graph.add((ONT.previewProperty, RDF.type, OWL.AnnotationProperty))
+    model_graph.add((ONT.searchProperty, RDF.type, OWL.AnnotationProperty))
     datatype_map = {
         "string": XSD.string, "text": XSD.string, "boolean": XSD.boolean,
         "integer": XSD.int, "int": XSD.int, "long": XSD.long,
@@ -512,6 +515,24 @@ def build_curated_rdf(
             model_graph.add((predicate, RDFS.domain, class_uri))
             model_graph.add((predicate, RDFS.range, datatype_map.get(str(prop.get("dataType") or "string").casefold(), XSD.string)))
             model_graph.add((predicate, RDFS.label, Literal(prop["targetName"])))
+        display_predicate = ONT[f"{target_name}_displayLabel"]
+        model_graph.add((display_predicate, RDF.type, OWL.DatatypeProperty))
+        model_graph.add((display_predicate, RDFS.domain, class_uri))
+        model_graph.add((display_predicate, RDFS.range, XSD.string))
+        model_graph.add((display_predicate, RDFS.label, Literal("显示名称", lang="zh")))
+        model_graph.add((class_uri, ONT.previewProperty, display_predicate))
+        properties_by_name = {
+            str(prop.get("targetName") or "").casefold(): prop
+            for prop in published_properties
+        }
+        for search_name in ontology_class.get("searchFields") or []:
+            search_property = properties_by_name.get(str(search_name).casefold())
+            if search_property:
+                model_graph.add((
+                    class_uri,
+                    ONT.searchProperty,
+                    ONT[f"{target_name}_{search_property['targetName']}"],
+                ))
     relationship_map: dict[tuple[str, str, str], dict[str, Any]] = {}
     for entry in model["relationships"]:
         relation = entry["relation"]
@@ -536,7 +557,8 @@ def build_curated_rdf(
         objects = [dict(row) for row in connection.execute(
             text(
                 """
-                SELECT class_name, object_uri, properties
+                SELECT class_name, object_uri, source_primary_key,
+                       business_key, properties
                 FROM graphsync.object_version
                 WHERE release_id=:release_id AND profile_key=:profile_key
                   AND record_status='active'
@@ -573,6 +595,20 @@ def build_curated_rdf(
         subject = URIRef(item["object_uri"])
         data_graph.add((subject, RDF.type, ONT[ontology_class["targetName"]]))
         values = item["properties"] or {}
+        label = resolve_entity_label(
+            ontology_class,
+            property_map.get(ontology_class["uid"], []),
+            values,
+            business_key=item.get("business_key") or {},
+            primary_key=item.get("source_primary_key") or {},
+        )
+        data_graph.add((
+            subject,
+            ONT[f"{ontology_class['targetName']}_displayLabel"],
+            Literal(label),
+        ))
+        if ontology_class.get("emitRdfsLabel", True):
+            data_graph.add((subject, RDFS.label, Literal(label)))
         for prop in property_map.get(ontology_class["uid"], []):
             source_name = prop.get("sourceName") or prop["targetName"]
             value = values.get(source_name, values.get(prop["targetName"]))

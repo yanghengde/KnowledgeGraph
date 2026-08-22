@@ -15,6 +15,7 @@ import type {
   DeploymentStatus,
   DeploymentPlan,
   OntologyGovernanceStatus,
+  OntologyPresentationInput,
   OntologyValidation,
   SemanticClassDetail,
   SemanticGraphOverview,
@@ -202,6 +203,10 @@ export const syncApi = {
   removeOntologyClass: (workspaceKey: string, classUid: string) => requestJson<{ ok: boolean }>(
     `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/classes/${encodeURIComponent(classUid)}`,
     { method: "DELETE" },
+  ),
+  updateOntologyPresentation: (workspaceKey: string, classUid: string, input: OntologyPresentationInput) => requestJson<OntologyPresentationInput>(
+    `/api/sync/ontology-governance/workspaces/${encodeURIComponent(workspaceKey)}/classes/${encodeURIComponent(classUid)}/presentation`,
+    { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) },
   ),
   updateOntologyProperty: (workspaceKey: string, classUid: string, input: {
     uid?: string; propertyKey?: string; sourceName?: string; targetName: string;

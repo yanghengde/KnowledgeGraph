@@ -352,7 +352,22 @@ export type OntologyClass = {
   origin?: string | null;
   published?: boolean;
   description?: string | null;
+  labelMode?: "auto" | "field" | "template";
+  labelField?: string | null;
+  labelTemplate?: string | null;
+  labelFallbacks?: string[];
+  searchFields?: string[];
+  emitRdfsLabel?: boolean;
   [key: string]: unknown;
+};
+
+export type OntologyPresentationInput = {
+  labelMode: "auto" | "field" | "template";
+  labelField?: string | null;
+  labelTemplate?: string | null;
+  labelFallbacks: string[];
+  searchFields: string[];
+  emitRdfsLabel: boolean;
 };
 
 export type OntologyProperty = {

@@ -73,6 +73,7 @@ from src.graphstudio_sync.publish_ontology import (
     review_workspace as review_ontology_workspace,
     source_candidates as ontology_source_candidates,
     update_class as update_publish_class,
+    update_presentation as update_publish_presentation,
     undo_relationship_suggestion_batch as undo_publish_relationship_suggestion_batch,
     upsert_property as upsert_publish_property,
     validate_workspace as validate_ontology_workspace,
@@ -200,6 +201,15 @@ class PublishClassUpdate(BaseModel):
     description: str | None = Field(default=None, max_length=4000)
     role: Literal["core", "context", "reference", "on_demand", "excluded"] = "context"
     orphanPolicy: Literal["reject", "quarantine", "allow", "referenced_only"] = "quarantine"
+
+
+class PublishPresentationUpdate(BaseModel):
+    labelMode: Literal["auto", "field", "template"] = "auto"
+    labelField: str | None = Field(default=None, max_length=300)
+    labelTemplate: str | None = Field(default=None, max_length=500)
+    labelFallbacks: list[str] = Field(default_factory=list, max_length=12)
+    searchFields: list[str] = Field(default_factory=list, max_length=24)
+    emitRdfsLabel: bool = True
 
 
 class PublishPropertyUpdate(BaseModel):
@@ -1395,6 +1405,20 @@ def delete_publish_class(workspace_key: str, class_uid: str):
         remove_publish_class(_settings(), _repo(), workspace_key, class_uid)
         return {"ok": True}
     except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.put("/ontology-governance/workspaces/{workspace_key}/classes/{class_uid}/presentation")
+def edit_publish_presentation(
+    workspace_key: str, class_uid: str, payload: PublishPresentationUpdate,
+):
+    try:
+        return update_publish_presentation(
+            _settings(), _repo(), workspace_key, class_uid, payload.model_dump(),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Publish class not found") from exc
+    except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 

@@ -12,6 +12,7 @@ import type { ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { syncApi } from "../api";
 import { PublishOntologyCanvas } from "./PublishOntologyCanvas";
+import { OntologyPresentationPanel } from "./OntologyPresentationPanel";
 import { useThemeMode } from "../theme";
 import type {
   OntologyClass, OntologyGovernanceStatus, OntologyProperty, OntologyRelease,
@@ -62,7 +63,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
   const [operation, setOperation] = useState<Operation | null>(null);
   const [actor, setActor] = useState("local-console");
   const [confirmation, setConfirmation] = useState("");
-  const [modelView, setModelView] = useState<"preview" | "scope" | "diff">("preview");
+  const [modelView, setModelView] = useState<"preview" | "scope" | "presentation" | "diff">("preview");
   const [createClassOpen, setCreateClassOpen] = useState(false);
   const [createPropertyOpen, setCreatePropertyOpen] = useState(false);
   const [createRelationshipOpen, setCreateRelationshipOpen] = useState(false);
@@ -302,7 +303,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
       <div><small>发布范围</small><strong>{graph?.nodes.length || 0} 个对象</strong><span>{graph?.properties.filter((item) => item.published !== false).length || 0} 个属性 · {graph?.edges.length || 0} 条关系</span></div>
       <Space wrap><Button icon={<PlusOutlined />} onClick={() => setCreateClassOpen(true)}>新建自定义对象</Button><Button icon={<LinkOutlined />} disabled={(graph?.nodes.length || 0) < 2} onClick={openRelationshipEditor}>新建发布关系</Button><Button icon={<BranchesOutlined />} loading={syncRelationships.isPending} onClick={() => syncRelationships.mutate()}>补齐模型内关系</Button><Button type="primary" icon={<CheckCircleOutlined />} onClick={() => validate.mutate()}>检查当前模型</Button></Space>
     </div>
-    <Card className="publish-ontology-view-switch" styles={{ body: { padding: 10 } }}><Segmented block value={modelView} onChange={(value) => setModelView(value as typeof modelView)} options={[{ value: "preview", label: "发布本体图" }, { value: "scope", label: "范围与属性" }, { value: "diff", label: `版本差异 ${modelDiff.added.length + modelDiff.removed.length + modelDiff.modified.length + modelDiff.addedRelationships.length + modelDiff.removedRelationships.length}` }]} /></Card>
+    <Card className="publish-ontology-view-switch" styles={{ body: { padding: 10 } }}><Segmented block value={modelView} onChange={(value) => setModelView(value as typeof modelView)} options={[{ value: "preview", label: "发布本体图" }, { value: "scope", label: "范围与属性" }, { value: "presentation", label: "显示与检索" }, { value: "diff", label: `版本差异 ${modelDiff.added.length + modelDiff.removed.length + modelDiff.modified.length + modelDiff.addedRelationships.length + modelDiff.removedRelationships.length}` }]} /></Card>
 
     {modelView === "preview" && <>
       {lastSuggestionBatch && <Alert className="relationship-batch-alert" type="success" showIcon message="刚刚应用了一组关联建议" description={`新增 ${lastSuggestionBatch.nodes} 个桥接对象、${lastSuggestionBatch.relationships} 条关系；你可以逐项检查，也可以撤销本次添加。`} action={<Popconfirm title="撤销刚刚添加的关联？" description="仅移除本批次新增的关系以及没有其他关系的桥接对象。" onConfirm={() => undoSuggestions.mutate(lastSuggestionBatch.id)}><Button danger loading={undoSuggestions.isPending}>撤销本次补齐</Button></Popconfirm>} />}
@@ -339,6 +340,8 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
       </div>
       <Card title={<Space><LinkOutlined /><span>当前模型关系</span></Space>} extra={<Space><Tag>{graph?.edges.length || 0} 条</Tag><Button size="small" icon={<PlusOutlined />} disabled={(graph?.nodes.length || 0) < 2} onClick={openRelationshipEditor}>新建关系</Button></Space>}><Table rowKey="id" size="small" dataSource={graph?.edges || []} pagination={false} columns={[{ title: "源对象", dataIndex: "source", render: (value) => graph?.nodes.find((node) => node.id === value)?.data.targetName || value }, { title: "关系", key: "relation", render: (_, item) => <Tag color="cyan">{item.data.targetName || item.data.relationshipKey}</Tag> }, { title: "目标对象", dataIndex: "target", render: (value) => graph?.nodes.find((node) => node.id === value)?.data.targetName || value }, { title: "基数", dataIndex: ["data", "cardinality"], width: 130 }, { title: "操作", key: "action", width: 80, render: (_, item) => <Popconfirm title="移出该发布关系？" onConfirm={() => removeRelationship.mutate(item.data.relationshipKey)}><Button type="text" danger icon={<DeleteOutlined />} /></Popconfirm> }]} /></Card>
     </>}
+
+    {modelView === "presentation" && <OntologyPresentationPanel graph={graph} workspaceKey={workspace?.workspace_key} selectedId={selectedId} onSelect={setSelectedId} onSaved={refresh} />}
 
     {modelView === "diff" && <div className="publish-diff-view">
       <Alert type="info" showIcon message={`草稿 Rev.${workspace?.revision} 对比活动版本 R${governance?.activeRelease?.release_no || "—"}`} description="差异以来源对象、启用属性、发布角色和对象关系为基准；活动版本保持不可变。" />

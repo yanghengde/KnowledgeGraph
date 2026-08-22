@@ -19,6 +19,7 @@ from sqlalchemy import text
 from src.qa.sql_query_builder import build_query_builder_plan
 
 from .config import SyncSettings
+from .entity_labels import published_scalar_names, suggest_label_template, validate_presentation
 from .repository import ControlPlaneRepository
 
 
@@ -284,6 +285,17 @@ def add_class(
     if source_class and not source:
         raise KeyError(source_class)
     source_meta = source["class"] if source else {}
+    source_properties = (source or {}).get("properties", [])
+    source_property_names = [str(item.get("name") or "").strip() for item in source_properties]
+    by_fold = {item.casefold(): item for item in source_property_names if item}
+    default_search_fields = [
+        by_fold[key] for key in ("displayname", "name", "description", "revision")
+        if key in by_fold
+    ]
+    default_fallbacks = [
+        *[by_fold[key] for key in ("name", "description") if key in by_fold],
+        "$businessKey", "$primaryKey",
+    ]
     class_key = source_class or target_name
     uid = f"{workspace_key}::{class_key}"
     driver, session = _publish_session(settings)
@@ -296,6 +308,10 @@ def add_class(
                 c.targetName=$targetName, c.label=$label,
                 c.description=$description, c.role=$role,
                 c.orphanPolicy=$orphanPolicy, c.origin=$origin,
+                c.labelMode=coalesce(c.labelMode, 'auto'),
+                c.labelFallbacks=coalesce(c.labelFallbacks, $labelFallbacks),
+                c.searchFields=coalesce(c.searchFields, $searchFields),
+                c.emitRdfsLabel=coalesce(c.emitRdfsLabel, true),
                 c.updatedAt=datetime()
             MERGE (w)-[:OWNS_CLASS]->(c)
             """,
@@ -308,8 +324,10 @@ def add_class(
             role=role,
             orphanPolicy=orphan_policy,
             origin="source" if source_class else "custom",
+            labelFallbacks=default_fallbacks,
+            searchFields=default_search_fields,
         ).consume()
-        for prop in (source or {}).get("properties", []):
+        for prop in source_properties:
             name = str(prop.get("name") or "").strip()
             if not name:
                 continue
@@ -397,6 +415,46 @@ def update_class(
         session.close()
         driver.close()
     _touch_workspace(repository, workspace_key)
+
+
+def update_presentation(
+    settings: SyncSettings,
+    repository: ControlPlaneRepository,
+    workspace_key: str,
+    class_uid: str,
+    values: dict[str, Any],
+) -> dict[str, Any]:
+    """Update a class display/search contract without changing its identity URI."""
+    _workspace_row(repository, workspace_key)
+    driver, session = _publish_session(settings)
+    try:
+        record = session.run(
+            """
+            MATCH (c:PublishClass {uid:$uid, workspaceKey:$workspaceKey})
+            OPTIONAL MATCH (c)-[:HAS_PROPERTY]->(p:PublishProperty)
+            RETURN c.uid AS uid, collect(properties(p)) AS properties
+            """,
+            uid=class_uid, workspaceKey=workspace_key,
+        ).single()
+        if not record:
+            raise KeyError(class_uid)
+        properties = [dict(item) for item in record["properties"] if item]
+        config = validate_presentation(values, properties)
+        session.run(
+            """
+            MATCH (c:PublishClass {uid:$uid, workspaceKey:$workspaceKey})
+            SET c.labelMode=$labelMode, c.labelField=$labelField,
+                c.labelTemplate=$labelTemplate, c.labelFallbacks=$labelFallbacks,
+                c.searchFields=$searchFields, c.emitRdfsLabel=$emitRdfsLabel,
+                c.updatedAt=datetime()
+            """,
+            uid=class_uid, workspaceKey=workspace_key, **config,
+        ).consume()
+    finally:
+        session.close()
+        driver.close()
+    _touch_workspace(repository, workspace_key)
+    return config
 
 
 def upsert_property(
@@ -803,6 +861,7 @@ def validate_workspace(settings: SyncSettings, repository: ControlPlaneRepositor
     if len(names) != len(set(names)):
         errors.append({"code": "class.duplicate_target", "message": "目标对象名称必须唯一"})
     property_names: dict[str, set[str]] = {}
+    properties_by_class: dict[str, list[dict[str, Any]]] = {}
     for prop in graph["properties"]:
         if not prop.get("published"):
             continue
@@ -811,9 +870,37 @@ def validate_workspace(settings: SyncSettings, repository: ControlPlaneRepositor
         if not name or not prop.get("dataType"):
             errors.append({"code": "property.incomplete", "message": f"属性 {prop.get('uid')} 缺少名称或类型"})
         seen = property_names.setdefault(class_uid, set())
+        properties_by_class.setdefault(class_uid, []).append(prop)
         if name.casefold() in seen:
             errors.append({"code": "property.duplicate_target", "message": f"对象内存在重复属性：{name}"})
         seen.add(name.casefold())
+    for item in nodes:
+        class_uid = item["id"]
+        data = item["data"]
+        properties = properties_by_class.get(class_uid, [])
+        try:
+            validate_presentation({
+                "labelMode": data.get("labelMode") or "auto",
+                "labelField": data.get("labelField"),
+                "labelTemplate": data.get("labelTemplate"),
+                "labelFallbacks": data.get("labelFallbacks") or [],
+                "searchFields": data.get("searchFields") or [],
+                "emitRdfsLabel": data.get("emitRdfsLabel", True),
+            }, properties)
+        except ValueError as exc:
+            errors.append({
+                "code": "class.presentation_invalid",
+                "message": f"对象 {data.get('targetName')} 的显示配置无效：{exc}",
+            })
+            continue
+        if not published_scalar_names(properties) or (
+            (data.get("labelMode") or "auto") == "auto"
+            and not suggest_label_template(properties)
+        ):
+            warnings.append({
+                "code": "class.label_fallback_primary_key",
+                "message": f"对象 {data.get('targetName')} 没有可用显示属性，将回退到业务键或主键",
+            })
     degree = {item["id"]: 0 for item in nodes}
     for edge in edges:
         if edge["data"].get("usage") == "excluded":

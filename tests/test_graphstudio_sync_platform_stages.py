@@ -168,7 +168,9 @@ def test_ontology_validation_warns_for_isolated_context_object(monkeypatch) -> N
     result = validate_workspace(SimpleNamespace(), SimpleNamespace(), "draft")
 
     assert result["valid"] is True
-    assert {item["code"] for item in result["warnings"]} == {"class.isolated_context"}
+    assert {item["code"] for item in result["warnings"]} == {
+        "class.isolated_context", "class.label_fallback_primary_key",
+    }
 from src.graphstudio_sync.materialization import (
     apply_transform,
     build_count_reconciliation,
