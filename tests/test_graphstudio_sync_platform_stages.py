@@ -10,6 +10,7 @@ from src.graphstudio_sync.deployment import (
     _is_graphstudio_rdf_zip,
     _require_disabled_layer,
     _require_enabled_layer,
+    _reload_graphmart,
     _resolve_previous_layer,
     _requires_dataset_replacement,
     _set_layer_enabled,
@@ -20,7 +21,7 @@ from src.graphstudio_sync.deployment import (
 from src.graphstudio_sync.publish_ontology import validate_workspace
 
 
-def test_graphstudio_rdf_zip_has_explicit_top_level_flds_directory(tmp_path) -> None:
+def test_graphstudio_rdf_zip_matches_api_6_3_layout(tmp_path) -> None:
     ttl_path = tmp_path / "curated_data.ttl"
     ttl_path.write_text("<urn:s> <urn:p> <urn:o> .", encoding="utf-8")
     zip_path = tmp_path / "curated_data.zip"
@@ -29,20 +30,19 @@ def test_graphstudio_rdf_zip_has_explicit_top_level_flds_directory(tmp_path) -> 
 
     with zipfile.ZipFile(zip_path) as archive:
         assert archive.namelist() == [
-            "curated_data/",
-            "curated_data/rdf.ttl/",
-            "curated_data/rdf.ttl/curated_data.ttl",
+            "rdf.ttl/curated_data.ttl",
         ]
         assert archive.testzip() is None
-        directories = [item for item in archive.infolist() if item.is_dir()]
-        assert directories and all(item.external_attr & 0x10 for item in directories)
     assert _is_graphstudio_rdf_zip(zip_path) is True
 
 
-def test_graphstudio_rdf_zip_rejects_legacy_root_level_layout(tmp_path) -> None:
+def test_graphstudio_rdf_zip_rejects_pre_6_3_extra_top_level_layout(tmp_path) -> None:
     zip_path = tmp_path / "legacy.zip"
     with zipfile.ZipFile(zip_path, "w") as archive:
-        archive.writestr("rdf.ttl/curated_data.ttl", "<urn:s> <urn:p> <urn:o> .")
+        archive.writestr(
+            "curated_data/rdf.ttl/curated_data.ttl",
+            "<urn:s> <urn:p> <urn:o> .",
+        )
 
     assert _is_graphstudio_rdf_zip(zip_path) is False
 
@@ -331,130 +331,111 @@ def test_dataset_replacement_remains_pending_after_force_delete_failure() -> Non
     assert _requires_dataset_replacement(plan, {}) is False
 
 
-class _LayerSession:
-    def __init__(self):
-        self.calls = []
+class _RunConfigSession:
+    def __init__(self, *, configured=True, assume_disabled=False, toggled=None):
+        self.configured = configured
+        self.assume_disabled = assume_disabled
+        self.toggled = set(toggled or [])
+        self.patch_calls = []
+
+    def get(self, url, **_kwargs):
+        if url.endswith("/layers"):
+            return _GraphStudioResponse(
+                [{"uri": "http://example.com/layer/green"}]
+                if self.configured else []
+            )
+        assert "/api/runconfigs/" in url
+        return _GraphStudioResponse({
+            "runConfigurationAssumeDisabled": self.assume_disabled,
+            "toggledLayer": sorted(self.toggled),
+        })
 
     def patch(self, url, **kwargs):
-        self.calls.append((url, kwargs))
-        return _GraphStudioResponse({"updated": True})
+        assert "/api/runconfigs/" in url
+        self.patch_calls.append((url, kwargs))
+        self.toggled = set(kwargs["json"]["toggledLayer"])
+        return _GraphStudioResponse({
+            "runConfigurationAssumeDisabled": self.assume_disabled,
+            "toggledLayer": sorted(self.toggled),
+        })
 
 
-def test_layer_switch_targets_only_the_requested_layer() -> None:
-    session = _LayerSession()
+def test_layer_switch_uses_api_6_3_design_run_configuration() -> None:
+    session = _RunConfigSession()
     layer_uri = "http://example.com/layer/green"
+
+    mode = _set_layer_enabled(
+        session,
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+        layer_uri=layer_uri,
+        enabled=False,
+    )
+
+    assert mode == "run_configuration_rest"
+    url, kwargs = session.patch_calls[0]
+    assert "/api/runconfigs/urn%3Agraphmart_RunConfiguration-Design" in url
+    assert kwargs["json"] == {"toggledLayer": [layer_uri]}
+
+
+def test_layer_switch_enables_by_removing_design_toggle() -> None:
+    layer_uri = "http://example.com/layer/green"
+    session = _RunConfigSession(toggled=[layer_uri])
 
     _set_layer_enabled(
         session,
         "https://graphstudio.example",
         encoded_graphmart="urn%3Agraphmart",
         layer_uri=layer_uri,
-        enabled=False,
-    )
-
-    url, kwargs = session.calls[0]
-    assert url.endswith("/api/graphmarts/urn%3Agraphmart/disableLayers")
-    assert kwargs["json"] == [layer_uri]
-
-
-class _LegacyLayerSession:
-    def __init__(self, *, enabled, configured=True, run_configuration_ok=False):
-        self.enabled = enabled
-        self.configured = configured
-        self.run_configuration_ok = run_configuration_ok
-        self.toggled = enabled is False
-        self.patch_calls = []
-
-    def patch(self, url, **kwargs):
-        self.patch_calls.append((url, kwargs))
-        response = _GraphStudioResponse(
-            {"detail": "No handler found"}, ok=False, status_code=404,
-        )
-        response.text = "No handler found for PATCH /api/graphmarts/example/enableLayers"
-        return response
-
-    def post(self, url, **kwargs):
-        assert url.endswith("/sparql")
-        if not self.run_configuration_ok:
-            return _GraphStudioResponse(
-                {"detail": "Run configuration update disabled"},
-                ok=False,
-                status_code=403,
-            )
-        if "update" in kwargs.get("data", {}):
-            self.toggled = "INSERT DATA" in kwargs["data"]["update"]
-            return _GraphStudioResponse("Update Successful")
-        binding = {"assumeDisabled": {"value": "false"}}
-        if self.toggled:
-            binding["toggledLayer"] = {"value": "http://example.com/layer/blue"}
-        return _GraphStudioResponse({"results": {"bindings": [binding]}})
-
-    def get(self, url, **kwargs):
-        if url.endswith("/layers"):
-            return _GraphStudioResponse(
-                [{"uri": "http://example.com/layer/green"}]
-                if self.configured else []
-            )
-        assert url.endswith("/status")
-        assert kwargs["params"] == {"detail": "true"}
-        return _GraphStudioResponse({
-            "childLayer": [{"uri": "http://example.com/layer/green", "enabled": self.enabled}],
-        })
-
-
-def test_legacy_layer_switch_accepts_manually_verified_state() -> None:
-    mode = _set_layer_enabled(
-        _LegacyLayerSession(enabled=True),
-        "https://graphstudio.example",
-        encoded_graphmart="urn%3Agraphmart",
-        layer_uri="http://example.com/layer/green",
         enabled=True,
     )
 
-    assert mode == "legacy_status_verified"
+    assert session.toggled == set()
 
 
-def test_legacy_layer_switch_updates_design_run_configuration() -> None:
-    session = _LegacyLayerSession(enabled=True, run_configuration_ok=True)
-    layer_uri = "http://example.com/layer/blue"
+def test_layer_switch_honors_assume_disabled_semantics() -> None:
+    layer_uri = "http://example.com/layer/green"
+    session = _RunConfigSession(assume_disabled=True)
 
-    mode = _set_layer_enabled(
+    _set_layer_enabled(
         session,
         "https://graphstudio.example",
         encoded_graphmart="urn%3Agraphmart",
         layer_uri=layer_uri,
-        enabled=False,
+        enabled=True,
     )
 
-    assert mode == "legacy_run_configuration"
-    assert session.toggled is True
+    assert session.toggled == {layer_uri}
 
 
-def test_legacy_layer_switch_enables_by_removing_design_toggle() -> None:
-    session = _LegacyLayerSession(enabled=False, run_configuration_ok=True)
+class _ReloadSession:
+    def __init__(self):
+        self.reload_json = None
 
-    mode = _set_layer_enabled(
+    def post(self, url, **kwargs):
+        assert url.endswith("/reload")
+        self.reload_json = kwargs["json"]
+        return _GraphStudioResponse({"started": True})
+
+    def get(self, url, **_kwargs):
+        assert url.endswith("/status")
+        return _GraphStudioResponse({"isComplete": True, "dirty": False})
+
+
+def test_reload_uses_api_6_3_design_run_configuration() -> None:
+    session = _ReloadSession()
+
+    _reload_graphmart(
         session,
         "https://graphstudio.example",
         encoded_graphmart="urn%3Agraphmart",
-        layer_uri="http://example.com/layer/blue",
-        enabled=True,
     )
 
-    assert mode == "legacy_run_configuration"
-    assert session.toggled is False
-
-
-def test_legacy_layer_enable_defers_new_layer_verification_until_reload() -> None:
-    mode = _set_layer_enabled(
-        _LegacyLayerSession(enabled=None),
-        "https://graphstudio.example",
-        encoded_graphmart="urn%3Agraphmart",
-        layer_uri="http://example.com/layer/green",
-        enabled=True,
-    )
-
-    assert mode == "legacy_reload_pending"
+    assert session.reload_json == {
+        "inDesignMode": True,
+        "deployOnActivation": True,
+        "runConfiguration": "urn:graphmart_RunConfiguration-Design",
+    }
 
 
 def test_post_reload_verification_requires_enabled_healthy_layer() -> None:
@@ -490,10 +471,10 @@ def test_post_reload_verification_rejects_enabled_predecessor() -> None:
         }, "http://example.com/layer/blue")
 
 
-def test_legacy_layer_switch_requires_manual_change_before_retry() -> None:
-    with pytest.raises(RuntimeError, match="手工启用 Layer"):
+def test_layer_switch_rejects_layer_missing_from_target() -> None:
+    with pytest.raises(RuntimeError, match="不属于当前目标 Graphmart"):
         _set_layer_enabled(
-            _LegacyLayerSession(enabled=False),
+            _RunConfigSession(configured=False),
             "https://graphstudio.example",
             encoded_graphmart="urn%3Agraphmart",
             layer_uri="http://example.com/layer/green",
@@ -501,16 +482,16 @@ def test_legacy_layer_switch_requires_manual_change_before_retry() -> None:
         )
 
 
-def test_legacy_layer_switch_skips_predecessor_from_another_graphmart() -> None:
+def test_layer_switch_skips_predecessor_from_another_graphmart() -> None:
     mode = _set_layer_enabled(
-        _LegacyLayerSession(enabled=None, configured=False),
+        _RunConfigSession(configured=False),
         "https://graphstudio.example",
         encoded_graphmart="urn%3Agraphmart",
         layer_uri="http://example.com/layer/from-old-target",
         enabled=False,
     )
 
-    assert mode == "legacy_layer_not_in_target"
+    assert mode == "layer_not_in_target"
 
 
 def test_deployment_plan_starts_new_lineage_after_graphmart_target_change(monkeypatch) -> None:

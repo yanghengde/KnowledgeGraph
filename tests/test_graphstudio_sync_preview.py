@@ -34,7 +34,7 @@ def test_composite_instance_uri_is_stable() -> None:
     assert str(uri).endswith("/ResourceLogs/ResourceId=A%20B/TxnId=7")
 
 
-def test_graphstudio_zip_has_stable_layout_and_zero_external_attributes(tmp_path) -> None:
+def test_graphstudio_zip_has_api_6_3_rdf_directory_layout(tmp_path) -> None:
     shard_dir = tmp_path / "rdf.ttl"
     shard_dir.mkdir()
     (shard_dir / "001_Product.ttl").write_text("<urn:p> <urn:q> <urn:r> .\n", encoding="utf-8")
@@ -43,7 +43,6 @@ def test_graphstudio_zip_has_stable_layout_and_zero_external_attributes(tmp_path
 
     with zipfile.ZipFile(archive_path) as archive:
         assert archive.namelist() == ["rdf.ttl/001_Product.ttl"]
-        assert archive.getinfo("rdf.ttl/001_Product.ttl").external_attr == 0
 
 
 def test_turtle_serialization_is_deterministic_and_round_trips(tmp_path) -> None:

@@ -15,6 +15,7 @@ from urllib3.util.retry import Retry
 
 from .config import SyncSettings
 from .database import control_engine
+from .graphstudio_api import require_graphstudio_2026_1_ready
 from .repository import ControlPlaneRepository
 from .source_database import ORACLE_KIND, connect_source, fetch_dicts, source_cursor, source_default_port
 
@@ -140,6 +141,7 @@ def _test_graphstudio(settings: SyncSettings) -> dict[str, Any]:
             )
         ),
     )
+    server = require_graphstudio_2026_1_ready(session, settings.graphstudio_base_url)
     response = session.get(
         f"{settings.graphstudio_base_url}/api/graphmarts/{quote(settings.graphmart_uri, safe='')}",
         auth=(settings.graphstudio_user, settings.graphstudio_password),
@@ -148,7 +150,11 @@ def _test_graphstudio(settings: SyncSettings) -> dict[str, Any]:
     )
     response.raise_for_status()
     payload = response.json()
-    return {"title": payload.get("title"), "graphmartUri": settings.graphmart_uri}
+    return {
+        "title": payload.get("title"),
+        "graphmartUri": settings.graphmart_uri,
+        "serverVersion": server["version"],
+    }
 
 
 def _test_postgres(settings: SyncSettings) -> dict[str, Any]:

@@ -15,7 +15,6 @@ import decimal
 import json
 import os
 import re
-import struct
 import sys
 import time
 import zipfile
@@ -426,19 +425,6 @@ def write_and_validate(model: Graph, data: Graph, summary: dict[str, Any]) -> No
 
     with zipfile.ZipFile(ZIP_FILE, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.write(DATA_FILE, arcname=f"rdf.ttl/{DATA_FILE.name}")
-    # Graph Studio 2025.1 rejects ZIP entries with POSIX permission bits in the
-    # central directory. PowerShell's Compress-Archive writes zero here; make
-    # Python's cross-platform ZIP output byte-compatible with that behavior.
-    zip_bytes = bytearray(ZIP_FILE.read_bytes())
-    cursor = 0
-    signature = b"PK\x01\x02"
-    while True:
-        cursor = zip_bytes.find(signature, cursor)
-        if cursor < 0:
-            break
-        struct.pack_into("<I", zip_bytes, cursor + 38, 0)
-        cursor += 46
-    ZIP_FILE.write_bytes(zip_bytes)
 
     parsed_model = Graph().parse(MODEL_FILE, format="turtle")
     parsed_data = Graph().parse(DATA_FILE, format="turtle")

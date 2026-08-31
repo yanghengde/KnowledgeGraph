@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import struct
 import time
 import uuid
 import zipfile
@@ -17,6 +16,7 @@ from sqlalchemy import text
 
 from .config import PROJECT_ROOT, SyncSettings
 from .entity_labels import resolve_entity_label
+from .graphstudio_api import require_graphstudio_2026_1_ready
 from .materialization import content_hash
 from .publish_ontology import active_release as active_ontology_release, release_graph
 from .repository import ControlPlaneRepository
@@ -25,8 +25,6 @@ from .repository import ControlPlaneRepository
 DEPLOYMENT_ROOT = PROJECT_ROOT / "outputs" / "graphstudio" / "deployments"
 ONT = Namespace("https://opcenter.siemens.com/ontology/camstar/2607/publish#")
 GM_SELF = "http://cambridgesemantics.com/ontologies/Graphmarts#Self"
-GM_TOGGLED_LAYER = "http://cambridgesemantics.com/ontologies/Graphmarts#toggledLayer"
-GM_ASSUME_DISABLED = "http://cambridgesemantics.com/ontologies/Graphmarts#runConfigurationAssumeDisabled"
 
 
 def release_model_uri(ontology_release_id: str | uuid.UUID) -> str:
@@ -34,41 +32,14 @@ def release_model_uri(ontology_release_id: str | uuid.UUID) -> str:
     return f"{str(ONT).rstrip('#')}/releases/{ontology_release_id}"
 
 
-def _normalize_graphstudio_zip_attributes(zip_path: Path) -> None:
-    """Remove POSIX mode bits while retaining DOS directory markers.
-
-    Graph Studio 2025.1 rejects Python ZIP entries that carry POSIX permission
-    bits.  Directory entries still need the DOS directory bit, otherwise the
-    FLDS importer can treat the extracted top-level directory as a regular
-    file.
-    """
-    data = bytearray(zip_path.read_bytes())
-    cursor = 0
-    signature = b"PK\x01\x02"
-    while True:
-        cursor = data.find(signature, cursor)
-        if cursor < 0:
-            break
-        name_length = struct.unpack_from("<H", data, cursor + 28)[0]
-        name = bytes(data[cursor + 46:cursor + 46 + name_length])
-        struct.pack_into("<I", data, cursor + 38, 0x10 if name.endswith(b"/") else 0)
-        cursor += 46 + name_length
-    zip_path.write_bytes(data)
-
-
 def _write_graphstudio_rdf_zip(zip_path: Path, ttl_path: Path) -> None:
-    """Create the top-level-directory layout required by the FLDS importer."""
-    root = ttl_path.stem
-    rdf_directory = f"{root}/rdf.ttl/"
+    """Create the RDF ZIP layout declared by the Graph Studio 6.3 API."""
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr(f"{root}/", b"")
-        archive.writestr(rdf_directory, b"")
-        archive.write(ttl_path, arcname=f"{rdf_directory}{ttl_path.name}")
-    _normalize_graphstudio_zip_attributes(zip_path)
+        archive.write(ttl_path, arcname=f"rdf.ttl/{ttl_path.name}")
 
 
 def _is_graphstudio_rdf_zip(zip_path: Path) -> bool:
-    """Return whether an artifact has one explicit FLDS top-level directory."""
+    """Return whether an artifact has one FLDS top-level directory."""
     if not zip_path.is_file():
         return False
     try:
@@ -80,23 +51,15 @@ def _is_graphstudio_rdf_zip(zip_path: Path) -> bool:
         return False
     if not members:
         return False
-    roots = {item.filename.split("/", 1)[0] for item in members if item.filename}
-    if len(roots) != 1:
-        return False
-    root = next(iter(roots))
-    root_directory = f"{root}/"
-    rdf_directory = f"{root}/rdf.ttl/"
-    names = {item.filename for item in members}
     data_files = [
         item for item in members
-        if not item.is_dir() and item.filename.startswith(rdf_directory)
+        if not item.is_dir() and item.filename.startswith("rdf.ttl/")
     ]
     return (
-        root_directory in names
-        and rdf_directory in names
-        and bool(data_files)
+        bool(data_files)
         and all(item.filename.casefold().endswith(".ttl") for item in data_files)
-        and all(item.external_attr & 0x10 for item in members if item.is_dir())
+        and all(not item.is_dir() for item in members)
+        and len(data_files) == len(members)
     )
 
 
@@ -1062,184 +1025,55 @@ def _set_layer_enabled(
     layer_uri: str,
     enabled: bool,
 ) -> str:
-    """Enable or disable one layer without changing unrelated Graphmart layers."""
-    action = "enableLayers" if enabled else "disableLayers"
-    response = session.patch(
-        f"{base}/api/graphmarts/{encoded_graphmart}/{action}",
-        json=[layer_uri],
-        timeout=60,
+    """Select one layer through the Graph Studio 6.3 Run Configuration API."""
+    graphmart_uri = unquote(encoded_graphmart)
+    configured_layers = _require(
+        session.get(f"{base}/api/graphmarts/{encoded_graphmart}/layers", timeout=60),
+        "List Graphmart layers",
     )
-    if response.ok:
-        return "rest_api"
+    configured = any(
+        isinstance(item, dict)
+        and (item.get("uri") or item.get("layerUri")) == layer_uri
+        for item in (configured_layers or [])
+    )
+    if not configured and not enabled:
+        return "layer_not_in_target"
+    if not configured:
+        raise RuntimeError(f"Layer {layer_uri} 不属于当前目标 Graphmart，无法启用。")
 
-    # Anzo 5.4.2/5.4.3 expose the /api endpoint but do not yet provide the
-    # enableLayers/disableLayers operations (added in 5.4.4).  Keep REST as the
-    # preferred path for future upgrades, and use read-only configuration and
-    # runtime status for legacy verification.
-    if response.status_code == 404 and "No handler found" in response.text:
-        # The legacy UI stores each switch as a toggledLayer entry on the
-        # active Design Run Configuration.  Mirror that canonical state when
-        # graphmart-level action endpoints are absent, then read it back.
-        try:
-            _set_run_configuration_layer_selected(
-                session, base,
-                graphmart_uri=unquote(encoded_graphmart),
-                layer_uri=layer_uri,
-                selected=enabled,
-            )
-            return "legacy_run_configuration"
-        except RuntimeError as exc:
-            legacy_write_error = str(exc)
-
-        configured_layers = _require(
-            session.get(
-                f"{base}/api/graphmarts/{encoded_graphmart}/layers",
-                timeout=60,
-            ),
-            "List Graphmart layers for legacy layer switch",
-        )
-        configured_layer = next(
-            (
-                item for item in (configured_layers or [])
-                if isinstance(item, dict)
-                and (item.get("uri") or item.get("layerUri")) == layer_uri
-            ),
-            None,
-        )
-
-        # A predecessor from another Graphmart must never block a new target.
-        # This occurs when a publication route is repointed after a successful
-        # deployment.  The foreign Layer cannot be disabled in this Graphmart
-        # and must be treated as the start of a new blue/green lineage.
-        if configured_layer is None and not enabled:
-            return "legacy_layer_not_in_target"
-        if configured_layer is None:
-            raise RuntimeError(
-                f"Layer {layer_uri} 不属于当前目标 Graphmart，无法启用。"
-                "请检查发布目标是否在部署过程中发生了变更。"
-            )
-
-        graph_status = _require(
-            session.get(
-                f"{base}/api/graphmarts/{encoded_graphmart}/status",
-                params={"detail": "true"},
-                timeout=60,
-            ),
-            "Read Graphmart status for legacy layer switch",
-        )
-        layers = graph_status.get("childLayer") if isinstance(graph_status, dict) else None
-        layer_status = next(
-            (
-                item for item in (layers or [])
-                if isinstance(item, dict)
-                and (item.get("uri") or item.get("layerUri")) == layer_uri
-            ),
-            None,
-        )
-        actual = layer_status.get("enabled") if layer_status else None
-        if actual is enabled:
-            return "legacy_status_verified"
-        configured_enabled = configured_layer.get("enabled")
-        if isinstance(configured_enabled, bool) and configured_enabled is enabled:
-            return "legacy_configuration_verified"
-
-        # Older Graph Studio versions do not expose the configured enabled
-        # flag, and a newly-created Layer is absent from runtime status until
-        # the Graphmart has been reloaded for the first time.  Creation uses
-        # defaultSelected=True, so defer only this indeterminate enable case
-        # to the mandatory reload below.  The caller verifies the resulting
-        # runtime state before SPARQL acceptance or checkpoint commit.
-        if enabled and actual is None:
-            return "legacy_reload_pending"
-
-        desired = "启用" if enabled else "停用"
-        observed = "未加载" if actual is None else ("已启用" if actual else "已停用")
-        raise RuntimeError(
-            "当前 Graph Studio 版本不支持 REST Layer 启停接口。"
-            f"请在 Graph Studio 的目标 Graphmart 中手工{desired} Layer {layer_uri}，"
-            f"当前状态：{observed}；完成 blue/green 切换后再次点击重试。"
-            "程序会先读取状态验证，验证通过前不会提交 checkpoint。"
-            + (f" 自动兼容写入失败：{legacy_write_error}" if legacy_write_error else "")
-        )
-
-    _require(response, f"{'Enable' if enabled else 'Disable'} Graph Studio layer")
-    return "rest_api"
-
-
-def _run_configuration_layer_selected(
-    session: requests.Session,
-    base: str,
-    *,
-    graphmart_uri: str,
-    layer_uri: str,
-) -> tuple[bool, bool]:
     run_configuration = f"{graphmart_uri}_RunConfiguration-Design"
-    query = f"""
-        SELECT ?assumeDisabled ?toggledLayer WHERE {{
-          GRAPH <{graphmart_uri}> {{
-            <{run_configuration}> <{GM_ASSUME_DISABLED}> ?assumeDisabled .
-            OPTIONAL {{
-              <{run_configuration}> <{GM_TOGGLED_LAYER}> ?toggledLayer .
-              FILTER(?toggledLayer = <{layer_uri}>)
-            }}
-          }}
-        }}
-    """
-    payload = _require(
-        session.post(
-            f"{base}/sparql",
-            data={"query": query},
-            headers={"Accept": "application/sparql-results+json"},
+    run_config_url = f"{base}/api/runconfigs/{quote(run_configuration, safe='')}"
+    current = _require(
+        session.get(run_config_url, timeout=60),
+        "Read Design Run Configuration",
+    )
+    if not isinstance(current, dict):
+        raise RuntimeError("Graph Studio 6.3 Design Run Configuration 返回格式不正确")
+    assume_disabled = bool(current.get("runConfigurationAssumeDisabled", False))
+    toggled = set(current.get("toggledLayer") or [])
+    should_toggle = enabled if assume_disabled else not enabled
+    if should_toggle:
+        toggled.add(layer_uri)
+    else:
+        toggled.discard(layer_uri)
+    updated = _require(
+        session.patch(
+            run_config_url,
+            json={"toggledLayer": sorted(toggled)},
             timeout=60,
         ),
-        "Read legacy Graphmart run configuration",
+        "Update Design Run Configuration",
     )
-    bindings = ((payload.get("results") or {}).get("bindings") or []) if isinstance(payload, dict) else []
-    if not bindings:
-        raise RuntimeError("Graph Studio Design Run Configuration 不存在")
-    assume_value = ((bindings[0].get("assumeDisabled") or {}).get("value") or "false").casefold()
-    assume_disabled = assume_value in {"true", "1"}
-    toggled = any((item.get("toggledLayer") or {}).get("value") == layer_uri for item in bindings)
-    selected = toggled if assume_disabled else not toggled
-    return selected, assume_disabled
-
-
-def _set_run_configuration_layer_selected(
-    session: requests.Session,
-    base: str,
-    *,
-    graphmart_uri: str,
-    layer_uri: str,
-    selected: bool,
-) -> None:
-    _, assume_disabled = _run_configuration_layer_selected(
-        session, base,
-        graphmart_uri=graphmart_uri,
-        layer_uri=layer_uri,
-    )
-    run_configuration = f"{graphmart_uri}_RunConfiguration-Design"
-    should_toggle = selected if assume_disabled else not selected
-    operation = "INSERT DATA" if should_toggle else "DELETE DATA"
-    update = f"""
-        {operation} {{ GRAPH <{graphmart_uri}> {{
-          <{run_configuration}> <{GM_TOGGLED_LAYER}> <{layer_uri}>
-        }} }}
-    """
-    _require(
-        session.post(
-            f"{base}/sparql",
-            data={"update": update},
-            timeout=60,
-        ),
-        "Update legacy Graphmart run configuration",
-    )
-    actual, _ = _run_configuration_layer_selected(
-        session, base,
-        graphmart_uri=graphmart_uri,
-        layer_uri=layer_uri,
-    )
-    if actual is not selected:
-        raise RuntimeError("Graph Studio Run Configuration 写入后状态未发生变化")
+    if not isinstance(updated, dict):
+        updated = _require(
+            session.get(run_config_url, timeout=60),
+            "Verify Design Run Configuration",
+        )
+    actual_toggled = set((updated or {}).get("toggledLayer") or [])
+    actual = layer_uri in actual_toggled if assume_disabled else layer_uri not in actual_toggled
+    if actual is not enabled:
+        raise RuntimeError("Graph Studio 6.3 Run Configuration 更新后状态未生效")
+    return "run_configuration_rest"
 
 
 def _require_enabled_layer(graph_status: dict[str, Any], layer_uri: str) -> dict[str, Any]:
@@ -1288,10 +1122,15 @@ def _reload_graphmart(
     encoded_graphmart: str,
     timeout_seconds: int = 600,
 ) -> dict[str, Any]:
+    graphmart_uri = unquote(encoded_graphmart)
     _require(
         session.post(
             f"{base}/api/graphmarts/{encoded_graphmart}/reload",
-            json={"inDesignMode": True, "deployOnActivation": True},
+            json={
+                "inDesignMode": True,
+                "deployOnActivation": True,
+                "runConfiguration": f"{graphmart_uri}_RunConfiguration-Design",
+            },
             timeout=180,
         ),
         "Reload graphmart",
@@ -1434,6 +1273,7 @@ def apply_deployment(
     session.auth = (settings.graphstudio_user, settings.graphstudio_password)
     session.headers.update({"Accept": "application/json", "Accept-Encoding": "identity"})
     base = settings.graphstudio_base_url
+    require_graphstudio_2026_1_ready(session, base)
     graphmart_uri = deployment["graphmart_uri"]
     encoded_graphmart = quote(graphmart_uri, safe="")
     previous_layer_uri, skipped_previous_layer_uri, previous_target_mismatch = (
@@ -1509,18 +1349,17 @@ def apply_deployment(
                 text("UPDATE graphsync.deployment_release SET status='loading', step_uri=:step WHERE deployment_id=:id"),
                 {"id": deployment_id, "step": step_uri},
             )
-        enabled_switch_mode = _set_layer_enabled(
+        _set_layer_enabled(
             session, base, encoded_graphmart=encoded_graphmart,
             layer_uri=layer_uri, enabled=True,
         )
-        disabled_switch_mode = None
         previous_layer_in_target = not previous_target_mismatch
         if previous_layer_uri and previous_layer_uri != layer_uri:
             disabled_switch_mode = _set_layer_enabled(
                 session, base, encoded_graphmart=encoded_graphmart,
                 layer_uri=previous_layer_uri, enabled=False,
             )
-            previous_layer_in_target = disabled_switch_mode != "legacy_layer_not_in_target"
+            previous_layer_in_target = disabled_switch_mode != "layer_not_in_target"
             layer_switched = previous_layer_in_target
             if not previous_layer_in_target:
                 skipped_previous_layer_uri = previous_layer_uri
@@ -1578,17 +1417,9 @@ def apply_deployment(
                 "enabled": layer_uri,
                 "disabled": previous_layer_uri if layer_switched else None,
                 "mode": (
-                    "legacy_status_verified"
-                    if {enabled_switch_mode, disabled_switch_mode}
-                    & {
-                        "legacy_status_verified",
-                        "legacy_configuration_verified",
-                        "legacy_run_configuration",
-                        "legacy_reload_pending",
-                    }
-                    else "target_reset"
+                    "target_reset"
                     if skipped_previous_layer_uri
-                    else "rest_api"
+                    else "run_configuration_rest"
                 ),
                 "skippedPreviousLayer": skipped_previous_layer_uri,
             },

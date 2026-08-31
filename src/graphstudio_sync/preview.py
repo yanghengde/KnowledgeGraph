@@ -8,7 +8,6 @@ import decimal
 import hashlib
 import json
 import re
-import struct
 import uuid
 import zipfile
 from collections import Counter, defaultdict
@@ -198,18 +197,6 @@ def _safe_sql_identifier(value: str, kind: str) -> str:
     if not SAFE_IDENTIFIER.fullmatch(value):
         raise RuntimeError(f"Unsafe SQL identifier: {value!r}")
     return quote_identifier(value, kind)
-
-
-def _zero_zip_external_attributes(path: Path) -> None:
-    payload = bytearray(path.read_bytes())
-    position = 0
-    while True:
-        position = payload.find(b"PK\x01\x02", position)
-        if position < 0:
-            break
-        struct.pack_into("<I", payload, position + 38, 0)
-        position += 46
-    path.write_bytes(payload)
 
 
 def _load_catalog(repository: ControlPlaneRepository) -> dict[str, Any]:
@@ -983,7 +970,6 @@ def _write_zip(preview_dir: Path) -> Path:
             info.create_system = 0
             info.external_attr = 0
             archive.writestr(info, file_path.read_bytes(), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
-    _zero_zip_external_attributes(zip_path)
     with zipfile.ZipFile(zip_path) as archive:
         invalid = [name for name in archive.namelist() if not name.startswith("rdf.ttl/") or not name.endswith(".ttl")]
         if invalid:
