@@ -1,3 +1,5 @@
+import zipfile
+
 import pytest
 
 from src.graphstudio_sync.actions import _resolved_path, _validate_payload
@@ -5,15 +7,44 @@ from src.graphstudio_sync.deployment import (
     _catalog_entry,
     _ensure_dataset,
     _ensure_model,
+    _is_graphstudio_rdf_zip,
     _require_disabled_layer,
     _require_enabled_layer,
     _resolve_previous_layer,
     _requires_dataset_replacement,
     _set_layer_enabled,
+    _write_graphstudio_rdf_zip,
     build_deployment_plan,
     release_model_uri,
 )
 from src.graphstudio_sync.publish_ontology import validate_workspace
+
+
+def test_graphstudio_rdf_zip_has_explicit_top_level_flds_directory(tmp_path) -> None:
+    ttl_path = tmp_path / "curated_data.ttl"
+    ttl_path.write_text("<urn:s> <urn:p> <urn:o> .", encoding="utf-8")
+    zip_path = tmp_path / "curated_data.zip"
+
+    _write_graphstudio_rdf_zip(zip_path, ttl_path)
+
+    with zipfile.ZipFile(zip_path) as archive:
+        assert archive.namelist() == [
+            "curated_data/",
+            "curated_data/rdf.ttl/",
+            "curated_data/rdf.ttl/curated_data.ttl",
+        ]
+        assert archive.testzip() is None
+        directories = [item for item in archive.infolist() if item.is_dir()]
+        assert directories and all(item.external_attr & 0x10 for item in directories)
+    assert _is_graphstudio_rdf_zip(zip_path) is True
+
+
+def test_graphstudio_rdf_zip_rejects_legacy_root_level_layout(tmp_path) -> None:
+    zip_path = tmp_path / "legacy.zip"
+    with zipfile.ZipFile(zip_path, "w") as archive:
+        archive.writestr("rdf.ttl/curated_data.ttl", "<urn:s> <urn:p> <urn:o> .")
+
+    assert _is_graphstudio_rdf_zip(zip_path) is False
 
 
 def test_deployment_plan_selects_exact_route_and_only_checks_its_promotion_lane(monkeypatch) -> None:

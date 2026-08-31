@@ -34,6 +34,72 @@ def release_model_uri(ontology_release_id: str | uuid.UUID) -> str:
     return f"{str(ONT).rstrip('#')}/releases/{ontology_release_id}"
 
 
+def _normalize_graphstudio_zip_attributes(zip_path: Path) -> None:
+    """Remove POSIX mode bits while retaining DOS directory markers.
+
+    Graph Studio 2025.1 rejects Python ZIP entries that carry POSIX permission
+    bits.  Directory entries still need the DOS directory bit, otherwise the
+    FLDS importer can treat the extracted top-level directory as a regular
+    file.
+    """
+    data = bytearray(zip_path.read_bytes())
+    cursor = 0
+    signature = b"PK\x01\x02"
+    while True:
+        cursor = data.find(signature, cursor)
+        if cursor < 0:
+            break
+        name_length = struct.unpack_from("<H", data, cursor + 28)[0]
+        name = bytes(data[cursor + 46:cursor + 46 + name_length])
+        struct.pack_into("<I", data, cursor + 38, 0x10 if name.endswith(b"/") else 0)
+        cursor += 46 + name_length
+    zip_path.write_bytes(data)
+
+
+def _write_graphstudio_rdf_zip(zip_path: Path, ttl_path: Path) -> None:
+    """Create the top-level-directory layout required by the FLDS importer."""
+    root = ttl_path.stem
+    rdf_directory = f"{root}/rdf.ttl/"
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(f"{root}/", b"")
+        archive.writestr(rdf_directory, b"")
+        archive.write(ttl_path, arcname=f"{rdf_directory}{ttl_path.name}")
+    _normalize_graphstudio_zip_attributes(zip_path)
+
+
+def _is_graphstudio_rdf_zip(zip_path: Path) -> bool:
+    """Return whether an artifact has one explicit FLDS top-level directory."""
+    if not zip_path.is_file():
+        return False
+    try:
+        with zipfile.ZipFile(zip_path) as archive:
+            if archive.testzip() is not None:
+                return False
+            members = archive.infolist()
+    except (OSError, zipfile.BadZipFile):
+        return False
+    if not members:
+        return False
+    roots = {item.filename.split("/", 1)[0] for item in members if item.filename}
+    if len(roots) != 1:
+        return False
+    root = next(iter(roots))
+    root_directory = f"{root}/"
+    rdf_directory = f"{root}/rdf.ttl/"
+    names = {item.filename for item in members}
+    data_files = [
+        item for item in members
+        if not item.is_dir() and item.filename.startswith(rdf_directory)
+    ]
+    return (
+        root_directory in names
+        and rdf_directory in names
+        and bool(data_files)
+        and all(item.filename.casefold().endswith(".ttl") for item in data_files)
+        and all(item.external_attr & 0x10 for item in members if item.is_dir())
+    )
+
+
 def _json(response: requests.Response) -> Any:
     try:
         return response.json()
@@ -653,17 +719,7 @@ def build_curated_rdf(
     parsed_data = Graph().parse(ttl_path, format="turtle")
     if len(parsed_model) != len(model_graph) or len(parsed_data) != len(data_graph):
         raise RuntimeError("Curated RDF round-trip changed the triple count")
-    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.write(ttl_path, arcname=f"rdf.ttl/{ttl_path.name}")
-    data = bytearray(zip_path.read_bytes())
-    cursor = 0
-    while True:
-        cursor = data.find(b"PK\x01\x02", cursor)
-        if cursor < 0:
-            break
-        struct.pack_into("<I", data, cursor + 38, 0)
-        cursor += 46
-    zip_path.write_bytes(data)
+    _write_graphstudio_rdf_zip(zip_path, ttl_path)
     artifact_hash = content_hash(model_path.read_bytes().hex() + zip_path.read_bytes().hex())
     return {
         "modelUri": model_uri,
@@ -1313,11 +1369,14 @@ def apply_deployment(
         # an immutable Graph Studio model.
         validation_plan["replaceExistingDataset"] = True
     model_path_value = validation_plan.get("modelPath")
+    artifact_path_value = deployment.get("artifact_uri")
     if (
         legacy_artifact
         or not validation_plan.get("publishedClassUris")
         or not model_path_value
         or not Path(model_path_value).is_file()
+        or not artifact_path_value
+        or not _is_graphstudio_rdf_zip(Path(artifact_path_value))
     ):
         artifact = build_curated_rdf(
             repository,
