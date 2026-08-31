@@ -1273,7 +1273,13 @@ def apply_deployment(
     session.auth = (settings.graphstudio_user, settings.graphstudio_password)
     session.headers.update({"Accept": "application/json", "Accept-Encoding": "identity"})
     base = settings.graphstudio_base_url
-    require_graphstudio_2026_1_ready(session, base)
+    require_graphstudio_2026_1_ready(
+        session,
+        base,
+        graphmart_uri=settings.graphmart_uri,
+        file_connection=settings.shared_file_connection,
+        file_path=settings.shared_file_path,
+    )
     graphmart_uri = deployment["graphmart_uri"]
     encoded_graphmart = quote(graphmart_uri, safe="")
     previous_layer_uri, skipped_previous_layer_uri, previous_target_mismatch = (

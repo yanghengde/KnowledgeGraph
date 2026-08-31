@@ -127,6 +127,8 @@ def _test_publish_neo4j(settings: SyncSettings) -> dict[str, Any]:
 
 def _test_graphstudio(settings: SyncSettings) -> dict[str, Any]:
     session = requests.Session()
+    session.auth = (settings.graphstudio_user, settings.graphstudio_password)
+    session.headers.update({"Accept": "application/json", "Accept-Encoding": "identity"})
     session.mount(
         "https://",
         HTTPAdapter(
@@ -141,10 +143,15 @@ def _test_graphstudio(settings: SyncSettings) -> dict[str, Any]:
             )
         ),
     )
-    server = require_graphstudio_2026_1_ready(session, settings.graphstudio_base_url)
+    server = require_graphstudio_2026_1_ready(
+        session,
+        settings.graphstudio_base_url,
+        graphmart_uri=settings.graphmart_uri,
+        file_connection=settings.shared_file_connection,
+        file_path=settings.shared_file_path,
+    )
     response = session.get(
         f"{settings.graphstudio_base_url}/api/graphmarts/{quote(settings.graphmart_uri, safe='')}",
-        auth=(settings.graphstudio_user, settings.graphstudio_password),
         headers={"Accept": "application/json", "Accept-Encoding": "identity"},
         timeout=20,
     )

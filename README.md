@@ -19,8 +19,9 @@ Neo4j Ontology      ─┘                  │                         │
 - **PostgreSQL**：控制面，保存连接档案、菜单、任务、映射编译快照、运行日志、检查点和产物 URI。
 - **Graph Studio**：最终本体、Dataset、Layer 和 Graphmart 服务。
 
-当前发布适配基线为 **Graph Studio 2026.1.2 / REST API 6.3**。连接测试与正式发布都会先调用
-`/util/serverVersion`；服务器尚在启动或版本低于该基线时，系统会在任何 Graph Studio 写入前停止。
+当前发布适配基线为 **Graph Studio 2026.1.2 / REST API 6.3**。连接测试与正式发布优先读取
+`/util/serverVersion`。若该端点在部署入口中返回启动页或 404，则改用 REST API 6.3 核心读接口和已配置 FLDS
+共享目录的只读浏览能力进行判定；任一检查失败时，系统会在任何 Graph Studio 写入前停止。
 
 PostgreSQL 默认不镜像 Camstar 全量业务表，避免第二套业务 Schema 和双库一致性问题；
 它只保存表级同步策略、分片台账、检查点和发布审计信息。
