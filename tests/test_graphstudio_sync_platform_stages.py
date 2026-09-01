@@ -6,6 +6,7 @@ from src.graphstudio_sync.actions import _resolved_path, _validate_payload
 from src.graphstudio_sync.deployment import (
     _catalog_entry,
     _ensure_dataset,
+    _ensure_load_step,
     _ensure_model,
     _is_graphstudio_rdf_zip,
     _require_disabled_layer,
@@ -30,8 +31,14 @@ def test_graphstudio_rdf_zip_matches_api_6_3_layout(tmp_path) -> None:
 
     with zipfile.ZipFile(zip_path) as archive:
         assert archive.namelist() == [
+            "rdf.ttl/",
             "rdf.ttl/curated_data.ttl",
         ]
+        directory, data_file = archive.infolist()
+        assert directory.create_system == 3
+        assert (directory.external_attr >> 16) & 0o777 == 0o755
+        assert data_file.create_system == 3
+        assert (data_file.external_attr >> 16) & 0o777 == 0o644
         assert archive.testzip() is None
     assert _is_graphstudio_rdf_zip(zip_path) is True
 
@@ -280,6 +287,8 @@ class _DatasetSession:
                 "uri": "http://example.com/dataset/old",
                 "dataLocation": {"filePath": f"sync/{self.deployment_id}/old"},
             }])
+        if "/api/fileconnections/" in url:
+            return _GraphStudioResponse([])
         return _GraphStudioResponse({"catalogEntry": ["http://example.com/catalog/new"]})
 
     def delete(self, url, **kwargs):
@@ -322,6 +331,90 @@ def test_ensure_dataset_replaces_legacy_orphan_before_upload(tmp_path) -> None:
     assert catalog == "http://example.com/catalog/new"
 
 
+class _DatasetRaceRecoverySession:
+    def __init__(self, deployment_id):
+        self.deployment_id = str(deployment_id)
+        self.zip_attempted = False
+        self.recovery_payload = None
+
+    def get(self, url, **kwargs):
+        if url.endswith("/api/datasets"):
+            return _GraphStudioResponse([])
+        if "/api/fileconnections/" in url:
+            path = kwargs["params"]["path"]
+            upload_path = f"sync/{self.deployment_id}"
+            extracted_path = f"{upload_path}/curated_data-20260831130844"
+            if not self.zip_attempted:
+                return _GraphStudioResponse([])
+            if path == upload_path:
+                return _GraphStudioResponse([{
+                    "name": "curated_data-20260831130844",
+                    "path": extracted_path,
+                    "isFolder": True,
+                }])
+            if path == extracted_path:
+                return _GraphStudioResponse([{
+                    "name": "rdf.ttl",
+                    "path": f"{extracted_path}/rdf.ttl",
+                    "isFolder": True,
+                }])
+            raise AssertionError(path)
+        return _GraphStudioResponse({"catalogEntry": ["http://example.com/catalog/recovered"]})
+
+    def post(self, url, **kwargs):
+        if url.endswith("/api/datasets/from-rdf-zip"):
+            self.zip_attempted = True
+            return _GraphStudioResponse(
+                {
+                    "statusCode": "GENERIC",
+                    "detail": (
+                        "ErrorCode[2092] Error unzipping FLDS zip: "
+                        "Could not list contents because it is not a folder."
+                    ),
+                },
+                ok=False,
+                status_code=500,
+            )
+        assert url.endswith("/api/datasets/from-rdf")
+        self.recovery_payload = kwargs["json"]
+        return _GraphStudioResponse(
+            {"uri": "http://example.com/dataset/recovered"}, status_code=201,
+        )
+
+
+def test_ensure_dataset_recovers_2026_1_2_flds_directory_visibility_race(tmp_path) -> None:
+    import uuid
+    from types import SimpleNamespace
+
+    deployment_id = uuid.uuid4()
+    zip_path = tmp_path / "curated_data.zip"
+    zip_path.write_bytes(b"zip")
+    session = _DatasetRaceRecoverySession(deployment_id)
+    settings = SimpleNamespace(shared_file_connection="urn:file", shared_file_path="sync")
+
+    dataset_uri, catalog = _ensure_dataset(
+        session, "https://graphstudio.example",
+        deployment_id=deployment_id,
+        deployment={
+            "profile_key": "core", "environment_key": "dev", "slot": "green",
+            "curated_release_id": uuid.uuid4(),
+        },
+        zip_path=zip_path,
+        model_uri=release_model_uri("release-1"),
+        settings=settings,
+        reuse_existing=False,
+    )
+
+    extracted = f"sync/{deployment_id}/curated_data-20260831130844/rdf.ttl"
+    assert session.recovery_payload["models"] == [release_model_uri("release-1")]
+    assert session.recovery_payload["dataLocation"] == {
+        "fileConnection": "urn:file",
+        "filePath": extracted,
+    }
+    assert dataset_uri == "http://example.com/dataset/recovered"
+    assert catalog == "http://example.com/catalog/recovered"
+
+
 def test_dataset_replacement_remains_pending_after_force_delete_failure() -> None:
     plan = {"modelUri": release_model_uri("release-1")}
     error = {"message": "Remove obsolete deployment dataset failed: HTTP 500"}
@@ -329,6 +422,49 @@ def test_dataset_replacement_remains_pending_after_force_delete_failure() -> Non
     assert _requires_dataset_replacement(plan, error) is True
     assert _requires_dataset_replacement({**plan, "replaceExistingDataset": True}, {}) is True
     assert _requires_dataset_replacement(plan, {}) is False
+
+
+def test_dataset_is_replaced_after_graph_lakehouse_permission_failure_once_gate_passes() -> None:
+    plan = {"modelUri": release_model_uri("release-1")}
+
+    assert _requires_dataset_replacement(
+        plan,
+        {"message": "ErrorCode[10503] Load Data File Grpc: Permission denied"},
+    ) is True
+
+
+class _ExistingLoadStepSession:
+    def __init__(self):
+        self.put_call = None
+
+    def get(self, _url, **_kwargs):
+        return _GraphStudioResponse([{
+            "title": "Load immutable curated RDF",
+            "uri": "http://example.com/step/load",
+            "gmLinkedDataset": "http://example.com/catalog/old",
+        }])
+
+    def put(self, url, **kwargs):
+        self.put_call = (url, kwargs)
+        return _GraphStudioResponse({"uri": "http://example.com/step/load"})
+
+
+def test_existing_load_step_is_rebound_to_replacement_dataset() -> None:
+    session = _ExistingLoadStepSession()
+
+    step_uri = _ensure_load_step(
+        session,
+        "https://graphstudio.example",
+        layer_uri="http://example.com/layer/blue",
+        catalog="http://example.com/catalog/new",
+        model_uri=release_model_uri("release-1"),
+    )
+
+    assert step_uri == "http://example.com/step/load"
+    url, kwargs = session.put_call
+    assert url.endswith("/http%3A%2F%2Fexample.com%2Fstep%2Fload")
+    assert kwargs["params"] == {"force": "true"}
+    assert kwargs["json"]["gmLinkedDataset"] == "http://example.com/catalog/new"
 
 
 class _RunConfigSession:
@@ -436,6 +572,153 @@ def test_reload_uses_api_6_3_design_run_configuration() -> None:
         "deployOnActivation": True,
         "runConfiguration": "urn:graphmart_RunConfiguration-Design",
     }
+
+
+class _BusyReloadSession:
+    def __init__(self):
+        self.post_count = 0
+        self.status_count = 0
+
+    def post(self, url, **_kwargs):
+        assert url.endswith("/reload")
+        self.post_count += 1
+        if self.post_count == 1:
+            return _GraphStudioResponse(
+                {
+                    "statusCode": "ENTITY_IS_BUSY",
+                    "detail": "graphmart is currently Activating",
+                },
+                ok=False,
+                status_code=500,
+            )
+        return _GraphStudioResponse({"started": True})
+
+    def get(self, url, **_kwargs):
+        assert url.endswith("/status")
+        self.status_count += 1
+        states = [
+            {"isComplete": True, "dirty": True},
+            {"isComplete": False, "dirty": True},
+            {
+                "isComplete": True,
+                "dirty": True,
+                "status": "http://openanzo.org/ontologies/2008/07/System#Activating",
+            },
+            {"isComplete": True, "dirty": True},
+            {"isComplete": False, "dirty": True},
+            {"isComplete": True, "dirty": False},
+        ]
+        return _GraphStudioResponse(states[min(self.status_count - 1, len(states) - 1)])
+
+
+def test_reload_waits_for_busy_activation_then_retries_if_still_dirty(monkeypatch) -> None:
+    session = _BusyReloadSession()
+    monkeypatch.setattr("src.graphstudio_sync.deployment.time.sleep", lambda _seconds: None)
+
+    result = _reload_graphmart(
+        session,
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+    )
+
+    assert session.post_count == 2
+    assert result == {"isComplete": True, "dirty": False}
+
+
+class _JoinedReloadSession:
+    def __init__(self):
+        self.post_count = 0
+        self.status_count = 0
+
+    def post(self, _url, **_kwargs):
+        self.post_count += 1
+        return _GraphStudioResponse(
+            {"statusCode": "ENTITY_IS_BUSY", "detail": "currently Activating"},
+            ok=False,
+            status_code=500,
+        )
+
+    def get(self, _url, **_kwargs):
+        self.status_count += 1
+        states = [
+            {"isComplete": True, "dirty": True},
+            {
+                "isComplete": True,
+                "dirty": True,
+                "status": "http://openanzo.org/ontologies/2008/07/System#Activating",
+            },
+            {"isComplete": True, "dirty": False},
+        ]
+        return _GraphStudioResponse(states[min(self.status_count - 1, len(states) - 1)])
+
+
+def test_reload_joins_busy_activation_when_it_finishes_clean(monkeypatch) -> None:
+    session = _JoinedReloadSession()
+    monkeypatch.setattr("src.graphstudio_sync.deployment.time.sleep", lambda _seconds: None)
+
+    result = _reload_graphmart(
+        session,
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+    )
+
+    assert session.post_count == 1
+    assert result == {"isComplete": True, "dirty": False}
+
+
+class _StuckFailedActivationSession:
+    def __init__(self):
+        self.activate_call = None
+        self.status_count = 0
+
+    def post(self, url, **kwargs):
+        assert url.endswith("/activate")
+        self.activate_call = (url, kwargs)
+        return _GraphStudioResponse({"started": True})
+
+    def get(self, _url, **_kwargs):
+        self.status_count += 1
+        states = [
+            {
+                "isComplete": True,
+                "dirty": True,
+                "failedLayers": 1,
+                "failedSteps": 1,
+                "status": "http://openanzo.org/ontologies/2008/07/System#Activating",
+                "graphQueryEngineUri": "http://example.com/gqe/static",
+            },
+            {"isComplete": False, "dirty": True},
+            {
+                "isComplete": True,
+                "dirty": False,
+                "status": "http://openanzo.org/ontologies/2008/07/System#Online",
+            },
+        ]
+        return _GraphStudioResponse(states[min(self.status_count - 1, len(states) - 1)])
+
+
+def test_reload_force_recovers_completed_but_still_activating_failure(monkeypatch) -> None:
+    session = _StuckFailedActivationSession()
+    monkeypatch.setattr("src.graphstudio_sync.deployment.time.sleep", lambda _seconds: None)
+
+    result = _reload_graphmart(
+        session,
+        "https://graphstudio.example",
+        encoded_graphmart="urn%3Agraphmart",
+    )
+
+    url, kwargs = session.activate_call
+    assert url.endswith("/activate")
+    assert kwargs["params"] == {"force": "true", "waitForCompletion": "false"}
+    assert kwargs["json"] == {
+        "graphmartRunConfiguration": {
+            "inDesignMode": True,
+            "deployOnActivation": True,
+            "runConfiguration": "urn:graphmart_RunConfiguration-Design",
+        },
+        "staticAzgServer": "http://example.com/gqe/static",
+    }
+    assert result["status"].endswith("#Online")
 
 
 def test_post_reload_verification_requires_enabled_healthy_layer() -> None:

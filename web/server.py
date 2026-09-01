@@ -107,12 +107,28 @@ def healthz():
 
 if __name__ == "__main__":
     import uvicorn
-    print("Starting Camstar Ontology Graph Viewer (FastAPI) on http://0.0.0.0:5050")
+
+    # Reloading the whole repository is unsafe for this service: a Graph Studio
+    # deployment writes TTL/ZIP artifacts below outputs/, which used to make the
+    # development reloader restart the API in the middle of a publish.  Keep
+    # reload opt-in and, when requested, watch source directories only.
+    reload_enabled = os.getenv("WEB_RELOAD", "false").strip().casefold() in {
+        "1", "true", "yes", "on",
+    }
+    host = os.getenv("WEB_HOST", "0.0.0.0").strip() or "0.0.0.0"
+    port = int(os.getenv("WEB_PORT", "5050"))
+    print(
+        f"Starting Camstar Ontology Graph Viewer (FastAPI) on http://{host}:{port} "
+        f"(reload={'enabled' if reload_enabled else 'disabled'})"
+    )
     uvicorn.run(
-        "server:app",
-        host="0.0.0.0",
-        port=5050,
-        reload=True,
-        reload_dirs=[PROJECT_ROOT],
-        reload_excludes=["*.md", "*.json", "*.jsonl", "*.csv", "*.log", "*.sqlite3", "*relationships*", "*wiki_kb*", "*logs*", "*scratch*"]
+        "web.server:app",
+        host=host,
+        port=port,
+        reload=reload_enabled,
+        reload_dirs=(
+            [str(os.path.join(PROJECT_ROOT, "web")), str(os.path.join(PROJECT_ROOT, "src"))]
+            if reload_enabled
+            else None
+        ),
     )

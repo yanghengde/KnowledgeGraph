@@ -42,7 +42,12 @@ def test_graphstudio_zip_has_api_6_3_rdf_directory_layout(tmp_path) -> None:
     archive_path = _write_zip(tmp_path)
 
     with zipfile.ZipFile(archive_path) as archive:
-        assert archive.namelist() == ["rdf.ttl/001_Product.ttl"]
+        assert archive.namelist() == ["rdf.ttl/", "rdf.ttl/001_Product.ttl"]
+        directory, data_file = archive.infolist()
+        assert directory.create_system == 3
+        assert (directory.external_attr >> 16) & 0o777 == 0o755
+        assert data_file.create_system == 3
+        assert (data_file.external_attr >> 16) & 0o777 == 0o644
 
 
 def test_turtle_serialization_is_deterministic_and_round_trips(tmp_path) -> None:

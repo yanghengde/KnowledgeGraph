@@ -41,7 +41,7 @@ def require_graphstudio_2026_1_ready(
     graphmart_uri: str | None = None,
     file_connection: str | None = None,
     file_path: str | None = None,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """Require a ready Graph Studio 2026.1+/REST API 6.3+ server.
 
     Some 2026.1.2 deployments do not expose ``/util/serverVersion`` through
@@ -50,11 +50,12 @@ def require_graphstudio_2026_1_ready(
     """
     base = base_url.rstrip("/")
     response = session.get(
-        f"{base}/util/serverVersion",
+        f"{base}/api/utils/serverVersion",
         headers={"Accept": "application/json", "Accept-Encoding": "identity"},
         timeout=30,
     )
     payload: Any = None
+    detected_version: str | None = None
     if response.ok:
         try:
             payload = response.json()
@@ -77,7 +78,10 @@ def require_graphstudio_2026_1_ready(
                 raise RuntimeError(
                     f"Graph Studio {version} 不符合当前发布适配基线 2026.1 / REST API 6.3。"
                 )
-            return {"version": version}
+            detected_version = version
+
+    if detected_version and not graphmart_uri and not file_connection:
+        return {"version": detected_version}
 
     failures: list[str] = []
     probes: list[tuple[str, str, type, dict[str, str] | None]] = [
@@ -113,38 +117,67 @@ def require_graphstudio_2026_1_ready(
         if not probe.ok or not isinstance(probe_payload, expected_type):
             failures.append(f"{name}=HTTP {probe.status_code}")
 
+    file_connection_graph_secured = False
     if file_connection:
         encoded_connection = quote(file_connection, safe="")
-        file_probes = (
-            (
-                "fileConnection",
-                f"{base}/api/fileconnections/{encoded_connection}",
-                dict,
-                None,
-            ),
-            (
-                "filePath",
-                f"{base}/api/fileconnections/{encoded_connection}/files",
-                list,
-                {"path": (file_path or "/").strip("/") or "/"},
-            ),
+        connection_probe = session.get(
+            f"{base}/api/fileconnections/{encoded_connection}",
+            params={
+                "expand": (
+                    "fileConnectionSupportsGlobalLoad,"
+                    "fileConnectionGraphSecured,fileConnectionBaseFolder"
+                )
+            },
+            timeout=30,
         )
-        for name, url, expected_type, params in file_probes:
-            probe = session.get(url, params=params, timeout=30)
-            try:
-                probe_payload = probe.json()
-            except ValueError:
-                probe_payload = None
-            if not probe.ok or not isinstance(probe_payload, expected_type):
-                failures.append(f"{name}=HTTP {probe.status_code}")
+        try:
+            connection_payload = connection_probe.json()
+        except ValueError:
+            connection_payload = None
+        if not connection_probe.ok or not isinstance(connection_payload, dict):
+            failures.append(f"fileConnection=HTTP {connection_probe.status_code}")
+        else:
+            file_connection_graph_secured = (
+                connection_payload.get("fileConnectionGraphSecured") is True
+            )
+            if connection_payload.get("fileConnectionSupportsGlobalLoad") is not True:
+                failures.append(
+                    "fileConnectionSupportsGlobalLoad=false "
+                    "(shared store is not enabled for Graph Lakehouse)"
+                )
+            if file_connection_graph_secured:
+                failures.append(
+                    "fileConnectionGraphSecured=true (Graphmart File Staging cannot be "
+                    "used by REST API 6.3 /datasets/from-rdf-zip because that operation "
+                    "does not accept the required graph context)"
+                )
+            else:
+                path_probe = session.get(
+                    f"{base}/api/fileconnections/{encoded_connection}/files",
+                    params={"path": (file_path or "/").strip("/") or "/"},
+                    timeout=30,
+                )
+                try:
+                    path_payload = path_probe.json()
+                except ValueError:
+                    path_payload = None
+                if not path_probe.ok or not isinstance(path_payload, list):
+                    failures.append(f"filePath=HTTP {path_probe.status_code}")
 
     if failures:
         version_status = f"HTTP {response.status_code}"
-        if response.ok:
+        if detected_version:
+            version_status = f"REST API {detected_version}"
+        elif response.ok:
             version_status = "未返回可识别版本"
         raise RuntimeError(
             "Graph Studio 2026.1.2 发布能力尚未就绪；已阻止发布写入。"
-            f"/util/serverVersion {version_status}；能力检查失败：{', '.join(failures)}。"
+            f"/api/utils/serverVersion {version_status}；能力检查失败：{', '.join(failures)}。"
         )
 
-    return {"version": "6.3-compatible", "source": "capabilityProbe"}
+    result: dict[str, Any]
+    if detected_version:
+        result = {"version": detected_version}
+    else:
+        result = {"version": "6.3-compatible", "source": "capabilityProbe"}
+    return result

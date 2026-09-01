@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import stat
 import time
 import uuid
 import zipfile
@@ -33,9 +34,19 @@ def release_model_uri(ontology_release_id: str | uuid.UUID) -> str:
 
 
 def _write_graphstudio_rdf_zip(zip_path: Path, ttl_path: Path) -> None:
-    """Create the RDF ZIP layout declared by the Graph Studio 6.3 API."""
+    """Create a Linux-readable RDF ZIP for Graph Studio and Graph Lakehouse."""
+    directory = zipfile.ZipInfo("rdf.ttl/", date_time=(1980, 1, 1, 0, 0, 0))
+    directory.create_system = 3
+    directory.external_attr = ((stat.S_IFDIR | 0o755) << 16) | 0x10
+    data_file = zipfile.ZipInfo(
+        f"rdf.ttl/{ttl_path.name}", date_time=(1980, 1, 1, 0, 0, 0),
+    )
+    data_file.create_system = 3
+    data_file.external_attr = (stat.S_IFREG | 0o644) << 16
+    data_file.compress_type = zipfile.ZIP_DEFLATED
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.write(ttl_path, arcname=f"rdf.ttl/{ttl_path.name}")
+        archive.writestr(directory, b"")
+        archive.writestr(data_file, ttl_path.read_bytes())
 
 
 def _is_graphstudio_rdf_zip(zip_path: Path) -> bool:
@@ -51,15 +62,19 @@ def _is_graphstudio_rdf_zip(zip_path: Path) -> bool:
         return False
     if not members:
         return False
+    directories = [item for item in members if item.is_dir()]
     data_files = [
         item for item in members
         if not item.is_dir() and item.filename.startswith("rdf.ttl/")
     ]
     return (
-        bool(data_files)
+        [item.filename for item in directories] == ["rdf.ttl/"]
+        and bool(data_files)
         and all(item.filename.casefold().endswith(".ttl") for item in data_files)
-        and all(not item.is_dir() for item in members)
-        and len(data_files) == len(members)
+        and len(data_files) + len(directories) == len(members)
+        and all(item.create_system == 3 for item in members)
+        and ((directories[0].external_attr >> 16) & 0o777) == 0o755
+        and all(((item.external_attr >> 16) & 0o777) == 0o644 for item in data_files)
     )
 
 
@@ -847,6 +862,112 @@ def _deployment_dataset(
     )
 
 
+def _file_store_entries(
+    session: requests.Session,
+    base: str,
+    *,
+    file_connection: str,
+    file_path: str,
+) -> list[dict[str, Any]]:
+    payload = _require(
+        session.get(
+            f"{base}/api/fileconnections/{quote(file_connection, safe='')}/files",
+            params={"path": file_path},
+            timeout=60,
+        ),
+        f"Browse Graph Studio file path {file_path}",
+    )
+    if not isinstance(payload, list):
+        raise RuntimeError(f"Graph Studio file path did not return a list: {file_path}")
+    return [item for item in payload if isinstance(item, dict)]
+
+
+def _is_rdf_zip_directory_race(response: requests.Response) -> bool:
+    message = response.text.casefold()
+    return (
+        response.status_code == 500
+        and "errorcode[2092]" in message
+        and "error unzipping flds zip" in message
+        and "not a folder" in message
+    )
+
+
+def _register_extracted_rdf_directory(
+    session: requests.Session,
+    base: str,
+    *,
+    upload_directory: str,
+    zip_stem: str,
+    folders_before_upload: set[str],
+    title: str,
+    description: str,
+    model_uri: str,
+    file_connection: str,
+) -> Any:
+    """Recover a 2026.1.2 FLDS visibility race without changing ZIP layout."""
+    extracted_path: str | None = None
+    for attempt in range(10):
+        entries = _file_store_entries(
+            session,
+            base,
+            file_connection=file_connection,
+            file_path=upload_directory,
+        )
+        candidates = sorted(
+            (
+                item
+                for item in entries
+                if item.get("isFolder") is True
+                and isinstance(item.get("name"), str)
+                and item["name"].startswith(f"{zip_stem}-")
+                and item["name"] not in folders_before_upload
+            ),
+            key=lambda item: item["name"],
+            reverse=True,
+        )
+        for candidate in candidates:
+            candidate_path = str(candidate.get("path") or "").strip("/")
+            if not candidate_path:
+                candidate_path = f"{upload_directory}/{candidate['name']}"
+            children = _file_store_entries(
+                session,
+                base,
+                file_connection=file_connection,
+                file_path=candidate_path,
+            )
+            if any(
+                child.get("name") == "rdf.ttl" and child.get("isFolder") is True
+                for child in children
+            ):
+                extracted_path = f"{candidate_path}/rdf.ttl"
+                break
+        if extracted_path:
+            break
+        if attempt < 9:
+            time.sleep(1)
+    if not extracted_path:
+        raise RuntimeError(
+            "Graph Studio ZIP was extracted, but the new rdf.ttl directory "
+            "did not become visible within 10 seconds"
+        )
+    return _require(
+        session.post(
+            f"{base}/api/datasets/from-rdf",
+            json={
+                "title": title,
+                "description": description,
+                "models": [model_uri],
+                "dataLocation": {
+                    "fileConnection": file_connection,
+                    "filePath": extracted_path,
+                },
+            },
+            timeout=600,
+        ),
+        "Register extracted RDF directory",
+    )
+
+
 def _ensure_model(
     session: requests.Session,
     base: str,
@@ -903,19 +1024,51 @@ def _ensure_dataset(
         existing = None
     dataset_uri = _find_uri(existing, ("uri", "datasetUri")) if existing else None
     if not dataset_uri:
+        title = f"{deployment['profile_key']} {deployment['environment_key']} {deployment['slot']}"
+        description = f"Immutable curated release {deployment['curated_release_id']}"
+        upload_directory = f"{settings.shared_file_path}/{deployment_id}"
+        folders_before_upload = {
+            str(item.get("name"))
+            for item in _file_store_entries(
+                session,
+                base,
+                file_connection=settings.shared_file_connection,
+                file_path=upload_directory,
+            )
+            if item.get("isFolder") is True and item.get("name")
+        }
         multipart: list[tuple[str, tuple[Any, ...]]] = [
-            ("title", (None, f"{deployment['profile_key']} {deployment['environment_key']} {deployment['slot']}")),
-            ("description", (None, f"Immutable curated release {deployment['curated_release_id']}")),
+            ("title", (None, title)),
+            ("description", (None, description)),
             ("models", (None, model_uri)),
             ("fileConnection", (None, settings.shared_file_connection)),
-            ("filePath", (None, f"{settings.shared_file_path}/{deployment_id}")),
+            ("filePath", (None, upload_directory)),
         ]
         with zip_path.open("rb") as handle:
             multipart.append(("rdfZip", (zip_path.name, handle, "application/zip")))
-            result = _require(
-                session.post(f"{base}/api/datasets/from-rdf-zip", files=multipart, timeout=600),
-                "Upload RDF dataset",
+            upload_response = session.post(
+                f"{base}/api/datasets/from-rdf-zip", files=multipart, timeout=600,
             )
+        if _is_rdf_zip_directory_race(upload_response):
+            try:
+                result = _register_extracted_rdf_directory(
+                    session,
+                    base,
+                    upload_directory=upload_directory,
+                    zip_stem=zip_path.stem,
+                    folders_before_upload=folders_before_upload,
+                    title=title,
+                    description=description,
+                    model_uri=model_uri,
+                    file_connection=settings.shared_file_connection,
+                )
+            except Exception as recovery_error:
+                raise RuntimeError(
+                    "Upload RDF dataset hit Graph Studio 2026.1.2 ErrorCode[2092], "
+                    f"and extracted-directory recovery failed: {recovery_error}"
+                ) from recovery_error
+        else:
+            result = _require(upload_response, "Upload RDF dataset")
         dataset_uri = _find_uri(result, ("uri", "datasetUri"))
     if not dataset_uri:
         raise RuntimeError("Graph Studio dataset response has no URI")
@@ -942,7 +1095,12 @@ def _requires_dataset_replacement(
         if isinstance(previous_error, dict)
         else str(previous_error or "")
     )
-    return "Remove obsolete deployment dataset failed" in previous_error_message
+    replacement_markers = (
+        "Remove obsolete deployment dataset failed",
+        "ErrorCode[10503]",
+        "Permission denied",
+    )
+    return any(marker in previous_error_message for marker in replacement_markers)
 
 
 def _ensure_layer(
@@ -993,20 +1151,33 @@ def _ensure_load_step(
     steps = _require(session.get(f"{base}/api/layers/{encoded_layer}/steps", timeout=60), "List layer steps")
     title = "Load immutable curated RDF"
     existing = next((item for item in steps if item.get("title") == title), None) if isinstance(steps, list) else None
+    step_payload = {
+        "title": title,
+        "type": "LoadDatasetStep",
+        "gmLinkedDataset": catalog,
+        "source": [GM_SELF],
+        "ontology": [model_uri],
+        "ignoreLoadErrors": False,
+    }
     if existing:
         step_uri = _find_uri(existing, ("uri", "stepUri"))
+        if not step_uri:
+            raise RuntimeError("Existing Graph Studio load step has no URI")
+        result = _require(
+            session.put(
+                f"{base}/api/layers/{encoded_layer}/steps/{quote(step_uri, safe='')}",
+                params={"force": "true"},
+                json=step_payload,
+                timeout=60,
+            ),
+            "Replace load step dataset binding",
+        )
+        step_uri = _find_uri(result, ("uri", "stepUri")) or step_uri
     else:
         result = _require(
             session.post(
                 f"{base}/api/layers/{encoded_layer}/steps",
-                json={
-                    "title": title,
-                    "type": "LoadDatasetStep",
-                    "gmLinkedDataset": catalog,
-                    "source": [GM_SELF],
-                    "ontology": [model_uri],
-                    "ignoreLoadErrors": False,
-                },
+                json=step_payload,
                 timeout=60,
             ),
             "Create load step",
@@ -1123,22 +1294,10 @@ def _reload_graphmart(
     timeout_seconds: int = 600,
 ) -> dict[str, Any]:
     graphmart_uri = unquote(encoded_graphmart)
-    _require(
-        session.post(
-            f"{base}/api/graphmarts/{encoded_graphmart}/reload",
-            json={
-                "inDesignMode": True,
-                "deployOnActivation": True,
-                "runConfiguration": f"{graphmart_uri}_RunConfiguration-Design",
-            },
-            timeout=180,
-        ),
-        "Reload graphmart",
-    )
     deadline = time.monotonic() + timeout_seconds
-    graph_status: dict[str, Any] = {}
-    while time.monotonic() < deadline:
-        graph_status = _require(
+
+    def read_status() -> dict[str, Any]:
+        status = _require(
             session.get(
                 f"{base}/api/graphmarts/{encoded_graphmart}/status",
                 params={"detail": "true"},
@@ -1146,16 +1305,124 @@ def _reload_graphmart(
             ),
             "Read graphmart status",
         )
-        if graph_status.get("isComplete") and not graph_status.get("dirty"):
-            break
-        time.sleep(2)
+        if not isinstance(status, dict):
+            raise RuntimeError("Graph Studio status response is not an object")
+        return status
+
+    def status_is_activating(status: dict[str, Any]) -> bool:
+        status_uri = str(status.get("status") or "").casefold()
+        status_text = str(status.get("statusText") or "").casefold()
+        return (
+            status_uri.endswith("#activating")
+            or "currently activating" in status_text
+        )
+
+    def status_has_failed_assets(status: dict[str, Any]) -> bool:
+        return any(
+            status.get(key)
+            for key in ("failedLayers", "failedSteps", "failedDatasets")
+        )
+
+    def wait_until_complete() -> dict[str, Any]:
+        while time.monotonic() < deadline:
+            status = read_status()
+            if status.get("isComplete") is True and not status_is_activating(status):
+                return status
+            time.sleep(2)
+        raise RuntimeError(
+            f"Graph Studio activation did not finish within {timeout_seconds} seconds"
+        )
+
+    reload_payload = {
+        "inDesignMode": True,
+        "deployOnActivation": True,
+        "runConfiguration": f"{graphmart_uri}_RunConfiguration-Design",
+    }
+    reload_started = False
+    graph_status = read_status()
+    stuck_failed_activation = (
+        graph_status.get("isComplete") is True
+        and status_is_activating(graph_status)
+        and status_has_failed_assets(graph_status)
+    )
+    if stuck_failed_activation:
+        activation_payload: dict[str, Any] = {
+            "graphmartRunConfiguration": reload_payload,
+        }
+        graph_query_engine = graph_status.get("graphQueryEngineUri")
+        if graph_query_engine:
+            activation_payload["staticAzgServer"] = graph_query_engine
+        _require(
+            session.post(
+                f"{base}/api/graphmarts/{encoded_graphmart}/activate",
+                params={"force": "true", "waitForCompletion": "false"},
+                json=activation_payload,
+                timeout=180,
+            ),
+            "Force recover failed Graphmart activation",
+        )
+        reload_started = True
     else:
-        raise RuntimeError(f"Graph Studio reload did not finish within {timeout_seconds} seconds")
+        if graph_status.get("isComplete") is not True or status_is_activating(graph_status):
+            graph_status = wait_until_complete()
+        for _attempt in range(3):
+            response = session.post(
+                f"{base}/api/graphmarts/{encoded_graphmart}/reload",
+                json=reload_payload,
+                timeout=180,
+            )
+            if response.ok:
+                reload_started = True
+                break
+            response_text = response.text.casefold()
+            is_busy = (
+                response.status_code == 500
+                and (
+                    "entity_is_busy" in response_text
+                    or "currently activating" in response_text
+                )
+            )
+            if not is_busy:
+                _require(response, "Reload graphmart")
+            graph_status = wait_until_complete()
+            if not graph_status.get("dirty"):
+                break
+            if time.monotonic() >= deadline:
+                raise RuntimeError(
+                    f"Graph Studio reload remained busy for {timeout_seconds} seconds"
+                )
+            time.sleep(2)
+        else:
+            raise RuntimeError("Graph Studio reload remained busy after 3 activation attempts")
+
+    if reload_started:
+        while time.monotonic() < deadline:
+            graph_status = read_status()
+            if (
+                graph_status.get("isComplete")
+                and not status_is_activating(graph_status)
+                and not graph_status.get("dirty")
+            ):
+                break
+            time.sleep(2)
+        else:
+            raise RuntimeError(
+                f"Graph Studio reload did not finish within {timeout_seconds} seconds"
+            )
     if (
         graph_status.get("failedLayers")
         or graph_status.get("failedSteps")
         or graph_status.get("failedDatasets")
     ):
+        failed_status = json.dumps(graph_status, ensure_ascii=False, default=str)
+        if "permission denied" in failed_status.casefold():
+            raise RuntimeError(
+                "Graph Lakehouse cannot read the Graph Studio shared file store: Permission denied. "
+                "This is a platform shared-storage UID/GID, mount, or POSIX parent-directory "
+                "permission problem, not an RDF or ZIP error. Keep the Dataset and fix the shared "
+                "store so the Graph Studio and Graph Lakehouse service users can traverse and read "
+                "the same path; then retry this deployment."
+            )
         raise RuntimeError(f"Graph Studio reload contains failed assets: {graph_status}")
     return graph_status
 

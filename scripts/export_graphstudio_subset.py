@@ -13,6 +13,7 @@ import csv
 import datetime as dt
 import decimal
 import json
+import stat
 import os
 import re
 import sys
@@ -424,7 +425,17 @@ def write_and_validate(model: Graph, data: Graph, summary: dict[str, Any]) -> No
     data.serialize(destination=DATA_FILE, format="turtle")
 
     with zipfile.ZipFile(ZIP_FILE, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.write(DATA_FILE, arcname=f"rdf.ttl/{DATA_FILE.name}")
+        directory = zipfile.ZipInfo("rdf.ttl/", date_time=(1980, 1, 1, 0, 0, 0))
+        directory.create_system = 3
+        directory.external_attr = ((stat.S_IFDIR | 0o755) << 16) | 0x10
+        data_file = zipfile.ZipInfo(
+            f"rdf.ttl/{DATA_FILE.name}", date_time=(1980, 1, 1, 0, 0, 0),
+        )
+        data_file.create_system = 3
+        data_file.external_attr = (stat.S_IFREG | 0o644) << 16
+        data_file.compress_type = zipfile.ZIP_DEFLATED
+        archive.writestr(directory, b"")
+        archive.writestr(data_file, DATA_FILE.read_bytes())
 
     parsed_model = Graph().parse(MODEL_FILE, format="turtle")
     parsed_data = Graph().parse(DATA_FILE, format="turtle")

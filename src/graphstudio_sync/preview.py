@@ -7,6 +7,7 @@ import datetime as dt
 import decimal
 import hashlib
 import json
+import stat
 import re
 import uuid
 import zipfile
@@ -961,17 +962,25 @@ def _write_data_shards(
 def _write_zip(preview_dir: Path) -> Path:
     zip_path = preview_dir / "camstar_full_data.zip"
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        directory = zipfile.ZipInfo("rdf.ttl/", date_time=(1980, 1, 1, 0, 0, 0))
+        directory.create_system = 3
+        directory.external_attr = ((stat.S_IFDIR | 0o755) << 16) | 0x10
+        archive.writestr(directory, b"")
         for file_path in sorted((preview_dir / "rdf.ttl").glob("*.ttl")):
             info = zipfile.ZipInfo(
                 filename=f"rdf.ttl/{file_path.name}",
                 date_time=(1980, 1, 1, 0, 0, 0),
             )
             info.compress_type = zipfile.ZIP_DEFLATED
-            info.create_system = 0
-            info.external_attr = 0
+            info.create_system = 3
+            info.external_attr = (stat.S_IFREG | 0o644) << 16
             archive.writestr(info, file_path.read_bytes(), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
     with zipfile.ZipFile(zip_path) as archive:
-        invalid = [name for name in archive.namelist() if not name.startswith("rdf.ttl/") or not name.endswith(".ttl")]
+        invalid = [
+            name for name in archive.namelist()
+            if name != "rdf.ttl/"
+            and (not name.startswith("rdf.ttl/") or not name.endswith(".ttl"))
+        ]
         if invalid:
             raise RuntimeError(f"Invalid Graph Studio RDF ZIP members: {invalid}")
         if archive.testzip() is not None:
