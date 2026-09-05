@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "profile": "opcenter2607-core",
+      "modelEqual": true,
+      "dataEqual": true,
+      "objects": 26,
+      "relationships": 17,
+      "modelTriples": 2304,
+      "dataTriples": 852
+    }
+  ],
+  "graphStudioWritten": false
+}

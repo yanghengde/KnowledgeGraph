@@ -114,6 +114,7 @@ def test_approval_requires_matching_preview_before_store(library, physical, monk
 
 @pytest.mark.parametrize("missing", [True, False])
 def test_sync_checks_targets_before_writes_and_marks_only_success(monkeypatch, missing):
+    monkeypatch.setenv("ONTOLOGY_BACKEND", "neo4j")
     calls = []
     class Conn:
         def execute(self, statement, *args): calls.append(str(statement))

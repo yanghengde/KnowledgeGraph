@@ -1,0 +1,30 @@
+# Standalone PostgreSQL model deployment; no Neo4j service or dependency.
+# Use existing PostgreSQL/Graph Studio endpoints from .env.
+# Prepare/import the model first; this file never auto-migrates live data.
+name: camstar-postgres-model
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: camstar-ontology-app:${APP_IMAGE_TAG:-local}
+    env_file:
+      - .env
+    environment:
+      ONTOLOGY_BACKEND: postgres
+      PYTHONUNBUFFERED: "1"
+      CHAT_LOG_DIR: /app/logs/chat
+      CHAT_SESSION_DIR: /app/data/chat_sessions
+    restart: unless-stopped
+    ports:
+      - "${APP_BIND:-0.0.0.0}:${APP_PORT:-5050}:5050"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./outputs/graphstudio:/app/outputs/graphstudio
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5050/healthz', timeout=10)"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s

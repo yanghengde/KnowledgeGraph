@@ -169,7 +169,7 @@ export function SemanticModelPage() {
         <Typography.Paragraph>先在本体目录统一业务对象、属性与关联，再同步建模库，选择业务范围并发布到 Graph Studio。</Typography.Paragraph>
       </div>
       <Space wrap>
-        <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新 Neo4j</Button>
+        <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新模型</Button>
         <Tooltip title="仅用于生产观察期内的兼容回退；新建模与发布请使用当前页面"><Button href="/ontology">旧版兼容入口</Button></Tooltip>
       </Space>
     </section>
@@ -216,7 +216,7 @@ export function SemanticModelPage() {
     </Card>
 
     <div className={`semantic-workbench ${selectedNodeId ? "with-detail" : ""}`}>
-      <Card className="semantic-graph-card" title={<Space><DatabaseOutlined /><span>Neo4j 制造本体</span></Space>} extra={<Space><Tag color="gold">关注 {followedNodeIds.length}</Tag><Tag color="cyan">G6</Tag><Typography.Text type="secondary">{filteredGraph?.nodes.length || 0} 个对象 · {filteredGraph?.edges.length || 0} 条关系</Typography.Text></Space>} styles={{ body: { padding: 0 } }}>
+      <Card className="semantic-graph-card" title={<Space><DatabaseOutlined /><span>Camstar 制造本体</span></Space>} extra={<Space><Tag color="gold">关注 {followedNodeIds.length}</Tag><Tag color="cyan">G6</Tag><Typography.Text type="secondary">{filteredGraph?.nodes.length || 0} 个对象 · {filteredGraph?.edges.length || 0} 条关系</Typography.Text></Space>} styles={{ body: { padding: 0 } }}>
         {overview.isLoading ? <div className="semantic-loading"><Spin size="large" /><Typography.Text type="secondary">正在读取完整本体…</Typography.Text></div> : overview.error ? <Alert type="error" message="完整本体读取失败" description={(overview.error as Error).message} /> : <SemanticG6Canvas ref={graphRef} data={filteredGraph} mode={mode} selectedNodeId={selectedNodeId || undefined} followedNodeIds={followedNodeIds} onNodeSelect={selectNode} />}
       </Card>
 

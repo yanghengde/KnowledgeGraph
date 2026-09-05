@@ -1,0 +1,18 @@
+{
+  "previewOnly": false,
+  "counts": {
+    "classes": 3,
+    "properties": 224,
+    "relationships": 5
+  },
+  "contentHash": "2b88ff15a29650625850b4a00ad1c761fc41e303c9ff73f2b7d5df8fa2bd7193",
+  "provenance": {
+    "kind": "csv",
+    "files": {
+      "Database_Tables.csv": "9e8916fc96af0b3fddd07f38eda0fa428a74a387c52cdeb21034e333cbedd1d7",
+      "Database_Fields.csv": "055710ac5fd9f9dddd827563f4419789bc65fc89d427121f718b350606503664"
+    }
+  },
+  "snapshotId": "4ae60f13-5f64-4829-a8e1-ec0ea14544cd",
+  "activated": false
+}

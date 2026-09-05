@@ -185,6 +185,7 @@ def initialize_control_plane(
     engine = control_engine(settings)
     with engine.begin() as connection:
         connection.exec_driver_sql(ddl)
+        connection.exec_driver_sql((PROJECT_ROOT / "sql/ontology_model_postgres.sql").read_text(encoding="utf-8"))
         connection.exec_driver_sql((PROJECT_ROOT / "sql/ontology_authority_postgres.sql").read_text(encoding="utf-8"))
     seed_runtime_connections(settings, engine, overwrite=overwrite_connections)
     with engine.connect() as connection:

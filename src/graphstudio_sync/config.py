@@ -91,17 +91,23 @@ class SyncSettings:
     graphstudio_publish_transport: str = "shared_store"
     graphstudio_inline_max_bytes: int = 2_000_000
 
+    ontology_backend: str = "neo4j"
+
     @classmethod
     def from_env(cls, env_file: Path | None = None) -> "SyncSettings":
         load_dotenv(env_file or PROJECT_ROOT / ".env", override=False)
+        from .ontology_backend import backend
+        selected_backend = backend()
+        neo = _required if selected_backend == "neo4j" else lambda key: os.getenv(key, "").strip()
         return cls(
-            neo4j_uri=_required("NEO4J_URI"),
-            neo4j_user=_required("NEO4J_USER"),
-            neo4j_password=_required("NEO4J_PASSWORD"),
+            ontology_backend=selected_backend,
+            neo4j_uri=neo("NEO4J_URI"),
+            neo4j_user=neo("NEO4J_USER"),
+            neo4j_password=neo("NEO4J_PASSWORD"),
             neo4j_database=os.getenv("NEO4J_DATABASE", "neo4j").strip() or "neo4j",
-            publish_neo4j_uri=(os.getenv("PUBLISH_NEO4J_URI", "").strip() or _required("NEO4J_URI")),
-            publish_neo4j_user=(os.getenv("PUBLISH_NEO4J_USER", "").strip() or _required("NEO4J_USER")),
-            publish_neo4j_password=(os.getenv("PUBLISH_NEO4J_PASSWORD", "") or _required("NEO4J_PASSWORD")),
+            publish_neo4j_uri=(os.getenv("PUBLISH_NEO4J_URI", "").strip() or neo("NEO4J_URI")),
+            publish_neo4j_user=(os.getenv("PUBLISH_NEO4J_USER", "").strip() or neo("NEO4J_USER")),
+            publish_neo4j_password=(os.getenv("PUBLISH_NEO4J_PASSWORD", "") or neo("NEO4J_PASSWORD")),
             publish_neo4j_database=os.getenv("PUBLISH_NEO4J_DATABASE", "graphstudio-model").strip() or "graphstudio-model",
             source_host=_required("SRC_DB_HOST"),
             source_port=int(

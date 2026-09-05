@@ -507,6 +507,9 @@ def update_navigation(menu_key: str, request: NavigationUpdate):
 @router.get("/connections")
 def connections():
     items = _repo().list_connections()
+    from src.graphstudio_sync.ontology_backend import backend
+    if backend() == "postgres":
+        items = [item for item in items if item["connection_key"] not in {"ontology-neo4j", "publish-ontology-neo4j"}]
     for item in items:
         item["editable"] = item["connection_key"] != "control-postgresql"
         item["secret_configured"] = bool(item.get("secret_ref"))

@@ -244,6 +244,13 @@ def _load_catalog(repository: ControlPlaneRepository) -> dict[str, Any]:
 
 
 def _load_descriptions(settings: SyncSettings) -> dict[str, dict[Any, dict[str, Any]]]:
+    from .ontology_backend import backend
+    if backend(settings) == "postgres":
+        from .ontology_store import source_payload
+        payload = source_payload(settings)
+        return {"classes": {c["name"]: c for c in payload["classes"]},
+                "properties": {(p["className"], p["name"]): p for p in payload["properties"]},
+                "relationships": {(r["source"], r["name"], r["target"]): r for r in payload["relationships"]}}
     driver = GraphDatabase.driver(settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password))
     try:
         driver.verify_connectivity()

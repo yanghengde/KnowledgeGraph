@@ -1,0 +1,12 @@
+{
+  "backend": "postgres",
+  "ready": true,
+  "sourceCounts": {
+    "classes": 318,
+    "properties": 4483,
+    "relationships": 796
+  },
+  "missingWorkspaces": 0,
+  "missingReleases": 0,
+  "corruptReleases": 0
+}

@@ -94,7 +94,9 @@ def healthz():
     from src.graphstudio_sync.database import control_engine
 
     try:
-        driver.verify_connectivity()
+        from src.graphstudio_sync.ontology_backend import backend
+        if backend() == "neo4j":
+            driver.verify_connectivity()
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Neo4j is unavailable") from exc
     try:

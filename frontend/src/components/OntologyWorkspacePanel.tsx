@@ -375,7 +375,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
       </div>
     </div>}
     <Modal title="新建自定义发布对象" open={createClassOpen} okText="加入当前草稿" cancelText="取消" confirmLoading={createCustomClass.isPending} onCancel={() => { setCreateClassOpen(false); classForm.resetFields(); }} onOk={() => classForm.validateFields().then((values) => createCustomClass.mutate(values))}>
-      <Alert type="info" showIcon message="不依赖 Neo4j 源对象" description="适用于聚合概念、发布视图或 Graph Studio 专用语义对象；创建后可继续添加属性和关系。" />
+      <Alert type="info" showIcon message="自定义业务对象" description="适用于聚合概念、发布视图或 Graph Studio 专用语义对象；创建后可继续添加属性和关系。" />
       <Form form={classForm} layout="vertical" initialValues={{ role: "context", orphanPolicy: "quarantine" }} className="ontology-create-form">
         <Form.Item name="targetName" label="发布对象技术名" rules={[{ required: true, message: "请输入对象技术名" }, { pattern: /^[A-Za-z_][A-Za-z0-9_]*$/, message: "请使用英文字母开头的字母、数字或下划线" }]}><Input placeholder="例如 ManufacturingImpact" /></Form.Item>
         <Form.Item name="label" label="业务显示名" rules={[{ required: true, message: "请输入业务显示名" }]}><Input placeholder="例如 制造影响" /></Form.Item>
@@ -392,7 +392,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
       </Form>
     </Modal>
     <Modal title="新建发布关系" open={createRelationshipOpen} okText="保存关系" cancelText="取消" confirmLoading={createCustomRelationship.isPending} onCancel={() => { setCreateRelationshipOpen(false); relationshipForm.resetFields(); }} onOk={() => relationshipForm.validateFields().then((values) => createCustomRelationship.mutate(values))}>
-      <Alert type="info" showIcon message="关系只作用于当前 Graph Studio 发布草稿" description="不会反向修改 Neo4j 制造语义主图，版本冻结后将作为不可变发布契约。" />
+      <Alert type="info" showIcon message="关系只作用于当前 Graph Studio 发布草稿" description="不会反向修改 Camstar 源模型，版本冻结后将作为不可变发布契约。" />
       <Form form={relationshipForm} layout="vertical" initialValues={{ sourceUid: selectedId || undefined, cardinality: "many-to-one", strength: "context", usage: "published_link", questionEnabled: true }} className="ontology-create-form">
         <div className="ontology-form-grid"><Form.Item name="sourceUid" label="源对象" rules={[{ required: true }]}><Select showSearch optionFilterProp="label" options={(graph?.nodes || []).map((node) => ({ value: node.id, label: node.data.targetName }))} /></Form.Item><Form.Item name="targetUid" label="目标对象" dependencies={["sourceUid"]} rules={[{ required: true }, ({ getFieldValue }) => ({ validator(_, value) { return !value || value !== getFieldValue("sourceUid") ? Promise.resolve() : Promise.reject(new Error("源对象与目标对象不能相同")); } })]}><Select showSearch optionFilterProp="label" options={(graph?.nodes || []).map((node) => ({ value: node.id, label: node.data.targetName }))} /></Form.Item></div>
         <Form.Item name="targetName" label="关系技术名" rules={[{ required: true, message: "请输入关系技术名" }, { pattern: /^[A-Za-z_][A-Za-z0-9_]*$/, message: "请使用英文字母开头的字母、数字或下划线" }]}><Input placeholder="例如 IMPACTS_QUALITY" /></Form.Item>

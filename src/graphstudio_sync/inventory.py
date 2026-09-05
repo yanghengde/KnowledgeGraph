@@ -50,6 +50,11 @@ class OntologyInventory:
 
 
 def read_ontology(settings: SyncSettings) -> OntologyInventory:
+    from .ontology_backend import backend
+    if backend(settings) == "postgres":
+        from .ontology_store import source_payload
+        payload = source_payload(settings)
+        return OntologyInventory(payload["classes"], payload["properties"], len(payload["relationships"]))
     driver = GraphDatabase.driver(
         settings.neo4j_uri,
         auth=(settings.neo4j_user, settings.neo4j_password),

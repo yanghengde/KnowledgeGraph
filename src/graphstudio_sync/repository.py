@@ -87,6 +87,9 @@ class ControlPlaneRepository:
                     )
                 )
             )
+        from .ontology_backend import backend
+        if backend(self.settings) == "postgres":
+            connections = [item for item in connections if item["connection_key"] not in {"ontology-neo4j", "publish-ontology-neo4j"}]
         return {"summary": summary, "connections": connections, "jobs": jobs, "recentRuns": recent_runs}
 
     def list_connections(self) -> list[dict[str, Any]]:

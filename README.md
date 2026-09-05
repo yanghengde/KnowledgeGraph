@@ -2,7 +2,8 @@
 
 Opcenter Graph Sync 是一个将 Siemens Opcenter Execution（Camstar）的本体与业务数据持续发布到 RapidMiner/Altair Graph Studio 的同步平台。
 
-> 项目主线已统一为 **Camstar SQL Server/Oracle + Neo4j Ontology → RDF → Graph Studio Graphmart**。
+> 新主线：**CSV 物理结构 → PostgreSQL 模型与治理 → RDF → Graph Studio Graphmart**；实例数据来自 Camstar SQL Server/Oracle。
+> Neo4j 已提供兼容迁移路径。新环境使用 `ONTOLOGY_BACKEND=postgres`；已有环境先迁移再切换，详见 [Neo4j 退出与验收手册](docs/neo4j_exit_postgres_runbook.md)。
 > Neo4j 本体编辑、SQL 查询、Wiki、RAG 问答与旧 SQL Server ETL 仍保留，但它们是辅助工具，不再是平台主入口。
 
 ## 主流程
@@ -10,12 +11,12 @@ Opcenter Graph Sync 是一个将 Siemens Opcenter Execution（Camstar）的本�
 ```text
 Camstar SQL Server/Oracle ─┐
                       ├──> Mapping Compiler ──> RDF Snapshot ──> Graph Studio API
-Neo4j Ontology      ─┘                  │                         │
+PostgreSQL Model   ─┘                  │                         │
                                            PostgreSQL Control Plane <── SPARQL Verify
 ```
 
 - **Camstar SQL Server/Oracle**：可配置的业务数据唯一事实来源。
-- **Neo4j**：本体类、属性、关系及 Camstar 物理映射。
+- **PostgreSQL 模型存储**：CSV 来源、审阅后的本体类/属性/关系、发布草稿及不可变模型版本。Neo4j 仅保留迁移/兼容用途。
 - **PostgreSQL**：控制面，保存连接档案、菜单、任务、映射编译快照、运行日志、检查点和产物 URI。
 - **Graph Studio**：最终本体、Dataset、Layer 和 Graphmart 服务。
 
@@ -53,9 +54,8 @@ Copy-Item .env.example .env
 至少配置：
 
 ```dotenv
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=...
+ONTOLOGY_BACKEND=postgres
+# 仅迁移/兼容 Neo4j 时配置其连接参数
 
 SRC_DB_TYPE=sqlserver # 或 oracle
 SRC_DB_HOST=...
@@ -87,6 +87,8 @@ PGSQL_PASSWORD=...
 ```powershell
 python -m pip install -r requirements.txt
 python scripts/graphstudio_sync.py init-db
+# 新模型初始化；已有环境改用 migrate-ontology --apply，保留历史语义
+python scripts/graphstudio_sync.py import-csv-model --classes MfgOrder Product ProductBase --apply --activate
 python scripts/graphstudio_sync.py compile-catalog
 python scripts/graphstudio_sync.py doctor
 python scripts/graphstudio_sync.py dry-run --job camstar-full
@@ -119,10 +121,10 @@ python scripts/graphstudio_sync.py health-status --profile opcenter2607-core
 python -m uvicorn web.server:app --host 0.0.0.0 --port 5050
 ```
 
-Docker Compose 会依次初始化 Neo4j 本体和 PostgreSQL 控制面：
+新 PostgreSQL 模型部署在完成上面的初始化或历史迁移后启动；旧 compose.yaml 保留兼容用途：
 
 ```powershell
-docker compose up -d --build
+docker compose -f compose.postgres-model.yaml up -d --build
 ```
 
 ## 核心目录

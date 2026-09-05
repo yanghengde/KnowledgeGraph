@@ -1,0 +1,22 @@
+{
+  "previewOnly": true,
+  "sourceCounts": {
+    "classes": 318,
+    "properties": 4483,
+    "relationships": 796
+  },
+  "sourceHash": "f8ee115886a673338b687c066fd5ea22bf9cb665044de4fa1200da2cfb648e9a",
+  "workspaces": 1,
+  "releases": 5,
+  "legacyDeleted": false,
+  "workspaceHashes": {
+    "opcenter2607-core-draft": "ee1b86d2dfd5c03d01397b0b6f57a584d935d20b2d265eeb7f3a6c36a69fe281"
+  },
+  "releaseHashes": {
+    "12fa2b09-985a-47c2-81f2-900055c4044c": "0cc31bec330bbd589646cd61ccd314249c08ea17c8d278f6f63ef5e857e1bd20",
+    "19e6b1cb-7510-4b8e-9eca-f920ecc03e57": "a15b9baee027f538dd42ce03dadf28be8caec3d7a6e8d142e2f9def1e8d853cf",
+    "5e76088e-74df-4859-a9a3-1aa7649534d3": "1aab59d706125fddf4b77f02a881825ce30c0c6536ee088c3c0a3b2d268979f1",
+    "6099267f-79a2-46f0-8750-c28f6b92235d": "3f275395afaed57ba4c6394702b62dbcecea5c71fa628316cae0613daf92df01",
+    "f40d02fe-71b8-4716-b7e0-dec4f23d8bd8": "47e2b596bd78d02d9b4125fffd326ddee8b0922f12a1a1623f765194b965facb"
+  }
+}

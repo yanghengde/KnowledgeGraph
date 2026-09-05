@@ -1,0 +1,53 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+_____ test_history_mainline_container_relationships_render_both_dialects ______
+
+    def test_history_mainline_container_relationships_render_both_dialects():
+        expected_joins = {
+            "HAS_BATCH": (
+                "src.BatchId = tgt.ContainerId",
+                "src.[BatchId] = tgt.[ContainerId]",
+            ),
+            "HAS_CONTAINER": (
+                "src.ContainerId = tgt.ContainerId",
+                "src.[ContainerId] = tgt.[ContainerId]",
+            ),
+        }
+    
+        for relationship, (oracle_join, sqlserver_join) in expected_joins.items():
+            oracle = read_wiki(
+                "general",
+                "HistoryMainline",
+                relationship,
+                "Container",
+                sql_dialect="oracle",
+            )["sql_content"]
+            sqlserver = read_wiki(
+                "general",
+                "HistoryMainline",
+                relationship,
+                "Container",
+                sql_dialect="sqlserver",
+            )["sql_content"]
+    
+>           assert oracle_join in oracle
+E           AssertionError: assert 'src.BatchId = tgt.ContainerId' in '> \u26a0\ufe0f \u5f53\u524d\u7269\u7406 Schema \u65e0\u6cd5\u552f\u4e00\u786e\u5b9a\u8be5\u5173\u7cfb\u7684 JOIN \u5b57\u6bb5\uff0c\u56e0\u6b64\u672a\u751f\u6210\u731c\u6d4b\u6027 SQL\u3002\u8bf7\u5148\u6838\u5bf9 `Database_Fields.csv`\u3002'
+
+tests\test_relationship_sql.py:33: AssertionError
+________ test_every_relationship_renders_oracle_and_sqlserver_examples ________
+
+    def test_every_relationship_renders_oracle_and_sqlserver_examples():
+        report = audit_relationship_sql()
+    
+        assert report["relationships"] > 0
+>       assert report["failures"] == []
+E       AssertionError: assert [{'descriptio...N', ...}, ...] == []
+E         
+E         Left contains 200 more items, first extra item: {'description': '', 'directCandidates': 0, 'reason': 'ambiguous_or_missing_physical_fk', 'relationship': 'HAS_EMAIL_TRANSPORT', ...}
+E         Use -v to get more diff
+
+tests\test_relationship_sql.py:43: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_relationship_sql.py::test_history_mainline_container_relationships_render_both_dialects
+FAILED tests/test_relationship_sql.py::test_every_relationship_renders_oracle_and_sqlserver_examples
+2 failed in 4.11s

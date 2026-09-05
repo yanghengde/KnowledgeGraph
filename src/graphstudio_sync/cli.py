@@ -42,9 +42,9 @@ def doctor(settings: SyncSettings) -> dict[str, Any]:
     checks: dict[str, Any] = {}
     try:
         ontology = read_ontology(settings)
-        checks["neo4j"] = {"ok": True, "classes": len(ontology.classes)}
+        checks["ontology"] = {"ok": True, "classes": len(ontology.classes)}
     except Exception as exc:  # pragma: no cover - integration failure path
-        checks["neo4j"] = {"ok": False, "error": str(exc).splitlines()[0]}
+        checks["ontology"] = {"ok": False, "error": str(exc).splitlines()[0]}
     try:
         source = read_source_catalog(settings)
         checks["sourceDatabase"] = {"ok": True, "tables": len(source)}
@@ -215,8 +215,28 @@ def main(argv: list[str] | None = None) -> int:
     health_status_parser = subparsers.add_parser("health-status", help="Show latest health metrics and alerts")
     health_status_parser.add_argument("--profile", default="opcenter2607-core")
     health_status_parser.add_argument("--output", type=Path)
+    csv_parser = subparsers.add_parser("import-csv-model", help="Preview or import read-only CSV physical models into PostgreSQL")
+    csv_parser.add_argument("--classes", nargs="+")
+    csv_parser.add_argument("--apply", action="store_true")
+    csv_parser.add_argument("--activate", action="store_true")
+    csv_parser.add_argument("--output", type=Path)
+    migration_parser = subparsers.add_parser("migrate-ontology", help="Copy Neo4j model content and historical releases to PostgreSQL without deleting legacy data")
+    migration_parser.add_argument("--apply", action="store_true")
+    migration_parser.add_argument("--output", type=Path)
+    model_status_parser = subparsers.add_parser("model-store-status", help="Verify PostgreSQL model migration completeness")
+    model_status_parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     settings = SyncSettings.from_env()
+    if args.command in {"import-csv-model", "migrate-ontology", "model-store-status"}:
+        from .ontology_migration import import_csv_model, migrate_ontology, postgres_status
+        if args.command == "import-csv-model":
+            payload = import_csv_model(settings, classes=args.classes, apply=args.apply, activate=args.activate)
+        elif args.command == "migrate-ontology":
+            payload = migrate_ontology(settings, apply=args.apply)
+        else:
+            payload = postgres_status(settings)
+        _write(payload, args.output)
+        return 0 if payload.get("ready", True) else 1
     if args.command == "doctor":
         payload = doctor(settings)
     elif args.command == "plan":

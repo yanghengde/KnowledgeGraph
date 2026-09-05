@@ -91,7 +91,7 @@
 
                 <section class="page-section" data-section="ontology_governance">
                     <div class="section-header">
-                        <div><span class="section-kicker">MANUFACTURING SEMANTIC MODEL</span><h2>制造语义模型</h2><p>从 Camstar 制造本体中选取业务对象与关系，在独立 Neo4j 数据库中维护 Graph Studio 发布模型。RDF 仅使用已批准、已激活的不可变模型版本。</p></div>
+                        <div><span class="section-kicker">MANUFACTURING SEMANTIC MODEL</span><h2>制造语义模型</h2><p>从 Camstar 制造本体中选取业务对象与关系，在模型存储中维护 Graph Studio 发布模型。RDF 仅使用已批准、已激活的不可变模型版本。</p></div>
                     </div>
                     <div class="model-context-bar">
                         <label><span>业务图谱</span><select id="ontologyProfileSelect"></select></label>
@@ -118,7 +118,7 @@
                     <div id="ontologyGovernanceEmpty" class="panel ontology-empty" hidden>
                         <span class="section-kicker">INITIALIZE</span>
                         <h3>建立发布本体工作区</h3>
-                        <p>将在当前 Enterprise Neo4j 中创建独立的 graphstudio-model database，并从业务图谱边界导入首批对象。</p>
+                        <p>将在当前模型后端建立独立发布工作区，并从业务图谱边界导入首批对象。</p>
                         <button class="btn primary" id="initializePublishOntology">初始化工作区</button>
                     </div>
                     <div id="ontologyUnifiedWorkbench" class="ontology-unified-workbench" hidden>
@@ -335,7 +335,7 @@
                         <div class="section-tabs subsection-tabs" data-section-tabs="advanced_governance"></div>
                     </div>
                     <div class="section-header">
-                        <div><span class="section-kicker">ONTOLOGY COMPILER</span><h2>映射管理</h2><p>Neo4j 本体类和属性映射到 Camstar 物理表列；不确定项必须显式确认，运行时不盲目猜测。</p></div>
+                        <div><span class="section-kicker">ONTOLOGY COMPILER</span><h2>映射管理</h2><p>本体类和属性映射到 Camstar 物理表列；不确定项必须显式确认，运行时不盲目猜测。</p></div>
                         <div class="advanced-header-actions"><div id="mappingScopeControls" class="view-mode-switch"></div><button class="btn primary" id="compileMappings">重新编译映射</button></div>
                     </div>
                     <div id="mappingScopeSummary" class="capability-summary mapping-scope-summary"></div>

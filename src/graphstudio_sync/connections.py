@@ -187,6 +187,9 @@ def test_connection(
     profile = next((item for item in repository.list_connections() if item["connection_key"] == key), None)
     if profile is None:
         raise KeyError(key)
+    from .ontology_backend import backend
+    if backend(base) == "postgres" and key in {"ontology-neo4j", "publish-ontology-neo4j"}:
+        return {"key": key, "ok": True, "status": "disabled", "details": {"reason": "Legacy Neo4j is optional; ontology backend is PostgreSQL"}}
     if not profile["enabled"]:
         repository.update_connection_status(key, status="disabled")
         return {"key": key, "ok": False, "status": "disabled", "error": "Connection is disabled"}

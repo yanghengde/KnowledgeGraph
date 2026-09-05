@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from web.shared import driver, _classify_module, _load_module_map, PROJECT_ROOT
 
+from src.graphstudio_sync.ontology_backend import backend
+
 router = APIRouter()
 
 # Siemens Color Tokens
@@ -63,6 +65,9 @@ COLORS = {
 
 @lru_cache(maxsize=1)
 def _graph_overview_cached():
+    if backend() == "postgres":
+        from web.ontology_postgres_view import overview
+        return overview()
     _load_module_map()
     with driver.session() as session:
         # Nodes
@@ -171,6 +176,9 @@ def _normalize_class_detail(record, class_name: str):
 
 @lru_cache(maxsize=512)
 def _graph_class_detail_cached(class_name: str):
+    if backend() == "postgres":
+        from web.ontology_postgres_view import details
+        return _normalize_class_detail(details().get(class_name), class_name)
     with driver.session() as session:
         record = session.run(CLASS_DETAIL_QUERY, name=class_name).single()
     return _normalize_class_detail(record, class_name)
@@ -178,6 +186,9 @@ def _graph_class_detail_cached(class_name: str):
 
 @lru_cache(maxsize=1)
 def _all_class_details_cached():
+    if backend() == "postgres":
+        from web.ontology_postgres_view import details
+        return {name: _normalize_class_detail(row, name) for name, row in details().items()}
     query = CLASS_DETAIL_QUERY.replace(
         "MATCH (c:OntologyClass {name: $name})",
         "MATCH (c:OntologyClass)",
@@ -216,6 +227,10 @@ def all_graph_details(refresh: bool = False):
 
 @lru_cache(maxsize=1)
 def _stats_cached():
+    if backend() == "postgres":
+        from web.ontology_postgres_view import payload
+        model = payload()
+        return {"classCount": len(model["classes"]), "propCount": len(model["properties"]), "relationCount": len(model["relationships"])}
     query = """
     MATCH (c:OntologyClass)
     WITH count(c) AS classCount

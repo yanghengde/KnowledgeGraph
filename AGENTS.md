@@ -2,10 +2,14 @@
 
 ## 当前产品主线（最高优先级）
 
-项目的产品目标已调整为：**将 Camstar SQL Server 业务数据与 Neo4j 本体持续、可审计地发布到 Graph Studio**。
+项目的产品目标已调整为：**CSV 物理结构 → PostgreSQL 本体与治理 → Graph Studio；结合 Camstar SQL Server 业务数据持续、可审计地发布图谱**。
+
+- Neo4j 正在逐步退出主链路。`ONTOLOGY_BACKEND=postgres` 使用 PostgreSQL 源模型、发布工作区与不可变模型版本；`neo4j` 仅作为迁移/兼容后端。
+- 新模型能力优先扩展 PostgreSQL 后端，不增加 Neo4j 强依赖。历史源语义、工作区、release ID、URI 和回滚指针必须迁移并验证，不能用 CSV 重新生成后覆盖历史。
+- CSV 导入默认生成候选快照；物理外键不等于已批准业务关系。现有 JSON 语义定义保留，CSV 事实源不修改。
 
 - `src/graphstudio_sync/` 是新的核心业务模块。
-- PostgreSQL `graphsync` Schema 是同步控制面，保存连接元数据、菜单、任务、映射快照、运行记录、checkpoint 和 artifact；密码不得写入 PostgreSQL。
+- PostgreSQL `graphsync` Schema 保存模型内容、连接元数据、菜单、任务、映射快照、运行记录、checkpoint 和 artifact；密码不得写入 PostgreSQL。
 - `/` 和 `/sync` 是主产品入口；`/ontology` 是辅助建模工作台。
 - `src/ontology/`、Wiki、RAG 和 SQL Builder 是中间/辅助能力，服务于 Graph Studio 发布。
 - `src/etl/` 和 `run_etl_full.py` 是兼容保留的旧 SQL Server 中转 ETL，新代码不得对其增加依赖。
@@ -58,7 +62,7 @@ CamstarOntology/
 5. **注册到加载器**：在 `src/ontology/loader/neo4j_loader.py` 的 `files_to_load` 列表中按字母顺序加入新文件。
 6. **添加关系定义**：如果该实体包含外键（Navigation）或与其他实体存在关联，在 `cross_module_ontology.json` 或本模块的 `relationships` 数组中添加对应的本体关系定义。
 7. **运行物理一致性校验**：执行 `validate_ontology_vs_csv.py` 校验脚本，验证新建的本体与物理 CSV 的对齐程度，确保无缺失字段、类型错误或关系遗漏。
-8. **加载到 Neo4j**：运行 `python src/ontology/loader/neo4j_loader.py` 加载并同步到图数据库。
+8. **同步模型存储**：主链路使用 PostgreSQL 目录审阅/同步及 `import-csv-model` 候选导入。仅兼容环境（`ONTOLOGY_BACKEND=neo4j`）运行 `python src/ontology/loader/neo4j_loader.py`。迁移与验收步骤见 `docs/neo4j_exit_postgres_runbook.md`。
 
 **重要规则：**
 - **绝不修改 `docs/Database_Tables.csv` 和 `docs/Database_Fields.csv`**，它们是物理数据库 Schema 的唯一事实来源。
@@ -71,7 +75,7 @@ CamstarOntology/
 2. 根据报告中提示的 `Missing Navigation Properties`（缺失物理外键）、`Property Type Mismatches`（类型不匹配）或 `Missing Relationships`（缺失关系），对比 `docs/Database_Fields.csv`。
 3. 修正 `*_ontology.json` 和 `cross_module_ontology.json` 中的字段定义或关系，使其与物理数据库对齐。
 4. 重新运行校验脚本，直至该模块的物理对齐警告降为 **0**。
-5. 运行 `python src/ontology/loader/neo4j_loader.py` 重新加载。
+5. 同步 PostgreSQL 权威模型并重新编译映射；仅 Neo4j 兼容环境运行 `python src/ontology/loader/neo4j_loader.py`。
 
 ### 3. 实体分类与字段模式
 

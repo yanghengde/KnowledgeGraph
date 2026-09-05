@@ -19,6 +19,7 @@ from sqlalchemy import text
 from src.qa.sql_query_builder import build_query_builder_plan
 
 from .config import SyncSettings
+from .ontology_backend import backend, postgres_backend
 from .entity_labels import published_scalar_names, suggest_label_template, validate_presentation
 from .repository import ControlPlaneRepository
 
@@ -63,6 +64,7 @@ def _driver(settings: SyncSettings, *, publish: bool = False):
     )
 
 
+@postgres_backend
 def ensure_publish_database(settings: SyncSettings) -> dict[str, Any]:
     """Create the isolated database and its constraints; never alter source Neo4j."""
     database = settings.publish_neo4j_database
@@ -88,6 +90,7 @@ def ensure_publish_database(settings: SyncSettings) -> dict[str, Any]:
         driver.close()
 
 
+@postgres_backend
 def _source_class(settings: SyncSettings, class_name: str) -> dict[str, Any] | None:
     driver = _driver(settings)
     try:
@@ -108,6 +111,7 @@ def _source_class(settings: SyncSettings, class_name: str) -> dict[str, Any] | N
         driver.close()
 
 
+@postgres_backend
 def source_candidates(settings: SyncSettings, query: str = "", limit: int = 100) -> list[dict[str, Any]]:
     driver = _driver(settings)
     try:
@@ -155,38 +159,49 @@ def build_discovery_plan(
     selected = [str(item) for item in plan.get("selected_nodes", [])]
     semantic_rows: list[dict[str, Any]] = []
     neighbor_rows: list[dict[str, Any]] = []
-    if planned_names or selected:
-        driver = _driver(settings)
-        try:
-            with driver.session(database=settings.neo4j_database) as session:
-                if planned_names:
-                    semantic_rows = session.run(
-                        """
-                        MATCH (s:OntologyClass)-[r:ONTOLOGY_RELATION]->(t:OntologyClass)
-                        WHERE s.name IN $names AND t.name IN $names
-                        RETURN s.name AS source, t.name AS target,
-                               r.name AS name, r.cardinality AS cardinality,
-                               r.description AS description
-                        ORDER BY s.name, r.name, t.name
-                        """,
-                        names=planned_names,
-                    ).data()
-                if selected:
-                    neighbor_rows = session.run(
-                        """
-                        MATCH (s:OntologyClass)-[r:ONTOLOGY_RELATION]-(t:OntologyClass)
-                        WHERE s.name IN $selected AND NOT t.name IN $planned
-                        RETURN DISTINCT s.name AS anchor, t.name AS className,
-                               t.chineseName AS chineseName, r.name AS relationship,
-                               r.cardinality AS cardinality
-                        ORDER BY anchor, relationship, className
-                        LIMIT 80
-                        """,
-                        selected=selected,
-                        planned=planned_names,
-                    ).data()
-        finally:
-            driver.close()
+    if backend(settings) == "postgres":
+        from .ontology_store import source_payload
+        payload = source_payload(settings)
+        classes = {c["name"]: c for c in payload["classes"]}
+        semantic_rows = [r for r in payload["relationships"] if r["source"] in planned_names and r["target"] in planned_names]
+        for r in payload["relationships"]:
+            for anchor, target in ((r["source"], r["target"]), (r["target"], r["source"])):
+                if anchor in selected and target not in planned_names:
+                    neighbor_rows.append({"anchor": anchor, "className": target, "chineseName": classes[target].get("chineseName"), "relationship": r["name"], "cardinality": r.get("cardinality")})
+        neighbor_rows = neighbor_rows[:80]
+    else:
+        if planned_names or selected:
+            driver = _driver(settings)
+            try:
+                with driver.session(database=settings.neo4j_database) as session:
+                    if planned_names:
+                        semantic_rows = session.run(
+                            """
+                            MATCH (s:OntologyClass)-[r:ONTOLOGY_RELATION]->(t:OntologyClass)
+                            WHERE s.name IN $names AND t.name IN $names
+                            RETURN s.name AS source, t.name AS target,
+                                   r.name AS name, r.cardinality AS cardinality,
+                                   r.description AS description
+                            ORDER BY s.name, r.name, t.name
+                            """,
+                            names=planned_names,
+                        ).data()
+                    if selected:
+                        neighbor_rows = session.run(
+                            """
+                            MATCH (s:OntologyClass)-[r:ONTOLOGY_RELATION]-(t:OntologyClass)
+                            WHERE s.name IN $selected AND NOT t.name IN $planned
+                            RETURN DISTINCT s.name AS anchor, t.name AS className,
+                                   t.chineseName AS chineseName, r.name AS relationship,
+                                   r.cardinality AS cardinality
+                            ORDER BY anchor, relationship, className
+                            LIMIT 80
+                            """,
+                            selected=selected,
+                            planned=planned_names,
+                        ).data()
+            finally:
+                driver.close()
 
     semantic_by_pair: dict[frozenset[str], list[dict[str, Any]]] = {}
     for item in semantic_rows:
@@ -262,6 +277,7 @@ def _publish_session(settings: SyncSettings):
     return driver, driver.session(database=settings.publish_neo4j_database)
 
 
+@postgres_backend
 def add_class(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -359,6 +375,7 @@ def add_class(
     return {"workspaceKey": workspace_key, "classUid": uid, "targetName": target_name}
 
 
+@postgres_backend
 def remove_class(settings: SyncSettings, repository: ControlPlaneRepository, workspace_key: str, class_uid: str) -> None:
     _workspace_row(repository, workspace_key)
     driver, session = _publish_session(settings)
@@ -378,6 +395,7 @@ def remove_class(settings: SyncSettings, repository: ControlPlaneRepository, wor
     _touch_workspace(repository, workspace_key)
 
 
+@postgres_backend
 def update_class(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -417,6 +435,7 @@ def update_class(
     _touch_workspace(repository, workspace_key)
 
 
+@postgres_backend
 def update_presentation(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -457,6 +476,7 @@ def update_presentation(
     return config
 
 
+@postgres_backend
 def upsert_property(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -504,6 +524,7 @@ def upsert_property(
     return {"uid": uid}
 
 
+@postgres_backend
 def add_relationship(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -560,6 +581,7 @@ def add_relationship(
     return {"relationshipKey": relationship_key}
 
 
+@postgres_backend
 def remove_relationship(settings: SyncSettings, repository: ControlPlaneRepository, workspace_key: str, relationship_key: str) -> None:
     driver, session = _publish_session(settings)
     try:
@@ -601,34 +623,38 @@ def relationship_suggestions(
         return {"classUid": class_uid, "sourceClass": source_class, "items": [], "reason": "workspace_has_no_other_source_classes"}
 
     depth = max(1, min(int(max_depth), 2))
-    driver = _driver(settings)
-    try:
-        with driver.session(database=settings.neo4j_database) as session:
-            rows = session.run(
-                f"""
-                MATCH p=(anchor:OntologyClass {{name:$sourceClass}})-[:ONTOLOGY_RELATION*1..{depth}]-(existing:OntologyClass)
-                WHERE existing.name IN $existingNames
-                  AND all(n IN nodes(p) WHERE single(m IN nodes(p) WHERE m=n))
-                RETURN [n IN nodes(p) | {{
-                           sourceClass:n.name,
-                           label:CASE WHEN trim(coalesce(n.chineseName, ''))='' THEN n.name ELSE n.chineseName END,
-                           description:coalesce(n.description, '')
-                       }}] AS nodes,
-                       [r IN relationships(p) | {{
-                           sourceClass:startNode(r).name,
-                           targetClass:endNode(r).name,
-                           targetName:coalesce(r.name, 'RELATED_TO'),
-                           cardinality:coalesce(r.cardinality, 'many-to-one'),
-                           description:coalesce(r.description, '')
-                       }}] AS relationships,
-                       existing.name AS existingClass
-                LIMIT 100
-                """,
-                sourceClass=source_class,
-                existingNames=existing_names,
-            ).data()
-    finally:
-        driver.close()
+    if backend(settings) == "postgres":
+        from .publish_ontology_postgres import relationship_rows
+        rows = relationship_rows(settings, source_class, existing_names, depth)
+    else:
+        driver = _driver(settings)
+        try:
+            with driver.session(database=settings.neo4j_database) as session:
+                rows = session.run(
+                    f"""
+                    MATCH p=(anchor:OntologyClass {{name:$sourceClass}})-[:ONTOLOGY_RELATION*1..{depth}]-(existing:OntologyClass)
+                    WHERE existing.name IN $existingNames
+                      AND all(n IN nodes(p) WHERE single(m IN nodes(p) WHERE m=n))
+                    RETURN [n IN nodes(p) | {{
+                               sourceClass:n.name,
+                               label:CASE WHEN trim(coalesce(n.chineseName, ''))='' THEN n.name ELSE n.chineseName END,
+                               description:coalesce(n.description, '')
+                           }}] AS nodes,
+                           [r IN relationships(p) | {{
+                               sourceClass:startNode(r).name,
+                               targetClass:endNode(r).name,
+                               targetName:coalesce(r.name, 'RELATED_TO'),
+                               cardinality:coalesce(r.cardinality, 'many-to-one'),
+                               description:coalesce(r.description, '')
+                           }}] AS relationships,
+                           existing.name AS existingClass
+                    LIMIT 100
+                    """,
+                    sourceClass=source_class,
+                    existingNames=existing_names,
+                ).data()
+        finally:
+            driver.close()
 
     existing_edges = {
         (
@@ -688,6 +714,7 @@ def relationship_suggestions(
     return {"classUid": class_uid, "sourceClass": source_class, "items": items[:30], "reason": None}
 
 
+@postgres_backend
 def apply_relationship_suggestions(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -769,6 +796,7 @@ def apply_relationship_suggestions(
     }
 
 
+@postgres_backend
 def undo_relationship_suggestion_batch(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -811,6 +839,7 @@ def undo_relationship_suggestion_batch(
     }
 
 
+@postgres_backend
 def workspace_graph(settings: SyncSettings, workspace_key: str) -> dict[str, Any]:
     driver, session = _publish_session(settings)
     try:
@@ -851,6 +880,11 @@ def workspace_graph(settings: SyncSettings, workspace_key: str) -> dict[str, Any
 def validate_workspace(settings: SyncSettings, repository: ControlPlaneRepository, workspace_key: str) -> dict[str, Any]:
     workspace = _workspace_row(repository, workspace_key)
     graph = workspace_graph(settings, workspace_key)
+    return validate_graph({**workspace, "workspace_key": workspace_key}, graph)
+
+
+def validate_graph(workspace, graph):
+    workspace_key = workspace["workspace_key"]
     errors: list[dict[str, str]] = []
     warnings: list[dict[str, str]] = []
     nodes = graph["nodes"]
@@ -936,6 +970,7 @@ def validate_workspace(settings: SyncSettings, repository: ControlPlaneRepositor
     }
 
 
+@postgres_backend
 def create_workspace(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -1086,6 +1121,7 @@ def initialize_governance(
     )
 
 
+@postgres_backend
 def review_workspace(settings: SyncSettings, repository: ControlPlaneRepository, workspace_key: str, actor: str) -> dict[str, Any]:
     validation = validate_workspace(settings, repository, workspace_key)
     if not validation["valid"]:
@@ -1177,6 +1213,7 @@ def _freeze_graph(settings: SyncSettings, workspace_key: str, release_id: str, r
         driver.close()
 
 
+@postgres_backend
 def approve_workspace(settings: SyncSettings, repository: ControlPlaneRepository, workspace_key: str, actor: str) -> dict[str, Any]:
     workspace = _workspace_row(repository, workspace_key)
     if workspace["status"] not in {"draft", "reviewed"}:
@@ -1253,6 +1290,12 @@ def approve_workspace(settings: SyncSettings, repository: ControlPlaneRepository
 
 def activate_release(repository: ControlPlaneRepository, profile_key: str, release_id: uuid.UUID, actor: str) -> dict[str, Any]:
     with repository.engine.begin() as connection:
+        connection.execute(text("SELECT pg_advisory_xact_lock(hashtext(:key))"), {"key": "ontology-activate:" + profile_key})
+        if backend(getattr(repository, "settings", None)) == "postgres":
+            from .ontology_store import digest
+            document = connection.execute(text("SELECT graph,document_hash FROM graphsync.ontology_release_document WHERE ontology_release_id=:id"), {"id": release_id}).mappings().one_or_none()
+            if document is None or digest(document["graph"]) != document["document_hash"]:
+                raise ValueError("PostgreSQL model release is missing or corrupt; activation blocked")
         release = connection.execute(
             text("SELECT ontology_release_id, status FROM graphsync.ontology_release WHERE ontology_release_id=:id AND profile_key=:profile FOR UPDATE"),
             {"id": release_id, "profile": profile_key},
@@ -1263,6 +1306,9 @@ def activate_release(repository: ControlPlaneRepository, profile_key: str, relea
             text("SELECT active_release_id FROM graphsync.ontology_release_activation WHERE profile_key=:profile FOR UPDATE"),
             {"profile": profile_key},
         ).scalar_one_or_none()
+        if current == release_id:
+            previous = connection.execute(text("SELECT previous_release_id FROM graphsync.ontology_release_activation WHERE profile_key=:profile"), {"profile": profile_key}).scalar_one_or_none()
+            return {"profileKey": profile_key, "activeReleaseId": str(release_id), "previousReleaseId": str(previous) if previous else None}
         if current and current != release_id:
             connection.execute(text("UPDATE graphsync.ontology_release SET status='superseded' WHERE ontology_release_id=:id"), {"id": current})
         connection.execute(
@@ -1286,6 +1332,7 @@ def activate_release(repository: ControlPlaneRepository, profile_key: str, relea
     return {"profileKey": profile_key, "activeReleaseId": str(release_id), "previousReleaseId": str(current) if current else None}
 
 
+@postgres_backend
 def release_graph(settings: SyncSettings, release_id: str) -> dict[str, Any]:
     driver, session = _publish_session(settings)
     try:
@@ -1355,8 +1402,9 @@ def ontology_governance_status(settings: SyncSettings, repository: ControlPlaneR
         if current_active else {"classes": [], "relationships": []}
     )
     return {
-        "database": settings.publish_neo4j_database,
-        "sourceDatabase": settings.neo4j_database,
+        "database": "graphsync" if backend(settings) == "postgres" else settings.publish_neo4j_database,
+        "sourceDatabase": "graphsync" if backend(settings) == "postgres" else settings.neo4j_database,
+        "backend": backend(settings),
         "workspaces": workspaces,
         "currentWorkspace": current,
         "graph": graph,

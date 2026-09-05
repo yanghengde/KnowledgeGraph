@@ -56,3 +56,7 @@ scenarios/
 frontend/node_modules/
 frontend/*.tsbuildinfo
 web/static/react/
+
+# Local migration verification artifacts may contain business samples
+outputs/graphstudio/neo4j_exit_equivalence/neo4j/
+outputs/graphstudio/neo4j_exit_equivalence/postgres/

@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "path": "/healthz",
+      "status": 200
+    },
+    {
+      "path": "/app/ontology-model",
+      "status": 200
+    },
+    {
+      "path": "/api/stats",
+      "status": 200
+    },
+    {
+      "path": "/api/graph/overview",
+      "status": 200
+    },
+    {
+      "path": "/api/graph/class/Product",
+      "status": 200
+    },
+    {
+      "path": "/api/ontology-authority",
+      "status": 200
+    },
+    {
+      "path": "/api/sync/connections",
+      "status": 200,
+      "connections": [
+        "camstar-source",
+        "control-postgresql",
+        "graph-studio"
+      ]
+    },
+    {
+      "path": "/api/sync/ontology-governance?profile_key=opcenter2607-core",
+      "status": 200,
+      "backend": "postgres",
+      "database": "graphsync",
+      "activeRelease": "19e6b1cb-7510-4b8e-9eca-f920ecc03e57"
+    },
+    {
+      "path": "/api/sync/profiles/opcenter2607-core/data-sync",
+      "status": 200
+    },
+    {
+      "path": "/api/sync/profiles/opcenter2607-core/deployments",
+      "status": 200
+    }
+  ]
+}

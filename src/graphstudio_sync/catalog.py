@@ -21,6 +21,11 @@ from .repository import ControlPlaneRepository
 
 
 def _ontology_catalog(settings: SyncSettings) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    from .ontology_backend import backend
+    if backend(settings) == "postgres":
+        from .ontology_store import source_payload
+        payload = source_payload(settings)
+        return payload["classes"], payload["properties"], payload["relationships"]
     driver = GraphDatabase.driver(settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password))
     try:
         driver.verify_connectivity()
@@ -179,6 +184,10 @@ def compile_catalog(
                 and _class_tokens(str(prop["fk_table_name"])) & target_tokens
                 and prop["mapping_status"] in {"resolved", "override"}
             ]
+            # CSV-backed relationships carry an exact field identity. Do not
+            # collapse ProductId and BeginProductId merely because both target Product.
+            if item.get("sourceFieldId"):
+                candidates = [p for p in candidates if str(p.get("source_field_id")) == str(item["sourceFieldId"])]
             if len(candidates) == 1:
                 candidate = candidates[0]
                 status = "resolved"
