@@ -29,6 +29,13 @@ export type ServiceStatus = {
   schema_rows?: number;
 };
 
+export type PublishedCoverage = {
+  runtime: QaRuntimeSnapshot;
+  summary: { definedClasses: number; classesWithData: number; definedRelationships: number; relationshipsWithData: number; unknownClassCounts: number; unknownRelationshipCounts: number };
+  classes: { uri: string; name: string; count: number | null; propertyCount: number }[];
+  relationships: { uri: string; name: string; source: string; target: string; count: number | null; questionEnabled: boolean }[];
+};
+
 export type SavedQuery = {
   uri: string;
   title: string;
@@ -44,6 +51,18 @@ export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   runtime?: QaRuntimeSnapshot;
+  metrics?: QaMetrics;
+};
+
+export type QaMetrics = {
+  firstResultMs?: number;
+  totalMs?: number;
+  runtimeMs?: number;
+  schemaMs?: number;
+  planMs?: number;
+  queryMs?: number;
+  summaryMs?: number;
+  querySource?: string;
 };
 
 export type ChatSessionSummary = {
@@ -60,11 +79,13 @@ export type ChatSession = ChatSessionSummary & {
 };
 
 export type StreamEvent = {
-  type: "status" | "chunk" | "error" | "done";
+  type: "status" | "chunk" | "error" | "done" | "metrics";
   content?: string;
   session_id?: string;
   session_title?: string;
   runtime?: QaRuntimeSnapshot;
+  metrics?: QaMetrics;
+  partial_answer?: string;
 };
 
 export type SyncConnection = {

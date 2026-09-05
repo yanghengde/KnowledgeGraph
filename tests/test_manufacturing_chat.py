@@ -206,6 +206,8 @@ def test_relationship_counts_reads_only_materialized_publish_edges(monkeypatch):
         captured["runtime"] = runtime_snapshot
         return {"results": {"bindings": [{
             "relationship": {"value": namespace + "REL_ORDERED_PRODUCT"},
+            "sourceClass": {"value": namespace + "MfgOrder"},
+            "targetClass": {"value": namespace + "Product"},
             "relationshipCount": {"value": "5"},
         }]}}
 
@@ -213,7 +215,8 @@ def test_relationship_counts_reads_only_materialized_publish_edges(monkeypatch):
 
     counts = assistant._relationship_counts({"cacheKey": "release-15", "layerUri": "https://example.com/layer"})
 
-    assert counts == {namespace + "REL_ORDERED_PRODUCT": 5}
+    assert counts == {(namespace + "MfgOrder", namespace + "REL_ORDERED_PRODUCT", namespace + "Product"): 5}
+    assert "GROUP BY ?sourceClass ?relationship ?targetClass" in captured["query"]
     assert "REL_" in captured["query"]
     assert captured["runtime"]["cacheKey"] == "release-15"
 

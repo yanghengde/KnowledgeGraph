@@ -3,6 +3,7 @@ import type {
   ChatSessionSummary,
   SavedQuery,
   ServiceStatus,
+  PublishedCoverage,
   StreamEvent,
   SyncConnection,
   SyncJob,
@@ -39,6 +40,9 @@ async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 export const manufacturingApi = {
+  coverage: (refresh = false) => requestJson<PublishedCoverage>(
+    `/api/manufacturing-chat/coverage${refresh ? "?refresh=true" : ""}`,
+  ),
   status: (refresh = false) => requestJson<ServiceStatus>(
     `/api/manufacturing-chat/status${refresh ? "?refresh=true" : ""}`,
   ),

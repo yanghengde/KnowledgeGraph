@@ -23,7 +23,7 @@ def test_published_schema_reads_graphstudio_without_neo4j(monkeypatch):
         ]}}
     monkeypatch.setattr(assistant, '_request_sparql', sparql)
     monkeypatch.setattr(assistant, '_instance_counts', lambda _: {ns+'MfgOrder': 5})
-    monkeypatch.setattr(assistant, '_relationship_counts', lambda _: {ns+'REL_WORKFLOW': 2})
+    monkeypatch.setattr(assistant, '_relationship_counts', lambda _: {(ns+'MfgOrder', ns+'REL_WORKFLOW', ns+'Workflow'): 2})
     result = assistant._discover_schema_uncached(runtime)
     assert result[0]['instanceCount'] == 5
     assert result[1]['instanceCount'] == 0
@@ -35,6 +35,26 @@ def test_empty_published_schema_fails_without_switching_source(monkeypatch):
     monkeypatch.setattr(assistant, '_request_sparql', lambda *a, **k: {})
     with pytest.raises(assistant.GraphStudioAssistantError, match='已发布本体'):
         assistant._discover_schema_uncached({'layerUri': 'https://example.com/layer'})
+
+
+def test_schema_pagination_keeps_classes_after_first_page(monkeypatch):
+    calls = []
+    def sparql(query, **kwargs):
+        calls.append(query)
+        offset = 0 if 'OFFSET 0' in query else 2000
+        size = 2000 if offset == 0 else 1
+        return {'results': {'bindings': [
+            {'class': {'value': f'urn:class:{offset+i}'}, 'valueKind': {'value': '对象类型'}}
+            for i in range(size)
+        ]}}
+    monkeypatch.setattr(assistant, '_request_sparql', sparql)
+    monkeypatch.setattr(assistant, '_instance_counts', lambda _: None)
+    monkeypatch.setattr(assistant, '_relationship_counts', lambda _: None)
+    result = assistant._discover_schema_uncached({'layerUri': 'https://example.com/layer'})
+    assert len(result) == 2001
+    assert result[-1]['class'] == 'urn:class:2000'
+    assert result[-1]['instanceCount'] is None
+    assert len(calls) == 2
 
 
 def test_invalid_layer_is_not_interpolated_into_query():

@@ -12,6 +12,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { syncApi } from "../api";
+import { PublishedCoverageCard } from "../components/PublishedCoverageCard";
 import type { CuratedRelease, DeploymentPlan, DeploymentRelease, PublicationRoute, SyncRun } from "../types";
 
 const runStatusLabels: Record<string, { color: string; text: string }> = {
@@ -152,7 +153,8 @@ export function PublishManagementPage() {
           <Button type="primary" icon={<EyeOutlined />} loading={preview.isPending} disabled={!activeJob} onClick={() => activeJob && preview.mutate(activeJob.job_name)}>生成发布预览</Button>
         </Space>
       </section>
-      <Alert showIcon type="info" icon={<SafetyCertificateOutlined />} message="React 发布闭环已启用" description="版本激活、环境授权、制品准备、审批、正式发布与回滚均有独立门禁。正式发布只有在输入环境确认短语后才会写入 Graph Studio。" action={<Button size="small" href="/sync">打开旧版完整功能</Button>} />
+      <Alert showIcon type="info" icon={<SafetyCertificateOutlined />} message="先确定本体，再核实数据与关联" description="选择业务对象和关系 → 生成并校验数据版本 → 发布到 Graph Studio。下方可核实当前问数版本中，哪些对象和关系已经带有数据。" />
+      <PublishedCoverageCard profileKey={profileKey} />
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12} xl={6}><Card className="metric-card"><Statistic title="同步任务" value={jobs.data?.items.length || 0} suffix="个" prefix={<CloudUploadOutlined />} /></Card></Col>

@@ -24,9 +24,9 @@ from openai import AsyncOpenAI, BadRequestError
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.deployment import deployment_status
 from src.graphstudio_sync.repository import ControlPlaneRepository
+from .query_capabilities import match_capability, retrieve_schema, result_table
 
 
-_SCHEMA_TTL_SECONDS = 300
 _SCHEMA_CACHE_PATH = Path(
     os.getenv(
         "MANUFACTURING_CHAT_SCHEMA_CACHE",
@@ -58,7 +58,7 @@ class GraphStudioAssistantError(RuntimeError):
 
 
 def _runtime_cache_key(snapshot: dict[str, Any]) -> str:
-    return "graphstudio-schema-v2::" + "::".join(str(snapshot.get(key) or "") for key in (
+    return "graphstudio-schema-v3::" + "::".join(str(snapshot.get(key) or "") for key in (
         "profileKey", "routeKey", "deploymentId", "ontologyReleaseId",
         "curatedReleaseId", "artifactHash",
     ))
@@ -245,20 +245,22 @@ def _runtime_layer(runtime_snapshot: dict[str, Any]) -> str:
     return layer
 
 
-def _instance_counts(runtime_snapshot: dict[str, Any]) -> dict[str, int]:
+def _instance_counts(runtime_snapshot: dict[str, Any]) -> dict[str, int] | None:
     query = f"""
         SELECT ?class (COUNT(DISTINCT ?instance) AS ?instanceCount) WHERE {{
           GRAPH <{_runtime_layer(runtime_snapshot)}> {{ ?instance a ?class . }}
         }}
         GROUP BY ?class
-        LIMIT 600
+        LIMIT 100001
     """
     try:
         rows = _binding_rows(_request_sparql(
             query, runtime_snapshot=runtime_snapshot,
         ))
     except GraphStudioAssistantError:
-        return {}
+        return None
+    if len(rows) > 100000:
+        return None
     counts: dict[str, int] = {}
     for row in rows:
         class_uri = row.get("class", "")
@@ -272,18 +274,21 @@ def _instance_counts(runtime_snapshot: dict[str, Any]) -> dict[str, int]:
 
 def _relationship_counts(
     runtime_snapshot: dict[str, Any],
-) -> dict[str, int] | None:
+) -> dict[tuple[str, str, str], int] | None:
     """Count materialized publish relationships in the active Graphmart."""
     query = f"""
-        SELECT ?relationship (COUNT(*) AS ?relationshipCount) WHERE {{
-          GRAPH <{_runtime_layer(runtime_snapshot)}> {{ ?source ?relationship ?target . }}
+        SELECT ?sourceClass ?relationship ?targetClass (COUNT(*) AS ?relationshipCount) WHERE {{
+          GRAPH <{_runtime_layer(runtime_snapshot)}> {{
+            ?source a ?sourceClass ; ?relationship ?target .
+            ?target a ?targetClass .
+          }}
           FILTER(STRSTARTS(
             STR(?relationship),
             "{_PUBLISH_NAMESPACE}REL_"
           ))
         }}
-        GROUP BY ?relationship
-        LIMIT 600
+        GROUP BY ?sourceClass ?relationship ?targetClass
+        LIMIT 100001
     """
     try:
         rows = _binding_rows(_request_sparql(
@@ -293,16 +298,18 @@ def _relationship_counts(
         # Preserve ontology-only planning when the count probe is temporarily
         # unavailable; an unavailable probe is not evidence of zero edges.
         return None
-    counts: dict[str, int] = {}
+    if len(rows) > 100000:
+        return None
+    counts: dict[tuple[str, str, str], int] = {}
     for row in rows:
         relationship_uri = row.get("relationship", "")
         if relationship_uri.startswith(_PUBLISH_NAMESPACE + "REL_"):
             try:
-                counts[relationship_uri] = int(
+                counts[(row["sourceClass"], relationship_uri, row["targetClass"])] = int(
                     row.get("relationshipCount", "0")
                 )
-            except ValueError:
-                counts[relationship_uri] = 0
+            except (ValueError, KeyError):
+                return None
     return counts
 
 
@@ -396,10 +403,19 @@ def _discover_schema_uncached(
             OPTIONAL {{ ?property pub:questionEnabled ?questionEnabled }}
             BIND("关系" AS ?valueKind)
           }}
-        }} }} ORDER BY ?class ?valueKind ?property LIMIT 10001
+        }} }} ORDER BY ?class ?valueKind ?property ?classLabel ?propertyLabel ?targetClass ?dataType ?role ?questionEnabled
     """
-    rows = _binding_rows(_request_sparql(query, runtime_snapshot=runtime_snapshot))
-    if not rows or len(rows) > 10000:
+    rows = []
+    # Load the complete published ontology once per release; never truncate
+    # a larger ontology to the first classes just to fit a model prompt.
+    for offset in range(0, 100001, 2000):
+        page = _binding_rows(_request_sparql(
+            query + f" LIMIT 2000 OFFSET {offset}", runtime_snapshot=runtime_snapshot,
+        ))
+        rows.extend(page)
+        if len(page) < 2000:
+            break
+    if not rows or len(rows) > 100000:
         raise GraphStudioAssistantError(
             "Graph Studio 活动数据层未返回完整的已发布本体，请检查模型发布状态"
         )
@@ -408,11 +424,11 @@ def _discover_schema_uncached(
     result = []
     for row in rows:
         entry = {**row, "role": row.get("role") or "context",
-                 "instanceCount": instance_counts.get(row["class"], 0)}
+                 "instanceCount": instance_counts.get(row["class"], 0) if instance_counts is not None else None}
         if row.get("valueKind") == "关系":
             entry["questionEnabled"] = row.get("questionEnabled", "true").lower() not in {"false", "0"}
             entry["relationshipCount"] = (
-                relationship_counts.get(row["property"], 0)
+                relationship_counts.get((row["class"], row["property"], row.get("targetClass", "")), 0)
                 if relationship_counts is not None else None
             )
         result.append(entry)
@@ -469,7 +485,6 @@ def discover_schema(
     if (
         not force_refresh and _schema_cache
         and _schema_cache[0] == runtime_key
-        and now - _schema_cache[1] < _SCHEMA_TTL_SECONDS
     ):
         return _schema_cache[2]
     with _schema_lock:
@@ -477,12 +492,13 @@ def discover_schema(
         if (
             not force_refresh and _schema_cache
             and _schema_cache[0] == runtime_key
-            and now - _schema_cache[1] < _SCHEMA_TTL_SECONDS
         ):
             return _schema_cache[2]
         try:
-            rows = _discover_schema_uncached(runtime_snapshot)
-            _persist_schema(rows, runtime_snapshot)
+            rows = [] if force_refresh else _load_persisted_schema(runtime_snapshot)
+            if not rows:
+                rows = _discover_schema_uncached(runtime_snapshot)
+                _persist_schema(rows, runtime_snapshot)
         except GraphStudioAssistantError:
             rows = _load_persisted_schema(runtime_snapshot)
             if not rows:
@@ -504,7 +520,7 @@ def _schema_context(rows: list[dict[str, Any]]) -> str:
         class_text = f"{_local_name(class_uri)} <{class_uri}>"
         group = grouped.setdefault(class_text, {
             "role": row.get("role", "context"),
-            "instanceCount": int(row.get("instanceCount") or 0),
+            "instanceCount": row.get("instanceCount"),
             "properties": [],
             "relationships": [],
             "disabledRelationships": [],
@@ -538,7 +554,7 @@ def _schema_context(rows: list[dict[str, Any]]) -> str:
     for class_text, group in list(grouped.items())[:120]:
         lines.append(
             f"- 类：{class_text}；角色：{group['role']}；"
-            f"当前实例数：{group['instanceCount']}"
+            f"当前实例数：{group['instanceCount'] if group['instanceCount'] is not None else '未知'}"
         )
         if group["properties"]:
             lines.append("  属性：" + "；".join(group["properties"][:80]))
@@ -759,12 +775,12 @@ async def graphstudio_query_stream(
     query_uri: str | None = None,
     runtime_snapshot: dict[str, Any] | None = None,
 ) -> AsyncIterator[str | dict[str, Any]]:
-    if not os.getenv("DEEPSEEK_API_KEY", "").strip():
-        raise GraphStudioAssistantError("尚未配置 DEEPSEEK_API_KEY，无法启动制造知识问答")
-
+    started = time.perf_counter()
+    timings = {}
     runtime_snapshot = runtime_snapshot or await asyncio.to_thread(
         resolve_runtime_snapshot
     )
+    timings["runtimeMs"] = round((time.perf_counter() - started) * 1000)
     yield {
         "type": "status",
         "content": (
@@ -772,15 +788,19 @@ async def graphstudio_query_stream(
             f"数据 R{runtime_snapshot['curatedReleaseNo']}，正在读取版本化语义契约…"
         ),
     }
+    stage = time.perf_counter()
     schema_rows = await asyncio.to_thread(discover_schema, runtime_snapshot)
-    schema_context = _schema_context(schema_rows)
+    timings["schemaMs"] = round((time.perf_counter() - stage) * 1000)
     if not schema_rows:
         raise GraphStudioAssistantError("当前活动本体没有可供问答的发布对象")
 
     saved_query = None
     routing_reason = ""
     schema_inventory = bool(_SCHEMA_INVENTORY_QUESTION.search(question))
-    if query_mode != "dynamic" and not schema_inventory:
+    stage = time.perf_counter()
+    capability = (match_capability(question, schema_rows, runtime_snapshot, history)
+                  if query_mode == "auto" and not query_uri and not schema_inventory else None)
+    if query_mode != "dynamic" and not schema_inventory and not capability:
         yield {"type": "status", "content": "正在匹配 Graph Studio 已保存 Query…"}
         try:
             from src.qa.graphstudio_saved_queries import list_saved_queries
@@ -810,7 +830,12 @@ async def graphstudio_query_stream(
                 raise
             saved_query = None
 
-    if schema_inventory:
+    selected_schema = schema_rows
+    if capability:
+        sparql = validate_readonly_sparql(capability.sparql)
+        understanding = capability.title
+        yield {"type": "status", "content": f"正在查询{capability.title}…"}
+    elif schema_inventory:
         sparql = _schema_inventory_sparql(schema_rows)
         understanding = (
             f"读取活动本体 R{runtime_snapshot['ontologyReleaseNo']} 的完整对象与关系定义"
@@ -824,15 +849,30 @@ async def graphstudio_query_stream(
             "content": f"已匹配 Query「{saved_query['title']}」，正在执行…",
         }
     else:
+        if not os.getenv("DEEPSEEK_API_KEY", "").strip():
+            raise GraphStudioAssistantError("这个问题需要动态分析，请先配置模型服务；常见问数仍可使用快捷查询")
         yield {"type": "status", "content": "正在生成并校验动态只读查询计划…"}
-        sparql, understanding = await _plan_query(question, history, schema_context)
+        selected_schema = retrieve_schema(question, schema_rows, history)
+        if not selected_schema:
+            raise GraphStudioAssistantError("请说明要查询的业务对象，例如制造订单、产品或批次，以便匹配已发布本体")
+        sparql, understanding = await _plan_query(question, history, _schema_context(selected_schema))
+        from .graphstudio_saved_queries import _publish_uris
+        allowed = {str(r[k]) for r in selected_schema for k in ("class", "property", "targetClass") if r.get(k)}
+        if _publish_uris(sparql) - allowed:
+            raise GraphStudioAssistantError("查询使用了相关本体范围之外的字段，请补充业务对象后重试")
+
+    timings["planMs"] = round((time.perf_counter() - stage) * 1000)
 
     yield {"type": "status", "content": "正在查询 Graph Studio 当前发布数据…"}
+    stage = time.perf_counter()
     result = await asyncio.to_thread(
         _request_sparql, sparql, runtime_snapshot=runtime_snapshot,
     )
+    timings["queryMs"] = round((time.perf_counter() - stage) * 1000)
     rows = _binding_rows(result)
     variables = ((result.get("head") or {}).get("vars") or [])
+    timings["firstResultMs"] = round((time.perf_counter() - started) * 1000)
+    yield result_table(rows, variables, capability.columns if capability else None)
     evidence = {
         "runtime": runtime_snapshot,
         "variables": variables,
@@ -845,6 +885,37 @@ async def graphstudio_query_stream(
         evidence["truncated"] = True
         evidence_text = json.dumps(evidence, ensure_ascii=False)
 
+    query_source = (
+        f"快捷问数：{capability.title}" if capability else
+        f"Graph Studio 已保存 Query「{saved_query['title']}」" if saved_query else
+        "活动本体清单查询" if schema_inventory else "动态生成并安全校验的只读查询"
+    )
+    stage = time.perf_counter()
+    # Simple capabilities already have a factual table; no LLM round trip.
+    if not capability and not schema_inventory and rows:
+        yield "\n\n"
+        try:
+            async for piece in _summarize_evidence(question, history, understanding, runtime_snapshot, sparql, evidence_text):
+                yield piece
+        except Exception:
+            yield "\n\n文字解读暂未完成；上表为已从 Graph Studio 查询到的结果。\n"
+    timings["summaryMs"] = round((time.perf_counter() - stage) * 1000)
+    timings["totalMs"] = round((time.perf_counter() - started) * 1000)
+    yield {"type": "metrics", "metrics": {
+        **timings, "querySource": query_source, "rowCount": len(rows),
+        "schemaRows": len(schema_rows), "selectedSchemaRows": len(selected_schema),
+        "capability": capability.key if capability else None,
+    }}
+    yield (
+        "\n\n### 查询依据\n"
+        f"- 发布版本：本体 R{runtime_snapshot['ontologyReleaseNo']} · 数据 R{runtime_snapshot['curatedReleaseNo']}\n"
+        f"- 部署：`{runtime_snapshot['deploymentId'][:8]}` · Layer `{_local_name(runtime_snapshot['layerUri'])}`\n"
+        f"- 数据源：当前 Graphmart（返回 {len(rows)} 条）\n"
+        f"- 查询方式：{query_source}\n\n```sparql\n{sparql}\n```"
+    )
+
+
+async def _summarize_evidence(question, history, understanding, runtime_snapshot, sparql, evidence_text):
     client = _get_llm()
     model = os.getenv("LLM_MODEL", "deepseek-v4-flash")
     messages = [{
@@ -856,6 +927,7 @@ async def graphstudio_query_stream(
             "对于 URI，优先显示 # 或最后一个 / 后的业务标识。"
             "‘当前发布’默认指当前 Graph Studio 数据版本，不能混同为 MES 订单下达状态；"
             "用户没有询问业务状态时，不要声称必须有状态字典才能列出已发布记录。"
+            "界面已经展示查询结果表格，只补充简短结论和必要限制，不要重复表格。"
         ),
     }]
     messages.extend(_history_for_model(history))
@@ -884,25 +956,6 @@ async def graphstudio_query_stream(
         if chunk.choices and chunk.choices[0].delta.content:
             yield chunk.choices[0].delta.content
 
-    query_source = (
-        f"Graph Studio 已保存 Query「{saved_query['title']}」"
-        if saved_query else (
-            "活动本体清单查询" if schema_inventory
-            else "动态生成并安全校验的只读查询"
-        )
-    )
-    yield (
-        "\n\n### 查询依据\n"
-        f"- 发布版本：本体 R{runtime_snapshot['ontologyReleaseNo']} · "
-        f"数据 R{runtime_snapshot['curatedReleaseNo']}\n"
-        f"- 部署：`{runtime_snapshot['deploymentId'][:8]}` · "
-        f"Layer `{_local_name(runtime_snapshot['layerUri'])}`\n"
-        f"- 数据源：当前 Graphmart（返回 {len(rows)} 条）\n"
-        f"- 查询方式：{query_source}\n\n"
-        f"```sparql\n{sparql}\n```"
-    )
-
-
 def graphstudio_connection_status(*, force_refresh: bool = False) -> dict[str, Any]:
     llm_configured = bool(os.getenv("DEEPSEEK_API_KEY", "").strip())
     try:
@@ -917,7 +970,7 @@ def graphstudio_connection_status(*, force_refresh: bool = False) -> dict[str, A
         }
     try:
         payload = _request_sparql(
-            "SELECT (COUNT(*) AS ?statementCount) WHERE { ?s ?p ?o }",
+            f"SELECT ?s WHERE {{ GRAPH <{_runtime_layer(runtime_snapshot)}> {{ ?s ?p ?o }} }} LIMIT 1",
             timeout=15,
             runtime_snapshot=runtime_snapshot,
         )
@@ -925,7 +978,8 @@ def graphstudio_connection_status(*, force_refresh: bool = False) -> dict[str, A
             runtime_snapshot, force_refresh=force_refresh,
         )
         rows = _binding_rows(payload)
-        statement_count = int(rows[0].get("statementCount", "0")) if rows else 0
+        if not rows:
+            raise GraphStudioAssistantError("活动数据层未返回任何语句，请检查发布状态")
         graphstudio = "在线"
         status = "ready" if llm_configured else "llm_missing"
         detail = (
@@ -933,7 +987,7 @@ def graphstudio_connection_status(*, force_refresh: bool = False) -> dict[str, A
             f"数据 R{runtime_snapshot['curatedReleaseNo']} · "
             f"{runtime_snapshot['ontologyClassCount']} 类 / "
             f"{runtime_snapshot['ontologyRelationshipCount']} 关系 · "
-            f"{statement_count:,} 条图谱语句"
+            f"发布记录 {runtime_snapshot['objectCount']:,} 个对象"
             if llm_configured
             else "Graph Studio 在线，但 DeepSeek 未配置"
         )

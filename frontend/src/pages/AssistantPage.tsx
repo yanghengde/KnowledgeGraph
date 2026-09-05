@@ -68,6 +68,11 @@ function MessageContent({ message }: { message: ChatMessage }) {
         {isAssistant && message.content && (
           <Space size={6} wrap>
             {message.runtime && <Tag color="cyan">本体 R{message.runtime.ontologyReleaseNo} · 数据 R{message.runtime.curatedReleaseNo}</Tag>}
+            {message.metrics?.firstResultMs != null && (
+              <Tooltip title={`本体 ${(Number(message.metrics.schemaMs || 0) / 1000).toFixed(1)} 秒 · 查询准备 ${(Number(message.metrics.planMs || 0) / 1000).toFixed(1)} 秒 · 查数 ${(Number(message.metrics.queryMs || 0) / 1000).toFixed(1)} 秒 · 解读 ${(Number(message.metrics.summaryMs || 0) / 1000).toFixed(1)} 秒`}>
+                <Tag>{(message.metrics.firstResultMs / 1000).toFixed(1)} 秒出结果</Tag>
+              </Tooltip>
+            )}
             <Tooltip title="复制回答"><Button className="copy-answer" type="text" size="small" icon={<CopyOutlined />} aria-label="复制回答" onClick={() => navigator.clipboard.writeText(message.content)} /></Tooltip>
           </Space>
         )}
@@ -123,7 +128,7 @@ export function AssistantPage() {
   }, [sessionSearch, sessions.data?.items]);
 
   const queryOptions = [
-    { value: "auto", label: "自动匹配已保存 Query" },
+    { value: "auto", label: "智能问数（常见问题优先直查）" },
     ...(savedQueries.data?.items || []).filter((item) => item.compatible !== false).map((item: SavedQuery) => ({ value: item.uri, label: queryBusinessTitle(item) })),
     { value: "dynamic", label: "动态只读查询" },
   ];
@@ -215,7 +220,7 @@ export function AssistantPage() {
             });
           }
           if (event.type === "error") {
-            answer = `### 问答未完成\n\n${event.content || "制造知识服务暂时不可用"}`;
+            answer = event.partial_answer || `### 问答未完成\n\n${event.content || "制造知识服务暂时不可用"}`;
             setCurrent((previous) => {
               if (!previous) return previous;
               const messages = [...previous.messages];
@@ -223,11 +228,19 @@ export function AssistantPage() {
               return { ...previous, messages };
             });
           }
+          if (event.type === "metrics") {
+            setCurrent((previous) => {
+              if (!previous) return previous;
+              const messages = [...previous.messages];
+              messages[messages.length - 1] = { ...messages[messages.length - 1], metrics: event.metrics };
+              return { ...previous, messages };
+            });
+          }
           if (event.type === "done" && event.session_title) {
             setCurrent((previous) => {
               if (!previous) return previous;
               const messages = [...previous.messages];
-              messages[messages.length - 1] = { ...messages[messages.length - 1], runtime: event.runtime || messages[messages.length - 1].runtime };
+              messages[messages.length - 1] = { ...messages[messages.length - 1], runtime: event.runtime || messages[messages.length - 1].runtime, metrics: event.metrics || messages[messages.length - 1].metrics };
               return { ...previous, messages, title: event.session_title!, runtime: event.runtime || previous.runtime };
             });
           }

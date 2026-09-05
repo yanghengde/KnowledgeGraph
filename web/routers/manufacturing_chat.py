@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
+import logging
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
@@ -60,6 +62,15 @@ async def queries(refresh: bool = False):
     return {"items": items, "count": len(items)}
 
 
+@router.get("/coverage")
+async def coverage(refresh: bool = False):
+    from src.qa.published_coverage import published_coverage
+    try:
+        return await asyncio.to_thread(published_coverage, refresh=refresh)
+    except GraphStudioAssistantError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
 @router.get("/sessions")
 async def sessions(limit: int = 200):
     return {"items": list_sessions(limit=limit)}
@@ -92,6 +103,7 @@ async def session_delete(session_id: str):
 
 @router.post("/ask")
 async def ask(request: AskRequest):
+    request_started = time.perf_counter()
     question = request.question.strip()
     try:
         session = load_session(request.session_id)
@@ -115,6 +127,8 @@ async def ask(request: AskRequest):
     async def generate():
         full_answer = ""
         error_message = None
+        metrics = None
+        first_result_ms = None
         try:
             if version_changed:
                 yield "data: " + json.dumps({
@@ -133,7 +147,14 @@ async def ask(request: AskRequest):
             ):
                 if isinstance(chunk, dict):
                     payload = chunk
+                    if chunk.get("type") == "metrics":
+                        metrics = dict(chunk["metrics"])
+                        metrics["firstResultMs"] = first_result_ms
+                        metrics["totalMs"] = round((time.perf_counter() - request_started) * 1000)
+                        payload = {"type": "metrics", "metrics": metrics}
                 else:
+                    if first_result_ms is None:
+                        first_result_ms = round((time.perf_counter() - request_started) * 1000)
                     full_answer += str(chunk)
                     payload = {"type": "chunk", "content": str(chunk)}
                 yield "data: " + json.dumps(payload, ensure_ascii=False) + "\n\n"
@@ -143,9 +164,10 @@ async def ask(request: AskRequest):
             error_message = f"制造知识问答暂时不可用：{exc}"
 
         if error_message:
-            full_answer = f"### 问答未完成\n\n{error_message}"
+            full_answer = (full_answer + f"\n\n后续处理未完成：{error_message}" if full_answer
+                           else f"### 问答未完成\n\n{error_message}")
             yield "data: " + json.dumps(
-                {"type": "error", "content": error_message},
+                {"type": "error", "content": error_message, "partial_answer": full_answer},
                 ensure_ascii=False,
             ) + "\n\n"
 
@@ -155,12 +177,18 @@ async def ask(request: AskRequest):
             answer=full_answer,
             error=error_message,
             runtime_snapshot=runtime_snapshot,
+            metrics=metrics,
         )
+        logging.getLogger(__name__).info("manufacturing_qa %s", json.dumps({
+            "deploymentId": runtime_snapshot["deploymentId"], "metrics": metrics,
+            "success": error_message is None,
+        }, ensure_ascii=False))
         yield "data: " + json.dumps({
             "type": "done",
             "session_id": saved["id"],
             "session_title": saved["title"],
             "runtime": runtime_snapshot,
+            "metrics": metrics,
         }, ensure_ascii=False) + "\n\n"
 
     return StreamingResponse(

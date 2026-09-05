@@ -116,6 +116,7 @@ def append_exchange(
     answer: str,
     error: str | None = None,
     runtime_snapshot: dict[str, Any] | None = None,
+    metrics: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     with _lock:
         payload = load_session(session_id)
@@ -126,6 +127,7 @@ def append_exchange(
             {
                 "role": "assistant", "content": answer, "timestamp": _now(),
                 "error": error, "runtime": runtime_snapshot,
+                "metrics": metrics,
             },
         ])
         if runtime_snapshot:
