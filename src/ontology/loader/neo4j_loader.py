@@ -17,101 +17,7 @@ from src.ontology.runtime_state import enable_curated_baseline, is_empty_baselin
 
 
 def load_ontology_to_neo4j(json_filepath: str):
-    uri = os.getenv("NEO4J_URI")
-    user = os.getenv("NEO4J_USER")
-    password = os.getenv("NEO4J_PASSWORD")
-
-    if not all([uri, user, password]):
-        print("Neo4j configuration is missing in .env")
-        return
-
-    try:
-        with open(json_filepath, 'r', encoding='utf-8') as f:
-            ontology = json.load(f)
-    except Exception as e:
-        print(f"Failed to load JSON file: {e}")
-        return
-
-    driver = GraphDatabase.driver(uri, auth=(user, password))
-    
-    with driver.session() as session:
-        # 0. Ensure indexes via canonical registry (rebuild_indexes.py)
-        try:
-            from rebuild_indexes import ensure_indexes
-            ensure_indexes(session, verbose=False)
-        except ImportError:
-            print("  Warning: rebuild_indexes not found, creating basic constraints inline")
-            session.run("CREATE CONSTRAINT unique_ontology_class_name IF NOT EXISTS FOR (c:OntologyClass) REQUIRE c.name IS UNIQUE")
-            session.run("CREATE CONSTRAINT unique_ontology_property IF NOT EXISTS FOR (p:OntologyProperty) REQUIRE (p.className, p.name) IS UNIQUE")
-
-        # ── Collect batch data from JSON ──
-        class_batch = []
-        property_batch = []
-        relationship_batch = []
-
-        for cls in ontology.get("classes", []):
-            class_name = cls.get("className")
-            class_batch.append({
-                "name": class_name,
-                "chineseName": cls.get("chineseName", ""),
-                "description": cls.get("description", ""),
-            })
-            for prop in cls.get("properties", []):
-                property_batch.append({
-                    "className": class_name,
-                    "propName": prop.get("name"),
-                    "dataType": prop.get("type", "String"),
-                    "description": prop.get("description", ""),
-                })
-
-        for rel in ontology.get("relationships", []):
-            relationship_batch.append({
-                "fromClass": rel.get("fromClass"),
-                "toClass": rel.get("toClass"),
-                "relName": rel.get("relationName"),
-                "cardinality": rel.get("cardinality", "UNKNOWN"),
-                "description": rel.get("description", ""),
-                "lineStyle": rel.get("lineStyle", ""),
-            })
-
-        # ── 1. Batch MERGE Classes ──
-        if class_batch:
-            session.run("""
-                UNWIND $batch AS cls
-                MERGE (c:OntologyClass {name: cls.name})
-                SET c.chineseName = cls.chineseName,
-                    c.description = cls.description,
-                    c.layer = 'Config'
-            """, batch=class_batch)
-            print(f"  Batch loaded {len(class_batch)} classes")
-
-        # ── 2. Batch MERGE Properties + HAS_PROPERTY edges ──
-        if property_batch:
-            session.run("""
-                UNWIND $batch AS prop
-                MATCH (c:OntologyClass {name: prop.className})
-                MERGE (p:OntologyProperty {name: prop.propName, className: prop.className})
-                SET p.dataType = prop.dataType,
-                    p.description = prop.description
-                MERGE (c)-[:HAS_PROPERTY]->(p)
-            """, batch=property_batch)
-            print(f"  Batch loaded {len(property_batch)} properties")
-
-        # ── 3. Batch MERGE Relationships ──
-        if relationship_batch:
-            session.run("""
-                UNWIND $batch AS rel
-                MATCH (from:OntologyClass {name: rel.fromClass})
-                MATCH (to:OntologyClass {name: rel.toClass})
-                MERGE (from)-[r:ONTOLOGY_RELATION {name: rel.relName}]->(to)
-                SET r.cardinality = rel.cardinality,
-                    r.description = rel.description,
-                    r.lineStyle = rel.lineStyle
-            """, batch=relationship_batch)
-            print(f"  Batch loaded {len(relationship_batch)} relationships")
-                 
-    driver.close()
-    print(f"Successfully loaded {os.path.basename(json_filepath)} into Neo4j!")
+    return load_ontologies_to_neo4j([json_filepath])
 
 
 def _chunks(items, size=1000):
@@ -120,6 +26,20 @@ def _chunks(items, size=1000):
 
 
 def load_ontologies_to_neo4j(json_filepaths, clear=False):
+    from sqlalchemy import text
+    from src.ontology.authority_store import authority_store
+    store = authority_store()
+    with store.engine.begin() as connection:
+        connection.execute(text("SELECT pg_advisory_xact_lock(721603051)"))
+        authorities, _ = store.snapshot(connection)
+        counts = _load_ontologies_to_neo4j(json_filepaths, clear, authorities)
+        for name, record in authorities.items():
+            connection.execute(text("UPDATE graphsync.ontology_authority SET synced_revision=:revision WHERE class_name=:name"),
+                               {"name": name, "revision": record["revision"]})
+        return counts
+
+
+def _load_ontologies_to_neo4j(json_filepaths, clear, authorities):
     """Load all classes first, then properties and relationships.
 
     A two-pass load is required because a relationship target may be declared
@@ -134,17 +54,20 @@ def load_ontologies_to_neo4j(json_filepaths, clear=False):
     class_batch = []
     property_batch = []
     relationship_batch = []
+    from src.ontology.authority import governed_documents
+    documents = {}
     for json_filepath in json_filepaths:
         with open(json_filepath, "r", encoding="utf-8-sig") as handle:
-            ontology = json.load(handle)
-        module = os.path.basename(json_filepath).replace("_ontology.json", "")
+            documents[os.path.basename(json_filepath)] = json.load(handle)
+    for filename, ontology in governed_documents(documents, authorities).items():
+        module = filename.replace("_ontology.json", "")
         for cls in ontology.get("classes", []):
             class_name = cls["className"]
             class_batch.append({
                 "name": class_name,
                 "chineseName": cls.get("chineseName", ""),
                 "description": cls.get("description", ""),
-                "module": module,
+                "module": cls.get("_authorityDomain", module),
             })
             for prop in cls.get("properties", []):
                 property_batch.append({
@@ -168,6 +91,15 @@ def load_ontologies_to_neo4j(json_filepaths, clear=False):
     try:
         driver.verify_connectivity()
         with driver.session() as session:
+            declared_names = {c["name"] for c in class_batch}
+            required_targets = {r["toClass"] for a in authorities.values() for r in a["model"].get("relationships", [])}
+            missing = required_targets - declared_names
+            if missing and not clear:
+                found = {r["name"] for r in session.run(
+                    "MATCH (c:OntologyClass) WHERE c.name IN $names RETURN c.name AS name", names=sorted(missing))}
+                missing -= found
+            if missing:
+                raise ValueError("权威本体关系终点尚未就绪：" + ", ".join(sorted(missing)))
             from rebuild_indexes import ensure_indexes
             ensure_indexes(session, verbose=False)
             if clear:

@@ -35,6 +35,7 @@ from web.routers.chat import router as chat_router
 from web.routers.sql_builder import router as sql_builder_router
 from web.routers.i18n import router as i18n_router
 from web.routers.ontology_import import router as ontology_import_router
+from web.routers.ontology_authority import router as ontology_authority_router
 from web.routers.sync_center import router as sync_center_router
 from web.routers.manufacturing_chat import router as manufacturing_chat_router
 
@@ -44,6 +45,7 @@ app.include_router(chat_router)
 app.include_router(sql_builder_router)
 app.include_router(i18n_router)
 app.include_router(ontology_import_router)
+app.include_router(ontology_authority_router)
 app.include_router(sync_center_router)
 app.include_router(manufacturing_chat_router)
 

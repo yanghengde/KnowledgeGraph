@@ -69,44 +69,25 @@ def test_csv_analysis_preselects_curated_business_cdos(monkeypatch):
     assert descriptions["translation"]["status"] == "completed"
 
 
-def test_apply_import_writes_only_explicitly_selected_objects(monkeypatch):
+def test_apply_import_stages_selected_objects_without_writing_neo4j(monkeypatch):
     monkeypatch.setattr(ontology_import, "_reviewed_class_names", lambda: {"Product"})
-    monkeypatch.setattr("web.designer_metadata.load_cdo_description_catalog", lambda database: {})
     monkeypatch.setattr(ontology_import, "_start_description_job", lambda import_id: None)
     ontology_import._sessions.clear()
     analysis = ontology_import.analyze_import(upload("tables.csv", TABLES), upload("fields.csv", FIELDS), "sqlserver")
-    calls = []
-
-    class Result:
-        def consume(self):
-            return self
-
-    class Session:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *_):
-            return False
-
-        def run(self, query, **parameters):
-            calls.append(parameters.get("batch", []))
-            return Result()
-
+    captured = []
     class Driver:
-        def session(self):
-            return Session()
-
+        def session(self): pytest.fail("CSV candidates must never directly write Neo4j")
+    class Store:
+        def stage(self, payload):
+            captured.append(payload)
+            return {"proposalId": "test-proposal", "alreadyAccepted": 0}
     monkeypatch.setattr(ontology_import, "driver", Driver())
-    monkeypatch.setattr(ontology_import, "_write_imported_ontology", lambda classes, relationships, **kwargs: None)
-    monkeypatch.setattr(ontology_import, "_write_manifest", lambda selected, source_count, **kwargs: None)
-
-    result = ontology_import.apply_import(ontology_import.ImportApplyRequest(
-        importId=analysis["importId"], selected=["NewBusinessObject"],
-    ))
-
-    assert result == {"success": True, "classes": 1, "newClasses": 1, "properties": 1, "relationships": 1}
-    assert [item["name"] for item in calls[0]] == ["NewBusinessObject"]
-    assert calls[2][0]["toClass"] == "Product"
+    monkeypatch.setattr("src.ontology.authority_store.authority_store", lambda: Store())
+    monkeypatch.setattr(ontology_import, "_write_imported_ontology", lambda *a, **k: pytest.fail("Source files must remain unchanged"))
+    result = ontology_import.apply_import(ontology_import.ImportApplyRequest(importId=analysis["importId"], selected=["NewBusinessObject"]))
+    assert result["status"] == "pending_review"
+    assert [c["className"] for c in captured[0]["classes"]] == ["NewBusinessObject"]
+    assert captured[0]["relationships"][0]["toClass"] == "Product"
 
 
 def test_description_translation_falls_back_to_english_without_provider(monkeypatch):

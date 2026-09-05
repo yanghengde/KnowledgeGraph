@@ -28,7 +28,7 @@
             translationProgress: "已完成", retryTranslation: "重试未完成翻译", retryingTranslation: "正在重试…",
             descriptionLoading: "正在后台读取数据库描述，候选结构已可审核", descriptionFailed: "数据库描述读取失败，候选结构仍可审核",
             importSearch: "搜索候选 CDO…", allStatuses: "全部状态", approvedStatus: "已审核", recommendedStatus: "业务建议", reviewStatus: "待审核", excludedStatus: "建议排除",
-            importApply: "导入已选业务对象", importing: "导入中…", importSelected: "已选择", importConfirm: "确定导入已选择的业务对象吗？本次操作只增量合并，不会删除现有节点。",
+            importApply: "提交候选，审阅差异", importing: "导入中…", importSelected: "已选择", importConfirm: "提交已选择的对象作为候选吗？随后到本体目录查看差异并确认，不会直接改写现有模型。",
             clearGraphTitle: "危险操作", clearGraphHelp: "需要从零开始或导入结果异常时，可清空当前 Neo4j 图谱。此操作不可撤销。",
             clearGraphButton: "一键清空图谱", clearGraphDialogTitle: "确认清空全部图谱？", clearGraphIrreversible: "这是不可撤销的破坏性操作",
             clearGraphScope: "将删除当前 Neo4j 数据库中的全部节点、属性节点和关系。",
@@ -76,7 +76,7 @@
             translationProgress: "Completed", retryTranslation: "Retry Incomplete Translations", retryingTranslation: "Retrying…",
             descriptionLoading: "Loading database descriptions in the background; candidates are ready for review", descriptionFailed: "Database descriptions could not be loaded; candidates remain available",
             importSearch: "Search candidate CDOs…", allStatuses: "All statuses", approvedStatus: "Reviewed", recommendedStatus: "Business recommendation", reviewStatus: "Review", excludedStatus: "Suggested exclusion",
-            importApply: "Import Selected Objects", importing: "Importing…", importSelected: "Selected", importConfirm: "Import the selected business objects? This incrementally merges data and does not delete existing nodes.",
+            importApply: "Submit for Review", importing: "Importing…", importSelected: "Selected", importConfirm: "Submit selected objects for review? Existing models will remain unchanged until reviewed.",
             clearGraphTitle: "Danger Zone", clearGraphHelp: "Clear the current Neo4j graph when you need to restart from zero or discard a bad import. This cannot be undone.",
             clearGraphButton: "Clear Entire Graph", clearGraphDialogTitle: "Clear the entire graph?", clearGraphIrreversible: "This destructive action cannot be undone",
             clearGraphScope: "All nodes, property nodes, and relationships in the current Neo4j database will be deleted.",
@@ -735,7 +735,7 @@
             if (!response.ok) throw new Error(await responseError(response));
             const result = await response.json();
             showToast(`${t("saved")}: ${result.classes} ${t("classes")}, ${result.relationships} ${t("relations")}`);
-            setTimeout(() => window.location.reload(), 900);
+            setTimeout(() => { window.location.href = result.reviewUrl || "/app/ontology-model"; }, 900);
         } catch (error) {
             showToast(error.message, true); button.disabled = false; button.textContent = t("importApply");
             startImportTranslationPolling();

@@ -12,6 +12,7 @@ import type { ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { semanticApi, syncApi } from "../api";
 import { OntologyWorkspacePanel } from "../components/OntologyWorkspacePanel";
+import { OntologyDirectory } from "../components/OntologyDirectory";
 import { SemanticG6Canvas, type SemanticG6Handle } from "../components/SemanticG6Canvas";
 import { useThemeMode } from "../theme";
 import type { SemanticClassDetail } from "../types";
@@ -53,10 +54,10 @@ export function SemanticModelPage() {
   const [moduleSearch, setModuleSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [followedNodeIds, setFollowedNodeIds] = useState<string[]>(loadFollowedNodes);
-  const [workbenchView, setWorkbenchView] = useState<"source" | "workspace" | "validation" | "versions">("source");
+  const [workbenchView, setWorkbenchView] = useState<"directory" | "source" | "workspace" | "validation" | "versions">("directory");
 
-  const overview = useQuery({ queryKey: ["semantic-graph-overview"], queryFn: () => semanticApi.overview() });
-  const stats = useQuery({ queryKey: ["semantic-graph-stats"], queryFn: () => semanticApi.stats() });
+  const overview = useQuery({ queryKey: ["semantic-graph-overview"], queryFn: () => semanticApi.overview(), enabled: workbenchView !== "directory" });
+  const stats = useQuery({ queryKey: ["semantic-graph-stats"], queryFn: () => semanticApi.stats(), enabled: workbenchView !== "directory" });
   const detail = useQuery({
     queryKey: ["semantic-class-detail", selectedNodeId],
     queryFn: () => semanticApi.classDetail(selectedNodeId!),
@@ -65,6 +66,7 @@ export function SemanticModelPage() {
   const governance = useQuery({
     queryKey: ["ontology-governance", "opcenter2607-core"],
     queryFn: () => syncApi.ontologyGovernance("opcenter2607-core"),
+    enabled: workbenchView !== "directory",
   });
 
   const modules = useMemo(() => {
@@ -164,7 +166,7 @@ export function SemanticModelPage() {
     <section className="semantic-page-heading">
       <div>
         <Typography.Title level={2}>制造语义模型</Typography.Title>
-        <Typography.Paragraph>从 Neo4j 制造语义主图理解业务对象与关系，抽取形成受治理发布模型，经过校验和版本冻结后发布到 Graph Studio。</Typography.Paragraph>
+        <Typography.Paragraph>先在本体目录统一业务对象、属性与关联，再同步建模库，选择业务范围并发布到 Graph Studio。</Typography.Paragraph>
       </div>
       <Space wrap>
         <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新 Neo4j</Button>
@@ -174,6 +176,7 @@ export function SemanticModelPage() {
 
     <Card className="semantic-stage-card" styles={{ body: { padding: "4px 14px 0" } }}>
       <Tabs activeKey={workbenchView} onChange={(key) => setWorkbenchView(key as typeof workbenchView)} items={[
+        { key: "directory", label: <Space><TagsOutlined />本体目录与差异审阅</Space> },
         { key: "source", label: <Space><ApartmentOutlined />制造语义主图<Tag>{overview.data?.nodes.length || 0}</Tag></Space> },
         { key: "workspace", label: <Space><FolderOpenOutlined />模型工作区<Tag color="cyan">{governance.data?.graph.nodes.length || 0}</Tag></Space> },
         { key: "validation", label: <Space><CheckCircleOutlined />校验与发布</Space> },
@@ -181,7 +184,7 @@ export function SemanticModelPage() {
       ]} />
     </Card>
 
-    {workbenchView === "source" ? <>
+    {workbenchView === "directory" ? <OntologyDirectory /> : workbenchView === "source" ? <>
     <Alert type="info" showIcon message="制造语义主图是只读事实来源" description="“关注”只改变个人浏览布局；“加入模型”才会把对象及其源属性纳入当前 Graph Studio 发布草稿。" />
 
     <div className="semantic-stat-grid">

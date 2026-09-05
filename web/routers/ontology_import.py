@@ -750,115 +750,40 @@ def clear_graph(request: ClearGraphRequest):
 
 @router.post("/apply")
 def apply_import(request: ImportApplyRequest):
+    """Stage immutable candidates; only the authority review can accept them."""
+    import copy
+    from src.ontology.authority_store import authority_store
     with _session_lock:
         _purge_expired_sessions()
-        session = _sessions.get(request.importId)
+        session = copy.deepcopy(_sessions.get(request.importId))
     if session is None:
         raise HTTPException(status_code=404, detail="导入分析已过期，请重新选择 CSV")
     selected = {name.strip() for name in request.selected if name.strip()}
-    unknown = selected - set(session["candidates"])
-    if unknown:
-        raise HTTPException(status_code=422, detail=f"包含未知 CDO：{', '.join(sorted(unknown)[:10])}")
-    if not selected:
-        raise HTTPException(status_code=422, detail="请至少选择一个经过确认的业务对象")
-
-    reviewed: set[str] = set(session["reviewed"])
-    allowed_targets = reviewed | selected
-    class_batch = []
-    property_batch = []
-    relationship_batch = []
-    new_class_payloads = []
-    imported_relationships = []
-    seen_relationships: set[tuple[str, str, str]] = set()
-
-    for class_name in sorted(selected, key=str.casefold):
-        table = session["tables"][class_name]
-        canonical = canonical_physical_fields(session["fields"].get(class_name, []), class_name)
-        class_batch.append({"name": class_name, "cdoDefId": table.get("CDODefId", ""), "workspace": table.get("Workspace", "")})
-        properties = [_property_definition(field, class_name) for field in canonical]
-        for prop in properties:
-            property_batch.append({"className": class_name, **prop})
-        if class_name not in reviewed:
-            new_class_payloads.append({
-                "className": class_name,
-                "chineseName": "",
-                "description": "",
-                "sourceCDODefId": table.get("CDODefId", ""),
-                "properties": properties,
-            })
-        for field in canonical:
-            target = field.get("FKTableName", "")
-            if expected_type(field) != "Navigation" or not target or target not in allowed_targets:
-                continue
-            name = relation_name(normalize_field_name(field, class_name))
-            key = (class_name, target, name)
-            if key in seen_relationships:
-                continue
-            item = {
-                "fromClass": class_name,
-                "toClass": target,
-                "relationName": name,
-                "cardinality": "MANY_TO_ONE",
-                "description": "",
-            }
-            relationship_batch.append(item)
-            if class_name not in reviewed or target not in reviewed:
-                imported_relationships.append(item)
-            seen_relationships.add(key)
-
+    if not selected or selected - set(session["candidates"]):
+        raise HTTPException(status_code=422, detail="请仅选择本次分析中的业务对象")
+    allowed_targets = set(session["reviewed"]) | selected | _curated_business_class_names()
+    classes, relationships = [], []
+    seen = set()
+    for name in sorted(selected):
+        fields = canonical_physical_fields(session["fields"].get(name, []), name)
+        candidate = session["candidates"][name]
+        classes.append({"className": name, "chineseName": "",
+                        "description": candidate.get("descriptionZh") or candidate.get("descriptionEn") or "",
+                        "sourceCDODefId": session["tables"][name].get("CDODefId", ""),
+                        "properties": [_property_definition(f, name) for f in fields]})
+        for field in fields:
+            target = field.get("FKTableName")
+            relation = relation_name(normalize_field_name(field, name))
+            key = (name, relation, target)
+            if expected_type(field) == "Navigation" and target in allowed_targets and key not in seen:
+                relationships.append({"fromClass": name, "toClass": target, "relationName": relation,
+                                      "cardinality": "MANY_TO_ONE", "description": name + "." + field["FieldName"]})
+                seen.add(key)
     try:
-        with driver.session() as neo_session:
-            neo_session.run("""
-                UNWIND $batch AS item
-                MERGE (c:OntologyClass {name: item.name})
-                ON CREATE SET c.chineseName = '', c.description = '', c.layer = 'Config'
-                SET c.sourceCDODefId = item.cdoDefId,
-                    c.sourceWorkspace = item.workspace,
-                    c.schemaSource = 'CSV',
-                    c.schemaImportedAt = timestamp()
-            """, batch=class_batch).consume()
-            neo_session.run("""
-                UNWIND $batch AS item
-                MATCH (c:OntologyClass {name: item.className})
-                MERGE (p:OntologyProperty {className: item.className, name: item.name})
-                ON CREATE SET p.description = ''
-                SET p.dataType = item.type,
-                    p.required = coalesce(item.required, false),
-                    p.sourceFieldId = item.sourceFieldId,
-                    p.schemaSource = 'CSV',
-                    p.schemaImportedAt = timestamp()
-                MERGE (c)-[:HAS_PROPERTY]->(p)
-            """, batch=property_batch).consume()
-            neo_session.run("""
-                UNWIND $batch AS item
-                MATCH (source:OntologyClass {name: item.fromClass})
-                MATCH (target:OntologyClass {name: item.toClass})
-                MERGE (source)-[r:ONTOLOGY_RELATION {name: item.relationName}]->(target)
-                ON CREATE SET r.description = ''
-                SET r.cardinality = item.cardinality,
-                    r.schemaSource = 'CSV',
-                    r.schemaImportedAt = timestamp()
-            """, batch=relationship_batch).consume()
+        staged = authority_store().stage({"classes": classes, "relationships": relationships})
     except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"写入 Neo4j 失败：{exc}") from exc
-
-    _write_imported_ontology(
-        new_class_payloads,
-        imported_relationships,
-        allowed_class_names=reviewed | selected,
-    )
-    _write_manifest(
-        selected,
-        len(session["tables"]),
-        reset=is_empty_baseline_mode() and not reviewed,
-    )
-    _invalidate_graph_caches()
-    with _session_lock:
-        _sessions.pop(request.importId, None)
-    return {
-        "success": True,
-        "classes": len(class_batch),
-        "newClasses": len(new_class_payloads),
-        "properties": len(property_batch),
-        "relationships": len(relationship_batch),
-    }
+        raise HTTPException(503, "候选保存失败，请检查 PostgreSQL；未改写本体或 Neo4j") from exc
+    return {"success": True, "status": "pending_review", **staged,
+            "classes": len(classes), "relationships": len(relationships),
+            "reviewUrl": "/app/ontology-model",
+            "message": "已保存导入候选，请到本体目录查看差异并确认合并。"}
