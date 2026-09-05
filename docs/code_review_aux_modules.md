@@ -1,5 +1,7 @@
 # CamstarOntology 辅助模块代码评审报告
 
+> 本文保留评审时的历史结论，部分实现及行号已变化。2026-09-05 已清理 scratch 探针、`get_shortest_path_details` 和 `_chat_sessions`，当前精简范围见 [项目精简记录](project_cleanup.md)。
+
 评审范围：src/ontology（loader/wiki/runtime_state/llm_builder/explorer/validator）、src/qa（engine、graph_retriever、sql_*、semantic/、session_store、logger、vectorizer）、src/etl（旧中转 ETL）、scripts/validate_ontology_vs_csv.py、scripts/rebuild_indexes.py、scripts/check/*。所有结论均基于实际读取的代码，附文件:行号证据。
 
 ## 1. 整体评价

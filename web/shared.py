@@ -31,9 +31,6 @@ class _LegacyDriver:
 
 driver = _LegacyDriver()
 
-# ── Chat session memory ──
-_chat_sessions = {}
-
 # ── Lazy-loaded vector collection ──
 import threading
 _vector_collection = None

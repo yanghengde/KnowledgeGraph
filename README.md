@@ -6,6 +6,8 @@ Opcenter Graph Sync 是一个将 Siemens Opcenter Execution（Camstar）的本�
 > Neo4j 已提供兼容迁移路径。新环境使用 `ONTOLOGY_BACKEND=postgres`；已有环境先迁移再切换，详见 [Neo4j 退出与验收手册](docs/neo4j_exit_postgres_runbook.md)。
 > Neo4j 本体编辑、SQL 查询、Wiki、RAG 问答与旧 SQL Server ETL 仍保留，但它们是辅助工具，不再是平台主入口。
 
+项目目录精简及保留依据见 [精简记录](docs/project_cleanup.md)。临时调试和演示制作文件已移出当前版本，发布审计与最终演示成果保留。
+
 ## 主流程
 
 ```text

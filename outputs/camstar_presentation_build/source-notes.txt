@@ -1,7 +1,0 @@
-Deck and video source notes
-
-- Local project README.md and AGENTS.md were used for architecture, workflow, and feature descriptions.
-- The live deployment at http://172.17.119.98:5050/ was inspected on 2026-08-06.
-- Live UI statistics observed: 593 classes, 8337 properties, 1592 relationships.
-- Screenshots captured from the live deployment: deployed_overview.png, deployed_container_detail.png, deployed_query_builder.png.
-- No third-party visual assets were used.
