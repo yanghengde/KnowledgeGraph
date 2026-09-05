@@ -1,0 +1,1409 @@
+{
+  "backend": "postgres",
+  "phase": "rolled_back_after_preflight_failure",
+  "previousDataRelease": "b2bc8201-5ea3-4b96-9254-ec120cea41b5",
+  "ontologyRelease": "19e6b1cb-7510-4b8e-9eca-f920ecc03e57",
+  "sync": {
+    "ok": true,
+    "profileKey": "opcenter2607-core",
+    "graphStudioMutated": false,
+    "incrementalPlan": null,
+    "incrementalPreview": null,
+    "quality": {
+      "runId": "c5251775-5c19-4035-aa3c-15772e403ca1",
+      "profileKey": "opcenter2607-core",
+      "previewOnly": true,
+      "camstarMutated": false,
+      "curatedBusinessRowsWritten": 0,
+      "graphStudioMutated": false,
+      "sourceRowsRead": 41,
+      "acceptedRows": 41,
+      "publishableRows": 26,
+      "quarantinedRows": 0,
+      "scopeExcludedRows": 15,
+      "publishable": true,
+      "summary": {
+        "contracts": 6,
+        "relationshipContracts": 5,
+        "contractsApproved": 6,
+        "relationshipContractsApproved": 5,
+        "failedErrors": 0,
+        "failedWarnings": 1,
+        "truncatedContracts": [],
+        "artifact": "D:\\Deepseek\\camstar\\Knowledge\\outputs\\graphstudio\\curation\\c5251775-5c19-4035-aa3c-15772e403ca1\\governance_preview.json",
+        "artifactSha256": "84598d24288682d11e7e5c4d6bec847aae1df5bb486d7c245efd523e2911bac5"
+      },
+      "qualityResults": [
+        {
+          "ruleKey": "contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约已批准",
+          "contractKey": "opcenter2607-core:container:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "profile_class.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "业务对象角色已批准",
+          "contractKey": "opcenter2607-core:container:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "source.mapping_current",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约与当前物理映射一致",
+          "contractKey": "opcenter2607-core:container:v1",
+          "relationshipContractKey": null,
+          "details": {
+            "contract": "CamstarPRD_SCHEMA.Container",
+            "mapping": "CamstarPRD_SCHEMA.Container"
+          }
+        },
+        {
+          "ruleKey": "primary_key.not_null",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 0,
+          "failedRows": 0,
+          "message": "主键均不为空",
+          "contractKey": "opcenter2607-core:container:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "primary_key.unique",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 0,
+          "failedRows": 0,
+          "message": "预览范围内主键唯一",
+          "contractKey": "opcenter2607-core:container:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.not_null",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 0,
+          "failedRows": 0,
+          "message": "业务键均不为空",
+          "contractKey": "opcenter2607-core:container:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.unique",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 0,
+          "failedRows": 0,
+          "message": "预览范围内业务键唯一",
+          "contractKey": "opcenter2607-core:container:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "required.ContainerId",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 0,
+          "failedRows": 0,
+          "message": "必填字段 ContainerId 完整",
+          "contractKey": "opcenter2607-core:container:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约已批准",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "profile_class.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "业务对象角色已批准",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "source.mapping_current",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约与当前物理映射一致",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {
+            "contract": "CamstarPRD_SCHEMA.MfgOrder",
+            "mapping": "CamstarPRD_SCHEMA.MfgOrder"
+          }
+        },
+        {
+          "ruleKey": "primary_key.not_null",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 5,
+          "failedRows": 0,
+          "message": "主键均不为空",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "primary_key.unique",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 5,
+          "failedRows": 0,
+          "message": "预览范围内主键唯一",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.not_null",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 5,
+          "failedRows": 0,
+          "message": "业务键均不为空",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.unique",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 5,
+          "failedRows": 0,
+          "message": "预览范围内业务键唯一",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "required.MfgOrderId",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 5,
+          "failedRows": 0,
+          "message": "必填字段 MfgOrderId 完整",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "required.MfgOrderName",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 5,
+          "failedRows": 0,
+          "message": "必填字段 MfgOrderName 完整",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "required.ProductId",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 5,
+          "failedRows": 0,
+          "message": "必填字段 ProductId 完整",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "freshness.cursor_present",
+          "severity": "warning",
+          "passed": false,
+          "checkedRows": 5,
+          "failedRows": 5,
+          "message": "5 行没有 LastChangeDate，不能可靠使用水位增量",
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约已批准",
+          "contractKey": "opcenter2607-product-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "profile_class.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "业务对象角色已批准",
+          "contractKey": "opcenter2607-product-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "source.mapping_current",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约与当前物理映射一致",
+          "contractKey": "opcenter2607-product-v1",
+          "relationshipContractKey": null,
+          "details": {
+            "contract": "CamstarPRD_SCHEMA.Product",
+            "mapping": "CamstarPRD_SCHEMA.Product"
+          }
+        },
+        {
+          "ruleKey": "primary_key.not_null",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "主键均不为空",
+          "contractKey": "opcenter2607-product-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "primary_key.unique",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "预览范围内主键唯一",
+          "contractKey": "opcenter2607-product-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.not_null",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "业务键均不为空",
+          "contractKey": "opcenter2607-product-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.unique",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "预览范围内业务键唯一",
+          "contractKey": "opcenter2607-product-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "required.ProductId",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "必填字段 ProductId 完整",
+          "contractKey": "opcenter2607-product-v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约已批准",
+          "contractKey": "opcenter2607-core:spec:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "profile_class.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "业务对象角色已批准",
+          "contractKey": "opcenter2607-core:spec:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "source.mapping_current",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约与当前物理映射一致",
+          "contractKey": "opcenter2607-core:spec:v1",
+          "relationshipContractKey": null,
+          "details": {
+            "contract": "CamstarPRD_SCHEMA.Spec",
+            "mapping": "CamstarPRD_SCHEMA.Spec"
+          }
+        },
+        {
+          "ruleKey": "primary_key.not_null",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 9,
+          "failedRows": 0,
+          "message": "主键均不为空",
+          "contractKey": "opcenter2607-core:spec:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "primary_key.unique",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 9,
+          "failedRows": 0,
+          "message": "预览范围内主键唯一",
+          "contractKey": "opcenter2607-core:spec:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.not_null",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 9,
+          "failedRows": 0,
+          "message": "业务键均不为空",
+          "contractKey": "opcenter2607-core:spec:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.unique",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 9,
+          "failedRows": 0,
+          "message": "预览范围内业务键唯一",
+          "contractKey": "opcenter2607-core:spec:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "required.SpecId",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 9,
+          "failedRows": 0,
+          "message": "必填字段 SpecId 完整",
+          "contractKey": "opcenter2607-core:spec:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约已批准",
+          "contractKey": "opcenter2607-core:workflow:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "profile_class.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "业务对象角色已批准",
+          "contractKey": "opcenter2607-core:workflow:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "source.mapping_current",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约与当前物理映射一致",
+          "contractKey": "opcenter2607-core:workflow:v1",
+          "relationshipContractKey": null,
+          "details": {
+            "contract": "CamstarPRD_SCHEMA.Workflow",
+            "mapping": "CamstarPRD_SCHEMA.Workflow"
+          }
+        },
+        {
+          "ruleKey": "primary_key.not_null",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 2,
+          "failedRows": 0,
+          "message": "主键均不为空",
+          "contractKey": "opcenter2607-core:workflow:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "primary_key.unique",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 2,
+          "failedRows": 0,
+          "message": "预览范围内主键唯一",
+          "contractKey": "opcenter2607-core:workflow:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.not_null",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 2,
+          "failedRows": 0,
+          "message": "业务键均不为空",
+          "contractKey": "opcenter2607-core:workflow:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.unique",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 2,
+          "failedRows": 0,
+          "message": "预览范围内业务键唯一",
+          "contractKey": "opcenter2607-core:workflow:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "required.WorkflowId",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 2,
+          "failedRows": 0,
+          "message": "必填字段 WorkflowId 完整",
+          "contractKey": "opcenter2607-core:workflow:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约已批准",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "profile_class.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "业务对象角色已批准",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "source.mapping_current",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "数据契约与当前物理映射一致",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {
+            "contract": "CamstarPRD_SCHEMA.WorkflowStep",
+            "mapping": "CamstarPRD_SCHEMA.WorkflowStep"
+          }
+        },
+        {
+          "ruleKey": "primary_key.not_null",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 24,
+          "failedRows": 0,
+          "message": "主键均不为空",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "primary_key.unique",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 24,
+          "failedRows": 0,
+          "message": "预览范围内主键唯一",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.not_null",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 24,
+          "failedRows": 0,
+          "message": "业务键均不为空",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "business_key.unique",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 24,
+          "failedRows": 0,
+          "message": "预览范围内业务键唯一",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "required.WorkflowStepId",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 24,
+          "failedRows": 0,
+          "message": "必填字段 WorkflowStepId 完整",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "required.WorkflowStepName",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 24,
+          "failedRows": 0,
+          "message": "必填字段 WorkflowStepName 完整",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {}
+        },
+        {
+          "ruleKey": "row_scope.anchor_exists",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 24,
+          "failedRows": 0,
+          "message": "15 行位于制造业务图谱作用域之外，保留审计但不发布",
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "relationshipContractKey": null,
+          "details": {
+            "policyKey": "opcenter2607-core:workflowstep:manufacturing-workflow:v1",
+            "excludedRows": 15,
+            "reason": "WorkflowStep belongs to a Camstar internal workflow outside the governed manufacturing Workflow set"
+          }
+        },
+        {
+          "ruleKey": "relationship_contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "关系契约已批准",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:container:has_product:product:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.source_present",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 0,
+          "failedRows": 0,
+          "message": "关系源键完整",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:container:has_product:product:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.target_resolved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 0,
+          "failedRows": 0,
+          "message": "关系目标均可解析",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:container:has_product:product:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship_contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "关系契约已批准",
+          "contractKey": null,
+          "relationshipContractKey": "mfgorder-ordered-product-v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.source_present",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 5,
+          "failedRows": 0,
+          "message": "关系源键完整",
+          "contractKey": null,
+          "relationshipContractKey": "mfgorder-ordered-product-v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.target_resolved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 5,
+          "failedRows": 0,
+          "message": "关系目标均可解析",
+          "contractKey": null,
+          "relationshipContractKey": "mfgorder-ordered-product-v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship_contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "关系契约已批准",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:product:has_workflow:workflow:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.source_present",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "关系源键完整",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:product:has_workflow:workflow:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.target_resolved",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "关系目标均可解析",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:product:has_workflow:workflow:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship_contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "关系契约已批准",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:workflow:has_first_step:workflowstep:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.source_present",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 2,
+          "failedRows": 0,
+          "message": "关系源键完整",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:workflow:has_first_step:workflowstep:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.target_resolved",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 2,
+          "failedRows": 0,
+          "message": "关系目标均可解析",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:workflow:has_first_step:workflowstep:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship_contract.approved",
+          "severity": "error",
+          "passed": true,
+          "checkedRows": 1,
+          "failedRows": 0,
+          "message": "关系契约已批准",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:workflowstep:has_spec:spec:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.source_present",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 9,
+          "failedRows": 0,
+          "message": "关系源键完整",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:workflowstep:has_spec:spec:v1",
+          "details": {}
+        },
+        {
+          "ruleKey": "relationship.target_resolved",
+          "severity": "warning",
+          "passed": true,
+          "checkedRows": 9,
+          "failedRows": 0,
+          "message": "关系目标均可解析",
+          "contractKey": null,
+          "relationshipContractKey": "opcenter2607-core:workflowstep:has_spec:spec:v1",
+          "details": {}
+        }
+      ],
+      "artifact": "D:\\Deepseek\\camstar\\Knowledge\\outputs\\graphstudio\\curation\\c5251775-5c19-4035-aa3c-15772e403ca1\\governance_preview.json"
+    },
+    "materialization": {
+      "ok": true,
+      "previewOnly": false,
+      "releaseId": "e6749e0f-22b9-4847-a3c7-f6a29db33d9a",
+      "releaseNo": 19,
+      "status": "active",
+      "read": 41,
+      "objects": 41,
+      "quarantine": 0,
+      "batches": 5,
+      "active": 26,
+      "scopeExclusions": 15,
+      "relationships": 17
+    },
+    "status": {
+      "profileKey": "opcenter2607-core",
+      "jobName": "camstar-full",
+      "ready": true,
+      "blockers": [],
+      "coverage": {
+        "classes": [
+          {
+            "className": "Container",
+            "status": "synchronized",
+            "reason": "approved_contract_required"
+          },
+          {
+            "className": "MfgOrder",
+            "status": "synchronized",
+            "reason": "approved_contract_required"
+          },
+          {
+            "className": "Product",
+            "status": "synchronized",
+            "reason": "approved_contract_required"
+          },
+          {
+            "className": "Spec",
+            "status": "synchronized",
+            "reason": "approved_contract_required"
+          },
+          {
+            "className": "Workflow",
+            "status": "synchronized",
+            "reason": "approved_contract_required"
+          },
+          {
+            "className": "WorkflowStep",
+            "status": "synchronized",
+            "reason": "approved_contract_required"
+          }
+        ],
+        "complete": true,
+        "synchronized": 6,
+        "modelOnly": 0,
+        "excluded": 0,
+        "missing": 0
+      },
+      "activeRelease": {
+        "release_id": "e6749e0f-22b9-4847-a3c7-f6a29db33d9a",
+        "release_no": 19,
+        "status": "active",
+        "object_count": 41,
+        "relationship_count": 17,
+        "quarantine_count": 0,
+        "scope_exclusion_count": 15,
+        "started_at": "2026-09-05 06:49:59.389069-07:00",
+        "finished_at": "2026-09-05 06:49:59.584849-07:00"
+      },
+      "classes": [
+        {
+          "className": "Container",
+          "coverageStatus": "synchronized",
+          "coverageReason": "approved_contract_required",
+          "role": "context",
+          "sourceSchema": "CamstarPRD_SCHEMA",
+          "sourceTable": "Container",
+          "catalogRows": 0,
+          "contractKey": "opcenter2607-core:container:v1",
+          "contractVersion": 2,
+          "contractStatus": "approved",
+          "selectedColumns": 148,
+          "strategy": "snapshot",
+          "strategyExplicit": false,
+          "extractionMode": "keyset_snapshot",
+          "activeObjectCount": 0,
+          "activeQuarantineCount": 0,
+          "scopeExclusionCount": 0,
+          "reconciliation": {
+            "class_name": "Container",
+            "mode": "snapshot",
+            "source_count": 0,
+            "release_count": 0,
+            "difference": 0,
+            "status": "verified",
+            "details": {
+              "quarantined": 0,
+              "rowsWritten": 0,
+              "strictCountComparison": true
+            },
+            "created_at": "2026-09-05 06:49:59.584849-07:00"
+          },
+          "checkpoint": null,
+          "incrementalWindow": null,
+          "pendingEvents": 0,
+          "appliedEvents": 0
+        },
+        {
+          "className": "MfgOrder",
+          "coverageStatus": "synchronized",
+          "coverageReason": "approved_contract_required",
+          "role": "core",
+          "sourceSchema": "CamstarPRD_SCHEMA",
+          "sourceTable": "MfgOrder",
+          "catalogRows": 5,
+          "contractKey": "opcenter2607-mfgorder-v1",
+          "contractVersion": 2,
+          "contractStatus": "approved",
+          "selectedColumns": 12,
+          "strategy": "snapshot",
+          "strategyExplicit": false,
+          "extractionMode": "keyset_snapshot",
+          "activeObjectCount": 5,
+          "activeQuarantineCount": 0,
+          "scopeExclusionCount": 0,
+          "reconciliation": {
+            "class_name": "MfgOrder",
+            "mode": "snapshot",
+            "source_count": 5,
+            "release_count": 5,
+            "difference": 0,
+            "status": "verified",
+            "details": {
+              "quarantined": 0,
+              "rowsWritten": 5,
+              "strictCountComparison": true
+            },
+            "created_at": "2026-09-05 06:49:59.584849-07:00"
+          },
+          "checkpoint": null,
+          "incrementalWindow": null,
+          "pendingEvents": 0,
+          "appliedEvents": 0
+        },
+        {
+          "className": "Product",
+          "coverageStatus": "synchronized",
+          "coverageReason": "approved_contract_required",
+          "role": "core",
+          "sourceSchema": "CamstarPRD_SCHEMA",
+          "sourceTable": "Product",
+          "catalogRows": 1,
+          "contractKey": "opcenter2607-product-v1",
+          "contractVersion": 2,
+          "contractStatus": "approved",
+          "selectedColumns": 9,
+          "strategy": "snapshot",
+          "strategyExplicit": true,
+          "extractionMode": "keyset_snapshot",
+          "activeObjectCount": 1,
+          "activeQuarantineCount": 0,
+          "scopeExclusionCount": 0,
+          "reconciliation": {
+            "class_name": "Product",
+            "mode": "snapshot",
+            "source_count": 1,
+            "release_count": 1,
+            "difference": 0,
+            "status": "verified",
+            "details": {
+              "quarantined": 0,
+              "rowsWritten": 1,
+              "strictCountComparison": true
+            },
+            "created_at": "2026-09-05 06:49:59.584849-07:00"
+          },
+          "checkpoint": null,
+          "incrementalWindow": null,
+          "pendingEvents": 0,
+          "appliedEvents": 0
+        },
+        {
+          "className": "Spec",
+          "coverageStatus": "synchronized",
+          "coverageReason": "approved_contract_required",
+          "role": "context",
+          "sourceSchema": "CamstarPRD_SCHEMA",
+          "sourceTable": "Spec",
+          "catalogRows": 9,
+          "contractKey": "opcenter2607-core:spec:v1",
+          "contractVersion": 2,
+          "contractStatus": "approved",
+          "selectedColumns": 106,
+          "strategy": "snapshot",
+          "strategyExplicit": true,
+          "extractionMode": "keyset_snapshot",
+          "activeObjectCount": 9,
+          "activeQuarantineCount": 0,
+          "scopeExclusionCount": 0,
+          "reconciliation": {
+            "class_name": "Spec",
+            "mode": "snapshot",
+            "source_count": 9,
+            "release_count": 9,
+            "difference": 0,
+            "status": "verified",
+            "details": {
+              "quarantined": 0,
+              "rowsWritten": 9,
+              "strictCountComparison": true
+            },
+            "created_at": "2026-09-05 06:49:59.584849-07:00"
+          },
+          "checkpoint": null,
+          "incrementalWindow": null,
+          "pendingEvents": 0,
+          "appliedEvents": 0
+        },
+        {
+          "className": "Workflow",
+          "coverageStatus": "synchronized",
+          "coverageReason": "approved_contract_required",
+          "role": "context",
+          "sourceSchema": "CamstarPRD_SCHEMA",
+          "sourceTable": "Workflow",
+          "catalogRows": 2,
+          "contractKey": "opcenter2607-core:workflow:v1",
+          "contractVersion": 2,
+          "contractStatus": "approved",
+          "selectedColumns": 23,
+          "strategy": "snapshot",
+          "strategyExplicit": true,
+          "extractionMode": "keyset_snapshot",
+          "activeObjectCount": 2,
+          "activeQuarantineCount": 0,
+          "scopeExclusionCount": 0,
+          "reconciliation": {
+            "class_name": "Workflow",
+            "mode": "snapshot",
+            "source_count": 2,
+            "release_count": 2,
+            "difference": 0,
+            "status": "verified",
+            "details": {
+              "quarantined": 0,
+              "rowsWritten": 2,
+              "strictCountComparison": true
+            },
+            "created_at": "2026-09-05 06:49:59.584849-07:00"
+          },
+          "checkpoint": null,
+          "incrementalWindow": null,
+          "pendingEvents": 0,
+          "appliedEvents": 0
+        },
+        {
+          "className": "WorkflowStep",
+          "coverageStatus": "synchronized",
+          "coverageReason": "approved_contract_required",
+          "role": "context",
+          "sourceSchema": "CamstarPRD_SCHEMA",
+          "sourceTable": "WorkflowStep",
+          "catalogRows": 24,
+          "contractKey": "opcenter2607-core:workflowstep:v1",
+          "contractVersion": 2,
+          "contractStatus": "approved",
+          "selectedColumns": 25,
+          "strategy": "snapshot",
+          "strategyExplicit": true,
+          "extractionMode": "keyset_snapshot",
+          "activeObjectCount": 9,
+          "activeQuarantineCount": 0,
+          "scopeExclusionCount": 15,
+          "reconciliation": {
+            "class_name": "WorkflowStep",
+            "mode": "snapshot",
+            "source_count": 24,
+            "release_count": 24,
+            "difference": 0,
+            "status": "verified",
+            "details": {
+              "quarantined": 0,
+              "rowsWritten": 24,
+              "strictCountComparison": true
+            },
+            "created_at": "2026-09-05 06:49:59.584849-07:00"
+          },
+          "checkpoint": null,
+          "incrementalWindow": null,
+          "pendingEvents": 0,
+          "appliedEvents": 0
+        }
+      ],
+      "summary": {
+        "classes": 6,
+        "synchronized": 6,
+        "modelOnly": 0,
+        "excluded": 0,
+        "missing": 0,
+        "activeObjects": 26,
+        "scopeExclusions": 15,
+        "pendingEvents": 0,
+        "failedReconciliations": 0,
+        "relationships": 17,
+        "resolvedRelationships": 17,
+        "pendingRelationships": 0
+      },
+      "pipeline": [
+        "freeze_source_window",
+        "capture_idempotently",
+        "quality_and_count_reconcile",
+        "activate_immutable_release"
+      ],
+      "automation": {
+        "schedule": {
+          "profile_key": "opcenter2607-core",
+          "job_name": "camstar-full",
+          "enabled": false,
+          "interval_minutes": 15,
+          "max_attempts": 3,
+          "retry_backoff_seconds": 60,
+          "next_run_at": null,
+          "lease_until": null,
+          "last_run_id": "4a062c97-d62d-41c0-938f-67dcb4351019",
+          "updated_at": "2026-08-21 06:44:23.534090-07:00"
+        },
+        "worker": {
+          "worker_id": "codex-stage3-validation",
+          "last_seen_at": "2026-08-21 06:28:47.244112-07:00",
+          "metadata": {
+            "host": "DI1CNSHA0429WNB"
+          },
+          "online": false
+        },
+        "recentRuns": [
+          {
+            "run_id": "0a99c5bf-7763-4b18-b8b2-80109e614796",
+            "trigger_type": "manual",
+            "status": "running",
+            "attempt": 1,
+            "scheduled_for": "2026-09-05 06:49:58.558751-07:00",
+            "next_retry_at": null,
+            "actor": "codex-postgres-acceptance",
+            "release_id": null,
+            "error": null,
+            "metrics": {},
+            "started_at": "2026-09-05 06:49:58.566531-07:00",
+            "finished_at": null,
+            "created_at": "2026-09-05 06:49:58.558751-07:00"
+          },
+          {
+            "run_id": "6527de5f-6b92-4050-b6da-94d88da03d6d",
+            "trigger_type": "manual",
+            "status": "succeeded",
+            "attempt": 1,
+            "scheduled_for": "2026-08-21 06:58:45.819867-07:00",
+            "next_retry_at": null,
+            "actor": "local-console",
+            "release_id": "8fa99063-8856-4491-a374-87de8b38127f",
+            "error": null,
+            "metrics": {
+              "activeObjects": 26,
+              "graphStudioMutated": false,
+              "pendingRelationships": 0
+            },
+            "started_at": "2026-08-21 06:58:45.829764-07:00",
+            "finished_at": "2026-08-21 06:58:47.091996-07:00",
+            "created_at": "2026-08-21 06:58:45.819867-07:00"
+          },
+          {
+            "run_id": "648f7b23-e61b-44db-a939-cb72217620ce",
+            "trigger_type": "manual",
+            "status": "succeeded",
+            "attempt": 1,
+            "scheduled_for": "2026-08-21 06:43:04.109024-07:00",
+            "next_retry_at": null,
+            "actor": "local-console",
+            "release_id": "09ff0074-3842-4aef-be32-318d82f29d3b",
+            "error": null,
+            "metrics": {
+              "activeObjects": 26,
+              "graphStudioMutated": false,
+              "pendingRelationships": 0
+            },
+            "started_at": "2026-08-21 06:43:04.120242-07:00",
+            "finished_at": "2026-08-21 06:43:05.459871-07:00",
+            "created_at": "2026-08-21 06:43:04.109024-07:00"
+          },
+          {
+            "run_id": "79450ae7-9e03-4206-876f-c9ce9497f81f",
+            "trigger_type": "manual",
+            "status": "succeeded",
+            "attempt": 1,
+            "scheduled_for": "2026-08-21 06:37:09.369426-07:00",
+            "next_retry_at": null,
+            "actor": "codex-stage4-validation",
+            "release_id": "8fed3c14-dbaa-463b-869a-41323b412863",
+            "error": null,
+            "metrics": {
+              "activeObjects": 26,
+              "graphStudioMutated": false,
+              "pendingRelationships": 0
+            },
+            "started_at": "2026-08-21 06:37:09.386847-07:00",
+            "finished_at": "2026-08-21 06:37:11.314780-07:00",
+            "created_at": "2026-08-21 06:37:09.369426-07:00"
+          },
+          {
+            "run_id": "13abf4aa-eda5-4615-9b91-6982a6a1aa11",
+            "trigger_type": "manual",
+            "status": "failed",
+            "attempt": 1,
+            "scheduled_for": "2026-08-21 06:36:40.298347-07:00",
+            "next_retry_at": "2026-08-21 06:37:41.627663-07:00",
+            "actor": "codex-stage4-validation",
+            "release_id": null,
+            "error": {
+              "type": "ProgrammingError",
+              "message": "(psycopg.errors.IndeterminateDatatype) could not determine data type of parameter $1\n[SQL: \n                UPDATE graphsync.object_version source\n                SET record_status='out_of_scope',\n                    quality_issues=source.quality_issues || jsonb_build_array(\n                        jsonb_build_object(\n                            'rule', 'row_scope.anchor_exists',\n                            'policyKey', %(policy)s,\n                            'reason', %(reason)s\n                        )\n                    )\n                WHERE source.release_id=%(release)s\n                  AND source.contract_key=%(source_contract)s\n                  AND source.record_status='active'\n                  AND NOT EXISTS (\n                      SELECT 1\n                      FROM graphsync.object_version anchor\n                      WHERE anchor.release_id=source.release_id\n                        AND anchor.contract_key=%(anchor_contract)s\n                        AND anchor.record_status='active'\n                        AND anchor.source_values ->> 'WorkflowId' = source.source_values ->> 'WorkflowId'\n                  )\n                ]\n[parameters: {'policy': 'opcenter2607-core:workflowstep:manufacturing-workflow:v1', 'reason': 'WorkflowStep belongs to a Camstar internal workflow outside the governed manufacturing Workflow set', 'release': UUID('4e817512-bc76-4b36-b15b-66d90d60ec3c'), 'source_contract': 'opcenter2607-core:workflowstep:v1', 'anchor_contract': 'opcenter2607-core:workflow:v1'}]\n(Background on this error at: https://sqlalche.me/e/20/f405)"
+            },
+            "metrics": {},
+            "started_at": "2026-08-21 06:36:40.311710-07:00",
+            "finished_at": "2026-08-21 06:36:41.627663-07:00",
+            "created_at": "2026-08-21 06:36:40.298347-07:00"
+          },
+          {
+            "run_id": "4a062c97-d62d-41c0-938f-67dcb4351019",
+            "trigger_type": "scheduled",
+            "status": "succeeded",
+            "attempt": 1,
+            "scheduled_for": "2026-08-21 06:28:44.654431-07:00",
+            "next_retry_at": null,
+            "actor": "worker:codex-stage3-validation",
+            "release_id": "b6da16a9-5f48-4774-b9e1-08bdc076acf7",
+            "error": null,
+            "metrics": {
+              "activeObjects": 41,
+              "graphStudioMutated": false,
+              "pendingRelationships": 15
+            },
+            "started_at": "2026-08-21 06:28:47.271917-07:00",
+            "finished_at": "2026-08-21 06:28:48.522062-07:00",
+            "created_at": "2026-08-21 06:28:47.244112-07:00"
+          },
+          {
+            "run_id": "0ed6c228-01be-44fe-8aa1-d9b460c58633",
+            "trigger_type": "manual",
+            "status": "succeeded",
+            "attempt": 1,
+            "scheduled_for": "2026-08-21 06:27:56.027460-07:00",
+            "next_retry_at": null,
+            "actor": "codex-stage3-validation",
+            "release_id": "89a28413-3dd0-4fa6-bdd2-f911573d91df",
+            "error": null,
+            "metrics": {
+              "activeObjects": 41,
+              "graphStudioMutated": false,
+              "pendingRelationships": 15
+            },
+            "started_at": "2026-08-21 06:27:56.046396-07:00",
+            "finished_at": "2026-08-21 06:27:57.392711-07:00",
+            "created_at": "2026-08-21 06:27:56.027460-07:00"
+          }
+        ]
+      },
+      "scopePolicies": [
+        {
+          "policy_key": "opcenter2607-core:workflowstep:manufacturing-workflow:v1",
+          "source_class": "WorkflowStep",
+          "anchor_class": "Workflow",
+          "source_columns": [
+            "WorkflowId"
+          ],
+          "anchor_columns": [
+            "WorkflowId"
+          ],
+          "reason": "WorkflowStep belongs to a Camstar internal workflow outside the governed manufacturing Workflow set",
+          "enabled": true,
+          "version": 1,
+          "config": {
+            "labelZh": "隔离 Camstar 内部部署审批步骤",
+            "generatedBy": "stage4-scope-governance"
+          }
+        }
+      ]
+    },
+    "executionId": "0a99c5bf-7763-4b18-b8b2-80109e614796"
+  },
+  "prepared": {
+    "deploymentId": "7c2c7a78-665c-4842-a017-c8bc4d3701df",
+    "status": "approved",
+    "plan": {
+      "profileKey": "opcenter2607-core",
+      "routeKey": "opcenter2607-core-dev",
+      "targetKey": "graphmart-d9fe785a6d83",
+      "environment": {
+        "route_key": "opcenter2607-core-dev",
+        "profile_key": "opcenter2607-core",
+        "environment_key": "dev",
+        "target_key": "graphmart-d9fe785a6d83",
+        "title": "Opcenter2607 核心业务图谱 → 开发验证",
+        "promotion_order": 10,
+        "apply_enabled": true,
+        "requires_approval": false,
+        "enabled": true,
+        "config": {
+          "migratedFromEnvironment": true
+        },
+        "updated_at": "2026-08-21 05:29:56.538707-07:00",
+        "target_title": "Opcenter2607 Graphmart",
+        "graphmart_uri": "http://cambridgesemantics.com/Graphmart/947914709e10475db6b9fb8097db0ad0",
+        "connection_key": "graph-studio"
+      },
+      "release": {
+        "release_id": "e6749e0f-22b9-4847-a3c7-f6a29db33d9a",
+        "release_no": 19,
+        "status": "active",
+        "content_hash": "ee140a0a88efb5e17674cb2415deae774f3d647638de2437ab5ce7b8fe330f6a",
+        "object_count": 41,
+        "relationship_count": 17
+      },
+      "ontologyRelease": {
+        "ontology_release_id": "19e6b1cb-7510-4b8e-9eca-f920ecc03e57",
+        "release_no": 5,
+        "status": "active",
+        "content_hash": "5c1200ce7d4703a2ed502d926c5d738f386fe2a273f71cb98087ecb522580f7e",
+        "class_count": 6,
+        "property_count": 547,
+        "relationship_count": 19,
+        "approved_by": "local-console",
+        "activated_at": "2026-08-22 01:12:50.362889-07:00"
+      },
+      "slot": "green",
+      "ready": true,
+      "blockers": [],
+      "applyEnabled": true,
+      "approvalRequired": false,
+      "previousDeploymentId": "ceb6fe6a-c994-4dd0-8347-86c40249020a",
+      "strategy": "immutable_artifact_blue_green_layer"
+    },
+    "artifact": {
+      "modelUri": "https://opcenter.siemens.com/ontology/camstar/2607/publish/releases/19e6b1cb-7510-4b8e-9eca-f920ecc03e57",
+      "modelPath": "D:\\Deepseek\\camstar\\Knowledge\\outputs\\graphstudio\\deployments\\e6749e0f-22b9-4847-a3c7-f6a29db33d9a--19e6b1cb-7510-4b8e-9eca-f920ecc03e57\\curated_model.trig",
+      "ttlPath": "D:\\Deepseek\\camstar\\Knowledge\\outputs\\graphstudio\\deployments\\e6749e0f-22b9-4847-a3c7-f6a29db33d9a--19e6b1cb-7510-4b8e-9eca-f920ecc03e57\\curated_data.ttl",
+      "zipPath": "D:\\Deepseek\\camstar\\Knowledge\\outputs\\graphstudio\\deployments\\e6749e0f-22b9-4847-a3c7-f6a29db33d9a--19e6b1cb-7510-4b8e-9eca-f920ecc03e57\\curated_data.zip",
+      "tripleCount": 3156,
+      "dataTripleCount": 852,
+      "modelTripleCount": 2304,
+      "objectCount": 26,
+      "relationshipCount": 17,
+      "publishedClassUris": [
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#Container",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#MfgOrder",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#Product",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#Spec",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#Workflow",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#WorkflowStep"
+      ],
+      "publishedRelationshipUris": [
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_BATCH",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_BEGIN_PRODUCT",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_FIRST_STEP",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_ISSUED_TO_CONTAINER",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_IS_WORKFLOW",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_MFG_ORDER",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_ORIGINAL_CONTAINER",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_PARENT_CONTAINER",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_PLANNED_PRODUCT",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_PRODUCT",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_SLIT_PRODUCT",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_SPEC",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_SPLIT_FROM",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_START_PARENT_CONTAINER",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_HAS_WORKFLOW",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_ORDERED_PRODUCT",
+        "https://opcenter.siemens.com/ontology/camstar/2607/publish#REL_RELATED_TO"
+      ],
+      "ontologyReleaseId": "19e6b1cb-7510-4b8e-9eca-f920ecc03e57",
+      "ontologyReleaseNo": 5,
+      "artifactHash": "802e8f9daef2eab29e812695c91987ff66e16c5135777c7866ddbbbf2b572a3c"
+    }
+  },
+  "error": "HTTPSConnectionPool(host='gs.siemens-icx.com.cn', port=8443): Max retries exceeded with url: /api/utils/serverVersion (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028)')))",
+  "retryErrorType": "SSLError",
+  "deploymentFailure": {
+    "status": "failed",
+    "error": {
+      "stage": "graphstudio_preflight",
+      "message": "HTTPSConnectionPool(host='gs.siemens-icx.com.cn', port=8443): Max retries exceeded with url: /api/utils/serverVersion (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028)')))",
+      "retryable": true,
+      "remoteMutated": false
+    }
+  },
+  "publicationCheckpointUnchanged": true,
+  "rollback": {
+    "profileKey": "opcenter2607-core",
+    "activeReleaseId": "b2bc8201-5ea3-4b96-9254-ec120cea41b5",
+    "rolledBackReleaseId": "e6749e0f-22b9-4847-a3c7-f6a29db33d9a"
+  }
+}

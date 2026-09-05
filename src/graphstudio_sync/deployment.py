@@ -1474,6 +1474,29 @@ def _reload_graphmart(
     return graph_status
 
 
+def _publication_preflight(session, settings, repository, deployment_id, graphmart_uri, transport):
+    """Record read-only connection failures before any remote mutation occurs."""
+    try:
+        require_graphstudio_2026_1_ready(
+            session, settings.graphstudio_base_url,
+            graphmart_uri=graphmart_uri,
+            file_connection=settings.shared_file_connection if transport == "shared_store" else None,
+            file_path=settings.shared_file_path,
+        )
+    except Exception as exc:
+        session.close()
+        with repository.engine.begin() as connection:
+            connection.execute(text("""
+                UPDATE graphsync.deployment_release
+                SET status='failed', finished_at=now(), error=CAST(:error AS jsonb)
+                WHERE deployment_id=:id AND status IN ('approved','failed')
+            """), {"id": deployment_id, "error": json.dumps({
+                "stage": "graphstudio_preflight", "message": str(exc),
+                "retryable": True, "remoteMutated": False,
+            })})
+        raise
+
+
 def apply_deployment(
     settings: SyncSettings,
     repository: ControlPlaneRepository,
@@ -1616,13 +1639,8 @@ def _apply_deployment(settings, repository, *, deployment_id):
     session.headers.update({"Accept": "application/json", "Accept-Encoding": "identity"})
     base = settings.graphstudio_base_url
     configure_graphstudio_tls(session, base, settings.graphstudio_tls_fingerprint)
-    require_graphstudio_2026_1_ready(
-        session,
-        base,
-        graphmart_uri=deployment["graphmart_uri"],
-        file_connection=settings.shared_file_connection if transport == "shared_store" else None,
-        file_path=settings.shared_file_path,
-    )
+    _publication_preflight(session, settings, repository, deployment_id,
+                           deployment["graphmart_uri"], transport)
     graphmart_uri = deployment["graphmart_uri"]
     encoded_graphmart = quote(graphmart_uri, safe="")
     previous_layer_uri, skipped_previous_layer_uri, previous_target_mismatch = (

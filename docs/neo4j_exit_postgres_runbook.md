@@ -54,6 +54,19 @@ python -m uvicorn web.server:app --host 0.0.0.0 --port 5050
 
 ## 后续观察与退出
 
+### 第二阶段实际验证（2026-09-05）
+
+- 全程禁止创建 Neo4j 驱动，使用 PostgreSQL 模型后端运行真实 Camstar 数据同步；生成治理版本 R19（`e6749e0f-22b9-4847-a3c7-f6a29db33d9a`）。
+- 当前六类对象使用已批准的小表快照策略；没有待处理增量事件。本轮验证的是实际快照刷新，不是 CT/CDC 增量验收，也未人为修改 Camstar 数据。
+- 为 Dev 准备部署 `7c2c7a78-665c-4842-a017-c8bc4d3701df`，模型版本仍为 R5；制品为 26 个发布对象、17 条关系，模型 2,304 三元组、实例 852 三元组。
+- 发布在 `https://gs.siemens-icx.com.cn:8443/api/utils/serverVersion` 的 TLS 握手阶段收到 `UNEXPECTED_EOF_WHILE_READING`。默认网络与禁用环境代理直连均失败。未绕过 TLS 校验或修改证书指纹。
+- 此失败发生在任何 Graph Studio 写入前，发布 checkpoint 保持不变。新增发布前异常记录：`stage=graphstudio_preflight`、`retryable=true`、`remoteMutated=false`，状态为 failed。
+- 实际执行 PostgreSQL 数据回滚并验证成功，活动数据恢复为 `b2bc8201-5ea3-4b96-9254-ec120cea41b5`；R19 保留为 rolled_back，不删除制品和历史证据。
+- 新增两项发布前检查测试，连同 inline 发布及平台测试共 78 项通过。
+- 详细记录：`outputs/graphstudio/postgres_phase2_acceptance.json`。
+
+继续验收前先恢复 Graph Studio HTTPS 入口，再重新运行数据同步生成经验证的新版本并走 Dev 发布流程。不要直接将 rolled_back 数据版本改为 active 来绕过校验。UAT/Prod 开关未改变。成功发布与真实增量验收仍未完成，不据此退役 Neo4j。
+
 第一阶段完成模型存储替换与历史迁移；第二阶段观察至少一个真实业务更新、一次受控发布与一次回滚；第三阶段经用户确认后退役 Neo4j 服务及旧代码。
 
 仍保留的旧 Wiki/RAG/Cypher 专家路径可能依赖 Neo4j，在 PG 模式调用会明确报错，不能把它们视为已迁移。主链路 G6、目录、发布和数据同步已支持 PG。`neo4j` Python 包及旧模块暂不删除。
