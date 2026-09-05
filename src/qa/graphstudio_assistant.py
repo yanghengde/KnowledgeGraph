@@ -23,7 +23,6 @@ from openai import AsyncOpenAI
 
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.deployment import deployment_status
-from src.graphstudio_sync.publish_ontology import release_graph
 from src.graphstudio_sync.repository import ControlPlaneRepository
 
 
@@ -59,7 +58,7 @@ class GraphStudioAssistantError(RuntimeError):
 
 
 def _runtime_cache_key(snapshot: dict[str, Any]) -> str:
-    return "::".join(str(snapshot.get(key) or "") for key in (
+    return "graphstudio-schema-v2::" + "::".join(str(snapshot.get(key) or "") for key in (
         "profileKey", "routeKey", "deploymentId", "ontologyReleaseId",
         "curatedReleaseId", "artifactHash",
     ))
@@ -239,11 +238,18 @@ def _binding_rows(payload: dict[str, Any]) -> list[dict[str, str]]:
     return rows
 
 
+def _runtime_layer(runtime_snapshot: dict[str, Any]) -> str:
+    layer = str(runtime_snapshot.get("layerUri") or "")
+    if not layer.startswith(("http://", "https://")) or re.search(r'[<>\s"{}]', layer):
+        raise GraphStudioAssistantError("活动部署缺少有效的数据层地址")
+    return layer
+
+
 def _instance_counts(runtime_snapshot: dict[str, Any]) -> dict[str, int]:
-    query = """
-        SELECT ?class (COUNT(DISTINCT ?instance) AS ?instanceCount) WHERE {
-          ?instance a ?class .
-        }
+    query = f"""
+        SELECT ?class (COUNT(DISTINCT ?instance) AS ?instanceCount) WHERE {{
+          GRAPH <{_runtime_layer(runtime_snapshot)}> {{ ?instance a ?class . }}
+        }}
         GROUP BY ?class
         LIMIT 600
     """
@@ -270,7 +276,7 @@ def _relationship_counts(
     """Count materialized publish relationships in the active Graphmart."""
     query = f"""
         SELECT ?relationship (COUNT(*) AS ?relationshipCount) WHERE {{
-          ?source ?relationship ?target .
+          GRAPH <{_runtime_layer(runtime_snapshot)}> {{ ?source ?relationship ?target . }}
           FILTER(STRSTARTS(
             STR(?relationship),
             "{_PUBLISH_NAMESPACE}REL_"
@@ -363,20 +369,54 @@ def _schema_rows_from_release(
 def _discover_schema_uncached(
     runtime_snapshot: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    try:
-        settings = SyncSettings.from_env()
-        model = release_graph(
-            settings, str(runtime_snapshot["ontologyReleaseId"]),
-        )
-    except Exception as exc:
+    # The published layer contains both the immutable model and business data.
+    # The modeling Neo4j service is not a runtime dependency for answers.
+    layer = _runtime_layer(runtime_snapshot)
+    query = f"""
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX pub: <{_PUBLISH_NAMESPACE}>
+        SELECT DISTINCT ?class ?classLabel ?property ?propertyLabel
+                        ?dataType ?targetClass ?valueKind ?role ?questionEnabled
+        WHERE {{ GRAPH <{layer}> {{
+          ?class a owl:Class .
+          FILTER(STRSTARTS(STR(?class), "{_PUBLISH_NAMESPACE}"))
+          OPTIONAL {{ ?class rdfs:label ?classLabel }}
+          OPTIONAL {{ ?class pub:role ?role }}
+          {{ BIND("" AS ?property) BIND("对象类型" AS ?valueKind) }}
+          UNION {{
+            ?property a owl:DatatypeProperty ; rdfs:domain ?class .
+            OPTIONAL {{ ?property rdfs:label ?propertyLabel }}
+            OPTIONAL {{ ?property rdfs:range ?dataType }}
+            BIND("属性" AS ?valueKind)
+          }}
+          UNION {{
+            ?property a owl:ObjectProperty ; rdfs:domain ?class ; rdfs:range ?targetClass .
+            OPTIONAL {{ ?property rdfs:label ?propertyLabel }}
+            OPTIONAL {{ ?property pub:questionEnabled ?questionEnabled }}
+            BIND("关系" AS ?valueKind)
+          }}
+        }} }} ORDER BY ?class ?valueKind ?property LIMIT 10001
+    """
+    rows = _binding_rows(_request_sparql(query, runtime_snapshot=runtime_snapshot))
+    if not rows or len(rows) > 10000:
         raise GraphStudioAssistantError(
-            f"无法读取活动本体 R{runtime_snapshot.get('ontologyReleaseNo')}：{exc}"
-        ) from exc
-    return _schema_rows_from_release(
-        model,
-        _instance_counts(runtime_snapshot),
-        _relationship_counts(runtime_snapshot),
-    )
+            "Graph Studio 活动数据层未返回完整的已发布本体，请检查模型发布状态"
+        )
+    instance_counts = _instance_counts(runtime_snapshot)
+    relationship_counts = _relationship_counts(runtime_snapshot)
+    result = []
+    for row in rows:
+        entry = {**row, "role": row.get("role") or "context",
+                 "instanceCount": instance_counts.get(row["class"], 0)}
+        if row.get("valueKind") == "关系":
+            entry["questionEnabled"] = row.get("questionEnabled", "true").lower() not in {"false", "0"}
+            entry["relationshipCount"] = (
+                relationship_counts.get(row["property"], 0)
+                if relationship_counts is not None else None
+            )
+        result.append(entry)
+    return result
 
 
 def _load_persisted_schema(
