@@ -19,7 +19,7 @@ from typing import Any, AsyncIterator
 from urllib.parse import quote
 
 import requests
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, BadRequestError
 
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.deployment import deployment_status
@@ -599,13 +599,19 @@ def _extract_json(text: str) -> dict[str, Any]:
     try:
         payload = json.loads(candidate)
     except json.JSONDecodeError:
-        match = re.search(r"\{[\s\S]*\}", candidate)
-        if not match:
-            raise GraphStudioAssistantError("模型没有生成可验证的查询计划")
-        try:
-            payload = json.loads(match.group(0))
-        except json.JSONDecodeError as exc:
-            raise GraphStudioAssistantError("模型生成的查询计划格式不正确") from exc
+        # raw_decode handles braces inside SPARQL strings and trailing prose.
+        # Never repair truncated JSON or invent query text.
+        payload = None
+        for match in re.finditer(r"\{", candidate):
+            try:
+                value, _ = json.JSONDecoder().raw_decode(candidate[match.start():])
+            except json.JSONDecodeError:
+                continue
+            if isinstance(value, dict):
+                payload = value
+                break
+        if payload is None:
+            raise GraphStudioAssistantError("模型生成的查询计划格式不正确")
     if not isinstance(payload, dict):
         raise GraphStudioAssistantError("模型生成的查询计划格式不正确")
     return payload
@@ -638,6 +644,8 @@ async def _plan_query(
         "把用户问题转换为一条 SPARQL SELECT。只能使用上下文中存在的完整 URI，不得猜测字段。"
         "关系连接只能使用标记为‘问答可用：是’的可执行关系；标记为‘问答可用：否’的关系即使路径更短也禁止使用。"
         "对象之间必须使用 REL_ 开头的关系 URI连接，Navigation/ID 普通属性不得代替对象关系。"
+        "用户说‘当前发布的订单/产品/数据’默认指当前 Graph Studio 发布版本中的记录，"
+        "不代表 MES 订单下达状态；除非用户明确要求业务状态，否则不要添加发布状态或日期过滤。"
         "禁止 INSERT、DELETE、LOAD、CLEAR、CREATE、DROP、COPY、MOVE、ADD 和 SERVICE。"
         "明细查询最多返回100条。输出严格 JSON："
         '{"sparql":"...","understanding":"一句中文查询理解"}。'
@@ -647,25 +655,44 @@ async def _plan_query(
     messages = [{"role": "system", "content": system}]
     messages.extend(_history_for_model(history))
     messages.append({"role": "user", "content": question})
-    try:
-        response = await client.chat.completions.create(
-            model=model,
-            messages=messages,
-            response_format={"type": "json_object"},
-            temperature=0.0,
-            max_tokens=2200,
-        )
-    except Exception:
-        response = await client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=0.0,
-            max_tokens=2200,
-        )
-    payload = _extract_json(response.choices[0].message.content or "")
-    return validate_readonly_sparql(str(payload.get("sparql") or "")), str(
-        payload.get("understanding") or "制造知识图谱查询"
-    )
+    json_mode = True
+    last_error = None
+    for attempt in range(3):
+        options = dict(model=model, messages=messages, temperature=0.0,
+                       max_tokens=2200 if attempt == 0 else 4400)
+        if json_mode:
+            options["response_format"] = {"type": "json_object"}
+        try:
+            response = await client.chat.completions.create(**options)
+        except BadRequestError as exc:
+            if json_mode and "response_format" in str(exc):
+                json_mode = False
+                last_error = exc
+                continue
+            raise
+        try:
+            if not response.choices or response.choices[0].finish_reason == "length":
+                raise GraphStudioAssistantError("模型查询计划被截断")
+            payload = _extract_json(response.choices[0].message.content or "")
+            if not isinstance(payload.get("sparql"), str) or not payload["sparql"].strip():
+                raise GraphStudioAssistantError("模型查询计划缺少 sparql 字段")
+            query = validate_readonly_sparql(payload["sparql"])
+            from rdflib.plugins.sparql.parser import parseQuery
+            try:
+                parseQuery(query)
+            except Exception as exc:
+                raise GraphStudioAssistantError("模型查询计划的 SPARQL 语法不正确") from exc
+            return query, str(payload.get("understanding") or "制造知识图谱查询")
+        except GraphStudioAssistantError as exc:
+            last_error = exc
+            messages.append({"role": "user", "content": (
+                "上次查询计划未通过校验：" + str(exc) +
+                "。请重新输出完整 JSON 对象，只包含字符串 sparql 和 understanding。"
+                "sparql 必须是合法只读 SELECT；不要输出解释、Markdown 或不完整内容。"
+            )})
+    raise GraphStudioAssistantError(
+        "查询计划生成失败，已自动重试；尚未查询业务数据，请重试本问题。"
+    ) from last_error
 
 
 async def _select_saved_query(
@@ -827,6 +854,8 @@ async def graphstudio_query_stream(
             "不得补充证据中不存在的订单、产品、状态、数量或日期。使用简洁专业的中文，"
             "先给结论，再给必要明细。没有结果时明确说当前发布数据未找到记录。"
             "对于 URI，优先显示 # 或最后一个 / 后的业务标识。"
+            "‘当前发布’默认指当前 Graph Studio 数据版本，不能混同为 MES 订单下达状态；"
+            "用户没有询问业务状态时，不要声称必须有状态字典才能列出已发布记录。"
         ),
     }]
     messages.extend(_history_for_model(history))

@@ -211,7 +211,7 @@ def test_relationship_counts_reads_only_materialized_publish_edges(monkeypatch):
 
     monkeypatch.setattr(assistant, "_request_sparql", fake_request)
 
-    counts = assistant._relationship_counts({"cacheKey": "release-15"})
+    counts = assistant._relationship_counts({"cacheKey": "release-15", "layerUri": "https://example.com/layer"})
 
     assert counts == {namespace + "REL_ORDERED_PRODUCT": 5}
     assert "REL_" in captured["query"]
@@ -224,7 +224,7 @@ def test_relationship_count_probe_failure_does_not_turn_unknown_into_zero(monkey
 
     monkeypatch.setattr(assistant, "_request_sparql", fail_request)
 
-    assert assistant._relationship_counts({"cacheKey": "release-15"}) is None
+    assert assistant._relationship_counts({"cacheKey": "release-15", "layerUri": "https://example.com/layer"}) is None
 
 
 def test_schema_cache_is_invalidated_by_runtime_version(monkeypatch):

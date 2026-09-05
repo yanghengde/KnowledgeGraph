@@ -40,3 +40,50 @@ def test_empty_published_schema_fails_without_switching_source(monkeypatch):
 def test_invalid_layer_is_not_interpolated_into_query():
     with pytest.raises(assistant.GraphStudioAssistantError):
         assistant._discover_schema_uncached({'layerUri': 'https://example.com/> } UNION {'})
+
+
+def test_plan_parser_handles_prose_without_repairing_truncation():
+    import json
+    query = 'SELECT ?s WHERE { ?s ?p "brace }" } LIMIT 10'
+    assert assistant._extract_json('Plan: ' + json.dumps({'sparql': query}) + ' Done {text}')['sparql'] == query
+    with pytest.raises(assistant.GraphStudioAssistantError):
+        assistant._extract_json('{"sparql": "SELECT')
+
+
+@pytest.mark.parametrize('bad_content,finish', [
+    ('{"sparql": "SELECT', 'stop'),
+    ('{"sparql": "SELECT ?s WHERE { ?s ?p ?o }"}', 'length'),
+    ('{"sparql": "DELETE WHERE { ?s ?p ?o }"}', 'stop'),
+    ('{"sparql": "SELECT ?s WHERE {"}', 'stop'),
+    ('{"sparql": {"query": "SELECT * WHERE {}"}}', 'stop'),
+])
+def test_planner_retries_invalid_output_then_validates(monkeypatch, bad_content, finish):
+    import asyncio
+    from types import SimpleNamespace
+    calls = []
+    async def create(**kwargs):
+        calls.append(kwargs)
+        content = bad_content if len(calls) == 1 else '{"sparql": "SELECT ?s WHERE { ?s ?p ?o }", "understanding": "objects"}'
+        return SimpleNamespace(choices=[SimpleNamespace(
+            finish_reason=finish if len(calls) == 1 else 'stop',
+            message=SimpleNamespace(content=content))])
+    monkeypatch.setattr(assistant, '_get_llm', lambda: SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=create))))
+    query, _ = asyncio.run(assistant._plan_query('list objects', [], 'schema'))
+    assert len(calls) == 2
+    assert query.endswith('LIMIT 100')
+
+
+def test_planner_stops_after_bounded_retries(monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    calls = []
+    async def create(**kwargs):
+        calls.append(kwargs)
+        return SimpleNamespace(choices=[SimpleNamespace(
+            finish_reason='stop', message=SimpleNamespace(content='invalid'))])
+    monkeypatch.setattr(assistant, '_get_llm', lambda: SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=create))))
+    with pytest.raises(assistant.GraphStudioAssistantError, match='尚未查询业务数据'):
+        asyncio.run(assistant._plan_query('list objects', [], 'schema'))
+    assert len(calls) == 3
