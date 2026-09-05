@@ -67,6 +67,15 @@ python -m uvicorn web.server:app --host 0.0.0.0 --port 5050
 
 继续验收前先恢复 Graph Studio HTTPS 入口，再重新运行数据同步生成经验证的新版本并走 Dev 发布流程。不要直接将 rolled_back 数据版本改为 active 来绕过校验。UAT/Prod 开关未改变。成功发布与真实增量验收仍未完成，不据此退役 Neo4j。
 
+### HTTPS 复查与服务状态（2026-09-05）
+
+- 用户确认 Graph Studio 服务已关机，当前发布验收等待服务启动；不再据 TLS EOF 推断应用代码或证书配置错误。
+- 本机 DNS 经 Meta 隧道返回 `198.18.1.121`，公共 DNS 返回 `8.163.40.82`。本机域名、真实地址保留 SNI、显式本机代理路径均出现 TLS EOF；这些探测无法独立区分服务状态与中间网络影响。
+- 新增只读诊断命令：`python scripts/check/diagnose_graphstudio_https.py --output outputs/graphstudio/https_diagnostics.json`。不连接 PG/Neo4j、不发送账号密码、不跟随重定向，沿用配置的证书指纹或系统 CA 校验。报告分开记录 DNS、TCP、HTTPS；忽略环境代理及 netrc，但仍受操作系统 VPN 路由影响。
+- 最新诊断为 TCP 可连接、HTTPS 握手失败。TCP 可连接不能作为 Graph Studio 已启动的依据。退出码 0 仅表示 HTTPS 已通过校验（可能返回 401），不等于认证或发布就绪。
+- 服务启动后先重跑上述命令，再执行原有认证与版本检查、生成新数据版本并发布到 Dev。当前没有新增数据版本或发布尝试，前一阶段回滚结果保持不变。
+- 诊断及发布前异常测试共 6 项通过。详细网络报告见 `outputs/graphstudio/https_diagnostics.json`。
+
 第一阶段完成模型存储替换与历史迁移；第二阶段观察至少一个真实业务更新、一次受控发布与一次回滚；第三阶段经用户确认后退役 Neo4j 服务及旧代码。
 
 仍保留的旧 Wiki/RAG/Cypher 专家路径可能依赖 Neo4j，在 PG 模式调用会明确报错，不能把它们视为已迁移。主链路 G6、目录、发布和数据同步已支持 PG。`neo4j` Python 包及旧模块暂不删除。
