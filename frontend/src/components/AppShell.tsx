@@ -37,12 +37,12 @@ export function AppShell() {
 
   const primaryItems = [
     { key: "/overview", icon: <DashboardOutlined />, label: "制造数据总览" },
+    { key: "/connections", icon: <DatabaseOutlined />, label: "数据源与连接" },
+    { key: "/ontology-model", icon: <ApartmentOutlined />, label: "制造语义模型" },
+    { key: "/data-sync", icon: <CloudSyncOutlined />, label: "制造数据同步" },
+    { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },
     { key: "/queries", icon: <ApiOutlined />, label: "图谱查询能力" },
     { key: "/assistant", icon: <CommentOutlined />, label: "制造知识问答" },
-    { key: "/connections", icon: <DatabaseOutlined />, label: "数据源与连接" },
-    { key: "/data-sync", icon: <CloudSyncOutlined />, label: "制造数据同步" },
-    { key: "/ontology-model", icon: <ApartmentOutlined />, label: "制造语义模型" },
-    { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },
   ];
   const legacyItems = [
     { key: "legacy-ontology", icon: <ApartmentOutlined />, label: "旧版语义工作台（兼容）" },
