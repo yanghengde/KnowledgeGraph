@@ -144,6 +144,7 @@ def _get_llm() -> AsyncOpenAI:
 
 
 def _configuration() -> dict[str, str]:
+    from src.graphstudio_sync.config import normalize_graphstudio_url
     values = {
         "base_url": os.getenv("GRAPHSTUDIO_BASE_URL", "").strip().rstrip("/"),
         "username": os.getenv("GRAPHSTUDIO_USER", "").strip(),
@@ -156,6 +157,7 @@ def _configuration() -> dict[str, str]:
             "制造知识问答尚未完成 Graph Studio 连接配置："
             + "、".join(missing)
         )
+    values["base_url"] = normalize_graphstudio_url(values["base_url"])
     return values
 
 
@@ -176,8 +178,12 @@ def _request_sparql(
     response = None
     last_error: requests.RequestException | None = None
     for attempt in range(4):
+        session = None
         try:
-            response = requests.post(
+            from src.graphstudio_sync.transport import configure_graphstudio_tls
+            fingerprint = os.getenv("GRAPHSTUDIO_TLS_FINGERPRINT", "").strip()
+            session = configure_graphstudio_tls(requests.Session(), config["base_url"], fingerprint) if fingerprint else None
+            response = (session.post if session else requests.post)(
                 _sparql_endpoint(
                     config,
                     str(runtime_snapshot.get("graphmartUri"))
@@ -195,6 +201,9 @@ def _request_sparql(
                 break
         except (requests.ConnectionError, requests.Timeout) as exc:
             last_error = exc
+        finally:
+            if session:
+                session.close()
         if attempt < 3:
             time.sleep(0.35 * (2**attempt))
     if response is None:

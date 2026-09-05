@@ -258,6 +258,7 @@ def build_plan(settings: SyncSettings) -> dict[str, Any]:
 
 
 def check_graphstudio(settings: SyncSettings) -> dict[str, Any]:
+    from .transport import configure_graphstudio_tls
     session = requests.Session()
     session.mount(
         "https://",
@@ -274,6 +275,7 @@ def check_graphstudio(settings: SyncSettings) -> dict[str, Any]:
         ),
     )
     session.auth = (settings.graphstudio_user, settings.graphstudio_password)
+    configure_graphstudio_tls(session, settings.graphstudio_base_url, settings.graphstudio_tls_fingerprint)
     session.headers.update({"Accept": "application/json", "Accept-Encoding": "identity"})
     graphmart_url = f"{settings.graphstudio_base_url}/api/graphmarts/{requests.utils.quote(settings.graphmart_uri, safe='')}"
     graphmart = session.get(graphmart_url, timeout=60)

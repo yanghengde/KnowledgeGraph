@@ -13,7 +13,8 @@ from requests.adapters import HTTPAdapter
 from sqlalchemy import text
 from urllib3.util.retry import Retry
 
-from .config import SyncSettings
+from .config import SyncSettings, normalize_graphstudio_url
+from .transport import configure_graphstudio_tls
 from .database import control_engine
 from .graphstudio_api import require_graphstudio_2026_1_ready
 from .repository import ControlPlaneRepository
@@ -62,7 +63,7 @@ def settings_from_profiles(
     graph_studio = by_key.get("graph-studio")
     if graph_studio:
         config = graph_studio.get("config") or {}
-        values["graphstudio_base_url"] = graph_studio["endpoint"].rstrip("/")
+        values["graphstudio_base_url"] = normalize_graphstudio_url(graph_studio["endpoint"])
         values["graphstudio_user"] = graph_studio.get("username") or base.graphstudio_user
         values["graphmart_uri"] = graph_studio.get("database_name") or base.graphmart_uri
         values["shared_file_connection"] = config.get("fileConnection") or base.shared_file_connection
@@ -143,11 +144,12 @@ def _test_graphstudio(settings: SyncSettings) -> dict[str, Any]:
             )
         ),
     )
+    configure_graphstudio_tls(session, settings.graphstudio_base_url, settings.graphstudio_tls_fingerprint)
     server = require_graphstudio_2026_1_ready(
         session,
         settings.graphstudio_base_url,
         graphmart_uri=settings.graphmart_uri,
-        file_connection=settings.shared_file_connection,
+        file_connection=settings.shared_file_connection if settings.graphstudio_publish_transport == "shared_store" else None,
         file_path=settings.shared_file_path,
     )
     response = session.get(

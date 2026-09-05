@@ -21,6 +21,7 @@ from .graphstudio_api import require_graphstudio_2026_1_ready
 from .materialization import content_hash
 from .publish_ontology import active_release as active_ontology_release, release_graph
 from .repository import ControlPlaneRepository
+from .transport import configure_graphstudio_tls
 
 
 DEPLOYMENT_ROOT = PROJECT_ROOT / "outputs" / "graphstudio" / "deployments"
@@ -1097,8 +1098,6 @@ def _requires_dataset_replacement(
     )
     replacement_markers = (
         "Remove obsolete deployment dataset failed",
-        "ErrorCode[10503]",
-        "Permission denied",
     )
     return any(marker in previous_error_message for marker in replacement_markers)
 
@@ -1144,8 +1143,9 @@ def _ensure_load_step(
     base: str,
     *,
     layer_uri: str,
-    catalog: str,
+    catalog: str | None,
     model_uri: str,
+    inline_query: str | None = None,
 ) -> str:
     encoded_layer = quote(layer_uri, safe="")
     steps = _require(session.get(f"{base}/api/layers/{encoded_layer}/steps", timeout=60), "List layer steps")
@@ -1159,6 +1159,14 @@ def _ensure_load_step(
         "ontology": [model_uri],
         "ignoreLoadErrors": False,
     }
+    if inline_query is not None:
+        step_payload = {
+            "title": title,
+            "type": "QueryStep",
+            "source": [GM_SELF],
+            "ontology": [model_uri],
+            "transformQuery": inline_query,
+        }
     if existing:
         step_uri = _find_uri(existing, ("uri", "stepUri"))
         if not step_uri:
@@ -1185,7 +1193,46 @@ def _ensure_load_step(
         step_uri = _find_uri(result, ("uri", "stepUri"))
     if not step_uri:
         raise RuntimeError("Graph Studio load step response has no URI")
+    if inline_query is not None:
+        saved = _require(session.get(
+            f"{base}/api/steps/{quote(step_uri, safe='')}",
+            params={"expand": "transformQuery"}, timeout=60,
+        ), "Verify stored RDF query")
+        if saved.get("type") != "QueryStep" or saved.get("transformQuery") != inline_query:
+            raise RuntimeError("Graph Studio 未完整保存直传数据查询，已阻止激活")
     return step_uri
+
+
+def _inline_rdf_query(zip_path: Path, max_bytes: int) -> str:
+    """Build an idempotent, bounded query from the immutable ZIP's data only."""
+    from rdflib import BNode
+    from rdflib.compare import to_canonical_graph
+    import hashlib
+
+    if max_bytes <= 0:
+        raise ValueError("GRAPHSTUDIO_INLINE_MAX_BYTES must be positive")
+    with zipfile.ZipFile(zip_path) as archive:
+        files = [item for item in archive.infolist() if not item.is_dir()]
+        if len(files) != 1 or not files[0].filename.endswith(".ttl"):
+            raise ValueError("直传发布需要仅包含一个 Turtle 数据文件的版本制品")
+        if files[0].file_size > max_bytes:
+            raise ValueError("数据超过 HTTPS 直传大小上限，请配置文件直读或共享存储发布")
+        data = archive.read(files[0])
+    graph = Graph().parse(data=data, format="turtle")
+    scope = hashlib.sha256(data).hexdigest()
+    normalized = Graph()
+    for triple in to_canonical_graph(graph):
+        normalized.add(tuple(
+            URIRef(f"urn:graphsync:{scope}:bnode:{term}") if isinstance(term, BNode) else term
+            for term in triple
+        ))
+    triples = "\n".join(sorted(normalized.serialize(format="nt").splitlines()))
+    # Prevent Graph Studio template substitution inside source data values.
+    triples = triples.replace("$", r"\u0024")
+    query = "INSERT DATA { GRAPH ${targetGraph} {\n" + triples + "\n} }"
+    if len(query.encode("utf-8")) > max_bytes:
+        raise ValueError("展开后的 RDF 超过 HTTPS 直传大小上限，请配置文件直读或共享存储发布")
+    return query
 
 
 def _set_layer_enabled(
@@ -1433,6 +1480,23 @@ def apply_deployment(
     *,
     deployment_id: uuid.UUID,
 ) -> dict[str, Any]:
+    # Serialize publishers across API workers and CLI processes.  The session
+    # lock is released on both exceptions and process disconnects.
+    with repository.engine.connect() as lock_connection:
+        acquired = lock_connection.execute(text(
+            "SELECT pg_try_advisory_lock(hashtext('graphstudio-publication'))"
+        )).scalar()
+        if not acquired:
+            raise RuntimeError("已有 Graph Studio 发布正在执行，请等待完成后重试")
+        try:
+            return _apply_deployment(settings, repository, deployment_id=deployment_id)
+        finally:
+            lock_connection.execute(text(
+                "SELECT pg_advisory_unlock(hashtext('graphstudio-publication'))"
+            ))
+
+
+def _apply_deployment(settings, repository, *, deployment_id):
     with repository.engine.connect() as connection:
         deployment = connection.execute(
             text(
@@ -1533,18 +1597,30 @@ def apply_deployment(
     model_path = Path(validation_plan["modelPath"])
     if not model_path.is_file():
         raise RuntimeError(f"Deployment model artifact does not exist: {model_path}")
-    if not settings.shared_file_connection:
+    transport = validation_plan.get("publishTransport") or settings.graphstudio_publish_transport
+    if transport not in {"shared_store", "inline_query"}:
+        raise ValueError("Unsupported Graph Studio publication transport")
+    actual_hash = content_hash(model_path.read_bytes().hex() + zip_path.read_bytes().hex())
+    if actual_hash != deployment["artifact_hash"]:
+        raise RuntimeError("发布制品校验和不匹配，已阻止发布")
+    inline_query = (
+        _inline_rdf_query(zip_path, settings.graphstudio_inline_max_bytes)
+        if transport == "inline_query" else None
+    )
+    validation_plan["publishTransport"] = transport
+    if transport == "shared_store" and not settings.shared_file_connection:
         raise RuntimeError("GRAPHSTUDIO_FILE_CONNECTION is not configured")
 
     session = requests.Session()
     session.auth = (settings.graphstudio_user, settings.graphstudio_password)
     session.headers.update({"Accept": "application/json", "Accept-Encoding": "identity"})
     base = settings.graphstudio_base_url
+    configure_graphstudio_tls(session, base, settings.graphstudio_tls_fingerprint)
     require_graphstudio_2026_1_ready(
         session,
         base,
-        graphmart_uri=settings.graphmart_uri,
-        file_connection=settings.shared_file_connection,
+        graphmart_uri=deployment["graphmart_uri"],
+        file_connection=settings.shared_file_connection if transport == "shared_store" else None,
         file_path=settings.shared_file_path,
     )
     graphmart_uri = deployment["graphmart_uri"]
@@ -1571,15 +1647,17 @@ def apply_deployment(
     try:
         model_uri = validation_plan["modelUri"]
         _ensure_model(session, base, model_uri=model_uri, model_path=model_path)
-        dataset_uri, catalog = _ensure_dataset(
-            session, base,
-            deployment_id=deployment_id,
-            deployment=deployment,
-            zip_path=zip_path,
-            model_uri=model_uri,
-            settings=settings,
-            reuse_existing=not replace_existing_dataset,
-        )
+        catalog = deployment.get("catalog_entry")
+        if transport == "shared_store":
+            dataset_uri, catalog = _ensure_dataset(
+                session, base,
+                deployment_id=deployment_id,
+                deployment=deployment,
+                zip_path=zip_path,
+                model_uri=model_uri,
+                settings=settings,
+                reuse_existing=not replace_existing_dataset,
+            )
         validation_plan["replaceExistingDataset"] = False
         deployment["validation_plan"] = validation_plan
         with repository.engine.begin() as connection:
@@ -1600,27 +1678,54 @@ def apply_deployment(
                 },
             )
         layer_title = f"{deployment['profile_key']} {deployment['slot']} {str(deployment_id)[:8]}"
+        if inline_query is not None:
+            layer_title += " HTTPS"
+        original_layer_uri = layer_uri
         layer_uri = _ensure_layer(
             session, base,
             encoded_graphmart=encoded_graphmart,
             title=layer_title,
             model_uri=model_uri,
         )
+        if inline_query is not None and original_layer_uri and original_layer_uri != layer_uri:
+            validation_plan["retiredSharedStoreLayer"] = original_layer_uri
         with repository.engine.begin() as connection:
             connection.execute(
-                text("UPDATE graphsync.deployment_release SET layer_uri=:layer WHERE deployment_id=:id"),
-                {"id": deployment_id, "layer": layer_uri},
+                text("UPDATE graphsync.deployment_release SET layer_uri=:layer, validation_plan=CAST(:plan AS jsonb) WHERE deployment_id=:id"),
+                {"id": deployment_id, "layer": layer_uri, "plan": json.dumps(validation_plan)},
             )
         step_uri = _ensure_load_step(
             session, base,
             layer_uri=layer_uri,
             catalog=catalog,
             model_uri=model_uri,
+            **({"inline_query": inline_query} if inline_query is not None else {}),
         )
+        retired_layer_uri = validation_plan.get("retiredSharedStoreLayer")
+        if retired_layer_uri:
+            _set_layer_enabled(session, base, encoded_graphmart=encoded_graphmart,
+                               layer_uri=retired_layer_uri, enabled=False)
+        if inline_query is not None:
+            # Failed attempts on this same route must not keep loading obsolete
+            # FLDS files during the replacement graphmart's activation.
+            with repository.engine.connect() as connection:
+                failed_layers = connection.execute(text(
+                    "SELECT layer_uri FROM graphsync.deployment_release "
+                    "WHERE route_key=:route AND status='failed' "
+                    "AND deployment_id<>:id AND layer_uri IS NOT NULL"
+                ), {"route": deployment["route_key"], "id": deployment_id}).scalars().all()
+            retired_failed_layers = set(validation_plan.get("retiredFailedLayers") or [])
+            for failed_layer in failed_layers:
+                if failed_layer not in {layer_uri, previous_layer_uri}:
+                    mode = _set_layer_enabled(session, base, encoded_graphmart=encoded_graphmart,
+                                              layer_uri=failed_layer, enabled=False)
+                    if mode != "layer_not_in_target":
+                        retired_failed_layers.add(failed_layer)
+            validation_plan["retiredFailedLayers"] = sorted(retired_failed_layers)
         with repository.engine.begin() as connection:
             connection.execute(
-                text("UPDATE graphsync.deployment_release SET status='loading', step_uri=:step WHERE deployment_id=:id"),
-                {"id": deployment_id, "step": step_uri},
+                text("UPDATE graphsync.deployment_release SET status='loading', step_uri=:step, validation_plan=CAST(:plan AS jsonb) WHERE deployment_id=:id"),
+                {"id": deployment_id, "step": step_uri, "plan": json.dumps(validation_plan)},
             )
         _set_layer_enabled(
             session, base, encoded_graphmart=encoded_graphmart,
@@ -1650,14 +1755,15 @@ def apply_deployment(
         relationship_select = (
             "{ SELECT (COUNT(*) AS ?relationships) WHERE { "
             f"VALUES ?predicate {{ {' '.join(f'<{value}>' for value in relationship_uris)} }} "
-            "?source ?predicate ?target . } }"
+            f"GRAPH <{layer_uri}> {{ ?source ?predicate ?target . }} "
+            "} }"
             if relationship_uris else "BIND(0 AS ?relationships)"
         )
         sparql = f"""
             SELECT ?objects ?relationships WHERE {{
               {{ SELECT (COUNT(DISTINCT ?subject) AS ?objects) WHERE {{
                   VALUES ?type {{ {class_values} }}
-                  ?subject a ?type .
+                  GRAPH <{layer_uri}> {{ ?subject a ?type . }}
               }} }}
               {relationship_select}
             }}
@@ -1677,11 +1783,11 @@ def apply_deployment(
         actual_objects = counts.get("objects", 0)
         expected_relationships = int((deployment["validation_plan"] or {}).get("expectedRelationships", 0))
         actual_relationships = counts.get("relationships", 0)
-        if actual_objects < expected_objects:
-            raise RuntimeError(f"SPARQL object count {actual_objects} is below expected {expected_objects}")
-        if actual_relationships < expected_relationships:
+        if actual_objects != expected_objects:
+            raise RuntimeError(f"SPARQL object count {actual_objects} does not match expected {expected_objects}")
+        if actual_relationships != expected_relationships:
             raise RuntimeError(
-                f"SPARQL relationship count {actual_relationships} is below expected {expected_relationships}"
+                f"SPARQL relationship count {actual_relationships} does not match expected {expected_relationships}"
             )
         validation = {
             "reload": graph_status,

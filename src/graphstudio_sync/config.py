@@ -5,12 +5,21 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 from dotenv import load_dotenv
 from sqlalchemy.engine import URL
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def normalize_graphstudio_url(value: str) -> str:
+    parts = urlsplit(value.strip())
+    if parts.scheme not in {"http", "https"} or not parts.hostname or parts.username or parts.password:
+        raise ValueError("Graph Studio 地址必须是有效的 HTTP/HTTPS 地址，不能包含账号密码")
+    path = parts.path.split("/sdl/", 1)[0].rstrip("/")
+    return urlunsplit((parts.scheme, parts.netloc, path, "", ""))
 
 
 def _required(name: str) -> str:
@@ -78,6 +87,9 @@ class SyncSettings:
     camstar_api_token: str | None = None
     action_auth_mode: str = "disabled"
     action_trusted_proxy_secret: str | None = None
+    graphstudio_tls_fingerprint: str | None = None
+    graphstudio_publish_transport: str = "shared_store"
+    graphstudio_inline_max_bytes: int = 2_000_000
 
     @classmethod
     def from_env(cls, env_file: Path | None = None) -> "SyncSettings":
@@ -101,7 +113,10 @@ class SyncSettings:
             source_database=_required("SRC_DB_NAME"),
             source_user=_required("SRC_DB_USER"),
             source_password=_required("SRC_DB_PASSWORD"),
-            graphstudio_base_url=_required("GRAPHSTUDIO_BASE_URL").rstrip("/"),
+            graphstudio_base_url=normalize_graphstudio_url(_required("GRAPHSTUDIO_BASE_URL")),
+            graphstudio_tls_fingerprint=os.getenv("GRAPHSTUDIO_TLS_FINGERPRINT", "").strip() or None,
+            graphstudio_publish_transport=os.getenv("GRAPHSTUDIO_PUBLISH_TRANSPORT", "shared_store").strip(),
+            graphstudio_inline_max_bytes=int(os.getenv("GRAPHSTUDIO_INLINE_MAX_BYTES", "2000000")),
             graphstudio_user=_required("GRAPHSTUDIO_USER"),
             graphstudio_password=_required("GRAPHSTUDIO_PASSWORD"),
             graphmart_uri=os.getenv(

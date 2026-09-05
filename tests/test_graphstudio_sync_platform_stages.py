@@ -424,13 +424,13 @@ def test_dataset_replacement_remains_pending_after_force_delete_failure() -> Non
     assert _requires_dataset_replacement(plan, {}) is False
 
 
-def test_dataset_is_replaced_after_graph_lakehouse_permission_failure_once_gate_passes() -> None:
+def test_dataset_is_preserved_after_graph_lakehouse_permission_failure() -> None:
     plan = {"modelUri": release_model_uri("release-1")}
 
     assert _requires_dataset_replacement(
         plan,
         {"message": "ErrorCode[10503] Load Data File Grpc: Permission denied"},
-    ) is True
+    ) is False
 
 
 class _ExistingLoadStepSession:
