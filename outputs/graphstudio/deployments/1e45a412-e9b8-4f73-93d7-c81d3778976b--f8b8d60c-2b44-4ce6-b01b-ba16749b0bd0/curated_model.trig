@@ -1,0 +1,3111 @@
+@prefix cam: <https://opcenter.siemens.com/ontology/camstar/2607/publish#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://opcenter.siemens.com/ontology/camstar/2607/publish/releases/f8b8d60c-2b44-4ce6-b01b-ba16749b0bd0> {
+    cam:Container_batch a owl:DatatypeProperty ;
+        rdfs:label "batch" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_batchComments a owl:DatatypeProperty ;
+        rdfs:label "batchComments" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_batchStatus a owl:DatatypeProperty ;
+        rdfs:label "batchStatus" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_billOfProcess a owl:DatatypeProperty ;
+        rdfs:label "billOfProcess" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_binSize a owl:DatatypeProperty ;
+        rdfs:label "binSize" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_bom a owl:DatatypeProperty ;
+        rdfs:label "bom" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_childCount a owl:DatatypeProperty ;
+        rdfs:label "childCount" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_consumingOrder a owl:DatatypeProperty ;
+        rdfs:label "consumingOrder" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_containerComments a owl:DatatypeProperty ;
+        rdfs:label "containerComments" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_containerStartGuid a owl:DatatypeProperty ;
+        rdfs:label "containerStartGuid" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_currentHoldCount a owl:DatatypeProperty ;
+        rdfs:label "currentHoldCount" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_currentStatus a owl:DatatypeProperty ;
+        rdfs:label "currentStatus" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_currentThruputChildCount a owl:DatatypeProperty ;
+        rdfs:label "currentThruputChildCount" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_currentThruputQty a owl:DatatypeProperty ;
+        rdfs:label "currentThruputQty" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_currentThruputQty2 a owl:DatatypeProperty ;
+        rdfs:label "currentThruputQty2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_currentThruputUnitCount a owl:DatatypeProperty ;
+        rdfs:label "currentThruputUnitCount" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_customer a owl:DatatypeProperty ;
+        rdfs:label "customer" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_customerSerialNumber a owl:DatatypeProperty ;
+        rdfs:label "customerSerialNumber" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_dateCode a owl:DatatypeProperty ;
+        rdfs:label "dateCode" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_description a owl:DatatypeProperty ;
+        rdfs:label "description" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_detail a owl:DatatypeProperty ;
+        rdfs:label "detail" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_direction a owl:DatatypeProperty ;
+        rdfs:label "direction" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_dueDate a owl:DatatypeProperty ;
+        rdfs:label "dueDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_dueDateGmt a owl:DatatypeProperty ;
+        rdfs:label "dueDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_expirationDate a owl:DatatypeProperty ;
+        rdfs:label "expirationDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_expirationDateGmt a owl:DatatypeProperty ;
+        rdfs:label "expirationDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_factoryStartDate a owl:DatatypeProperty ;
+        rdfs:label "factoryStartDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_factoryStartDateGmt a owl:DatatypeProperty ;
+        rdfs:label "factoryStartDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_factoryStartQty a owl:DatatypeProperty ;
+        rdfs:label "factoryStartQty" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_factoryStartQty2 a owl:DatatypeProperty ;
+        rdfs:label "factoryStartQty2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_factoryStartUom a owl:DatatypeProperty ;
+        rdfs:label "factoryStartUom" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_factoryStartUom2 a owl:DatatypeProperty ;
+        rdfs:label "factoryStartUom2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_feeder a owl:DatatypeProperty ;
+        rdfs:label "feeder" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_holdMessage a owl:DatatypeProperty ;
+        rdfs:label "holdMessage" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_holdReason a owl:DatatypeProperty ;
+        rdfs:label "holdReason" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_holdType a owl:DatatypeProperty ;
+        rdfs:label "holdType" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_inQualityControl a owl:DatatypeProperty ;
+        rdfs:label "inQualityControl" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_isAssociatedCarrier a owl:DatatypeProperty ;
+        rdfs:label "isAssociatedCarrier" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_isAutoStart a owl:DatatypeProperty ;
+        rdfs:label "isAutoStart" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_isCarrier a owl:DatatypeProperty ;
+        rdfs:label "isCarrier" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_isCarrierSlot a owl:DatatypeProperty ;
+        rdfs:label "isCarrierSlot" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_isFailed a owl:DatatypeProperty ;
+        rdfs:label "isFailed" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_isHoldReasonName a owl:DatatypeProperty ;
+        rdfs:label "isHoldReasonName" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_isInventoryDetails a owl:DatatypeProperty ;
+        rdfs:label "isInventoryDetails" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_isInventoryLocation a owl:DatatypeProperty ;
+        rdfs:label "isInventoryLocation" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_isMaterialManageEnabled a owl:DatatypeProperty ;
+        rdfs:label "isMaterialManageEnabled" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_isProductName a owl:DatatypeProperty ;
+        rdfs:label "isProductName" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_isProductRevision a owl:DatatypeProperty ;
+        rdfs:label "isProductRevision" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_isRepairedDefectCount a owl:DatatypeProperty ;
+        rdfs:label "isRepairedDefectCount" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_isTrackedCarrier a owl:DatatypeProperty ;
+        rdfs:label "isTrackedCarrier" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_isVirtualSn a owl:DatatypeProperty ;
+        rdfs:label "isVirtualSn" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_issuedToContainer a owl:DatatypeProperty ;
+        rdfs:label "issuedToContainer" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_lastActivityDate a owl:DatatypeProperty ;
+        rdfs:label "lastActivityDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_lastActivityDateGmt a owl:DatatypeProperty ;
+        rdfs:label "lastActivityDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_lastCarrier a owl:DatatypeProperty ;
+        rdfs:label "lastCarrier" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_lastCompletionDate a owl:DatatypeProperty ;
+        rdfs:label "lastCompletionDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_lastCompletionDateGmt a owl:DatatypeProperty ;
+        rdfs:label "lastCompletionDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_lastIntegrationTxn a owl:DatatypeProperty ;
+        rdfs:label "lastIntegrationTxn" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_lastRevTxn a owl:DatatypeProperty ;
+        rdfs:label "lastRevTxn" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_lastSystemDate a owl:DatatypeProperty ;
+        rdfs:label "lastSystemDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_lastSystemDateGmt a owl:DatatypeProperty ;
+        rdfs:label "lastSystemDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_leadFree a owl:DatatypeProperty ;
+        rdfs:label "leadFree" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_level a owl:DatatypeProperty ;
+        rdfs:label "level" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_lineNumber a owl:DatatypeProperty ;
+        rdfs:label "lineNumber" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_manufacturingDate a owl:DatatypeProperty ;
+        rdfs:label "manufacturingDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_masterRecipe a owl:DatatypeProperty ;
+        rdfs:label "masterRecipe" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_materialExposureDuration a owl:DatatypeProperty ;
+        rdfs:label "materialExposureDuration" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_materialExposureOffset a owl:DatatypeProperty ;
+        rdfs:label "materialExposureOffset" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_materialTotalExposure a owl:DatatypeProperty ;
+        rdfs:label "materialTotalExposure" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_materialTotalReturns a owl:DatatypeProperty ;
+        rdfs:label "materialTotalReturns" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_materialWithdrawalDate a owl:DatatypeProperty ;
+        rdfs:label "materialWithdrawalDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_materialWithdrawalDateGmt a owl:DatatypeProperty ;
+        rdfs:label "materialWithdrawalDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_mfgLine a owl:DatatypeProperty ;
+        rdfs:label "mfgLine" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_mfgOrder a owl:DatatypeProperty ;
+        rdfs:label "mfgOrder" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_mfgPartNumber a owl:DatatypeProperty ;
+        rdfs:label "mfgPartNumber" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_moveInQty a owl:DatatypeProperty ;
+        rdfs:label "moveInQty" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_moveInQty2 a owl:DatatypeProperty ;
+        rdfs:label "moveInQty2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_name a owl:DatatypeProperty ;
+        rdfs:label "name" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_nffDefectCount a owl:DatatypeProperty ;
+        rdfs:label "nffDefectCount" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_nickName a owl:DatatypeProperty ;
+        rdfs:label "nickName" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_onHoldDate a owl:DatatypeProperty ;
+        rdfs:label "onHoldDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_originalContainer a owl:DatatypeProperty ;
+        rdfs:label "originalContainer" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_originalFactory a owl:DatatypeProperty ;
+        rdfs:label "originalFactory" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_originalQty a owl:DatatypeProperty ;
+        rdfs:label "originalQty" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_originalQty2 a owl:DatatypeProperty ;
+        rdfs:label "originalQty2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_originalStartDate a owl:DatatypeProperty ;
+        rdfs:label "originalStartDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_originalStartDateGmt a owl:DatatypeProperty ;
+        rdfs:label "originalStartDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_originalUom a owl:DatatypeProperty ;
+        rdfs:label "originalUom" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_originalUom2 a owl:DatatypeProperty ;
+        rdfs:label "originalUom2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_owner a owl:DatatypeProperty ;
+        rdfs:label "owner" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_parentContainer a owl:DatatypeProperty ;
+        rdfs:label "parentContainer" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_parentName a owl:DatatypeProperty ;
+        rdfs:label "parentName" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_pcbNumber a owl:DatatypeProperty ;
+        rdfs:label "pcbNumber" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_plannedProduct a owl:DatatypeProperty ;
+        rdfs:label "plannedProduct" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_plannedQty a owl:DatatypeProperty ;
+        rdfs:label "plannedQty" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_plannedQty2 a owl:DatatypeProperty ;
+        rdfs:label "plannedQty2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_plannedQtyUom a owl:DatatypeProperty ;
+        rdfs:label "plannedQtyUom" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_plannedQtyUom2 a owl:DatatypeProperty ;
+        rdfs:label "plannedQtyUom2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_plannedStartDate a owl:DatatypeProperty ;
+        rdfs:label "plannedStartDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_plannedStartDateGmt a owl:DatatypeProperty ;
+        rdfs:label "plannedStartDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_poNumber a owl:DatatypeProperty ;
+        rdfs:label "poNumber" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_preventRework a owl:DatatypeProperty ;
+        rdfs:label "preventRework" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_primarySerialNumber a owl:DatatypeProperty ;
+        rdfs:label "primarySerialNumber" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_priorityCode a owl:DatatypeProperty ;
+        rdfs:label "priorityCode" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_product a owl:DatatypeProperty ;
+        rdfs:label "product" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_productionComplete a owl:DatatypeProperty ;
+        rdfs:label "productionComplete" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_qty a owl:DatatypeProperty ;
+        rdfs:label "qty" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_qty2 a owl:DatatypeProperty ;
+        rdfs:label "qty2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_receivedDate a owl:DatatypeProperty ;
+        rdfs:label "receivedDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_referenceContainerName a owl:DatatypeProperty ;
+        rdfs:label "referenceContainerName" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_relativePriority a owl:DatatypeProperty ;
+        rdfs:label "relativePriority" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_remainingProcessTime a owl:DatatypeProperty ;
+        rdfs:label "remainingProcessTime" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_requestDate a owl:DatatypeProperty ;
+        rdfs:label "requestDate" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_requestDateGmt a owl:DatatypeProperty ;
+        rdfs:label "requestDateGmt" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:dateTime .
+
+    cam:Container_rmaNumber a owl:DatatypeProperty ;
+        rdfs:label "rmaNumber" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_salesOrder a owl:DatatypeProperty ;
+        rdfs:label "salesOrder" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_samplingLot a owl:DatatypeProperty ;
+        rdfs:label "samplingLot" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_samplingPassed a owl:DatatypeProperty ;
+        rdfs:label "samplingPassed" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_samplingRequired a owl:DatatypeProperty ;
+        rdfs:label "samplingRequired" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_scrapped a owl:DatatypeProperty ;
+        rdfs:label "scrapped" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_serialNumber2 a owl:DatatypeProperty ;
+        rdfs:label "serialNumber2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_serialNumber3 a owl:DatatypeProperty ;
+        rdfs:label "serialNumber3" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_shapeName a owl:DatatypeProperty ;
+        rdfs:label "shapeName" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_spcChartSaveOptionsEnum a owl:DatatypeProperty ;
+        rdfs:label "spcChartSaveOptionsEnum" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_specStatus a owl:DatatypeProperty ;
+        rdfs:label "specStatus" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_splitFrom a owl:DatatypeProperty ;
+        rdfs:label "splitFrom" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_startParentContainer a owl:DatatypeProperty ;
+        rdfs:label "startParentContainer" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_startReason a owl:DatatypeProperty ;
+        rdfs:label "startReason" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_status a owl:DatatypeProperty ;
+        rdfs:label "status" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_supplier a owl:DatatypeProperty ;
+        rdfs:label "supplier" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_supplyFromName a owl:DatatypeProperty ;
+        rdfs:label "supplyFromName" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_supplyFromType a owl:DatatypeProperty ;
+        rdfs:label "supplyFromType" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_thisContainerLost a owl:DatatypeProperty ;
+        rdfs:label "thisContainerLost" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:Container_thruputAdjustmentChildCount a owl:DatatypeProperty ;
+        rdfs:label "thruputAdjustmentChildCount" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_thruputAdjustmentQty a owl:DatatypeProperty ;
+        rdfs:label "thruputAdjustmentQty" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_thruputAdjustmentQty2 a owl:DatatypeProperty ;
+        rdfs:label "thruputAdjustmentQty2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_thruputAdjustmentUnitCount a owl:DatatypeProperty ;
+        rdfs:label "thruputAdjustmentUnitCount" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_unitCount a owl:DatatypeProperty ;
+        rdfs:label "unitCount" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:int .
+
+    cam:Container_uom a owl:DatatypeProperty ;
+        rdfs:label "uom" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_uom2 a owl:DatatypeProperty ;
+        rdfs:label "uom2" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_vendorItem a owl:DatatypeProperty ;
+        rdfs:label "vendorItem" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_vendorLotNumber a owl:DatatypeProperty ;
+        rdfs:label "vendorLotNumber" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_vendorName a owl:DatatypeProperty ;
+        rdfs:label "vendorName" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_waitTime a owl:DatatypeProperty ;
+        rdfs:label "waitTime" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:float .
+
+    cam:Container_wipMsgDefMgr a owl:DatatypeProperty ;
+        rdfs:label "wipMsgDefMgr" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_workflow a owl:DatatypeProperty ;
+        rdfs:label "workflow" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_workflowstep a owl:DatatypeProperty ;
+        rdfs:label "workflowstep" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:Container_xOut a owl:DatatypeProperty ;
+        rdfs:label "xOut" ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:boolean .
+
+    cam:MfgOrder_actualFinished a owl:DatatypeProperty ;
+        rdfs:label "actualFinished" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_beginProduct a owl:DatatypeProperty ;
+        rdfs:label "beginProduct" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_beginProductBase a owl:DatatypeProperty ;
+        rdfs:label "beginProductBase" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_billOfProcess a owl:DatatypeProperty ;
+        rdfs:label "billOfProcess" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_billOfProcessBase a owl:DatatypeProperty ;
+        rdfs:label "billOfProcessBase" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_changeStatus a owl:DatatypeProperty ;
+        rdfs:label "changeStatus" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_childContainerNumberingRu a owl:DatatypeProperty ;
+        rdfs:label "childContainerNumberingRu" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_completionPlan a owl:DatatypeProperty ;
+        rdfs:label "completionPlan" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_consumingOrder a owl:DatatypeProperty ;
+        rdfs:label "consumingOrder" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_containerNumberingRule a owl:DatatypeProperty ;
+        rdfs:label "containerNumberingRule" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_continueOnFail a owl:DatatypeProperty ;
+        rdfs:label "continueOnFail" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:boolean .
+
+    cam:MfgOrder_customAddressPool a owl:DatatypeProperty ;
+        rdfs:label "customAddressPool" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_customAddressQty a owl:DatatypeProperty ;
+        rdfs:label "customAddressQty" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_customerReference a owl:DatatypeProperty ;
+        rdfs:label "customerReference" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_dateShipped a owl:DatatypeProperty ;
+        rdfs:label "dateShipped" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_defaultLot a owl:DatatypeProperty ;
+        rdfs:label "defaultLot" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_defaultPutawayStockPoint a owl:DatatypeProperty ;
+        rdfs:label "defaultPutawayStockPoint" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_description a owl:DatatypeProperty ;
+        rdfs:label "description" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_erpRoute a owl:DatatypeProperty ;
+        rdfs:label "erpRoute" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_erpRouteBase a owl:DatatypeProperty ;
+        rdfs:label "erpRouteBase" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_erpbom a owl:DatatypeProperty ;
+        rdfs:label "erpbom" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_externallyControlled a owl:DatatypeProperty ;
+        rdfs:label "externallyControlled" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:boolean .
+
+    cam:MfgOrder_filterTags a owl:DatatypeProperty ;
+        rdfs:label "filterTags" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_holdStatus a owl:DatatypeProperty ;
+        rdfs:label "holdStatus" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_iconId a owl:DatatypeProperty ;
+        rdfs:label "iconId" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_imeiAddressPool a owl:DatatypeProperty ;
+        rdfs:label "imeiAddressPool" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_imeiAddressQty a owl:DatatypeProperty ;
+        rdfs:label "imeiAddressQty" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_isFrozen a owl:DatatypeProperty ;
+        rdfs:label "isFrozen" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:boolean .
+
+    cam:MfgOrder_isKittingOrder a owl:DatatypeProperty ;
+        rdfs:label "isKittingOrder" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:boolean .
+
+    cam:MfgOrder_isPreactorSchedule a owl:DatatypeProperty ;
+        rdfs:label "isPreactorSchedule" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_isRecipePlan a owl:DatatypeProperty ;
+        rdfs:label "isRecipePlan" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_isWorkflow a owl:DatatypeProperty ;
+        rdfs:label "isWorkflow" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_isWorkflowBase a owl:DatatypeProperty ;
+        rdfs:label "isWorkflowBase" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_latestCustomerRequiredDate a owl:DatatypeProperty ;
+        rdfs:label "latestCustomerRequiredDate" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_macAddressPool a owl:DatatypeProperty ;
+        rdfs:label "macAddressPool" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_macAddressQty a owl:DatatypeProperty ;
+        rdfs:label "macAddressQty" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_materialAttributes a owl:DatatypeProperty ;
+        rdfs:label "materialAttributes" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_mfgLine a owl:DatatypeProperty ;
+        rdfs:label "mfgLine" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_modelNumber a owl:DatatypeProperty ;
+        rdfs:label "modelNumber" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_mpsDate a owl:DatatypeProperty ;
+        rdfs:label "mpsDate" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_name a owl:DatatypeProperty ;
+        rdfs:label "name" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_notes a owl:DatatypeProperty ;
+        rdfs:label "notes" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_orderStatus a owl:DatatypeProperty ;
+        rdfs:label "orderStatus" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_orderType a owl:DatatypeProperty ;
+        rdfs:label "orderType" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_originalCompletionPlan a owl:DatatypeProperty ;
+        rdfs:label "originalCompletionPlan" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_originalPmDemandDate a owl:DatatypeProperty ;
+        rdfs:label "originalPmDemandDate" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_originalShipPlanAndRbwCommit a owl:DatatypeProperty ;
+        rdfs:label "originalShipPlanAndRbwCommit" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_piso a owl:DatatypeProperty ;
+        rdfs:label "piso" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_plannedCompletionDate a owl:DatatypeProperty ;
+        rdfs:label "plannedCompletionDate" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_plannedCompletionDateGmt a owl:DatatypeProperty ;
+        rdfs:label "plannedCompletionDateGmt" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_plannedStartDate a owl:DatatypeProperty ;
+        rdfs:label "plannedStartDate" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_plannedStartDateGmt a owl:DatatypeProperty ;
+        rdfs:label "plannedStartDateGmt" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_pmDemandDate a owl:DatatypeProperty ;
+        rdfs:label "pmDemandDate" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_poNumber a owl:DatatypeProperty ;
+        rdfs:label "poNumber" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_postProductionCompleteDateGmt a owl:DatatypeProperty ;
+        rdfs:label "postProductionCompleteDateGmt" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_postProductionProcedure a owl:DatatypeProperty ;
+        rdfs:label "postProductionProcedure" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_postProductionProcedureState a owl:DatatypeProperty ;
+        rdfs:label "postProductionProcedureState" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_postProductionStartDateGmt a owl:DatatypeProperty ;
+        rdfs:label "postProductionStartDateGmt" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_preProductionCompleteDateGmt a owl:DatatypeProperty ;
+        rdfs:label "preProductionCompleteDateGmt" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_preProductionProcedure a owl:DatatypeProperty ;
+        rdfs:label "preProductionProcedure" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_preProductionProcedureRequired a owl:DatatypeProperty ;
+        rdfs:label "preProductionProcedureRequired" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_preProductionProcedureState a owl:DatatypeProperty ;
+        rdfs:label "preProductionProcedureState" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_preProductionStartDateGmt a owl:DatatypeProperty ;
+        rdfs:label "preProductionStartDateGmt" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_priority a owl:DatatypeProperty ;
+        rdfs:label "priority" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_product a owl:DatatypeProperty ;
+        rdfs:label "product" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_productBase a owl:DatatypeProperty ;
+        rdfs:label "productBase" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_productConversionPlan a owl:DatatypeProperty ;
+        rdfs:label "productConversionPlan" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_productionBom a owl:DatatypeProperty ;
+        rdfs:label "productionBom" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_productionCompleteDateGmt a owl:DatatypeProperty ;
+        rdfs:label "productionCompleteDateGmt" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_productionStartDateGmt a owl:DatatypeProperty ;
+        rdfs:label "productionStartDateGmt" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_programVariant a owl:DatatypeProperty ;
+        rdfs:label "programVariant" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_projectCode a owl:DatatypeProperty ;
+        rdfs:label "projectCode" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_qty a owl:DatatypeProperty ;
+        rdfs:label "qty" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:float .
+
+    cam:MfgOrder_qty2 a owl:DatatypeProperty ;
+        rdfs:label "qty2" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:float .
+
+    cam:MfgOrder_qty2Started a owl:DatatypeProperty ;
+        rdfs:label "qty2Started" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:float .
+
+    cam:MfgOrder_qtyStarted a owl:DatatypeProperty ;
+        rdfs:label "qtyStarted" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:float .
+
+    cam:MfgOrder_releaseDate a owl:DatatypeProperty ;
+        rdfs:label "releaseDate" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_releaseDateGmt a owl:DatatypeProperty ;
+        rdfs:label "releaseDateGmt" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:dateTime .
+
+    cam:MfgOrder_reportingFactory a owl:DatatypeProperty ;
+        rdfs:label "reportingFactory" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_reworkId a owl:DatatypeProperty ;
+        rdfs:label "reworkId" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_rmaNumber a owl:DatatypeProperty ;
+        rdfs:label "rmaNumber" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_rsdCommitment a owl:DatatypeProperty ;
+        rdfs:label "rsdCommitment" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_serialNumberQty a owl:DatatypeProperty ;
+        rdfs:label "serialNumberQty" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_setupAccess a owl:DatatypeProperty ;
+        rdfs:label "setupAccess" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_startVirtualSn a owl:DatatypeProperty ;
+        rdfs:label "startVirtualSn" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:int .
+
+    cam:MfgOrder_toolPlanMatrix a owl:DatatypeProperty ;
+        rdfs:label "toolPlanMatrix" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_uom a owl:DatatypeProperty ;
+        rdfs:label "uom" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_uom2 a owl:DatatypeProperty ;
+        rdfs:label "uom2" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_wipMsgDefMgr a owl:DatatypeProperty ;
+        rdfs:label "wipMsgDefMgr" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:Operation_actionsMenu a owl:DatatypeProperty ;
+        rdfs:label "actionsMenu" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_autoAdjustLimit a owl:DatatypeProperty ;
+        rdfs:label "autoAdjustLimit" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:float .
+
+    cam:Operation_autoAdjustReason a owl:DatatypeProperty ;
+        rdfs:label "autoAdjustReason" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:int .
+
+    cam:Operation_bonusReasons a owl:DatatypeProperty ;
+        rdfs:label "bonusReasons" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_buyReasons a owl:DatatypeProperty ;
+        rdfs:label "buyReasons" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_changeStatus a owl:DatatypeProperty ;
+        rdfs:label "changeStatus" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_componentDefectReasons a owl:DatatypeProperty ;
+        rdfs:label "componentDefectReasons" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_containerDefectReasons a owl:DatatypeProperty ;
+        rdfs:label "containerDefectReasons" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_defaultRollupReason a owl:DatatypeProperty ;
+        rdfs:label "defaultRollupReason" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_dispatchRule a owl:DatatypeProperty ;
+        rdfs:label "dispatchRule" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_displayOptions a owl:DatatypeProperty ;
+        rdfs:label "displayOptions" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_filterTags a owl:DatatypeProperty ;
+        rdfs:label "filterTags" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_iconId a owl:DatatypeProperty ;
+        rdfs:label "iconId" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:int .
+
+    cam:Operation_image a owl:DatatypeProperty ;
+        rdfs:label "image" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_inTransit a owl:DatatypeProperty ;
+        rdfs:label "inTransit" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:boolean .
+
+    cam:Operation_inventoryPoint a owl:DatatypeProperty ;
+        rdfs:label "inventoryPoint" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:boolean .
+
+    cam:Operation_isDefectReasonGroup a owl:DatatypeProperty ;
+        rdfs:label "isDefectReasonGroup" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_isFrozen a owl:DatatypeProperty ;
+        rdfs:label "isFrozen" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:boolean .
+
+    cam:Operation_localReworkReasons a owl:DatatypeProperty ;
+        rdfs:label "localReworkReasons" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_lossReasons a owl:DatatypeProperty ;
+        rdfs:label "lossReasons" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_notes a owl:DatatypeProperty ;
+        rdfs:label "notes" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_npiDocumentView a owl:DatatypeProperty ;
+        rdfs:label "npiDocumentView" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_outsideServicePoint a owl:DatatypeProperty ;
+        rdfs:label "outsideServicePoint" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:boolean .
+
+    cam:Operation_printQueue a owl:DatatypeProperty ;
+        rdfs:label "printQueue" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_qtyAdjustReason a owl:DatatypeProperty ;
+        rdfs:label "qtyAdjustReason" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_rejectIncomingNcContainer a owl:DatatypeProperty ;
+        rdfs:label "rejectIncomingNcContainer" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:boolean .
+
+    cam:Operation_reworkReasons a owl:DatatypeProperty ;
+        rdfs:label "reworkReasons" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_schedulingDetail a owl:DatatypeProperty ;
+        rdfs:label "schedulingDetail" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_sellReasons a owl:DatatypeProperty ;
+        rdfs:label "sellReasons" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_setupAccess a owl:DatatypeProperty ;
+        rdfs:label "setupAccess" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_shipmentDestinations a owl:DatatypeProperty ;
+        rdfs:label "shipmentDestinations" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_summaryThruput a owl:DatatypeProperty ;
+        rdfs:label "summaryThruput" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:boolean .
+
+    cam:Operation_thruputReportingLevel a owl:DatatypeProperty ;
+        rdfs:label "thruputReportingLevel" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_trainingReqGroup a owl:DatatypeProperty ;
+        rdfs:label "trainingReqGroup" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_useQueue a owl:DatatypeProperty ;
+        rdfs:label "useQueue" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:boolean .
+
+    cam:Operation_wipMsgDefMgr a owl:DatatypeProperty ;
+        rdfs:label "wipMsgDefMgr" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_workCenter a owl:DatatypeProperty ;
+        rdfs:label "workCenter" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Product_adjustmentType a owl:DatatypeProperty ;
+        rdfs:label "adjustmentType" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_adjustmentValue a owl:DatatypeProperty ;
+        rdfs:label "adjustmentValue" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_allowAllRevisionsAsSubstitute a owl:DatatypeProperty ;
+        rdfs:label "allowAllRevisionsAsSubstitute" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_billOfProcess a owl:DatatypeProperty ;
+        rdfs:label "billOfProcess" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_billOfProcessBase a owl:DatatypeProperty ;
+        rdfs:label "billOfProcessBase" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_bom a owl:DatatypeProperty ;
+        rdfs:label "bom" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_bomBase a owl:DatatypeProperty ;
+        rdfs:label "bomBase" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_brandName a owl:DatatypeProperty ;
+        rdfs:label "brandName" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_cadInstructions a owl:DatatypeProperty ;
+        rdfs:label "cadInstructions" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_catalogNumber a owl:DatatypeProperty ;
+        rdfs:label "catalogNumber" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_changeHistory a owl:DatatypeProperty ;
+        rdfs:label "changeHistory" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_childContainerNumberingRule a owl:DatatypeProperty ;
+        rdfs:label "childContainerNumberingRule" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_childSnRule a owl:DatatypeProperty ;
+        rdfs:label "childSnRule" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_concomitantProductNumber a owl:DatatypeProperty ;
+        rdfs:label "concomitantProductNumber" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_containerAction a owl:DatatypeProperty ;
+        rdfs:label "containerAction" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_containerNumberingRule a owl:DatatypeProperty ;
+        rdfs:label "containerNumberingRule" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_currentCost a owl:DatatypeProperty ;
+        rdfs:label "currentCost" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_customAddressPool a owl:DatatypeProperty ;
+        rdfs:label "customAddressPool" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_customAddressQty a owl:DatatypeProperty ;
+        rdfs:label "customAddressQty" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_customer a owl:DatatypeProperty ;
+        rdfs:label "customer" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_customerProductNumber a owl:DatatypeProperty ;
+        rdfs:label "customerProductNumber" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_description a owl:DatatypeProperty ;
+        rdfs:label "description" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_deviceType a owl:DatatypeProperty ;
+        rdfs:label "deviceType" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_documentSet a owl:DatatypeProperty ;
+        rdfs:label "documentSet" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_eco a owl:DatatypeProperty ;
+        rdfs:label "eco" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_effectiveEndDate a owl:DatatypeProperty ;
+        rdfs:label "effectiveEndDate" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:dateTime .
+
+    cam:Product_effectiveEndDateGmt a owl:DatatypeProperty ;
+        rdfs:label "effectiveEndDateGmt" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:dateTime .
+
+    cam:Product_effectiveStartDate a owl:DatatypeProperty ;
+        rdfs:label "effectiveStartDate" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:dateTime .
+
+    cam:Product_effectiveStartDateGmt a owl:DatatypeProperty ;
+        rdfs:label "effectiveStartDateGmt" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:dateTime .
+
+    cam:Product_erpProductFamily a owl:DatatypeProperty ;
+        rdfs:label "erpProductFamily" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_erpRoute a owl:DatatypeProperty ;
+        rdfs:label "erpRoute" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_erpRouteBase a owl:DatatypeProperty ;
+        rdfs:label "erpRouteBase" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_erpbom a owl:DatatypeProperty ;
+        rdfs:label "erpbom" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_erpbomBase a owl:DatatypeProperty ;
+        rdfs:label "erpbomBase" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_externallyControlled a owl:DatatypeProperty ;
+        rdfs:label "externallyControlled" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_fefoEnforce a owl:DatatypeProperty ;
+        rdfs:label "fefoEnforce" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_fefoOverrideESigRequirement a owl:DatatypeProperty ;
+        rdfs:label "fefoOverrideESigRequirement" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_filterTags a owl:DatatypeProperty ;
+        rdfs:label "filterTags" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_frequency a owl:DatatypeProperty ;
+        rdfs:label "frequency" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_glEntity a owl:DatatypeProperty ;
+        rdfs:label "glEntity" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_holdStatus a owl:DatatypeProperty ;
+        rdfs:label "holdStatus" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_iconId a owl:DatatypeProperty ;
+        rdfs:label "iconId" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_imeiAddressPool a owl:DatatypeProperty ;
+        rdfs:label "imeiAddressPool" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_imeiAddressQty a owl:DatatypeProperty ;
+        rdfs:label "imeiAddressQty" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_inheritExposure a owl:DatatypeProperty ;
+        rdfs:label "inheritExposure" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_inspectAll a owl:DatatypeProperty ;
+        rdfs:label "inspectAll" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_inventoryControlled a owl:DatatypeProperty ;
+        rdfs:label "inventoryControlled" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_isDefaultInventoryLocation a owl:DatatypeProperty ;
+        rdfs:label "isDefaultInventoryLocation" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_isFrozen a owl:DatatypeProperty ;
+        rdfs:label "isFrozen" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_isImage a owl:DatatypeProperty ;
+        rdfs:label "isImage" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_isPhantom a owl:DatatypeProperty ;
+        rdfs:label "isPhantom" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_isRecipePlan a owl:DatatypeProperty ;
+        rdfs:label "isRecipePlan" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_isRegisterContainers a owl:DatatypeProperty ;
+        rdfs:label "isRegisterContainers" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_lifetimeLimit a owl:DatatypeProperty ;
+        rdfs:label "lifetimeLimit" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_lifetimeLimit2 a owl:DatatypeProperty ;
+        rdfs:label "lifetimeLimit2" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_limitsEmailGroup a owl:DatatypeProperty ;
+        rdfs:label "limitsEmailGroup" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_lotControlled a owl:DatatypeProperty ;
+        rdfs:label "lotControlled" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_macAddressPool a owl:DatatypeProperty ;
+        rdfs:label "macAddressPool" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_macAddressQty a owl:DatatypeProperty ;
+        rdfs:label "macAddressQty" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_masterRecipe a owl:DatatypeProperty ;
+        rdfs:label "masterRecipe" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_materialAccumulateExposure a owl:DatatypeProperty ;
+        rdfs:label "materialAccumulateExposure" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_materialAttributes a owl:DatatypeProperty ;
+        rdfs:label "materialAttributes" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_materialCategory a owl:DatatypeProperty ;
+        rdfs:label "materialCategory" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_materialExposureDuration a owl:DatatypeProperty ;
+        rdfs:label "materialExposureDuration" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_materialMaxReturns a owl:DatatypeProperty ;
+        rdfs:label "materialMaxReturns" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_materialThawingDuration a owl:DatatypeProperty ;
+        rdfs:label "materialThawingDuration" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_maxQty a owl:DatatypeProperty ;
+        rdfs:label "maxQty" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_mfgOrderRequired a owl:DatatypeProperty ;
+        rdfs:label "mfgOrderRequired" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_minQty a owl:DatatypeProperty ;
+        rdfs:label "minQty" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_minQtyReorderEmailGroup a owl:DatatypeProperty ;
+        rdfs:label "minQtyReorderEmailGroup" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_minQtyReorderLimit a owl:DatatypeProperty ;
+        rdfs:label "minQtyReorderLimit" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_modelNumber a owl:DatatypeProperty ;
+        rdfs:label "modelNumber" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_mountingTechnology a owl:DatatypeProperty ;
+        rdfs:label "mountingTechnology" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_notes a owl:DatatypeProperty ;
+        rdfs:label "notes" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_npiJob a owl:DatatypeProperty ;
+        rdfs:label "npiJob" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_npiJobBase a owl:DatatypeProperty ;
+        rdfs:label "npiJobBase" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_objectCategory a owl:DatatypeProperty ;
+        rdfs:label "objectCategory" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_objectType a owl:DatatypeProperty ;
+        rdfs:label "objectType" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_outsourceTag a owl:DatatypeProperty ;
+        rdfs:label "outsourceTag" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_parentSnRule a owl:DatatypeProperty ;
+        rdfs:label "parentSnRule" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_partType a owl:DatatypeProperty ;
+        rdfs:label "partType" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_pinCount a owl:DatatypeProperty ;
+        rdfs:label "pinCount" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_plannedCost a owl:DatatypeProperty ;
+        rdfs:label "plannedCost" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_platform a owl:DatatypeProperty ;
+        rdfs:label "platform" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_polarized a owl:DatatypeProperty ;
+        rdfs:label "polarized" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_productBase a owl:DatatypeProperty ;
+        rdfs:label "productBase" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_productConversionPlan a owl:DatatypeProperty ;
+        rdfs:label "productConversionPlan" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_productFamily a owl:DatatypeProperty ;
+        rdfs:label "productFamily" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_productType a owl:DatatypeProperty ;
+        rdfs:label "productType" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_productVariation a owl:DatatypeProperty ;
+        rdfs:label "productVariation" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_productionBom a owl:DatatypeProperty ;
+        rdfs:label "productionBom" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_productionBomBase a owl:DatatypeProperty ;
+        rdfs:label "productionBomBase" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_propagateExposure a owl:DatatypeProperty ;
+        rdfs:label "propagateExposure" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_reconditionLimit a owl:DatatypeProperty ;
+        rdfs:label "reconditionLimit" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_requiredToolFamily a owl:DatatypeProperty ;
+        rdfs:label "requiredToolFamily" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_resetReworkTotalCount a owl:DatatypeProperty ;
+        rdfs:label "resetReworkTotalCount" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_revision a owl:DatatypeProperty ;
+        rdfs:label "revision" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_reworkCycleCheck a owl:DatatypeProperty ;
+        rdfs:label "reworkCycleCheck" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_reworkCycleLimit a owl:DatatypeProperty ;
+        rdfs:label "reworkCycleLimit" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_reworkHoldReason a owl:DatatypeProperty ;
+        rdfs:label "reworkHoldReason" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_reworkLossReason a owl:DatatypeProperty ;
+        rdfs:label "reworkLossReason" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_rptMinimumValue a owl:DatatypeProperty ;
+        rdfs:label "rptMinimumValue" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_samplingPlan a owl:DatatypeProperty ;
+        rdfs:label "samplingPlan" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_samplingPlanBase a owl:DatatypeProperty ;
+        rdfs:label "samplingPlanBase" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_schematic a owl:DatatypeProperty ;
+        rdfs:label "schematic" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_serialControlled a owl:DatatypeProperty ;
+        rdfs:label "serialControlled" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_serialNumberConfig a owl:DatatypeProperty ;
+        rdfs:label "serialNumberConfig" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_serialNumberGeneration a owl:DatatypeProperty ;
+        rdfs:label "serialNumberGeneration" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_serialNumberPrefix a owl:DatatypeProperty ;
+        rdfs:label "serialNumberPrefix" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_serialNumberQty a owl:DatatypeProperty ;
+        rdfs:label "serialNumberQty" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_setupAccess a owl:DatatypeProperty ;
+        rdfs:label "setupAccess" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_shopfloorDocument a owl:DatatypeProperty ;
+        rdfs:label "shopfloorDocument" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_slitCount a owl:DatatypeProperty ;
+        rdfs:label "slitCount" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_slitProduct a owl:DatatypeProperty ;
+        rdfs:label "slitProduct" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_startVirtualSn a owl:DatatypeProperty ;
+        rdfs:label "startVirtualSn" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_status a owl:DatatypeProperty ;
+        rdfs:label "status" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_stdCost a owl:DatatypeProperty ;
+        rdfs:label "stdCost" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_stdStartChildLevel a owl:DatatypeProperty ;
+        rdfs:label "stdStartChildLevel" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_stdStartChildQty a owl:DatatypeProperty ;
+        rdfs:label "stdStartChildQty" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_stdStartChildQty2 a owl:DatatypeProperty ;
+        rdfs:label "stdStartChildQty2" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_stdStartCustomer a owl:DatatypeProperty ;
+        rdfs:label "stdStartCustomer" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_stdStartFactory a owl:DatatypeProperty ;
+        rdfs:label "stdStartFactory" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_stdStartLevel a owl:DatatypeProperty ;
+        rdfs:label "stdStartLevel" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_stdStartOwner a owl:DatatypeProperty ;
+        rdfs:label "stdStartOwner" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_stdStartPriorityCode a owl:DatatypeProperty ;
+        rdfs:label "stdStartPriorityCode" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_stdStartQty a owl:DatatypeProperty ;
+        rdfs:label "stdStartQty" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_stdStartQty2 a owl:DatatypeProperty ;
+        rdfs:label "stdStartQty2" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_stdStartReason a owl:DatatypeProperty ;
+        rdfs:label "stdStartReason" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_stdStartUom a owl:DatatypeProperty ;
+        rdfs:label "stdStartUom" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_stdStartUom2 a owl:DatatypeProperty ;
+        rdfs:label "stdStartUom2" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_stockPointControlled a owl:DatatypeProperty ;
+        rdfs:label "stockPointControlled" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_subFactory a owl:DatatypeProperty ;
+        rdfs:label "subFactory" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_targetCycleTime a owl:DatatypeProperty ;
+        rdfs:label "targetCycleTime" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_targetDurationPerUnit a owl:DatatypeProperty ;
+        rdfs:label "targetDurationPerUnit" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_targetFinalYield a owl:DatatypeProperty ;
+        rdfs:label "targetFinalYield" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_targetRolledThroughputYield a owl:DatatypeProperty ;
+        rdfs:label "targetRolledThroughputYield" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_targetUnitsPerHour a owl:DatatypeProperty ;
+        rdfs:label "targetUnitsPerHour" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_tcReleaseStatus a owl:DatatypeProperty ;
+        rdfs:label "tcReleaseStatus" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_toolPlanMatrix a owl:DatatypeProperty ;
+        rdfs:label "toolPlanMatrix" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_totalProcessTime a owl:DatatypeProperty ;
+        rdfs:label "totalProcessTime" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_totalProcessTimeBulk a owl:DatatypeProperty ;
+        rdfs:label "totalProcessTimeBulk" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_totalProcessTimeUnit a owl:DatatypeProperty ;
+        rdfs:label "totalProcessTimeUnit" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_trainingReqGroup a owl:DatatypeProperty ;
+        rdfs:label "trainingReqGroup" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_uniqueSerialNumbers a owl:DatatypeProperty ;
+        rdfs:label "uniqueSerialNumbers" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_uom2 a owl:DatatypeProperty ;
+        rdfs:label "uom2" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_usageLimit a owl:DatatypeProperty ;
+        rdfs:label "usageLimit" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_usageLimit2 a owl:DatatypeProperty ;
+        rdfs:label "usageLimit2" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_useContainerNameForSn a owl:DatatypeProperty ;
+        rdfs:label "useContainerNameForSn" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_validateBulkUid a owl:DatatypeProperty ;
+        rdfs:label "validateBulkUid" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_validateIssueTool a owl:DatatypeProperty ;
+        rdfs:label "validateIssueTool" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:boolean .
+
+    cam:Product_warningExpiryDuration a owl:DatatypeProperty ;
+        rdfs:label "warningExpiryDuration" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:float .
+
+    cam:Product_warningLifetimeLimit a owl:DatatypeProperty ;
+        rdfs:label "warningLifetimeLimit" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_warningLifetimeLimit2 a owl:DatatypeProperty ;
+        rdfs:label "warningLifetimeLimit2" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_warningUsageLimit a owl:DatatypeProperty ;
+        rdfs:label "warningUsageLimit" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_warningUsageLimit2 a owl:DatatypeProperty ;
+        rdfs:label "warningUsageLimit2" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:Product_wipMsgDefMgr a owl:DatatypeProperty ;
+        rdfs:label "wipMsgDefMgr" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_workflow a owl:DatatypeProperty ;
+        rdfs:label "workflow" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Product_workflowBase a owl:DatatypeProperty ;
+        rdfs:label "workflowBase" ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:int .
+
+    cam:REL_HAS_BATCH a owl:ObjectProperty ;
+        rdfs:label "HAS_BATCH" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:Container .
+
+    cam:REL_HAS_BEGIN_PRODUCT a owl:ObjectProperty ;
+        rdfs:label "HAS_BEGIN_PRODUCT" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range cam:Product .
+
+    cam:REL_HAS_FIRST_STEP a owl:ObjectProperty ;
+        rdfs:label "HAS_FIRST_STEP" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range cam:WorkflowStep .
+
+    cam:REL_HAS_ISSUED_TO_CONTAINER a owl:ObjectProperty ;
+        rdfs:label "HAS_ISSUED_TO_CONTAINER" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:Container .
+
+    cam:REL_HAS_IS_WORKFLOW a owl:ObjectProperty ;
+        rdfs:label "HAS_IS_WORKFLOW" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range cam:Workflow .
+
+    cam:REL_HAS_MFG_ORDER a owl:ObjectProperty ;
+        rdfs:label "HAS_MFG_ORDER" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:MfgOrder .
+
+    cam:REL_HAS_OPERATION a owl:ObjectProperty ;
+        rdfs:label "HAS_OPERATION" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range cam:Operation .
+
+    cam:REL_HAS_ORIGINAL_CONTAINER a owl:ObjectProperty ;
+        rdfs:label "HAS_ORIGINAL_CONTAINER" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:Container .
+
+    cam:REL_HAS_PARENT_CONTAINER a owl:ObjectProperty ;
+        rdfs:label "HAS_PARENT_CONTAINER" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:Container .
+
+    cam:REL_HAS_PLANNED_PRODUCT a owl:ObjectProperty ;
+        rdfs:label "HAS_PLANNED_PRODUCT" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:Product .
+
+    cam:REL_HAS_PRODUCT a owl:ObjectProperty ;
+        rdfs:label "HAS_PRODUCT" ;
+        rdfs:domain cam:Container,
+            cam:MfgOrder ;
+        rdfs:range cam:Product .
+
+    cam:REL_HAS_SLIT_PRODUCT a owl:ObjectProperty ;
+        rdfs:label "HAS_SLIT_PRODUCT" ;
+        rdfs:domain cam:Product ;
+        rdfs:range cam:Product .
+
+    cam:REL_HAS_SPEC a owl:ObjectProperty ;
+        rdfs:label "HAS_SPEC" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range cam:Spec .
+
+    cam:REL_HAS_SPLIT_FROM a owl:ObjectProperty ;
+        rdfs:label "HAS_SPLIT_FROM" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:Container .
+
+    cam:REL_HAS_START_PARENT_CONTAINER a owl:ObjectProperty ;
+        rdfs:label "HAS_START_PARENT_CONTAINER" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:Container .
+
+    cam:REL_HAS_SUB_WORKFLOW a owl:ObjectProperty ;
+        rdfs:label "HAS_SUB_WORKFLOW" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range cam:Workflow .
+
+    cam:REL_HAS_WORKFLOW a owl:ObjectProperty ;
+        rdfs:label "HAS_WORKFLOW" ;
+        rdfs:domain cam:Container,
+            cam:Product ;
+        rdfs:range cam:Workflow .
+
+    cam:REL_HAS_WORKFLOWSTEP a owl:ObjectProperty ;
+        rdfs:label "HAS_WORKFLOWSTEP" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:WorkflowStep .
+
+    cam:REL_ORDERED_PRODUCT a owl:ObjectProperty ;
+        rdfs:label "ORDERED_PRODUCT" ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range cam:Product .
+
+    cam:REL_RELATED_TO a owl:ObjectProperty ;
+        rdfs:label "RELATED_TO" ;
+        rdfs:domain cam:Container ;
+        rdfs:range cam:MfgOrder .
+
+    cam:Spec_allowOtherResource a owl:DatatypeProperty ;
+        rdfs:label "allowOtherResource" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_allowOverrides a owl:DatatypeProperty ;
+        rdfs:label "allowOverrides" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_allowReprocess a owl:DatatypeProperty ;
+        rdfs:label "allowReprocess" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_allowReworkTo a owl:DatatypeProperty ;
+        rdfs:label "allowReworkTo" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_assignPhysicalAddress a owl:DatatypeProperty ;
+        rdfs:label "assignPhysicalAddress" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoClose a owl:DatatypeProperty ;
+        rdfs:label "autoClose" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoComponentIssue a owl:DatatypeProperty ;
+        rdfs:label "autoComponentIssue" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoDisassociate a owl:DatatypeProperty ;
+        rdfs:label "autoDisassociate" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoFillDataPointHistoryValue a owl:DatatypeProperty ;
+        rdfs:label "autoFillDataPointHistoryValue" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoInitiateProcessing a owl:DatatypeProperty ;
+        rdfs:label "autoInitiateProcessing" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoIssueToPanel a owl:DatatypeProperty ;
+        rdfs:label "autoIssueToPanel" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoMove a owl:DatatypeProperty ;
+        rdfs:label "autoMove" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoOpenInstructions a owl:DatatypeProperty ;
+        rdfs:label "autoOpenInstructions" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoParallel a owl:DatatypeProperty ;
+        rdfs:label "autoParallel" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_autoSelectPinDefects a owl:DatatypeProperty ;
+        rdfs:label "autoSelectPinDefects" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_boardSide a owl:DatatypeProperty ;
+        rdfs:label "boardSide" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_bypassResource a owl:DatatypeProperty ;
+        rdfs:label "bypassResource" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_changeHistory a owl:DatatypeProperty ;
+        rdfs:label "changeHistory" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_clearDefectsAction a owl:DatatypeProperty ;
+        rdfs:label "clearDefectsAction" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_clearOpenDefects a owl:DatatypeProperty ;
+        rdfs:label "clearOpenDefects" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_closeParentContainers a owl:DatatypeProperty ;
+        rdfs:label "closeParentContainers" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_computerGroup a owl:DatatypeProperty ;
+        rdfs:label "computerGroup" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_containerAction a owl:DatatypeProperty ;
+        rdfs:label "containerAction" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_defaultIssueDifferenceReason a owl:DatatypeProperty ;
+        rdfs:label "defaultIssueDifferenceReason" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_defaultSubstitutionReason a owl:DatatypeProperty ;
+        rdfs:label "defaultSubstitutionReason" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_description a owl:DatatypeProperty ;
+        rdfs:label "description" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_disassociateBeforeMove a owl:DatatypeProperty ;
+        rdfs:label "disassociateBeforeMove" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_displayOptions a owl:DatatypeProperty ;
+        rdfs:label "displayOptions" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_documentSet a owl:DatatypeProperty ;
+        rdfs:label "documentSet" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_eco a owl:DatatypeProperty ;
+        rdfs:label "eco" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_electronicProcedure a owl:DatatypeProperty ;
+        rdfs:label "electronicProcedure" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_electronicProcedureBase a owl:DatatypeProperty ;
+        rdfs:label "electronicProcedureBase" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_enableToolIssue a owl:DatatypeProperty ;
+        rdfs:label "enableToolIssue" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_enforceComplete a owl:DatatypeProperty ;
+        rdfs:label "enforceComplete" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_excludeSuspendTime a owl:DatatypeProperty ;
+        rdfs:label "excludeSuspendTime" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_filterTags a owl:DatatypeProperty ;
+        rdfs:label "filterTags" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_firstArticleMode a owl:DatatypeProperty ;
+        rdfs:label "firstArticleMode" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_firstArticleTrackingMode a owl:DatatypeProperty ;
+        rdfs:label "firstArticleTrackingMode" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_guidedManualAssembly a owl:DatatypeProperty ;
+        rdfs:label "guidedManualAssembly" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_hideNonOpenDefectsPrevSteps a owl:DatatypeProperty ;
+        rdfs:label "hideNonOpenDefectsPrevSteps" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_iconId a owl:DatatypeProperty ;
+        rdfs:label "iconId" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_isCarrierAutoMode a owl:DatatypeProperty ;
+        rdfs:label "isCarrierAutoMode" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_isDisableEProcValidation a owl:DatatypeProperty ;
+        rdfs:label "isDisableEProcValidation" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isFrozen a owl:DatatypeProperty ;
+        rdfs:label "isFrozen" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isLoadCarrier a owl:DatatypeProperty ;
+        rdfs:label "isLoadCarrier" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isMaterialIssue a owl:DatatypeProperty ;
+        rdfs:label "isMaterialIssue" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isMaterialReturn a owl:DatatypeProperty ;
+        rdfs:label "isMaterialReturn" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isMaterialWithdraw a owl:DatatypeProperty ;
+        rdfs:label "isMaterialWithdraw" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isRecordCarrierThruput a owl:DatatypeProperty ;
+        rdfs:label "isRecordCarrierThruput" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isRequiresResource a owl:DatatypeProperty ;
+        rdfs:label "isRequiresResource" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isUnloadCarrier a owl:DatatypeProperty ;
+        rdfs:label "isUnloadCarrier" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isValidateCarrierMaintenance a owl:DatatypeProperty ;
+        rdfs:label "isValidateCarrierMaintenance" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_isVerifyRecipe a owl:DatatypeProperty ;
+        rdfs:label "isVerifyRecipe" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_iterationLimit a owl:DatatypeProperty ;
+        rdfs:label "iterationLimit" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_iterationLimitFailAction a owl:DatatypeProperty ;
+        rdfs:label "iterationLimitFailAction" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_iterationLimitHoldReason a owl:DatatypeProperty ;
+        rdfs:label "iterationLimitHoldReason" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_iterationLimitLossReason a owl:DatatypeProperty ;
+        rdfs:label "iterationLimitLossReason" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_iterationLimitsEnabled a owl:DatatypeProperty ;
+        rdfs:label "iterationLimitsEnabled" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_keepContainerOnCarrier a owl:DatatypeProperty ;
+        rdfs:label "keepContainerOnCarrier" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_maxQueueTime a owl:DatatypeProperty ;
+        rdfs:label "maxQueueTime" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:float .
+
+    cam:Spec_maxQueueTimeAction a owl:DatatypeProperty ;
+        rdfs:label "maxQueueTimeAction" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_mfgLine a owl:DatatypeProperty ;
+        rdfs:label "mfgLine" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_mfgOrderReassignPlan a owl:DatatypeProperty ;
+        rdfs:label "mfgOrderReassignPlan" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_multiContainerDefectMatri a owl:DatatypeProperty ;
+        rdfs:label "multiContainerDefectMatri" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_notes a owl:DatatypeProperty ;
+        rdfs:label "notes" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_operation a owl:DatatypeProperty ;
+        rdfs:label "operation" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_optional a owl:DatatypeProperty ;
+        rdfs:label "optional" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_performMfgOrderReassignPc a owl:DatatypeProperty ;
+        rdfs:label "performMfgOrderReassignPc" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_postProductionAction a owl:DatatypeProperty ;
+        rdfs:label "postProductionAction" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_productConversionRequirement a owl:DatatypeProperty ;
+        rdfs:label "productConversionRequirement" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_recipeFile a owl:DatatypeProperty ;
+        rdfs:label "recipeFile" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_recipeFileBase a owl:DatatypeProperty ;
+        rdfs:label "recipeFileBase" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_recordTdaDetailsHistory a owl:DatatypeProperty ;
+        rdfs:label "recordTdaDetailsHistory" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_requirePreProductionProcedure a owl:DatatypeProperty ;
+        rdfs:label "requirePreProductionProcedure" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_required a owl:DatatypeProperty ;
+        rdfs:label "required" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_resetMaterialExposure a owl:DatatypeProperty ;
+        rdfs:label "resetMaterialExposure" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_resourceGroup a owl:DatatypeProperty ;
+        rdfs:label "resourceGroup" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_revision a owl:DatatypeProperty ;
+        rdfs:label "revision" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_schedulingDetail a owl:DatatypeProperty ;
+        rdfs:label "schedulingDetail" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_setup a owl:DatatypeProperty ;
+        rdfs:label "setup" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_setupAccess a owl:DatatypeProperty ;
+        rdfs:label "setupAccess" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_setupBase a owl:DatatypeProperty ;
+        rdfs:label "setupBase" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_showMovePopup a owl:DatatypeProperty ;
+        rdfs:label "showMovePopup" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_side a owl:DatatypeProperty ;
+        rdfs:label "side" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_snEntryDefaultMode a owl:DatatypeProperty ;
+        rdfs:label "snEntryDefaultMode" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_specBase a owl:DatatypeProperty ;
+        rdfs:label "specBase" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_status a owl:DatatypeProperty ;
+        rdfs:label "status" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_targetSpecs a owl:DatatypeProperty ;
+        rdfs:label "targetSpecs" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:Spec_thruputRequirement a owl:DatatypeProperty ;
+        rdfs:label "thruputRequirement" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_trainingReqGroup a owl:DatatypeProperty ;
+        rdfs:label "trainingReqGroup" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_useFirstItemScannedSn a owl:DatatypeProperty ;
+        rdfs:label "useFirstItemScannedSn" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_useMaterialSetup a owl:DatatypeProperty ;
+        rdfs:label "useMaterialSetup" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_useProductionClientBoxMode a owl:DatatypeProperty ;
+        rdfs:label "useProductionClientBoxMode" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_validateActiveMfgOrder a owl:DatatypeProperty ;
+        rdfs:label "validateActiveMfgOrder" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_validateLotSamplingComplete a owl:DatatypeProperty ;
+        rdfs:label "validateLotSamplingComplete" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_validateMaterialConsumption a owl:DatatypeProperty ;
+        rdfs:label "validateMaterialConsumption" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_validateSamplingOverallResult a owl:DatatypeProperty ;
+        rdfs:label "validateSamplingOverallResult" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_verifyExposureDuration a owl:DatatypeProperty ;
+        rdfs:label "verifyExposureDuration" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_verifyMfgLine a owl:DatatypeProperty ;
+        rdfs:label "verifyMfgLine" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_verifyParallelCompletion a owl:DatatypeProperty ;
+        rdfs:label "verifyParallelCompletion" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_verifyPhysicalAddresses a owl:DatatypeProperty ;
+        rdfs:label "verifyPhysicalAddresses" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_verifyToolPlan a owl:DatatypeProperty ;
+        rdfs:label "verifyToolPlan" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_verifyYieldLimits a owl:DatatypeProperty ;
+        rdfs:label "verifyYieldLimits" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:boolean .
+
+    cam:Spec_warningQueueTime a owl:DatatypeProperty ;
+        rdfs:label "warningQueueTime" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:float .
+
+    cam:Spec_wipMsgDefMgr a owl:DatatypeProperty ;
+        rdfs:label "wipMsgDefMgr" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:Spec_workflowDocLocation a owl:DatatypeProperty ;
+        rdfs:label "workflowDocLocation" ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:int .
+
+    cam:WorkflowStep_defaultPath a owl:DatatypeProperty ;
+        rdfs:label "defaultPath" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_description a owl:DatatypeProperty ;
+        rdfs:label "description" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_iconId a owl:DatatypeProperty ;
+        rdfs:label "iconId" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:int .
+
+    cam:WorkflowStep_isFrozen a owl:DatatypeProperty ;
+        rdfs:label "isFrozen" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:boolean .
+
+    cam:WorkflowStep_isLastStep a owl:DatatypeProperty ;
+        rdfs:label "isLastStep" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:boolean .
+
+    cam:WorkflowStep_isRouteStepName a owl:DatatypeProperty ;
+        rdfs:label "isRouteStepName" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_isSchdRouteStepName a owl:DatatypeProperty ;
+        rdfs:label "isSchdRouteStepName" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_name a owl:DatatypeProperty ;
+        rdfs:label "name" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_notes a owl:DatatypeProperty ;
+        rdfs:label "notes" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_onDefaultRoute a owl:DatatypeProperty ;
+        rdfs:label "onDefaultRoute" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:boolean .
+
+    cam:WorkflowStep_optional a owl:DatatypeProperty ;
+        rdfs:label "optional" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:int .
+
+    cam:WorkflowStep_routeStep a owl:DatatypeProperty ;
+        rdfs:label "routeStep" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_schedulingDetail a owl:DatatypeProperty ;
+        rdfs:label "schedulingDetail" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_schedulingRouteStep a owl:DatatypeProperty ;
+        rdfs:label "schedulingRouteStep" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_sequence a owl:DatatypeProperty ;
+        rdfs:label "sequence" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:int .
+
+    cam:WorkflowStep_spec a owl:DatatypeProperty ;
+        rdfs:label "spec" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_specBase a owl:DatatypeProperty ;
+        rdfs:label "specBase" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:int .
+
+    cam:WorkflowStep_stepType a owl:DatatypeProperty ;
+        rdfs:label "stepType" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:int .
+
+    cam:WorkflowStep_subWorkflow a owl:DatatypeProperty ;
+        rdfs:label "subWorkflow" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_subWorkflowBase a owl:DatatypeProperty ;
+        rdfs:label "subWorkflowBase" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:int .
+
+    cam:WorkflowStep_wipMsgLabel a owl:DatatypeProperty ;
+        rdfs:label "wipMsgLabel" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_workflow a owl:DatatypeProperty ;
+        rdfs:label "workflow" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:int .
+
+    cam:WorkflowStep_xlocation a owl:DatatypeProperty ;
+        rdfs:label "xlocation" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:int .
+
+    cam:WorkflowStep_ylocation a owl:DatatypeProperty ;
+        rdfs:label "ylocation" ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:int .
+
+    cam:Workflow_changeHistory a owl:DatatypeProperty ;
+        rdfs:label "changeHistory" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_description a owl:DatatypeProperty ;
+        rdfs:label "description" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_eco a owl:DatatypeProperty ;
+        rdfs:label "eco" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_erpRoute a owl:DatatypeProperty ;
+        rdfs:label "erpRoute" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_erpRouteBase a owl:DatatypeProperty ;
+        rdfs:label "erpRouteBase" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:int .
+
+    cam:Workflow_filterTags a owl:DatatypeProperty ;
+        rdfs:label "filterTags" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_firstStep a owl:DatatypeProperty ;
+        rdfs:label "firstStep" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_iconId a owl:DatatypeProperty ;
+        rdfs:label "iconId" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:int .
+
+    cam:Workflow_image a owl:DatatypeProperty ;
+        rdfs:label "image" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_isFrozen a owl:DatatypeProperty ;
+        rdfs:label "isFrozen" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:boolean .
+
+    cam:Workflow_isTrackQty a owl:DatatypeProperty ;
+        rdfs:label "isTrackQty" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:boolean .
+
+    cam:Workflow_isTrackQty2 a owl:DatatypeProperty ;
+        rdfs:label "isTrackQty2" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:boolean .
+
+    cam:Workflow_notes a owl:DatatypeProperty ;
+        rdfs:label "notes" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_remainingProcessTimeEnabled a owl:DatatypeProperty ;
+        rdfs:label "remainingProcessTimeEnabled" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:boolean .
+
+    cam:Workflow_revision a owl:DatatypeProperty ;
+        rdfs:label "revision" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_schedulingRoute a owl:DatatypeProperty ;
+        rdfs:label "schedulingRoute" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_setupAccess a owl:DatatypeProperty ;
+        rdfs:label "setupAccess" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_status a owl:DatatypeProperty ;
+        rdfs:label "status" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:int .
+
+    cam:Workflow_totalCycleTime a owl:DatatypeProperty ;
+        rdfs:label "totalCycleTime" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:float .
+
+    cam:Workflow_totalYield a owl:DatatypeProperty ;
+        rdfs:label "totalYield" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:float .
+
+    cam:Workflow_wipMsgDefMgr a owl:DatatypeProperty ;
+        rdfs:label "wipMsgDefMgr" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_workflowBase a owl:DatatypeProperty ;
+        rdfs:label "workflowBase" ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:previewProperty a owl:AnnotationProperty .
+
+    cam:searchProperty a owl:AnnotationProperty .
+
+    <https://opcenter.siemens.com/ontology/camstar/2607/publish/releases/f8b8d60c-2b44-4ce6-b01b-ba16749b0bd0> a owl:Ontology ;
+        rdfs:label "Governed publish ontology release 6" .
+
+    cam:Container_displayLabel a owl:DatatypeProperty ;
+        rdfs:label "显示名称"@zh ;
+        rdfs:domain cam:Container ;
+        rdfs:range xsd:string .
+
+    cam:MfgOrder_displayLabel a owl:DatatypeProperty ;
+        rdfs:label "显示名称"@zh ;
+        rdfs:domain cam:MfgOrder ;
+        rdfs:range xsd:string .
+
+    cam:Operation_description a owl:DatatypeProperty ;
+        rdfs:label "description" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_displayLabel a owl:DatatypeProperty ;
+        rdfs:label "显示名称"@zh ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Operation_name a owl:DatatypeProperty ;
+        rdfs:label "name" ;
+        rdfs:domain cam:Operation ;
+        rdfs:range xsd:string .
+
+    cam:Product_displayLabel a owl:DatatypeProperty ;
+        rdfs:label "显示名称"@zh ;
+        rdfs:domain cam:Product ;
+        rdfs:range xsd:string .
+
+    cam:Spec_displayLabel a owl:DatatypeProperty ;
+        rdfs:label "显示名称"@zh ;
+        rdfs:domain cam:Spec ;
+        rdfs:range xsd:string .
+
+    cam:WorkflowStep_displayLabel a owl:DatatypeProperty ;
+        rdfs:label "显示名称"@zh ;
+        rdfs:domain cam:WorkflowStep ;
+        rdfs:range xsd:string .
+
+    cam:Workflow_displayLabel a owl:DatatypeProperty ;
+        rdfs:label "显示名称"@zh ;
+        rdfs:domain cam:Workflow ;
+        rdfs:range xsd:string .
+
+    cam:Workflow a owl:Class ;
+        rdfs:label "Workflow" ;
+        cam:previewProperty cam:Workflow_displayLabel .
+
+    cam:WorkflowStep a owl:Class ;
+        rdfs:label "WorkflowStep" ;
+        cam:previewProperty cam:WorkflowStep_displayLabel .
+
+    cam:Operation a owl:Class ;
+        rdfs:label "Operation" ;
+        cam:previewProperty cam:Operation_displayLabel ;
+        cam:searchProperty cam:Operation_description,
+            cam:Operation_name .
+
+    cam:MfgOrder a owl:Class ;
+        rdfs:label "MfgOrder" ;
+        cam:previewProperty cam:MfgOrder_displayLabel .
+
+    cam:Spec a owl:Class ;
+        rdfs:label "Spec" ;
+        cam:previewProperty cam:Spec_displayLabel .
+
+    cam:Product a owl:Class ;
+        rdfs:label "Product" ;
+        cam:previewProperty cam:Product_displayLabel .
+
+    cam:Container a owl:Class ;
+        rdfs:label "Container" ;
+        cam:previewProperty cam:Container_displayLabel .
+}
+
