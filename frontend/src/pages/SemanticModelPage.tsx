@@ -1,7 +1,7 @@
 import {
   ApartmentOutlined, ArrowsAltOutlined, BranchesOutlined, DatabaseOutlined,
   CheckCircleOutlined, DeploymentUnitOutlined, FolderOpenOutlined,
-  HistoryOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, StarFilled, StarOutlined, TagsOutlined,
+  HistoryOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, StarFilled, StarOutlined, TagsOutlined, UploadOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -14,7 +14,6 @@ import { semanticApi, syncApi } from "../api";
 import { OntologyWorkspacePanel } from "../components/OntologyWorkspacePanel";
 import { OntologyDirectory } from "../components/OntologyDirectory";
 import { SemanticG6Canvas, type SemanticG6Handle } from "../components/SemanticG6Canvas";
-import { useThemeMode } from "../theme";
 import type { SemanticClassDetail } from "../types";
 
 const moduleNames: Record<string, string> = {
@@ -44,7 +43,6 @@ function displayModule(module: string) {
 
 export function SemanticModelPage() {
   const { message } = App.useApp();
-  const { mode } = useThemeMode();
   const queryClient = useQueryClient();
   const graphRef = useRef<SemanticG6Handle>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -53,6 +51,7 @@ export function SemanticModelPage() {
   const [detailTab, setDetailTab] = useState("properties");
   const [moduleSearch, setModuleSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [followedNodeIds, setFollowedNodeIds] = useState<string[]>(loadFollowedNodes);
   const [workbenchView, setWorkbenchView] = useState<"directory" | "source" | "workspace" | "validation" | "versions">("directory");
 
@@ -133,6 +132,9 @@ export function SemanticModelPage() {
       const [nextOverview, nextStats] = await Promise.all([semanticApi.overview(true), semanticApi.stats(true)]);
       queryClient.setQueryData(["semantic-graph-overview"], nextOverview);
       queryClient.setQueryData(["semantic-graph-stats"], nextStats);
+      await Promise.all(["ontology-directory", "authority-detail", "semantic-class-detail", "ontology-governance"].map(key => queryClient.invalidateQueries({ queryKey: [key] })));
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "刷新失败，请重试");
     } finally {
       setRefreshing(false);
     }
@@ -166,25 +168,25 @@ export function SemanticModelPage() {
     <section className="semantic-page-heading">
       <div>
         <Typography.Title level={2}>制造语义模型</Typography.Title>
-        <Typography.Paragraph>先在本体目录统一业务对象、属性与关联，再同步建模库，选择业务范围并发布到 Graph Studio。</Typography.Paragraph>
+        <Typography.Paragraph>导入 CSV → 审阅并同步建模库 → 查看主图 → 选择发布范围 → 发布到 Graph Studio。</Typography.Paragraph>
       </div>
       <Space wrap>
-        <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新模型</Button>
-        <Tooltip title="仅用于生产观察期内的兼容回退；新建模与发布请使用当前页面"><Button href="/ontology">旧版兼容入口</Button></Tooltip>
+        <Button type="primary" icon={<UploadOutlined />} onClick={() => { setWorkbenchView("directory"); setImportOpen(true); }}>导入 CSV</Button>
+        <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新</Button>
       </Space>
     </section>
 
     <Card className="semantic-stage-card" styles={{ body: { padding: "4px 14px 0" } }}>
       <Tabs activeKey={workbenchView} onChange={(key) => setWorkbenchView(key as typeof workbenchView)} items={[
         { key: "directory", label: <Space><TagsOutlined />本体目录与差异审阅</Space> },
-        { key: "source", label: <Space><ApartmentOutlined />制造语义主图<Tag>{overview.data?.nodes.length || 0}</Tag></Space> },
-        { key: "workspace", label: <Space><FolderOpenOutlined />模型工作区<Tag color="cyan">{governance.data?.graph.nodes.length || 0}</Tag></Space> },
+        { key: "source", label: <Space><ApartmentOutlined />制造语义主图{overview.data && <Tag>{overview.data.nodes.length}</Tag>}</Space> },
+        { key: "workspace", label: <Space><FolderOpenOutlined />模型工作区{governance.data && <Tag color="cyan">{governance.data.graph.nodes.length}</Tag>}</Space> },
         { key: "validation", label: <Space><CheckCircleOutlined />校验与发布</Space> },
-        { key: "versions", label: <Space><HistoryOutlined />版本记录<Tag color="gold">{governance.data?.releases.length || 0}</Tag></Space> },
+        { key: "versions", label: <Space><HistoryOutlined />版本记录{governance.data && <Tag color="gold">{governance.data.releases.length}</Tag>}</Space> },
       ]} />
     </Card>
 
-    {workbenchView === "directory" ? <OntologyDirectory /> : workbenchView === "source" ? <>
+    {workbenchView === "directory" ? <OntologyDirectory importOpen={importOpen} closeImport={() => setImportOpen(false)} /> : workbenchView === "source" ? <>
     <Alert type="info" showIcon message="制造语义主图是只读事实来源" description="“关注”只改变个人浏览布局；“加入模型”才会把对象及其源属性纳入当前 Graph Studio 发布草稿。" />
 
     <div className="semantic-stat-grid">
@@ -217,7 +219,7 @@ export function SemanticModelPage() {
 
     <div className={`semantic-workbench ${selectedNodeId ? "with-detail" : ""}`}>
       <Card className="semantic-graph-card" title={<Space><DatabaseOutlined /><span>Camstar 制造本体</span></Space>} extra={<Space><Tag color="gold">关注 {followedNodeIds.length}</Tag><Tag color="cyan">G6</Tag><Typography.Text type="secondary">{filteredGraph?.nodes.length || 0} 个对象 · {filteredGraph?.edges.length || 0} 条关系</Typography.Text></Space>} styles={{ body: { padding: 0 } }}>
-        {overview.isLoading ? <div className="semantic-loading"><Spin size="large" /><Typography.Text type="secondary">正在读取完整本体…</Typography.Text></div> : overview.error ? <Alert type="error" message="完整本体读取失败" description={(overview.error as Error).message} /> : <SemanticG6Canvas ref={graphRef} data={filteredGraph} mode={mode} selectedNodeId={selectedNodeId || undefined} followedNodeIds={followedNodeIds} onNodeSelect={selectNode} />}
+        {overview.isLoading ? <div className="semantic-loading"><Spin size="large" /><Typography.Text type="secondary">正在读取完整本体…</Typography.Text></div> : overview.error ? <Alert type="error" message="完整本体读取失败" description={(overview.error as Error).message} /> : <SemanticG6Canvas ref={graphRef} data={filteredGraph} mode="dark" selectedNodeId={selectedNodeId || undefined} followedNodeIds={followedNodeIds} onNodeSelect={selectNode} />}
       </Card>
 
       {selectedNodeId && <Card className="semantic-detail-card" title={selectedNode ? <div className="semantic-detail-title"><span>{selectedNode.data.chineseName || selectedNode.id}</span><small>{selectedNode.id}</small></div> : "对象详情"} extra={selectedNode && <Space size={6}><Tag>{displayModule(selectedNode.data.module)}</Tag><Tooltip title={followedNodeIds.includes(selectedNodeId) ? "取消关注并移回外围" : "关注后进入图谱中心区域"}><Button className="semantic-follow-button" type={followedNodeIds.includes(selectedNodeId) ? "primary" : "default"} size="small" icon={followedNodeIds.includes(selectedNodeId) ? <StarFilled /> : <StarOutlined />} onClick={toggleFollowedNode}>{followedNodeIds.includes(selectedNodeId) ? "已关注" : "关注"}</Button></Tooltip><Tooltip title={selectedModelClass ? "该对象已经属于当前发布模型" : "将对象和源属性加入当前模型工作区"}><Button size="small" type={selectedModelClass ? "default" : "primary"} icon={selectedModelClass ? <CheckCircleOutlined /> : <PlusOutlined />} disabled={Boolean(selectedModelClass) || !governance.data?.currentWorkspace} loading={addSelectedToModel.isPending} onClick={() => addSelectedToModel.mutate()}>{selectedModelClass ? "已在模型" : "加入模型"}</Button></Tooltip></Space>}>

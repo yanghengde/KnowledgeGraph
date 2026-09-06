@@ -1,7 +1,7 @@
 import {
   ApartmentOutlined, BranchesOutlined, CheckCircleFilled, CheckCircleOutlined,
   DeleteOutlined, FileProtectOutlined, LinkOutlined, PlusOutlined, SearchOutlined,
-  SendOutlined, TagsOutlined, WarningOutlined,
+  TagsOutlined, WarningOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -441,7 +441,7 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
           <div><Typography.Text type="secondary">模型完整度</Typography.Text><Progress percent={validation ? validation.valid ? 100 : Math.max(20, 100 - issueCount * 12) : 0} status={validation?.valid ? "success" : "active"} /></div>
           <Descriptions size="small" column={2}><Descriptions.Item label="对象">{graph?.nodes.length || 0}</Descriptions.Item><Descriptions.Item label="属性">{graph?.properties.filter((item) => item.published !== false).length || 0}</Descriptions.Item><Descriptions.Item label="关系">{graph?.edges.length || 0}</Descriptions.Item><Descriptions.Item label="发布库">{governance?.database}</Descriptions.Item></Descriptions>
         </div>
-        <Space wrap><Button type="primary" icon={<CheckCircleOutlined />} loading={validate.isPending} onClick={() => validate.mutate()}>执行完整性校验</Button><Button disabled={!validation?.valid || workspace?.status !== "draft"} onClick={() => { setConfirmation(""); setOperation({ kind: "review", title: "提交同行复核", description: "校验通过的当前模型将进入复核状态。" }); }}>提交复核</Button><Button disabled={!validation?.valid || !["draft", "reviewed"].includes(workspace?.status || "")} onClick={() => { setConfirmation(""); setOperation({ kind: "approve", title: "批准并冻结本体版本", description: "当前对象、属性和关系将生成不可变版本。", phrase: "批准本体版本" }); }}>批准并冻结</Button><Button href="/app/publish" icon={<FileProtectOutlined />}>进入 Graph Studio 发布</Button></Space>
+        <Space wrap><Button type="primary" icon={<CheckCircleOutlined />} loading={validate.isPending} onClick={() => validate.mutate()}>执行完整性校验</Button><Button disabled={!validation?.valid || workspace?.status !== "draft"} onClick={() => { setConfirmation(""); setOperation({ kind: "review", title: "提交同行复核", description: "校验通过的当前模型将进入复核状态。" }); }}>提交复核</Button><Button disabled={!validation?.valid || !["draft", "reviewed"].includes(workspace?.status || "")} onClick={() => { setConfirmation(""); setOperation({ kind: "approve", title: "批准并冻结本体版本", description: "当前对象、属性和关系将生成不可变版本。", phrase: "批准本体版本" }); }}>批准并冻结</Button></Space>
       </Card>
       {pendingRelease && <Alert type="warning" showIcon message={`冻结版本 R${pendingRelease.release_no} 尚未激活`} description={`当前 Graph Studio 发布仍使用${activeRelease ? ` R${activeRelease.release_no}（${activeRelease.class_count} 个对象、${activeRelease.relationship_count} 条关系）` : "旧的或空的本体契约"}。必须先激活 R${pendingRelease.release_no}（${pendingRelease.class_count} 个对象、${pendingRelease.relationship_count} 条关系），再到数据发布管理准备新制品。`} action={<Button type="primary" onClick={() => { setConfirmation(""); setOperation({ kind: "activate", title: `激活本体版本 R${pendingRelease.release_no}`, description: "激活后，新的 Graph Studio 制品将使用该不可变语义契约。", phrase: `激活本体 R${pendingRelease.release_no}`, release: pendingRelease }); }}>激活 R{pendingRelease.release_no}</Button>} />}
       {validation && <Card title={`校验结果 · ${validation.errors.length} 个错误，${validation.warnings.length} 个提醒`}>
@@ -487,6 +487,6 @@ function OperationModal({ operation, actor, confirmation, loading, onActor, onCo
 }) {
   return <Modal title={operation?.title} open={Boolean(operation)} okText="确认执行" cancelText="取消" okButtonProps={{ loading, danger: operation?.kind === "activate", disabled: !actor.trim() || Boolean(operation?.phrase && confirmation !== operation.phrase) }} onOk={onConfirm} onCancel={onCancel}>
     <Alert showIcon type={operation?.kind === "activate" ? "warning" : "info"} message={operation?.description} />
-    <div className="governed-operation-form"><label><span>操作人标识</span><Input value={actor} onChange={(event) => onActor(event.target.value)} /></label>{operation?.phrase && <label><span>请输入 <strong>{operation.phrase}</strong> 确认</span><Input prefix={<SendOutlined />} value={confirmation} onChange={(event) => onConfirmation(event.target.value)} /></label>}</div>
+    <div className="governed-operation-form"><label><span>操作人标识</span><Input value={actor} onChange={(event) => onActor(event.target.value)} /></label>{operation?.phrase && <label><span>请输入 <strong>{operation.phrase}</strong> 确认</span><Input placeholder={operation.phrase} value={confirmation} onChange={(event) => onConfirmation(event.target.value)} /></label>}</div>
   </Modal>;
 }

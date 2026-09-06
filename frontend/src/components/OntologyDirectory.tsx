@@ -8,7 +8,7 @@ const stateLabel: Record<string, string> = { review: "待确认", approved: "已
 const sourceLabel = (id: string) => id === "approved" ? "当前权威版本" : id.startsWith("candidate:") ? `导入候选 ${id.slice(10, 18)}` : id;
 const coreGroups = ["组织与位置", "产品与计量", "人员与职责", "设备与资源"];
 
-export function OntologyDirectory() {
+export function OntologyDirectory({ importOpen, closeImport }: { importOpen: boolean; closeImport: () => void }) {
   const { message } = App.useApp();
   const client = useQueryClient();
   const list = useQuery({ queryKey: ["ontology-directory"], queryFn: authorityApi.directory });
@@ -17,13 +17,12 @@ export function OntologyDirectory() {
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState<string>();
   const [selected, setSelected] = useState<AuthorityRow>();
-  const [importOpen, setImportOpen] = useState(false);
   const rows = (list.data?.items || []).filter(r => (!search || `${r.className} ${r.chineseName}`.toLowerCase().includes(search.toLowerCase())) && (!group || group === r.group) && (scope === "all" || scope === "core" && coreGroups.includes(r.group) || scope === "pending" && (r.status === "review" || r.status === "changed" || r.pendingCandidateCount > 0)));
   const published = new Map(coverage.data?.classes.map(c => [c.uri.split("#").pop(), c.count]));
-  const reload = async () => { await client.invalidateQueries({ queryKey: ["ontology-directory"] }); await client.invalidateQueries({ queryKey: ["authority-detail"] }); };
-  return <Card title="本体目录与差异审阅" extra={<Space><Button onClick={() => setImportOpen(true)}>导入物理表与字段</Button><Button onClick={() => void reload()}>刷新目录</Button></Space>}>
+  const reload = async () => { await Promise.all(["ontology-directory", "authority-detail", "semantic-graph-overview", "semantic-graph-stats", "semantic-class-detail"].map(key => client.invalidateQueries({ queryKey: [key] }))); };
+  return <Card title="本体目录与差异审阅">
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-      <Alert type="info" showIcon title="先统一模型，再接业务数据" description="每个对象确认一份权威定义；导入只生成候选，确认后同步建模库，再通过现有校验流程发布。原始文件与历史发布版本保留。" />
+      <Alert type="info" showIcon title="从 CSV 建立制造模型" description="点击页面顶部“导入 CSV”，上传表定义与字段定义。选择对象后审阅候选，确认并同步到建模库，即可在“制造语义主图”查看；再到“模型工作区”选择 Graph Studio 发布范围。" />
       {list.isError && <Alert type="error" title="目录读取失败" description={(list.error as Error).message} />}
       <Space wrap><Tag>{list.data?.summary.classes ?? "—"} 个类</Tag><Tag color="orange">{list.data?.summary.duplicates ?? "—"} 个类有多份来源</Tag><Tag color="red">{list.data?.summary.conflicts ?? "—"} 个类存在来源类型差异</Tag><Tag color="green">{list.data?.summary.approved ?? "—"} 个已确认</Tag></Space>
       <Space wrap><Select value={scope} onChange={setScope} style={{ width: 180 }} options={[{ value: "core", label: "公共核心优先" }, { value: "pending", label: "待确认与导入候选" }, { value: "all", label: "全部本体" }]} /><Select allowClear placeholder="业务领域" value={group} onChange={setGroup} style={{ width: 240 }} options={list.data?.groups.map(g => ({ value: g, label: g }))} /><Input.Search allowClear placeholder="搜索中文名或类名" value={search} onChange={e => setSearch(e.target.value)} style={{ width: 260 }} /></Space>
@@ -40,7 +39,7 @@ export function OntologyDirectory() {
     <Drawer title={selected ? `${selected.chineseName} · ${selected.className}` : "模型卡"} open={!!selected} onClose={() => setSelected(undefined)} size="large" destroyOnHidden>
       {selected && <ModelCard key={selected.className} row={selected} reload={reload} />}
     </Drawer>
-    <ImportDialog open={importOpen} close={() => setImportOpen(false)} done={async () => { setImportOpen(false); setScope("pending"); await reload(); message.success("候选已保存，请打开模型卡审阅差异"); }} />
+    <ImportDialog open={importOpen} close={closeImport} done={async () => { closeImport(); setScope("pending"); await reload(); message.success("候选已保存，请打开模型卡审阅差异"); }} />
   </Card>;
 }
 
@@ -106,10 +105,12 @@ function ImportDialog({ open, close, done }: { open: boolean; close: () => void;
   const [search, setSearch] = useState("");
   const analyze = useMutation({ mutationFn: () => { const form = new FormData(); form.append("tables", tables!); form.append("fields", fields!); form.append("database", "sqlserver"); return authorityApi.analyze(form); }, onSuccess: d => { setAnalysis(d); setSelected(d.candidates.filter(c => c.selected).map(c => c.className)); }, onError: (e: Error) => message.error(e.message) });
   const stage = useMutation({ mutationFn: () => authorityApi.stage(analysis!.importId, selected), onSuccess: async () => { setAnalysis(undefined); await done(); }, onError: (e: Error) => message.error(e.message) });
-  return <Modal title="导入为候选，不直接覆盖模型" open={open} onCancel={close} width={900} footer={null}>
+  const busy = analyze.isPending || stage.isPending;
+  return <Modal title="导入 CSV · 表与字段定义" open={open} onCancel={close} closable={!busy} maskClosable={!busy} keyboard={!busy} width={900} footer={null}>
     <Space orientation="vertical" style={{ width: "100%" }}>
-      <label>物理表 CSV <input type="file" accept=".csv" disabled={analyze.isPending || stage.isPending} onChange={e => { setTables(e.target.files?.[0]); setAnalysis(undefined); }} /></label>
-      <label>字段 CSV <input type="file" accept=".csv" disabled={analyze.isPending || stage.isPending} onChange={e => { setFields(e.target.files?.[0]); setAnalysis(undefined); }} /></label>
+      <Alert type="info" showIcon title="上传 Camstar 数据库结构，不是业务数据记录" description="项目标准文件位于 docs/Database_Tables.csv 和 docs/Database_Fields.csv。导入生成待审阅候选，确认并同步后才更新制造语义主图。" />
+      <label>表定义（Database_Tables.csv） <input aria-label="表定义 CSV" type="file" accept=".csv" disabled={busy} onChange={e => { setTables(e.target.files?.[0]); setAnalysis(undefined); }} /></label>
+      <label>字段与外键（Database_Fields.csv） <input aria-label="字段与外键 CSV" type="file" accept=".csv" disabled={busy} onChange={e => { setFields(e.target.files?.[0]); setAnalysis(undefined); }} /></label>
       <Button disabled={!tables || !fields || stage.isPending} loading={analyze.isPending} onClick={() => analyze.mutate()}>分析业务对象</Button>
       {analysis && <><Input.Search placeholder="搜索对象" value={search} onChange={e => setSearch(e.target.value)} /><Table rowKey="className" size="small" dataSource={analysis.candidates.filter(c => c.className.toLowerCase().includes(search.toLowerCase()))} rowSelection={{ selectedRowKeys: selected, preserveSelectedRowKeys: true, onChange: keys => setSelected(keys as string[]) }} pagination={{ pageSize: 8 }} columns={[{ title: "对象", dataIndex: "className" }, { title: "建议", dataIndex: "reason" }]} /><Button type="primary" disabled={!selected.length || analyze.isPending} loading={stage.isPending} onClick={() => stage.mutate()}>提交 {selected.length} 个对象为候选</Button></>}
     </Space>

@@ -164,9 +164,9 @@ button, input, textarea { font: inherit; }
 .safety-list .anticon { color: #28d7b5; }
 .safety-list span:last-child .anticon { color: #f4bb55; }
 .governed-operation-form { display: grid; gap: 16px; margin-top: 18px; }
-.governed-operation-form label, .governed-operation-form label > span { display: block; }
-.governed-operation-form label > span { margin-bottom: 7px; color: #81989e; font-size: 10px; }
-.governed-operation-form label > span strong { color: #eaf4f4; }
+.governed-operation-form label, .governed-operation-form label > span:first-child { display: block; }
+.governed-operation-form label > span:first-child { margin-bottom: 7px; color: #81989e; font-size: 10px; }
+.governed-operation-form label > span:first-child strong { color: #eaf4f4; }
 .deployment-table .ant-table-cell { white-space: nowrap; }
 .deployment-table .ant-table-thead > tr > th { font-size: 10px; }
 .deployment-result { display: grid; min-width: 0; gap: 4px; white-space: normal; }
@@ -226,15 +226,16 @@ button, input, textarea { font: inherit; }
 .semantic-workbench.with-detail { grid-template-columns: minmax(560px, 1fr) minmax(390px, 440px); }
 .semantic-graph-card, .semantic-detail-card { min-width: 0; overflow: hidden; border-color: rgba(110, 164, 174, .18); }
 .semantic-graph-card .ant-card-head, .semantic-detail-card .ant-card-head { min-height: 54px; }
-.semantic-canvas-shell { position: relative; width: 100%; height: 690px; overflow: hidden; background: radial-gradient(circle at 50% 44%, rgba(22, 112, 111, .16), transparent 42%), #06131b; }
+.semantic-canvas-shell { position: relative; width: 100%; height: 690px; overflow: hidden; background: #0b1016; }
+.semantic-canvas-overlay .ant-typography-secondary { color: #c0ccd4; }
 .semantic-g6-canvas { width: 100%; height: 100%; }
-.semantic-node-tooltip { position: absolute; z-index: 12; width: 290px; padding: 12px 14px; border: 1px solid rgba(40, 215, 181, .42); border-radius: 9px; opacity: 0; visibility: hidden; color: #e8f0f2; background: rgba(9, 28, 37, .94); box-shadow: 0 12px 34px rgba(0, 0, 0, .34); backdrop-filter: blur(12px); pointer-events: none; transition: opacity .13s ease, visibility .13s ease; }
+.semantic-node-tooltip { position: absolute; z-index: 12; width: 290px; padding: 12px 14px; border: 1px solid #45545c; border-radius: 9px; opacity: 0; visibility: hidden; color: #f5f7fa; background: #111820; box-shadow: 0 12px 34px rgba(0, 0, 0, .34); pointer-events: none; transition: opacity .13s ease, visibility .13s ease; }
 .semantic-node-tooltip.visible { opacity: 1; visibility: visible; }
 .semantic-node-tooltip strong, .semantic-node-tooltip span, .semantic-node-tooltip small { display: block; }
 .semantic-node-tooltip strong { margin-bottom: 3px; color: #33d7b8; font-size: 13px; }
-.semantic-node-tooltip span { color: #91a8ae; font-family: Consolas, monospace; font-size: 10px; }
-.semantic-node-tooltip p { max-height: 70px; margin: 8px 0; overflow: hidden; color: #c1d0d4; font-size: 10px; line-height: 1.55; }
-.semantic-node-tooltip small { padding-top: 7px; border-top: 1px solid rgba(126, 173, 181, .16); color: #789198; font-size: 9px; }
+.semantic-node-tooltip span { color: #c0ccd4; font-family: Consolas, monospace; font-size: 10px; }
+.semantic-node-tooltip p { max-height: 70px; margin: 8px 0; overflow: hidden; color: #f0f3f5; font-size: 10px; line-height: 1.55; }
+.semantic-node-tooltip small { padding-top: 7px; border-top: 1px solid #45545c; color: #b8c5ce; font-size: 9px; }
 .semantic-canvas-help { position: absolute; right: 14px; bottom: 12px; z-index: 3; display: flex; gap: 12px; padding: 6px 9px; border: 1px solid rgba(106, 157, 166, .18); border-radius: 6px; color: #739098; background: rgba(6, 19, 27, .74); font-size: 8px; pointer-events: none; backdrop-filter: blur(8px); }
 .semantic-canvas-help span + span::before { margin-right: 12px; color: #3e5a62; content: "·"; }
 .semantic-follow-button { min-width: 76px; }
@@ -515,8 +516,8 @@ html[data-theme="light"] .promotion-card .ant-card-head-title > div small { colo
 html[data-theme="light"] .promotion-details .ant-descriptions-item-label { color: #607780; }
 html[data-theme="light"] .safety-list .anticon { color: #168c78; }
 html[data-theme="light"] .safety-list span:last-child .anticon { color: #b9780e; }
-html[data-theme="light"] .governed-operation-form label > span { color: #607780; }
-html[data-theme="light"] .governed-operation-form label > span strong { color: #233942; }
+html[data-theme="light"] .governed-operation-form label > span:first-child { color: #607780; }
+html[data-theme="light"] .governed-operation-form label > span:first-child strong { color: #233942; }
 html[data-theme="light"] .deployment-result span { color: #687f88; }
 html[data-theme="light"] .deployment-result.failed strong { color: #bd3f4c; }
 html[data-theme="light"] .deployment-result.success strong { color: #288557; }
@@ -534,14 +535,6 @@ html[data-theme="light"] .semantic-stage-card,
 html[data-theme="light"] .semantic-graph-card,
 html[data-theme="light"] .semantic-detail-card,
 html[data-theme="light"] .semantic-module-card { border-color: #d5dfe4; box-shadow: 0 4px 14px rgba(29, 57, 68, .045); }
-html[data-theme="light"] .semantic-canvas-shell { background: radial-gradient(circle at 50% 44%, rgba(8, 112, 138, .07), transparent 44%), #f8fbfc; }
-html[data-theme="light"] .semantic-canvas-overlay { background: rgba(248, 251, 252, .86); }
-html[data-theme="light"] .semantic-node-tooltip { border-color: rgba(8, 112, 138, .3); color: #173944; background: rgba(255, 255, 255, .96); box-shadow: 0 12px 32px rgba(35, 70, 82, .18); }
-html[data-theme="light"] .semantic-node-tooltip strong { color: #08728a; }
-html[data-theme="light"] .semantic-node-tooltip span { color: #6a828a; }
-html[data-theme="light"] .semantic-node-tooltip p { color: #405b64; }
-html[data-theme="light"] .semantic-node-tooltip small { border-top-color: #e1e9ec; color: #738a92; }
-html[data-theme="light"] .semantic-canvas-help { border-color: rgba(75, 112, 123, .15); color: #6e838b; background: rgba(255, 255, 255, .8); }
 html[data-theme="light"] .semantic-detail-title small,
 html[data-theme="light"] .semantic-meta .ant-descriptions-item-label { color: #667f88; }
 html[data-theme="light"] .semantic-description { color: #607780; }
