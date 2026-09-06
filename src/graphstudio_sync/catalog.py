@@ -1,4 +1,4 @@
-"""Compile Neo4j ontology and Camstar SQL metadata into PostgreSQL."""
+"""Compile PostgreSQL ontology and Camstar SQL metadata into PostgreSQL."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ import json
 import uuid
 from typing import Any
 
-from neo4j import GraphDatabase
 from sqlalchemy import text
 
 from .config import SyncSettings
@@ -21,53 +20,9 @@ from .repository import ControlPlaneRepository
 
 
 def _ontology_catalog(settings: SyncSettings) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
-    from .ontology_backend import backend
-    if backend(settings) == "postgres":
-        from .ontology_store import source_payload
-        payload = source_payload(settings)
-        return payload["classes"], payload["properties"], payload["relationships"]
-    driver = GraphDatabase.driver(settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password))
-    try:
-        driver.verify_connectivity()
-        with driver.session(database=settings.neo4j_database) as session:
-            classes = [
-                dict(record)
-                for record in session.run(
-                    """
-                    MATCH (c:OntologyClass)
-                    RETURN c.name AS name, c.chineseName AS chineseName,
-                           c.layer AS layer, c.sourceWorkspace AS sourceWorkspace,
-                           c.sourceCDODefId AS sourceCDODefId
-                    ORDER BY c.name
-                    """
-                )
-            ]
-            properties = [
-                dict(record)
-                for record in session.run(
-                    """
-                    MATCH (c:OntologyClass)-[:HAS_PROPERTY]->(p:OntologyProperty)
-                    RETURN c.name AS className, p.name AS name, p.dataType AS dataType,
-                           coalesce(p.required, false) AS required,
-                           p.sourceFieldId AS sourceFieldId
-                    ORDER BY c.name, p.name
-                    """
-                )
-            ]
-            relationships = [
-                dict(record)
-                for record in session.run(
-                    """
-                    MATCH (source:OntologyClass)-[r:ONTOLOGY_RELATION]->(target:OntologyClass)
-                    RETURN source.name AS source, r.name AS name, target.name AS target,
-                           r.cardinality AS cardinality
-                    ORDER BY source.name, r.name, target.name
-                    """
-                )
-            ]
-    finally:
-        driver.close()
-    return classes, properties, relationships
+    from .ontology_store import source_payload
+    payload = source_payload(settings)
+    return payload["classes"], payload["properties"], payload["relationships"]
 
 
 def _class_tokens(value: str) -> set[str]:

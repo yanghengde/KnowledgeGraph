@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from web.shared import PROJECT_ROOT
 
 
@@ -30,20 +30,14 @@ app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__
 
 # Import and mount decoupled API routers
 from web.routers.graph import router as graph_router
-from web.routers.wiki import router as wiki_router
-from web.routers.chat import router as chat_router
 from web.routers.sql_builder import router as sql_builder_router
-from web.routers.i18n import router as i18n_router
 from web.routers.ontology_import import router as ontology_import_router
 from web.routers.ontology_authority import router as ontology_authority_router
 from web.routers.sync_center import router as sync_center_router
 from web.routers.manufacturing_chat import router as manufacturing_chat_router
 
 app.include_router(graph_router)
-app.include_router(wiki_router)
-app.include_router(chat_router)
 app.include_router(sql_builder_router)
-app.include_router(i18n_router)
 app.include_router(ontology_import_router)
 app.include_router(ontology_authority_router)
 app.include_router(sync_center_router)
@@ -52,31 +46,29 @@ app.include_router(manufacturing_chat_router)
 
 @app.get("/")
 def index():
-    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "sync.html"))
+    return RedirectResponse("/app/overview")
 
 
 @app.get("/sync")
 def sync_center():
-    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "sync.html"))
+    return RedirectResponse("/app/overview")
 
 
 @app.get("/ontology")
 def ontology_explorer():
-    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "index.html"))
+    return RedirectResponse("/app/ontology-model")
 
 
 @app.get("/chat")
 @app.get("/knowledge-chat")
 def manufacturing_knowledge_chat():
-    return FileResponse(
-        os.path.join(os.path.dirname(__file__), "static", "knowledge-chat.html")
-    )
+    return RedirectResponse("/app/assistant")
 
 
 @app.get("/app")
 @app.get("/app/{frontend_path:path}")
 def manufacturing_console(frontend_path: str = ""):
-    """Serve the new React console while legacy workspaces remain available."""
+    """Serve the manufacturing console."""
     index_path = os.path.join(os.path.dirname(__file__), "static", "react", "index.html")
     if not os.path.exists(index_path):
         raise HTTPException(
@@ -88,17 +80,10 @@ def manufacturing_console(frontend_path: str = ""):
 
 @app.get("/healthz", include_in_schema=False)
 def healthz():
-    from web.shared import driver
     from sqlalchemy import text
     from src.graphstudio_sync.config import SyncSettings
     from src.graphstudio_sync.database import control_engine
 
-    try:
-        from src.graphstudio_sync.ontology_backend import backend
-        if backend() == "neo4j":
-            driver.verify_connectivity()
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail="Neo4j is unavailable") from exc
     try:
         engine = control_engine(SyncSettings.from_env())
         with engine.connect() as connection:
@@ -106,7 +91,7 @@ def healthz():
         engine.dispose()
     except Exception as exc:
         raise HTTPException(status_code=503, detail="PostgreSQL control plane is unavailable") from exc
-    return {"status": "ok", "service": "opcenter-graph-sync", "dependencies": {"neo4j": "online", "postgresql": "online"}}
+    return {"status": "ok", "service": "opcenter-graph-sync", "dependencies": {"postgresql": "online"}}
 
 
 if __name__ == "__main__":

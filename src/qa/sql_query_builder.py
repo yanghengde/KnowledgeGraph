@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from src.ontology.wiki_manager import _sql_identifier, normalize_sql_dialect
+from src.qa.sql_dialect import _sql_identifier, normalize_sql_dialect
 from src.qa.sql_schema_retriever import (
     _physical_fk_graph,
     _schema,

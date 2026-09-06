@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-from neo4j import GraphDatabase
 from rdflib import Graph, Literal, Namespace, RDF, RDFS, URIRef, XSD
 from rdflib.namespace import OWL, SKOS
 from sqlalchemy import text
@@ -244,50 +243,11 @@ def _load_catalog(repository: ControlPlaneRepository) -> dict[str, Any]:
 
 
 def _load_descriptions(settings: SyncSettings) -> dict[str, dict[Any, dict[str, Any]]]:
-    from .ontology_backend import backend
-    if backend(settings) == "postgres":
-        from .ontology_store import source_payload
-        payload = source_payload(settings)
-        return {"classes": {c["name"]: c for c in payload["classes"]},
-                "properties": {(p["className"], p["name"]): p for p in payload["properties"]},
-                "relationships": {(r["source"], r["name"], r["target"]): r for r in payload["relationships"]}}
-    driver = GraphDatabase.driver(settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password))
-    try:
-        driver.verify_connectivity()
-        with driver.session() as session:
-            classes = {
-                record["name"]: dict(record)
-                for record in session.run(
-                    """
-                    MATCH (c:OntologyClass)
-                    RETURN c.name AS name, c.description AS description,
-                           c.chineseName AS chineseName
-                    """
-                )
-            }
-            properties = {
-                (record["className"], record["name"]): dict(record)
-                for record in session.run(
-                    """
-                    MATCH (c:OntologyClass)-[:HAS_PROPERTY]->(p:OntologyProperty)
-                    RETURN c.name AS className, p.name AS name,
-                           p.description AS description
-                    """
-                )
-            }
-            relationships = {
-                (record["source"], record["name"], record["target"]): dict(record)
-                for record in session.run(
-                    """
-                    MATCH (source:OntologyClass)-[r:ONTOLOGY_RELATION]->(target:OntologyClass)
-                    RETURN source.name AS source, r.name AS name, target.name AS target,
-                           r.description AS description
-                    """
-                )
-            }
-    finally:
-        driver.close()
-    return {"classes": classes, "properties": properties, "relationships": relationships}
+    from .ontology_store import source_payload
+    payload = source_payload(settings)
+    return {"classes": {c["name"]: c for c in payload["classes"]},
+            "properties": {(p["className"], p["name"]): p for p in payload["properties"]},
+            "relationships": {(r["source"], r["name"], r["target"]): r for r in payload["relationships"]}}
 
 
 def _source_metadata(settings: SyncSettings, class_rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -373,7 +333,7 @@ def _build_model(
     graph.add((ONTOLOGY_URI, RDF.type, OWL.Ontology))
     graph.add((ONTOLOGY_URI, RDFS.label, Literal("Opcenter 2607 Camstar Full Ontology", lang="en")))
     graph.add((ONTOLOGY_URI, RDFS.label, Literal("Opcenter 2607 Camstar 全量本体", lang="zh")))
-    graph.add((ONTOLOGY_URI, RDFS.comment, Literal("Compiled from the reviewed Neo4j ontology and PostgreSQL mapping catalog.")))
+    graph.add((ONTOLOGY_URI, RDFS.comment, Literal("Compiled from the reviewed PostgreSQL ontology and PostgreSQL mapping catalog.")))
 
     annotations = {
         "sourceTable": "Camstar physical source table",

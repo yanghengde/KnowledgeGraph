@@ -5,14 +5,6 @@ from src.graphstudio_sync.repository import ControlPlaneRepository
 
 def _settings() -> SyncSettings:
     return SyncSettings(
-        neo4j_uri="bolt://neo4j:7687",
-        neo4j_user="neo4j",
-        neo4j_password="neo-secret",
-        neo4j_database="neo4j",
-        publish_neo4j_uri="bolt://neo4j:7687",
-        publish_neo4j_user="neo4j",
-        publish_neo4j_password="neo-secret",
-        publish_neo4j_database="graphstudio-model",
         source_host="sql-old",
         source_port=1433,
         source_database="CamstarOld",

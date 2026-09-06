@@ -1,5 +1,4 @@
 # ── Core ──
-neo4j>=5.14.0
 python-dotenv>=1.0.0
 
 # ── Web Server ──
@@ -8,8 +7,7 @@ uvicorn>=0.25.0
 pydantic>=2.0.0
 python-multipart>=0.0.9
 
-# ── Database & ETL ──
-pandas>=2.1.0
+# ── Business source databases ──
 SQLAlchemy>=2.0.20
 pyodbc>=5.0.1
 pymssql>=2.3.0
@@ -20,18 +18,7 @@ oracledb>=2.0.0
 requests>=2.31.0
 rdflib>=7.1.0
 
-# ── LLM & RAG ──
 openai>=1.10.0
-chromadb>=0.4.22
-# Sentence Transformers 只在 CPU 上运行。固定官方 CPU wheel，避免 Linux
-# 环境从 PyPI 的默认 PyTorch 构建拉取 nvidia-cuda-* 等 GPU 运行包。
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.11.0+cpu; platform_system == "Linux" or platform_system == "Windows"
-torch==2.11.0; platform_system == "Darwin"
-sentence-transformers>=2.2.2
 
 # ── Document Parsing ──
 PyMuPDF>=1.23.0
-
-# ── Scheduler ──
-schedule>=1.2.1

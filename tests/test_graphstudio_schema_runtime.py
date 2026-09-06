@@ -1,5 +1,4 @@
 import pytest
-from neo4j import GraphDatabase
 from src.qa import graphstudio_assistant as assistant
 
 
@@ -14,7 +13,6 @@ def test_published_schema_reads_graphstudio_without_neo4j(monkeypatch):
     ]
     def no_neo4j(*args, **kwargs):
         pytest.fail('Question runtime must not open Neo4j')
-    monkeypatch.setattr(GraphDatabase, 'driver', no_neo4j)
     def sparql(query, **kwargs):
         assert 'GRAPH <https://example.com/layer/r5>' in query
         assert kwargs['runtime_snapshot'] is runtime

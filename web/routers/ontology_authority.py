@@ -30,11 +30,9 @@ def _store():
 
 
 def _documents():
-    from src.graphstudio_sync.ontology_backend import backend
     documents = catalog.read_library()
-    if backend() == "postgres":
-        from web.ontology_postgres_view import documents as postgres_documents
-        documents.update(postgres_documents())
+    from web.ontology_postgres_view import documents as postgres_documents
+    documents.update(postgres_documents())
     return documents
 
 
@@ -97,52 +95,22 @@ def sync(name: str, request: Revision):
         record = authorities.get(name)
         if not record or record["revision"] != request.revision:
             raise HTTPException(409, "权威版本已变化，请刷新后同步")
-        from src.graphstudio_sync.ontology_backend import backend
-        if backend() == "postgres":
-            from src.graphstudio_sync.ontology_store import source_payload, save_source
-            conn.execute(text("SELECT pg_advisory_xact_lock(721603061)"))
-            payload = source_payload(None, conn)
-            cls = record["model"]["class"]
-            known = {c["name"] for c in payload["classes"]} | {name}
-            relations = record["model"]["relationships"]
-            if any(r["toClass"] not in known for r in relations):
-                raise HTTPException(422, "请先导入关系终点的 CSV 模型")
-            payload["classes"] = [c for c in payload["classes"] if c["name"] != name] + [{"name": name,
-                "chineseName": cls.get("chineseName", ""), "description": cls.get("description", ""), "module": record["domain"], "layer": "Config", "authorityRevision": request.revision}]
-            payload["properties"] = [p for p in payload["properties"] if p["className"] != name] + [{**p, "className": name, "dataType": p.get("type", "String")} for p in cls.get("properties", [])]
-            payload["relationships"] = [r for r in payload["relationships"] if r["source"] != name] + [{**r, "source": name, "target": r["toClass"], "name": r["relationName"]} for r in relations]
-            for key, order in (("classes", lambda c:c["name"]), ("properties", lambda p:(p["className"],p["name"])), ("relationships", lambda r:(r["source"],r["name"],r["target"]))):
-                payload[key].sort(key=order)
-            save_source(conn, payload, {"kind": "authority", "className": name, "revision": request.revision}, activate=True)
-            conn.execute(text("UPDATE graphsync.ontology_authority SET synced_revision=:revision WHERE class_name=:name"), {"revision": request.revision,"name": name})
-        else:
-            from web.shared import driver
-            cls = record["model"]["class"]
-            relationships = record["model"]["relationships"]
-            def write(tx):
-                targets = sorted({r["toClass"] for r in relationships if r["toClass"] != name})
-                found = {r["name"] for r in tx.run("MATCH (c:OntologyClass) WHERE c.name IN $names RETURN c.name AS name", names=targets)}
-                missing = sorted(set(targets) - found)
-                if missing:
-                    raise ValueError("请先同步关系终点：" + "、".join(missing[:15]))
-                tx.run("""MERGE (c:OntologyClass {name:$name}) SET c.chineseName=$label,
-                    c.description=$description,c.module=$domain,c.authorityRevision=$revision,c.layer='Config'""",
-                    name=name,label=cls.get("chineseName", ""),description=cls.get("description", ""),domain=record["domain"],revision=request.revision).consume()
-                tx.run("""UNWIND $properties AS p MATCH (c:OntologyClass {name:$name})
-                    MERGE (a:OntologyProperty {className:$name,name:p.name})
-                    SET a.dataType=coalesce(p.type,'String'),a.description=coalesce(p.description,''),a.required=coalesce(p.required,false)
-                    MERGE (c)-[:HAS_PROPERTY]->(a)""",name=name,properties=cls.get("properties", [])).consume()
-                tx.run("""UNWIND $relations AS r MATCH (s:OntologyClass {name:$name}),(t:OntologyClass {name:r.toClass})
-                    MERGE (s)-[e:ONTOLOGY_RELATION {name:r.relationName}]->(t)
-                    SET e.description=coalesce(r.description,''),e.cardinality=coalesce(r.cardinality,'UNKNOWN')""",name=name,relations=relationships).consume()
-            try:
-                with driver.session() as session:
-                    session.execute_write(write)
-            except ValueError as exc:
-                raise HTTPException(422, str(exc)) from exc
-            except Exception as exc:
-                raise HTTPException(503, "建模库同步未完成，权威版本已保存；检查 Neo4j 连接后可安全重试") from exc
-            conn.execute(text("UPDATE graphsync.ontology_authority SET synced_revision=:revision WHERE class_name=:name"), {"revision": request.revision,"name": name})
-    from web.routers.ontology_import import _invalidate_graph_caches
-    _invalidate_graph_caches()
+        from src.graphstudio_sync.ontology_store import source_payload, save_source
+        conn.execute(text("SELECT pg_advisory_xact_lock(721603061)"))
+        payload = source_payload(None, conn)
+        cls = record["model"]["class"]
+        known = {c["name"] for c in payload["classes"]} | {name}
+        relations = record["model"]["relationships"]
+        if any(r["toClass"] not in known for r in relations):
+            raise HTTPException(422, "请先导入关系终点的 CSV 模型")
+        payload["classes"] = [c for c in payload["classes"] if c["name"] != name] + [{"name": name,
+            "chineseName": cls.get("chineseName", ""), "description": cls.get("description", ""), "module": record["domain"], "layer": "Config", "authorityRevision": request.revision}]
+        payload["properties"] = [p for p in payload["properties"] if p["className"] != name] + [{**p, "className": name, "dataType": p.get("type", "String")} for p in cls.get("properties", [])]
+        payload["relationships"] = [r for r in payload["relationships"] if r["source"] != name] + [{**r, "source": name, "target": r["toClass"], "name": r["relationName"]} for r in relations]
+        for key, order in (("classes", lambda c:c["name"]), ("properties", lambda p:(p["className"],p["name"])), ("relationships", lambda r:(r["source"],r["name"],r["target"]))):
+            payload[key].sort(key=order)
+        save_source(conn, payload, {"kind": "authority", "className": name, "revision": request.revision}, activate=True)
+        conn.execute(text("UPDATE graphsync.ontology_authority SET synced_revision=:revision WHERE class_name=:name"), {"revision": request.revision,"name": name})
+    from web.routers.graph import invalidate_graph_caches
+    invalidate_graph_caches()
     return {"status": "synced", "revision": request.revision}

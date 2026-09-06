@@ -24,7 +24,7 @@ from .materialization import canonical_json
 from .repository import ControlPlaneRepository
 
 
-SWAGGER_ROOT = Path(__file__).resolve().parents[1] / "Swagger"
+SWAGGER_ROOT = Path(__file__).resolve().parents[2] / "data" / "openapi"
 SAFE_ACTION_PART = re.compile(r"[^a-zA-Z0-9]+")
 
 

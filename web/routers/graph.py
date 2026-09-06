@@ -3,9 +3,8 @@ from functools import lru_cache
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from web.shared import driver, _classify_module, _load_module_map, PROJECT_ROOT
+from web.shared import _classify_module, _load_module_map, PROJECT_ROOT
 
-from src.graphstudio_sync.ontology_backend import backend
 
 router = APIRouter()
 
@@ -65,65 +64,8 @@ COLORS = {
 
 @lru_cache(maxsize=1)
 def _graph_overview_cached():
-    if backend() == "postgres":
-        from web.ontology_postgres_view import overview
-        return overview()
-    _load_module_map()
-    with driver.session() as session:
-        # Nodes
-        result = session.run("""
-            MATCH (c:OntologyClass)
-            OPTIONAL MATCH (c)-[:HAS_PROPERTY]->(property:OntologyProperty)
-            RETURN c.name AS name,
-                   c.chineseName AS chineseName,
-                   c.description AS description,
-                   c.layer AS layer,
-                   count(DISTINCT property) AS propertyCount
-            ORDER BY c.name
-        """)
-        nodes = []
-        combos = set()
-        for r in result:
-            name = r["name"]
-            module = _classify_module(name)
-            combos.add(module)
-            nodes.append({
-                "id": name,
-                "data": {
-                    "label": name,
-                    "chineseName": r["chineseName"] or "",
-                    "description": r["description"] or "",
-                    "layer": r["layer"] or "Config",
-                    "propertyCount": int(r["propertyCount"] or 0),
-                    "module": module,
-                    "type": "class",
-                }
-            })
-
-        # Edges
-        result = session.run("""
-            MATCH (from:OntologyClass)-[r:ONTOLOGY_RELATION]->(to:OntologyClass)
-            RETURN from.name AS source,
-                   to.name   AS target,
-                   r.name    AS label,
-                   r.cardinality AS cardinality,
-                   r.lineStyle   AS lineStyle
-        """)
-        edges = []
-        for r in result:
-            edges.append({
-                "source": r["source"],
-                "target": r["target"],
-                "data": {
-                    "label": r["label"] or "",
-                    "cardinality": r["cardinality"] or "",
-                    "lineStyle": r["lineStyle"] or "",
-                }
-            })
-
-        combo_list = [{"id": c, "data": {"label": c.capitalize()}} for c in combos]
-
-    return {"nodes": nodes, "edges": edges, "combos": combo_list}
+    from web.ontology_postgres_view import overview
+    return overview()
 
 
 @router.get("/api/graph/overview")
@@ -135,21 +77,6 @@ def graph_overview(refresh: bool = False):
     return response
 
 
-CLASS_DETAIL_QUERY = """
-    MATCH (c:OntologyClass {name: $name})
-    RETURN c.name AS className,
-           [(c)-[:HAS_PROPERTY]->(p:OntologyProperty) |
-             {name: p.name, dataType: p.dataType, description: p.description}
-           ] AS properties,
-           [(c)-[r:ONTOLOGY_RELATION]->(target:OntologyClass) |
-             {targetClass: target.name, relName: r.name,
-              cardinality: r.cardinality, description: r.description}
-           ] AS outgoing,
-           [(source:OntologyClass)-[r:ONTOLOGY_RELATION]->(c) |
-             {sourceClass: source.name, relName: r.name,
-              cardinality: r.cardinality, description: r.description}
-           ] AS incoming
-"""
 
 
 def _normalize_class_detail(record, class_name: str):
@@ -176,31 +103,14 @@ def _normalize_class_detail(record, class_name: str):
 
 @lru_cache(maxsize=512)
 def _graph_class_detail_cached(class_name: str):
-    if backend() == "postgres":
-        from web.ontology_postgres_view import details
-        return _normalize_class_detail(details().get(class_name), class_name)
-    with driver.session() as session:
-        record = session.run(CLASS_DETAIL_QUERY, name=class_name).single()
-    return _normalize_class_detail(record, class_name)
+    from web.ontology_postgres_view import details
+    return _normalize_class_detail(details().get(class_name), class_name)
 
 
 @lru_cache(maxsize=1)
 def _all_class_details_cached():
-    if backend() == "postgres":
-        from web.ontology_postgres_view import details
-        return {name: _normalize_class_detail(row, name) for name, row in details().items()}
-    query = CLASS_DETAIL_QUERY.replace(
-        "MATCH (c:OntologyClass {name: $name})",
-        "MATCH (c:OntologyClass)",
-    )
-    with driver.session() as session:
-        return {
-            record["className"]: _normalize_class_detail(
-                record,
-                record["className"],
-            )
-            for record in session.run(query)
-        }
+    from web.ontology_postgres_view import details
+    return {name: _normalize_class_detail(row, name) for name, row in details().items()}
 
 
 @router.get("/api/graph/class/{class_name}")
@@ -227,20 +137,9 @@ def all_graph_details(refresh: bool = False):
 
 @lru_cache(maxsize=1)
 def _stats_cached():
-    if backend() == "postgres":
-        from web.ontology_postgres_view import payload
-        model = payload()
-        return {"classCount": len(model["classes"]), "propCount": len(model["properties"]), "relationCount": len(model["relationships"])}
-    query = """
-    MATCH (c:OntologyClass)
-    WITH count(c) AS classCount
-    MATCH (p:OntologyProperty)
-    WITH classCount, count(p) AS propCount
-    MATCH ()-[r:ONTOLOGY_RELATION]->()
-    RETURN classCount, propCount, count(r) AS relationCount
-    """
-    with driver.session() as session:
-        return dict(session.run(query).single())
+    from web.ontology_postgres_view import payload
+    model = payload()
+    return {"classCount": len(model["classes"]), "propCount": len(model["properties"]), "relationCount": len(model["relationships"])}
 
 
 @router.get("/api/stats")
@@ -255,35 +154,9 @@ def stats(refresh: bool = False):
     }
 
 
-@router.get("/api/config")
-def get_config():
-    return {
-        "show_layout_switch": os.getenv("SHOW_LAYOUT_SWITCH", "false").lower() == "true",
-        "wiki_review_required": os.getenv("WIKI_REVIEW_REQUIRED", "false").lower() == "true",
-    }
 
-
-@router.get("/api/product-lines")
-def list_product_lines():
-    from src.ontology.wiki_manager import load_product_lines
-    return {"product_lines": load_product_lines()}
-
-
-class ProductLineModel(BaseModel):
-    id: str
-    name: str
-    description: str = ""
-    icon: str = "package"
-    color: str = "#999999"
-
-
-class SaveProductLinesRequest(BaseModel):
-    product_lines: list[ProductLineModel]
-
-
-@router.post("/api/product-lines")
-def save_product_lines_endpoint(req: SaveProductLinesRequest):
-    from src.ontology.wiki_manager import save_product_lines
-    lines_list = [line.dict() for line in req.product_lines]
-    success = save_product_lines(lines_list)
-    return {"success": success}
+def invalidate_graph_caches():
+    _graph_overview_cached.cache_clear()
+    _graph_class_detail_cached.cache_clear()
+    _all_class_details_cached.cache_clear()
+    _stats_cached.cache_clear()

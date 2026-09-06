@@ -44,14 +44,7 @@ export function AppShell() {
     { key: "/queries", icon: <ApiOutlined />, label: "图谱查询能力" },
     { key: "/assistant", icon: <CommentOutlined />, label: "制造知识问答" },
   ];
-  const legacyItems = [
-    { key: "legacy-ontology", icon: <ApartmentOutlined />, label: "旧版语义工作台（兼容）" },
-  ];
-
-  const onMenuClick = ({ key }: { key: string }) => {
-    if (key === "legacy-ontology") window.location.href = "/ontology";
-    else navigate(key);
-  };
+  const onMenuClick = ({ key }: { key: string }) => navigate(key);
 
   return (
     <Layout className="app-shell">
@@ -73,15 +66,6 @@ export function AppShell() {
           items={primaryItems}
           onClick={onMenuClick}
           className="app-menu"
-        />
-        <div className="nav-section-label legacy-label">{collapsed ? "" : "兼容入口"}</div>
-        <Menu
-          mode="inline"
-          theme="dark"
-          selectedKeys={[]}
-          items={legacyItems}
-          onClick={onMenuClick}
-          className="app-menu legacy-menu"
         />
         <div className="sider-foot">
           {!collapsed && (

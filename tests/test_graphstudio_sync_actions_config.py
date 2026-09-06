@@ -53,7 +53,12 @@ def test_trusted_proxy_rejects_untrusted_headers() -> None:
         action_principal(_request({"x-authenticated-user": "spoofed"}), settings)
 
 
-def test_openapi_import_is_selective_and_only_lists_mutating_operations() -> None:
+def test_openapi_import_is_selective_and_only_lists_mutating_operations(monkeypatch, tmp_path) -> None:
+    import json
+    monkeypatch.setattr("src.graphstudio_sync.actions.SWAGGER_ROOT", tmp_path)
+    (tmp_path / "Products.json").write_text(json.dumps({"info": {"title": "ProductEntity"}, "paths": {
+        "/Products/{key}": {"get": {}, "put": {"parameters": [{"in": "path", "name": "key", "schema": {"type": "string"}}]}}
+    }}), encoding="utf-8")
     assert any(item["sourceFile"] == "Products.json" for item in openapi_action_sources())
 
     candidates = openapi_action_candidates("Products.json")

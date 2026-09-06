@@ -87,7 +87,7 @@ def validate_source(payload):
 def csv_model(tables_path, fields_path, selected=None):
     """Physical facts only; business semantics are never inferred as approved."""
     from scripts.validate_ontology_vs_csv import canonical_physical_fields, expected_type, normalize_field_name, is_system_field
-    from scripts.generate_ontology_batch import relation_name
+    from src.ontology.physical_naming import relation_name
     def read(path):
         with path.open(encoding="utf-8-sig", newline="") as stream:
             return list(csv.DictReader(stream))

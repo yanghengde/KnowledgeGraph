@@ -65,10 +65,12 @@ def test_freeze_does_not_require_a_second_local_approver(monkeypatch):
 
 
 def test_freeze_rejects_an_already_frozen_workspace(monkeypatch):
-    monkeypatch.setattr(publish_ontology, "_workspace_row", lambda *_: {"status": "frozen"})
+    from contextlib import nullcontext
+    monkeypatch.setattr("src.graphstudio_sync.ontology_store.workspace", lambda *a, **k: {"status": "frozen"})
+    repository = SimpleNamespace(engine=SimpleNamespace(begin=lambda: nullcontext(SimpleNamespace(execute=lambda *a, **k: None))))
 
     with pytest.raises(ValueError, match="Only a draft workspace may be frozen"):
-        publish_ontology.approve_workspace(SimpleNamespace(), SimpleNamespace(), "demo", "local-console")
+        publish_ontology.approve_workspace(SimpleNamespace(), repository, "demo", "local-console")
 
 
 def test_publish_ontology_requires_a_core_object(monkeypatch) -> None:
@@ -132,41 +134,14 @@ def test_projection_only_relation_provides_context_but_is_not_a_published_link(m
 
 
 def test_discovery_plan_combines_physical_and_semantic_relationships(monkeypatch) -> None:
-    class Result:
-        def __init__(self, rows):
-            self.rows = rows
-
-        def data(self):
-            return self.rows
-
-    class Session:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *_):
-            return None
-
-        def run(self, query, **_):
-            if "NOT t.name IN" in query:
-                return Result([{
-                    "anchor": "MfgOrder", "className": "Workflow",
-                    "chineseName": "工作流", "relationship": "USES_WORKFLOW",
-                    "cardinality": "MANY_TO_ONE",
-                }])
-            return Result([{
-                "source": "MfgOrder", "target": "Product",
-                "name": "ORDERED_PRODUCT", "cardinality": "MANY_TO_ONE",
-                "description": "ordered product",
-            }])
-
-    class Driver:
-        def session(self, **_):
-            return Session()
-
-        def close(self):
-            return None
-
-    monkeypatch.setattr(publish_ontology, "_driver", lambda *_args, **_kwargs: Driver())
+    monkeypatch.setattr("src.graphstudio_sync.ontology_store.source_payload", lambda _: {
+        "classes": [{"name": "MfgOrder"}, {"name": "Product"}, {"name": "Workflow", "chineseName": "工作流"}],
+        "properties": [],
+        "relationships": [
+            {"source": "MfgOrder", "target": "Product", "name": "ORDERED_PRODUCT", "cardinality": "MANY_TO_ONE", "description": "ordered product"},
+            {"source": "MfgOrder", "target": "Workflow", "name": "USES_WORKFLOW", "cardinality": "MANY_TO_ONE"},
+        ],
+    })
     monkeypatch.setattr(
         publish_ontology,
         "build_query_builder_plan",

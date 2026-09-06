@@ -116,8 +116,8 @@ def _repo() -> ControlPlaneRepository:
 
 class ConnectionUpdate(BaseModel):
     kind: Literal[
-        "camstar_sqlserver", "camstar_oracle", "ontology_neo4j",
-        "publish_ontology_neo4j", "graph_studio", "state_postgresql",
+        "camstar_sqlserver", "camstar_oracle",
+        "graph_studio", "state_postgresql",
     ]
     display_name: str = Field(min_length=1, max_length=120)
     endpoint: str = Field(min_length=1, max_length=500)
@@ -507,9 +507,7 @@ def update_navigation(menu_key: str, request: NavigationUpdate):
 @router.get("/connections")
 def connections():
     items = _repo().list_connections()
-    from src.graphstudio_sync.ontology_backend import backend
-    if backend() == "postgres":
-        items = [item for item in items if item["connection_key"] not in {"ontology-neo4j", "publish-ontology-neo4j"}]
+    items = [item for item in items if item["connection_key"] in {"camstar-source", "graph-studio", "control-postgresql"}]
     for item in items:
         item["editable"] = item["connection_key"] != "control-postgresql"
         item["secret_configured"] = bool(item.get("secret_ref"))
@@ -525,8 +523,6 @@ def update_connection(connection_key: str, request: ConnectionUpdate):
         )
     allowed_kinds = {
         "camstar-source": {"camstar_sqlserver", "camstar_oracle"},
-        "ontology-neo4j": {"ontology_neo4j"},
-        "publish-ontology-neo4j": {"publish_ontology_neo4j"},
         "graph-studio": {"graph_studio"},
     }
     if request.kind not in allowed_kinds.get(connection_key, set()):

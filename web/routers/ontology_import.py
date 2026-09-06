@@ -25,19 +25,13 @@ from typing import Any
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
-from scripts.generate_ontology_batch import relation_name
+from src.ontology.physical_naming import relation_name
 from scripts.validate_ontology_vs_csv import (
     canonical_physical_fields,
     expected_type,
     normalize_field_name,
 )
-from src.ontology.runtime_state import (
-    is_empty_baseline_mode,
-    load_graph_state,
-    mark_graph_cleared,
-    save_graph_state,
-)
-from web.shared import PROJECT_ROOT, driver
+from web.shared import PROJECT_ROOT
 
 
 router = APIRouter(prefix="/api/ontology-import", tags=["ontology-import"])
@@ -67,11 +61,6 @@ class ImportApplyRequest(BaseModel):
     selected: list[str] = Field(default_factory=list, max_length=5000)
 
 
-class ClearGraphRequest(BaseModel):
-    confirmation: str = Field(min_length=1, max_length=80)
-    acknowledgeIrreversible: bool = False
-
-
 def _read_csv_upload(upload: UploadFile, required: set[str]) -> list[dict[str, str]]:
     raw = upload.file.read(MAX_UPLOAD_BYTES + 1)
     if len(raw) > MAX_UPLOAD_BYTES:
@@ -98,17 +87,16 @@ def _read_csv_upload(upload: UploadFile, required: set[str]) -> list[dict[str, s
 
 def _reviewed_class_names() -> set[str]:
     names: set[str] = set()
-    if not is_empty_baseline_mode():
-        for path in ONTOLOGY_DIR.glob("*_ontology.json"):
-            try:
-                payload = json.loads(path.read_text(encoding="utf-8-sig"))
-            except (OSError, json.JSONDecodeError):
-                continue
-            names.update(
-                str(item.get("className") or "").strip()
-                for item in payload.get("classes", [])
-                if item.get("className")
-            )
+    for path in ONTOLOGY_DIR.glob("*_ontology.json"):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8-sig"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        names.update(
+            str(item.get("className") or "").strip()
+            for item in payload.get("classes", [])
+            if item.get("className")
+        )
     try:
         from web.routers.graph import _graph_overview_cached
 
@@ -662,92 +650,6 @@ def _write_manifest(selected: set[str], source_count: int, *, reset: bool = Fals
     temporary.replace(IMPORT_MANIFEST)
 
 
-def _invalidate_graph_caches() -> None:
-    from web.routers.graph import (
-        _all_class_details_cached,
-        _graph_class_detail_cached,
-        _graph_overview_cached,
-        _stats_cached,
-    )
-    from web.routers.i18n import _ontology_catalog
-
-    _graph_overview_cached.cache_clear()
-    _graph_class_detail_cached.cache_clear()
-    _all_class_details_cached.cache_clear()
-    _stats_cached.cache_clear()
-    _ontology_catalog.cache_clear()
-
-
-def _graph_counts(neo_session) -> dict[str, int]:
-    record = neo_session.run("""
-        CALL { MATCH (n) RETURN count(n) AS totalNodes }
-        CALL { MATCH ()-[r]->() RETURN count(r) AS totalRelationships }
-        CALL { MATCH (n:OntologyClass) RETURN count(n) AS classes }
-        CALL { MATCH (n:OntologyProperty) RETURN count(n) AS properties }
-        CALL { MATCH ()-[r:ONTOLOGY_RELATION]->() RETURN count(r) AS ontologyRelationships }
-        RETURN totalNodes, totalRelationships, classes, properties, ontologyRelationships
-    """).single()
-    values = dict(record or {})
-    return {
-        "totalNodes": int(values.get("totalNodes") or 0),
-        "totalRelationships": int(values.get("totalRelationships") or 0),
-        "classes": int(values.get("classes") or 0),
-        "properties": int(values.get("properties") or 0),
-        "ontologyRelationships": int(values.get("ontologyRelationships") or 0),
-    }
-
-
-@router.get("/clear-preview")
-def clear_graph_preview():
-    try:
-        with driver.session() as neo_session:
-            counts = _graph_counts(neo_session)
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"无法读取 Neo4j 图谱规模：{exc}") from exc
-    return {**counts, "emptyBaselineMode": is_empty_baseline_mode()}
-
-
-@router.post("/clear")
-def clear_graph(request: ClearGraphRequest):
-    allowed_phrases = {"清空全部图谱", "CLEAR ALL GRAPH DATA"}
-    if not request.acknowledgeIrreversible or request.confirmation.strip() not in allowed_phrases:
-        raise HTTPException(status_code=422, detail="请勾选不可撤销确认，并输入完整确认词")
-
-    previous_state = load_graph_state()
-    # Persist empty-baseline mode before the destructive query so a process
-    # restart cannot unexpectedly repopulate the database after it is cleared.
-    try:
-        mark_graph_cleared()
-    except OSError as exc:
-        raise HTTPException(status_code=500, detail=f"无法保存空图谱状态，未执行清空：{exc}") from exc
-
-    try:
-        with driver.session() as neo_session:
-            counts = _graph_counts(neo_session)
-            neo_session.run("MATCH (n) DETACH DELETE n").consume()
-    except Exception as exc:
-        try:
-            save_graph_state(previous_state)
-        except OSError:
-            pass
-        raise HTTPException(status_code=503, detail=f"清空 Neo4j 图谱失败：{exc}") from exc
-
-    try:
-        mark_graph_cleared(nodes=counts["totalNodes"], relationships=counts["totalRelationships"])
-    except OSError:
-        # The pre-delete marker already guarantees empty-baseline behavior;
-        # detailed counts are helpful metadata but are not required for safety.
-        pass
-    with _session_lock:
-        _sessions.clear()
-    _invalidate_graph_caches()
-    return {
-        "success": True,
-        "deleted": counts,
-        "emptyBaselineMode": True,
-    }
-
-
 @router.post("/apply")
 def apply_import(request: ImportApplyRequest):
     """Stage immutable candidates; only the authority review can accept them."""
@@ -782,7 +684,7 @@ def apply_import(request: ImportApplyRequest):
     try:
         staged = authority_store().stage({"classes": classes, "relationships": relationships})
     except Exception as exc:
-        raise HTTPException(503, "候选保存失败，请检查 PostgreSQL；未改写本体或 Neo4j") from exc
+        raise HTTPException(503, "候选保存失败，请检查 PostgreSQL；未改写活动本体") from exc
     return {"success": True, "status": "pending_review", **staged,
             "classes": len(classes), "relationships": len(relationships),
             "reviewUrl": "/app/ontology-model",

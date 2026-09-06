@@ -114,7 +114,6 @@ def test_approval_requires_matching_preview_before_store(library, physical, monk
 
 @pytest.mark.parametrize("missing", [True, False])
 def test_sync_checks_targets_before_writes_and_marks_only_success(monkeypatch, missing):
-    monkeypatch.setenv("ONTOLOGY_BACKEND", "neo4j")
     calls = []
     class Conn:
         def execute(self, statement, *args): calls.append(str(statement))
@@ -124,54 +123,17 @@ def test_sync_checks_targets_before_writes_and_marks_only_success(monkeypatch, m
     class Store:
         engine = type("Engine", (), {"begin": lambda self: Conn()})()
         def snapshot(self, conn): return {"Product": record}, []
-    class Result(list):
-        def consume(self): pass
-    class Session:
-        def __enter__(self): return self
-        def __exit__(self, *args): pass
-        def execute_write(self, callback): callback(self)
-        def run(self, query, **kwargs):
-            if "RETURN c.name AS name" in query: return Result([] if missing else [{"name": "Category"}])
-            calls.append("neo-write")
-            return Result()
     monkeypatch.setattr(api, "_store", lambda: Store())
-    monkeypatch.setattr("web.shared.driver", type("Driver", (), {"session": lambda self: Session()})())
-    monkeypatch.setattr("web.routers.ontology_import._invalidate_graph_caches", lambda: None)
+    monkeypatch.setattr("src.graphstudio_sync.ontology_store.source_payload", lambda *a: {"classes": [] if missing else [{"name": "Category"}], "properties": [], "relationships": []})
+    monkeypatch.setattr("src.graphstudio_sync.ontology_store.save_source", lambda *a, **k: calls.append("pg-write"))
+    monkeypatch.setattr("web.routers.graph.invalidate_graph_caches", lambda: None)
     if missing:
         with pytest.raises(HTTPException) as error:
             api.sync("Product", api.Revision(revision=1))
         assert error.value.status_code == 422
-        assert "neo-write" not in calls
+        assert "pg-write" not in calls
         assert not any("UPDATE graphsync" in c for c in calls)
     else:
         assert api.sync("Product", api.Revision(revision=1))["status"] == "synced"
-        assert calls.count("neo-write") == 3
+        assert calls.count("pg-write") == 1
         assert "UPDATE graphsync" in calls[-1]
-
-
-@pytest.mark.parametrize("fail", [True, False])
-def test_bulk_loader_serializes_with_authority_reviews(monkeypatch, fail):
-    from src.ontology.loader import neo4j_loader as loader
-    calls = []
-    class Conn:
-        def execute(self, statement, *args): calls.append(str(statement))
-        def __enter__(self): return self
-        def __exit__(self, *args): pass
-    records = {"Example": {"revision": 2}}
-    class Store:
-        engine = type("Engine", (), {"begin": lambda self: Conn()})()
-        def snapshot(self, conn):
-            assert "pg_advisory_xact_lock" in calls[0]
-            return records, []
-    def run(paths, clear, authorities):
-        assert authorities is records
-        if fail: raise RuntimeError("network interruption")
-        return {"classes": 1}
-    monkeypatch.setattr("src.ontology.authority_store.authority_store", lambda: Store())
-    monkeypatch.setattr(loader, "_load_ontologies_to_neo4j", run)
-    if fail:
-        with pytest.raises(RuntimeError): loader.load_ontologies_to_neo4j([])
-        assert len(calls) == 1
-    else:
-        assert loader.load_ontologies_to_neo4j([]) == {"classes": 1}
-        assert "synced_revision" in calls[-1]

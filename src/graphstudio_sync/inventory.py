@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 
 import requests
-from neo4j import GraphDatabase
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -50,47 +49,9 @@ class OntologyInventory:
 
 
 def read_ontology(settings: SyncSettings) -> OntologyInventory:
-    from .ontology_backend import backend
-    if backend(settings) == "postgres":
-        from .ontology_store import source_payload
-        payload = source_payload(settings)
-        return OntologyInventory(payload["classes"], payload["properties"], len(payload["relationships"]))
-    driver = GraphDatabase.driver(
-        settings.neo4j_uri,
-        auth=(settings.neo4j_user, settings.neo4j_password),
-    )
-    try:
-        driver.verify_connectivity()
-        with driver.session(database=settings.neo4j_database) as session:
-            classes = [
-                dict(record)
-                for record in session.run(
-                    """
-                    MATCH (c:OntologyClass)
-                    RETURN c.name AS name, coalesce(c.module, c.layer, 'unassigned') AS module,
-                           c.sourceWorkspace AS workspace,
-                           c.sourceCDODefId AS sourceCDODefId
-                    ORDER BY c.name
-                    """
-                )
-            ]
-            properties = [
-                dict(record)
-                for record in session.run(
-                    """
-                    MATCH (c:OntologyClass)-[:HAS_PROPERTY]->(p:OntologyProperty)
-                    RETURN c.name AS className, p.name AS name,
-                           p.dataType AS dataType, p.sourceFieldId AS sourceFieldId
-                    ORDER BY c.name, p.name
-                    """
-                )
-            ]
-            relationship_count = int(
-                session.run("MATCH ()-[r:ONTOLOGY_RELATION]->() RETURN count(r) AS count").single()["count"]
-            )
-    finally:
-        driver.close()
-    return OntologyInventory(classes, properties, relationship_count)
+    from .ontology_store import source_payload
+    payload = source_payload(settings)
+    return OntologyInventory(payload["classes"], payload["properties"], len(payload["relationships"]))
 
 
 def read_source_catalog(settings: SyncSettings) -> dict[str, dict[str, Any]]:

@@ -377,7 +377,7 @@ def _discover_schema_uncached(
     runtime_snapshot: dict[str, Any],
 ) -> list[dict[str, Any]]:
     # The published layer contains both the immutable model and business data.
-    # The modeling Neo4j service is not a runtime dependency for answers.
+    # Answers use the published Graph Studio model.
     layer = _runtime_layer(runtime_snapshot)
     query = f"""
         PREFIX owl: <http://www.w3.org/2002/07/owl#>

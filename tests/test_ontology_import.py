@@ -81,7 +81,6 @@ def test_apply_import_stages_selected_objects_without_writing_neo4j(monkeypatch)
         def stage(self, payload):
             captured.append(payload)
             return {"proposalId": "test-proposal", "alreadyAccepted": 0}
-    monkeypatch.setattr(ontology_import, "driver", Driver())
     monkeypatch.setattr("src.ontology.authority_store.authority_store", lambda: Store())
     monkeypatch.setattr(ontology_import, "_write_imported_ontology", lambda *a, **k: pytest.fail("Source files must remain unchanged"))
     result = ontology_import.apply_import(ontology_import.ImportApplyRequest(importId=analysis["importId"], selected=["NewBusinessObject"]))
@@ -167,79 +166,10 @@ def test_background_translation_updates_progress_and_candidates(monkeypatch):
     assert result["translations"] == {"Product": "中文：A product.", "Factory": "中文：A factory."}
 
 
-def test_clear_graph_rejects_incomplete_confirmation(monkeypatch):
-    called = []
-    monkeypatch.setattr(ontology_import, "mark_graph_cleared", lambda **kwargs: called.append(kwargs))
-
-    with pytest.raises(HTTPException) as error:
-        ontology_import.clear_graph(ontology_import.ClearGraphRequest(
-            confirmation="清空图谱",
-            acknowledgeIrreversible=True,
-        ))
-
-    assert error.value.status_code == 422
-    assert called == []
 
 
-def test_clear_graph_deletes_database_and_persists_empty_mode(monkeypatch):
-    queries = []
-    state_writes = []
-
-    class Result:
-        def single(self):
-            return {
-                "totalNodes": 12,
-                "totalRelationships": 20,
-                "classes": 3,
-                "properties": 9,
-                "ontologyRelationships": 8,
-            }
-
-        def consume(self):
-            return self
-
-    class Session:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *_):
-            return False
-
-        def run(self, query, **_parameters):
-            queries.append(" ".join(query.split()))
-            return Result()
-
-    class Driver:
-        def session(self):
-            return Session()
-
-    monkeypatch.setattr(ontology_import, "driver", Driver())
-    monkeypatch.setattr(ontology_import, "load_graph_state", lambda: {"baselineMode": "curated"})
-    monkeypatch.setattr(ontology_import, "mark_graph_cleared", lambda **kwargs: state_writes.append(kwargs))
-    monkeypatch.setattr(ontology_import, "_invalidate_graph_caches", lambda: None)
-
-    result = ontology_import.clear_graph(ontology_import.ClearGraphRequest(
-        confirmation="清空全部图谱",
-        acknowledgeIrreversible=True,
-    ))
-
-    assert result["success"] is True
-    assert result["emptyBaselineMode"] is True
-    assert result["deleted"]["totalNodes"] == 12
-    assert any(query == "MATCH (n) DETACH DELETE n" for query in queries)
-    assert state_writes == [{}, {"nodes": 12, "relationships": 20}]
 
 
-def test_empty_baseline_only_uses_classes_present_in_graph(monkeypatch, tmp_path):
-    ontology_file = tmp_path / "curated_ontology.json"
-    ontology_file.write_text('{"classes":[{"className":"CuratedOnly"}]}', encoding="utf-8")
-    monkeypatch.setattr(ontology_import, "ONTOLOGY_DIR", tmp_path)
-    monkeypatch.setattr(ontology_import, "is_empty_baseline_mode", lambda: True)
-    monkeypatch.setattr("web.routers.graph._graph_overview_cached", lambda: {
-        "nodes": [{"id": "ImportedLiveNode"}],
-    })
-
-    assert ontology_import._reviewed_class_names() == {"ImportedLiveNode"}
 
 
 def test_first_import_after_clear_drops_stale_generated_classes(monkeypatch, tmp_path):

@@ -8,7 +8,6 @@ from typing import Any
 from urllib.parse import quote
 
 import requests
-from neo4j import GraphDatabase
 from requests.adapters import HTTPAdapter
 from sqlalchemy import text
 from urllib3.util.retry import Retry
@@ -50,16 +49,6 @@ def settings_from_profiles(
         values["source_user"] = source.get("username") or base.source_user
         values["source_schema"] = source_config.get("schema") or base.source_schema
         values["source_connect_mode"] = source_config.get("oracleConnectMode") or base.source_connect_mode
-    ontology = by_key.get("ontology-neo4j")
-    if ontology:
-        values["neo4j_uri"] = ontology["endpoint"]
-        values["neo4j_user"] = ontology.get("username") or base.neo4j_user
-        values["neo4j_database"] = ontology.get("database_name") or base.neo4j_database
-    publish_ontology = by_key.get("publish-ontology-neo4j")
-    if publish_ontology:
-        values["publish_neo4j_uri"] = publish_ontology["endpoint"]
-        values["publish_neo4j_user"] = publish_ontology.get("username") or base.publish_neo4j_user
-        values["publish_neo4j_database"] = publish_ontology.get("database_name") or base.publish_neo4j_database
     graph_studio = by_key.get("graph-studio")
     if graph_studio:
         config = graph_studio.get("config") or {}
@@ -94,36 +83,8 @@ def _test_source(settings: SyncSettings) -> dict[str, Any]:
         connection.close()
 
 
-def _test_neo4j(settings: SyncSettings) -> dict[str, Any]:
-    driver = GraphDatabase.driver(settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password))
-    try:
-        driver.verify_connectivity()
-        with driver.session(database=settings.neo4j_database) as session:
-            count = session.run("MATCH (c:OntologyClass) RETURN count(c) AS count").single()["count"]
-        return {"ontologyClasses": int(count)}
-    finally:
-        driver.close()
 
 
-def _test_publish_neo4j(settings: SyncSettings) -> dict[str, Any]:
-    driver = GraphDatabase.driver(
-        settings.publish_neo4j_uri,
-        auth=(settings.publish_neo4j_user, settings.publish_neo4j_password),
-    )
-    try:
-        with driver.session(database=settings.publish_neo4j_database) as session:
-            values = session.run(
-                "MATCH (w:PublishWorkspace) "
-                "OPTIONAL MATCH (c:PublishClass) "
-                "RETURN count(DISTINCT w) AS workspaces, count(DISTINCT c) AS classes"
-            ).single()
-        return {
-            "database": settings.publish_neo4j_database,
-            "workspaces": int(values["workspaces"]),
-            "classes": int(values["classes"]),
-        }
-    finally:
-        driver.close()
 
 
 def _test_graphstudio(settings: SyncSettings) -> dict[str, Any]:
@@ -187,17 +148,14 @@ def test_connection(
     profile = next((item for item in repository.list_connections() if item["connection_key"] == key), None)
     if profile is None:
         raise KeyError(key)
-    from .ontology_backend import backend
-    if backend(base) == "postgres" and key in {"ontology-neo4j", "publish-ontology-neo4j"}:
-        return {"key": key, "ok": True, "status": "disabled", "details": {"reason": "Legacy Neo4j is optional; ontology backend is PostgreSQL"}}
+    if key not in {"camstar-source", "graph-studio", "control-postgresql"}:
+        raise KeyError(key)
     if not profile["enabled"]:
         repository.update_connection_status(key, status="disabled")
         return {"key": key, "ok": False, "status": "disabled", "error": "Connection is disabled"}
     settings = resolved_settings(base, repository)
     testers = {
         "camstar-source": _test_source,
-        "ontology-neo4j": _test_neo4j,
-        "publish-ontology-neo4j": _test_publish_neo4j,
         "graph-studio": _test_graphstudio,
         "control-postgresql": _test_postgres,
     }

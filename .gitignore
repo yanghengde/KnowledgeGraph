@@ -34,9 +34,7 @@ Thumbs.db
 logs/
 backups/
 data/*
-!data/vector_store/
 *.sqlite3
-!data/vector_store/chroma.sqlite3
 
 # Project Specific Generated Artifacts
 generated_ontology.sql

@@ -962,7 +962,7 @@ CREATE TABLE IF NOT EXISTS graphsync.materialization_batch (
     UNIQUE (release_id, contract_key, batch_no)
 );
 
--- Governed target ontology.  Neo4j stores the editable/released graph while
+-- Governed target ontology metadata. PostgreSQL stores model documents and
 -- PostgreSQL owns workflow, approval, activation and audit metadata.
 CREATE TABLE IF NOT EXISTS graphsync.ontology_workspace (
     workspace_id          uuid PRIMARY KEY,
@@ -1826,7 +1826,7 @@ INSERT INTO graphsync.sync_job
 VALUES (
     'camstar-full',
     'Camstar 全量图谱同步',
-    '从 Camstar SQL Server 和 Neo4j 本体生成 RDF 快照并发布到 Opcenter2607。',
+    '从 Camstar SQL Server 和 PostgreSQL 本体生成 RDF 快照并发布到 Opcenter2607。',
     'http://cambridgesemantics.com/Graphmart/fa5ee4d00d9744c996165abcdec9a647',
     'atomic_snapshot',
     '0 * * * *',

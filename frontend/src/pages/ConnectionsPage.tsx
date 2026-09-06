@@ -34,8 +34,6 @@ const kindLabels: Record<string, string> = {
   camstar_oracle: "Camstar · Oracle",
   state_postgresql: "控制面 · PostgreSQL",
   graph_studio: "发布端 · Graph Studio",
-  ontology_neo4j: "语义源 · Neo4j",
-  publish_ontology_neo4j: "发布模型 · Neo4j",
 };
 
 function connectionStatus(connection: SyncConnection) {

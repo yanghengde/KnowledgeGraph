@@ -11,12 +11,11 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    HF_HOME=/opt/huggingface
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-# msodbcsql18 keeps the optional Camstar SQL Server ETL usable in the image.
+# msodbcsql18 keeps the Camstar SQL Server source connection usable in the image.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl unixodbc \
     && curl -fsSLo /tmp/packages-microsoft-prod.deb \
@@ -29,19 +28,14 @@ RUN apt-get update \
 
 COPY requirements.txt .
 RUN python -m pip install --upgrade pip \
-    && python -m pip install -r requirements.txt \
-    && python -c "import torch; assert torch.version.cuda is None, f'Expected CPU-only PyTorch, got CUDA {torch.version.cuda}'"
-
-# The committed Chroma index still needs the matching embedding model at query
-# time. Cache it in the image so production can keep Hugging Face offline.
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')"
+    && python -m pip install -r requirements.txt
 
 COPY . .
 COPY --from=frontend-build /build/web/static/react /app/web/static/react
 
 RUN mkdir -p /app/data /app/logs \
     && useradd --create-home --uid 10001 camstar \
-    && chown -R camstar:camstar /app /opt/huggingface
+    && chown -R camstar:camstar /app
 
 USER camstar
 

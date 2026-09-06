@@ -34,7 +34,7 @@ def test_postgres_settings_do_not_require_neo4j(monkeypatch, tmp_path):
     monkeypatch.setenv("PGSQL_ENABLED", "false")
     settings = SyncSettings.from_env(tmp_path / "absent.env")
     assert settings.ontology_backend == "postgres"
-    assert settings.neo4j_password == ""
+    assert not hasattr(settings, "neo4j_password")
 
 
 def test_postgres_read_never_falls_back_to_neo4j(monkeypatch):
@@ -52,7 +52,7 @@ def test_postgres_read_never_falls_back_to_neo4j(monkeypatch):
 
 @pytest.mark.skipif(os.getenv("RUN_MODEL_POSTGRES_TEST") != "1", reason="PostgreSQL integration opt-in")
 def test_postgres_model_lifecycle_without_neo4j(monkeypatch):
-    settings = replace(SyncSettings.from_env(), ontology_backend="postgres")
+    settings = SyncSettings.from_env()
     engine = control_engine(settings)
     schema = "model_test_" + uuid.uuid4().hex
     with engine.begin() as conn:
@@ -64,7 +64,6 @@ def test_postgres_model_lifecycle_without_neo4j(monkeypatch):
     def test_engine(_settings):
         yield engine
     monkeypatch.setattr(store, "engine_for", test_engine)
-    monkeypatch.setattr(ontology, "_driver", lambda *a, **kw: pytest.fail("Neo4j accessed in PostgreSQL mode"))
     repository = SimpleNamespace(engine=engine, settings=settings)
     try:
         with engine.begin() as conn:
@@ -92,7 +91,7 @@ def test_postgres_model_lifecycle_without_neo4j(monkeypatch):
                 "class": {"className": "Product", "description": "Reviewed product", "properties": [{"name": "name", "type": "String"}]}, "relationships": []}})
         monkeypatch.setenv("ONTOLOGY_BACKEND", "postgres")
         monkeypatch.setattr(authority_api, "_store", lambda: authority)
-        monkeypatch.setattr("web.routers.ontology_import._invalidate_graph_caches", lambda: None)
+        monkeypatch.setattr("web.routers.graph.invalidate_graph_caches", lambda: None)
         assert authority_api.sync("Product", authority_api.Revision(revision=1))["status"] == "synced"
         assert next(c for c in store.source_payload(settings)["classes"] if c["name"] == "Product")["description"] == "Reviewed product"
         ontology.create_workspace(settings, repository, profile_key="demo", workspace_key="demo-draft", title="Demo", actor="test", seed_profile=False)

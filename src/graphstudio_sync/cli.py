@@ -116,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
     dry_run_parser.add_argument("--output", type=Path)
     catalog_parser = subparsers.add_parser(
         "compile-catalog",
-        help="Compile Neo4j and Camstar physical mappings into PostgreSQL",
+        help="Compile PostgreSQL models and Camstar physical mappings into PostgreSQL",
     )
     catalog_parser.add_argument("--output", type=Path)
     preview_parser = subparsers.add_parser(
@@ -220,19 +220,14 @@ def main(argv: list[str] | None = None) -> int:
     csv_parser.add_argument("--apply", action="store_true")
     csv_parser.add_argument("--activate", action="store_true")
     csv_parser.add_argument("--output", type=Path)
-    migration_parser = subparsers.add_parser("migrate-ontology", help="Copy Neo4j model content and historical releases to PostgreSQL without deleting legacy data")
-    migration_parser.add_argument("--apply", action="store_true")
-    migration_parser.add_argument("--output", type=Path)
     model_status_parser = subparsers.add_parser("model-store-status", help="Verify PostgreSQL model migration completeness")
     model_status_parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     settings = SyncSettings.from_env()
-    if args.command in {"import-csv-model", "migrate-ontology", "model-store-status"}:
-        from .ontology_migration import import_csv_model, migrate_ontology, postgres_status
+    if args.command in {"import-csv-model", "model-store-status"}:
+        from .model_import import import_csv_model, postgres_status
         if args.command == "import-csv-model":
             payload = import_csv_model(settings, classes=args.classes, apply=args.apply, activate=args.activate)
-        elif args.command == "migrate-ontology":
-            payload = migrate_ontology(settings, apply=args.apply)
         else:
             payload = postgres_status(settings)
         _write(payload, args.output)

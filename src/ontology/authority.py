@@ -8,7 +8,14 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from scripts.inventory_public_core import GROUPS
+GROUPS = {
+    "组织与位置": ["Enterprise", "Site", "Factory", "WorkCenter", "ss_MfgLine", "Organization"],
+    "产品与计量": ["Product", "ProductBase", "ProductFamily", "UOM"],
+    "人员与职责": ["Employee", "RoleDef", "Team"],
+    "设备与资源": ["ResourceDef", "ResourceFamily", "ResourceType"],
+    "后续共享对象": ["Vendor", "Customer", "Owner", "Location"],
+    "首期业务骨架（不归公共主数据）": ["MfgOrder", "Container", "Workflow", "WorkflowStep", "Spec", "Operation"],
+}
 from scripts.validate_ontology_vs_csv import canonical_physical_fields, expected_type, normalize_field_name, TYPE_EQUIVALENTS
 
 ROOT = Path(__file__).resolve().parents[2]

@@ -86,30 +86,6 @@ def seed_runtime_connections(
             },
         },
         {
-            "key": "ontology-neo4j",
-            "kind": "ontology_neo4j",
-            "name": "Ontology Neo4j",
-            "endpoint": settings.neo4j_uri,
-            "database": settings.neo4j_database,
-            "username": settings.neo4j_user,
-            "secret_ref": "env://NEO4J_PASSWORD",
-            "config": {"role": "mapping_source", "readOnly": True},
-        },
-        {
-            "key": "publish-ontology-neo4j",
-            "kind": "publish_ontology_neo4j",
-            "name": "Graph Studio Publish Ontology",
-            "endpoint": settings.publish_neo4j_uri,
-            "database": settings.publish_neo4j_database,
-            "username": settings.publish_neo4j_user,
-            "secret_ref": (
-                "env://PUBLISH_NEO4J_PASSWORD"
-                if os.getenv("PUBLISH_NEO4J_PASSWORD", "").strip()
-                else "env://NEO4J_PASSWORD"
-            ),
-            "config": {"role": "governed_model_workspace", "editable": True},
-        },
-        {
             "key": "graph-studio",
             "kind": "graph_studio",
             "name": "Graph Studio",
