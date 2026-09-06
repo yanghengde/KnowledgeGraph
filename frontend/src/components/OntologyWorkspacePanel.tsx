@@ -11,6 +11,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { syncApi } from "../api";
+import { OntologyNextSteps } from "./OntologyNextSteps";
 import { PublishOntologyCanvas } from "./PublishOntologyCanvas";
 import { OntologyPresentationPanel } from "./OntologyPresentationPanel";
 import { useThemeMode } from "../theme";
@@ -342,7 +343,11 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
         </Card>
         <Card className="publish-ontology-inspector" title={selectedNode ? <div className="semantic-detail-title"><span>{selectedNode.data.targetName}</span><small>{selectedNode.data.sourceClass}</small></div> : "发布对象详情"} extra={selectedNode && <Tag color={roleLabels[selectedNode.data.role]?.color}>{roleLabels[selectedNode.data.role]?.text}</Tag>}>
           {!selectedNode ? <Empty description="选择图中的发布对象" /> : <>
-            <Alert type="info" showIcon message="已写入发布本体草稿" description={`存储于 ${governance?.database} · ${workspace?.workspace_key}`} />
+            {workspace && graph && <OntologyNextSteps key={`${workspace.workspace_key}:${workspace.revision}:${selectedId}`} workspace={workspace} graph={graph} selectedId={selectedId} mode={mode} onSelect={setSelectedId} onApplied={async (result) => {
+              setLastSuggestionBatch({ id: result.batchId, nodes: result.addedNodeUids.length, relationships: result.addedRelationshipKeys.length });
+              await refresh();
+            }} />}
+            <Alert type="info" showIcon message={workspace?.status === "frozen" ? "当前模型已冻结" : "已写入发布本体草稿"} description={`存储于 ${governance?.database} · ${workspace?.workspace_key}`} />
             <Descriptions size="small" column={2} className="publish-ontology-meta"><Descriptions.Item label="发布名称">{selectedNode.data.targetName}</Descriptions.Item><Descriptions.Item label="来源对象">{selectedNode.data.sourceClass}</Descriptions.Item><Descriptions.Item label="发布属性">{selectedAllProperties.filter((item) => item.published !== false).length}</Descriptions.Item><Descriptions.Item label="关联关系">{incidentRelationships.length}</Descriptions.Item><Descriptions.Item label="孤立策略">{selectedNode.data.orphanPolicy}</Descriptions.Item><Descriptions.Item label="来源类型">{selectedNode.data.origin}</Descriptions.Item></Descriptions>
             <Typography.Text strong>发布属性</Typography.Text>
             <Table className="publish-preview-property-table" rowKey="uid" size="small" dataSource={selectedAllProperties.filter((item) => item.published !== false)} pagination={false} scroll={{ y: 185 }} columns={[{ title: "属性", dataIndex: "targetName", render: (value, item) => <div className="ontology-property-name"><strong>{value}</strong><small>{item.sourceName}</small></div> }, { title: "类型", dataIndex: "dataType", width: 100, render: (value) => <Tag>{value}</Tag> }, { title: "必填", dataIndex: "required", width: 58, align: "center", render: (value) => value ? <CheckCircleFilled className="ontology-valid-icon" /> : "—" }]} />

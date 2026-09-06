@@ -256,9 +256,11 @@ def relationship_rows(settings, source_class, existing_names, depth):
     rows, queue = [], [([source_class], [])]
     while queue and len(rows) < 100:
         names, relations = queue.pop(0)
-        if relations and names[-1] in existing_names:
+        # Direct neighbors are useful next steps even for a one-object draft.
+        # Longer paths remain limited to bridges back into the existing model.
+        if relations and (len(relations) == 1 or names[-1] in existing_names):
             rows.append({"nodes": [{"sourceClass": n, "label": classes[n].get("chineseName") or n, "description": classes[n].get("description") or ""} for n in names],
-                "relationships": [{"sourceClass": r["source"], "targetClass": r["target"], "targetName": r["name"], "cardinality": r.get("cardinality") or "many-to-one", "description": r.get("description") or ""} for r in relations], "existingClass": names[-1]})
+                "relationships": [{"sourceClass": r["source"], "targetClass": r["target"], "targetName": r["name"], "cardinality": r.get("cardinality") or "many-to-one", "description": r.get("description") or "", "physicalColumn": r.get("physicalColumn"), "sourceFieldId": r.get("sourceFieldId")} for r in relations], "existingClass": names[-1]})
         if len(relations) < depth:
             for target, rel in adjacency.get(names[-1], []):
                 if target not in names:

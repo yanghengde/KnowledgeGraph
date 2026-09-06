@@ -126,6 +126,20 @@ def test_postgres_model_lifecycle_without_neo4j(monkeypatch):
         assert (after["graph"], after["revision"]) == (before["graph"], before["revision"])
         undone = ontology.undo_relationship_suggestion_batch(settings, repository, "demo-draft", applied["batchId"])
         assert undone["removedRelationships"] == 1
+        # Guided expansion also works from a single object: one transaction
+        # adds the missing object and relation, and the batch can be undone.
+        ontology.create_workspace(settings, repository, profile_key="demo", workspace_key="next-draft", title="Next", actor="test", seed_profile=False)
+        ontology.add_class(settings, repository, workspace_key="next-draft", source_class="MfgOrder", target_name="MfgOrder", role="core")
+        next_steps = ontology.relationship_suggestions(settings, repository, "next-draft", "next-draft::MfgOrder")
+        chosen = next_steps["items"][0]
+        expanded = ontology.apply_relationship_suggestions(settings, repository, "next-draft", "next-draft::MfgOrder", [chosen["id"]])
+        assert expanded["addedNodeUids"] == ["next-draft::Product"]
+        assert len(ontology.workspace_graph(settings, "next-draft")["edges"]) == 1
+        with pytest.raises(ValueError, match="关联建议已变化"):
+            ontology.apply_relationship_suggestions(settings, repository, "next-draft", "next-draft::MfgOrder", [chosen["id"]])
+        reversed_batch = ontology.undo_relationship_suggestion_batch(settings, repository, "next-draft", expanded["batchId"])
+        assert reversed_batch["removedNodes"] == 1
+        assert reversed_batch["removedRelationships"] == 1
         # No implicit legacy fallback for a missing immutable version.
         with pytest.raises(RuntimeError, match="未迁移"):
             ontology.release_graph(settings, str(uuid.uuid4()))

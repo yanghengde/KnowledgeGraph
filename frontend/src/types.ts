@@ -432,12 +432,12 @@ export type RelationshipSuggestion = {
   nodes: Array<{ sourceClass: string; label?: string; description?: string }>;
   relationships: Array<{
     sourceClass: string; targetClass: string; targetName: string;
-    cardinality?: string; description?: string;
+    cardinality?: string; description?: string; physicalColumn?: string | null; sourceFieldId?: string | null;
   }>;
   missingNodes: Array<{ sourceClass: string; label?: string; description?: string }>;
   missingRelationships: Array<{
     sourceClass: string; targetClass: string; targetName: string;
-    cardinality?: string; description?: string;
+    cardinality?: string; description?: string; physicalColumn?: string | null; sourceFieldId?: string | null;
   }>;
   score: number;
   summary: string;

@@ -667,3 +667,15 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
 .data-sync-scope-policy { display: grid; gap: 8px; padding: 4px 0; }
 .ontology-form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 @media (max-width: 640px) { .ontology-form-grid { grid-template-columns: 1fr; gap: 0; } }
+
+/* Guided model expansion after selecting a node. */
+.ontology-next-steps { margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid rgba(120,145,155,.25); }
+.ontology-next-heading, .ontology-next-action { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ontology-next-steps > .ant-input-search { margin: 10px 0; }
+.ontology-next-item { border: 1px solid rgba(120,145,155,.25); border-radius: 8px; padding: 12px; margin-top: 8px; display: grid; gap: 8px; }
+.ontology-next-direction { font-size: 12px; overflow-wrap: anywhere; }
+.ontology-next-loading { padding: 18px 0; display: flex; gap: 10px; }
+.ontology-next-linked { margin-top: 14px; display: grid; gap: 10px; }
+.ontology-next-linked .ant-btn { height: auto; white-space: normal; text-align: left; }
+.ontology-next-preview { margin: 14px 0; border: 1px solid rgba(120,145,155,.25); border-radius: 10px; overflow: hidden; }
+.ontology-next-preview .publish-ontology-canvas-shell { height: 360px; }

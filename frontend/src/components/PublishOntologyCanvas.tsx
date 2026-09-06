@@ -16,6 +16,7 @@ type GraphEdge = { id: string; source: string; target: string; data: Record<stri
 
 type Props = {
   graph?: OntologyGraph;
+  preview?: boolean;
   selectedId?: string;
   mode: "light" | "dark";
   onSelect: (id: string) => void;
@@ -69,7 +70,7 @@ function buildData(graph: OntologyGraph) {
     return { id: node.id, data: { ...node.data, propertyCount: propertyCount.get(node.id) || 0 }, style: { ...position, size: node.data.role === "core" ? 92 : 78, fill: color.fill, stroke: color.stroke, shadowColor: color.fill } };
   });
   const groups = new Map<string, typeof graph.edges>();
-  graph.edges.forEach((edge) => { const key = `${edge.source}\0${edge.target}`; groups.set(key, [...(groups.get(key) || []), edge]); });
+  graph.edges.forEach((edge) => { const key = `${edge.source}\0${edge.target}\0${Boolean(edge.data.preview)}`; groups.set(key, [...(groups.get(key) || []), edge]); });
   const edges: GraphEdge[] = [...groups.values()].map((items) => {
     const first = items[0]; const label = first.data.targetName || first.data.relationshipKey;
     return { id: first.id, source: first.source, target: first.target, data: { ...first.data, targetName: items.length > 1 ? `${label} (+${items.length - 1})` : label, relationshipCount: items.length } };
@@ -77,7 +78,8 @@ function buildData(graph: OntologyGraph) {
   return { nodes, edges };
 }
 
-export function PublishOntologyCanvas({ graph, selectedId, mode, onSelect }: Props) {
+export function PublishOntologyCanvas({ graph, selectedId, mode, onSelect, preview = false }: Props) {
+  const [renderVersion, setRenderVersion] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null); const graphRef = useRef<G6Graph | null>(null);
   const [loading, setLoading] = useState(true); const [error, setError] = useState("");
   useEffect(() => {
@@ -89,28 +91,30 @@ export function PublishOntologyCanvas({ graph, selectedId, mode, onSelect }: Pro
       const labelFill = mode === "light" ? "#203b45" : "#edf7f7"; const edgeColor = mode === "light" ? "#71949e" : "#4c8f92";
       const instance = new G6.Graph({
         container: containerRef.current, width: containerRef.current.clientWidth, height: containerRef.current.clientHeight,
-        data, layout: { type: "preset" }, autoFit: "view", padding: [86, 100, 86, 100], animation: false,
+        data, layout: { type: "preset" }, autoFit: "view", padding: preview ? [55, 60, 55, 60] : [86, 100, 86, 100], animation: false,
         node: { type: "circle", style: {
           size: (item: GraphNode) => item.style.size, fill: (item: GraphNode) => item.style.fill, stroke: (item: GraphNode) => item.style.stroke,
+          lineDash: (item: GraphNode) => item.data.preview ? [6, 4] : [],
           lineWidth: 3, labelText: (item: GraphNode) => String(item.data.targetName || item.id), labelFill, labelFontSize: 12, labelFontWeight: 700,
           labelPlacement: "bottom", labelOffsetY: 9, iconText: (item: GraphNode) => String(item.data.targetName || "").slice(0, 2), iconFill: "#fff", iconFontWeight: 800,
           badge: true, cursor: "pointer", ports: [{ placement: "center" }],
-        }, state: { selected: { stroke: "#ffffff", lineWidth: 5, shadowColor: "#13c6ad", shadowBlur: 18, zIndex: 20 }, neighbor: { stroke: "#39d4bc", lineWidth: 4, zIndex: 15 }, inactive: { opacity: .22, labelOpacity: .18 } } },
+        }, state: { selected: { stroke: "#ffffff", lineWidth: 5, shadowColor: "#13c6ad", shadowBlur: 18, zIndex: 20 }, neighbor: { stroke: "#39d4bc", lineWidth: 4, zIndex: 15 }, inactive: { opacity: .6, labelOpacity: 1 } } },
         edge: { type: "quadratic", style: {
-          stroke: edgeColor, lineWidth: 1.7, endArrow: true, curveOffset: 18,
+          lineDash: (item: GraphEdge) => item.data.preview ? [7, 5] : [],
+          stroke: (item: GraphEdge) => item.data.preview ? "#d28b20" : edgeColor, lineWidth: 1.7, endArrow: true, curveOffset: 18,
           labelText: (item: GraphEdge) => String(item.data.targetName || ""), labelFill, labelFontSize: 10,
           labelBackground: true, labelBackgroundFill: mode === "light" ? "rgba(255,255,255,.94)" : "rgba(7,24,32,.94)", labelPadding: [3, 5],
-        }, state: { active: { stroke: "#15b99c", lineWidth: 3, shadowColor: "#15b99c", shadowBlur: 8, zIndex: 12 }, inactive: { opacity: .08 } } },
+        }, state: { active: { stroke: "#15b99c", lineWidth: 3, shadowColor: "#15b99c", shadowBlur: 8, zIndex: 12 }, inactive: { opacity: .3 } } },
         behaviors: ["drag-canvas", "zoom-canvas", { type: "drag-element", state: null }],
       });
       graphRef.current = instance;
       instance.on("node:click", (event) => { const id = event.target?.id; if (id) onSelect(id); });
-      await instance.render(); if (disposed) return; setLoading(false);
+      await instance.render(); if (disposed) return; setLoading(false); setRenderVersion((value) => value + 1);
       resizeObserver = new ResizeObserver((entries) => { const rect = entries[0]?.contentRect; if (rect?.width && rect.height) instance.resize(rect.width, rect.height); });
       resizeObserver.observe(containerRef.current);
     }).catch((reason: Error) => { if (!disposed) { setError(reason.message); setLoading(false); } });
     return () => { disposed = true; resizeObserver?.disconnect(); graphRef.current?.destroy(); graphRef.current = null; };
-  }, [graph, mode]);
+  }, [graph, mode, preview]);
 
   useEffect(() => {
     const instance = graphRef.current; if (!instance || !graph) return;
@@ -121,7 +125,7 @@ export function PublishOntologyCanvas({ graph, selectedId, mode, onSelect }: Pro
     graph.nodes.forEach((node) => { states[node.id] = !selectedId ? [] : node.id === selectedId ? ["selected"] : neighbors.has(node.id) ? ["neighbor"] : ["inactive"]; });
     renderedEdges.forEach((edge) => { states[edge.id] = !selectedId ? [] : activeEdges.has(edge.id) ? ["active"] : ["inactive"]; });
     void instance.setElementState(states);
-  }, [graph, selectedId]);
+  }, [graph, selectedId, renderVersion]);
 
   return <div className="publish-ontology-canvas-shell">
     <div className="publish-ontology-canvas-toolbar">
@@ -131,6 +135,6 @@ export function PublishOntologyCanvas({ graph, selectedId, mode, onSelect }: Pro
     <div ref={containerRef} className="publish-ontology-canvas" />
     {loading && <div className="publish-ontology-canvas-overlay"><Spin /><Typography.Text type="secondary">正在生成发布本体图…</Typography.Text></div>}
     {error && <div className="publish-ontology-canvas-overlay"><Typography.Text type="danger">{error}</Typography.Text></div>}
-    <div className="publish-ontology-storage-badge"><Tag color="cyan">草稿本体</Tag><span>对象和关系来自 Publish Ontology 实际存储</span></div>
+    <div className="publish-ontology-storage-badge"><Tag color={preview ? "gold" : "cyan"}>{preview ? "只读预览" : "工作区本体"}</Tag><span>{preview ? "虚线内容待确认后加入草稿" : "对象和关系来自 PostgreSQL 模型存储"}</span></div>
   </div>;
 }

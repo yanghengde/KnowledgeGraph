@@ -152,9 +152,6 @@ def relationship_suggestions(
         for item in graph["nodes"]
     }
     existing_names = sorted(name for name in current_by_source if name != source_class)
-    if not existing_names:
-        return {"classUid": class_uid, "sourceClass": source_class, "items": [], "reason": "workspace_has_no_other_source_classes"}
-
     depth = max(1, min(int(max_depth), 2))
     from .publish_ontology_postgres import relationship_rows
     rows = relationship_rows(settings, source_class, existing_names, depth)
@@ -189,6 +186,14 @@ def relationship_suggestions(
         existing = current_by_source.get(str(row["existingClass"]))
         bridge_names = {item["sourceClass"] for item in missing_nodes}
         score = 100 - 25 * (len(relationships) - 1)
+        # Prefer extending the selected object's own references and completing
+        # the current model before introducing audit/history detail objects.
+        if len(relationships) == 1 and relationships[0]["sourceClass"] == source_class:
+            score += 20
+        if not missing_nodes:
+            score += 30
+        if any("history" in item["sourceClass"].casefold() for item in missing_nodes):
+            score -= 40
         if existing and existing["data"].get("role") == "core":
             score += 10
         if "WorkflowStep" in bridge_names:
@@ -214,7 +219,7 @@ def relationship_suggestions(
     items.sort(key=lambda item: (-item["score"], len(item["missingNodes"]), item["existingClass"], item["id"]))
     for index, item in enumerate(items):
         item["recommended"] = index == 0
-    return {"classUid": class_uid, "sourceClass": source_class, "items": items[:30], "reason": None}
+    return {"classUid": class_uid, "sourceClass": source_class, "items": items, "reason": None}
 
 
 def validate_workspace(settings: SyncSettings, repository: ControlPlaneRepository, workspace_key: str) -> dict[str, Any]:
