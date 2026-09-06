@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field, model_validator
 
 from src.graphstudio_sync.config import SyncSettings
+from src.graphstudio_sync.sync_configuration import configuration_preview, save_configuration
 from src.graphstudio_sync.continuous_sync import (
     continuous_sync_status,
     execute_continuous_sync,
@@ -1010,6 +1011,29 @@ def get_data_sync_status(profile_key: str):
         return data_sync_status(_repo(), profile_key=profile_key)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Business graph profile not found") from exc
+
+
+class SyncClassConfiguration(BaseModel):
+    mode: Literal["data", "model_only"]
+    selected_columns: list[str] = Field(default_factory=list, max_length=2000)
+    fingerprint: str = Field(min_length=64, max_length=64)
+    actor: str = Field(min_length=1, max_length=200)
+
+
+@router.get("/profiles/{profile_key}/data-sync/classes/{class_name}/configuration")
+def preview_sync_class_configuration(profile_key: str, class_name: str):
+    try:
+        return configuration_preview(_repo(), profile_key, class_name)
+    except (ValueError, KeyError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@router.put("/profiles/{profile_key}/data-sync/classes/{class_name}/configuration")
+def configure_sync_class(profile_key: str, class_name: str, request: SyncClassConfiguration):
+    try:
+        return save_configuration(_repo(), profile_key, class_name, **request.model_dump())
+    except (ValueError, KeyError) as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 @router.post("/profiles/{profile_key}/data-sync")

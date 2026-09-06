@@ -12,6 +12,7 @@ import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { syncApi } from "../api";
 import type { DataSyncClassStatus } from "../types";
+import { SyncClassConfigurationDialog } from "../components/SyncClassConfigurationDialog";
 
 const coverageLabels: Record<string, { color: string; text: string }> = {
   synchronized: { color: "success", text: "同步数据" },
@@ -40,6 +41,7 @@ export function DataSynchronizationPage() {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [configureClass, setConfigureClass] = useState<string>();
   const [actor, setActor] = useState("local-console");
   const [confirmation, setConfirmation] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -84,6 +86,9 @@ export function DataSynchronizationPage() {
   const data = status.data;
   const coverageIncomplete = Number(data?.summary.missing || 0) > 0;
   const columns: ColumnsType<DataSyncClassStatus> = [
+    { title: "操作", key: "configure", fixed: "right", width: 125,
+      render: (_, item) => ["missing", "model_only"].includes(item.coverageStatus)
+        ? <Button type="link" onClick={() => setConfigureClass(item.className)}>配置同步</Button> : <Tag color="success">已配置</Tag> },
     {
       title: "本体对象", dataIndex: "className", width: 170,
       render: (value, item) => <div className="data-sync-class"><strong>{value}</strong><small>{item.role || "—"}</small></div>,
@@ -170,7 +175,8 @@ export function DataSynchronizationPage() {
         />
       </Card>
 
-      {coverageIncomplete && <Alert type="error" showIcon icon={<ExclamationCircleOutlined />} message={`仍有 ${data?.summary.missing} 个本体对象未配置数据同步`} description={(data?.blockers || []).join("；")} />}
+      {coverageIncomplete && <Alert type="error" showIcon icon={<ExclamationCircleOutlined />} message={`仍有 ${data?.summary.missing} 个本体对象未配置数据同步`} description={(data?.blockers || []).join("；")}
+        action={<Space wrap>{data?.classes.filter(item => item.coverageStatus === "missing").map(item => <Button key={item.className} type="primary" onClick={() => setConfigureClass(item.className)}>配置 {item.className}</Button>)}</Space>} />}
       {!coverageIncomplete && !!data?.blockers.length && <Alert type="warning" showIcon message="同步前置检查待刷新" description={`${data.blockers.join("；")}。点击“执行数据同步”会先重新运行质量检查，再决定是否生成新版本。`} />}
       {!!data?.summary.pendingRelationships && <Alert type="warning" showIcon message={`${data.summary.pendingRelationships} 条源关系引用尚未解析`} description={`当前活动版本共有 ${data.summary.relationships} 条关系记录，其中 ${data.summary.resolvedRelationships} 条已关联到目标对象。未解析引用会保留审计证据，但不会伪造成 Graph Studio 边。`} />}
       {!!data?.summary.scopeExclusions && <Alert type="info" showIcon message={`${data.summary.scopeExclusions} 条系统记录已与制造业务图谱隔离`} description="源记录仍保存在不可变数据版本中用于审计，但不会作为 Graph Studio 节点或关系发布。当前规则要求 WorkflowStep.WorkflowId 必须存在于受治理的制造 Workflow 集合。" />}
@@ -203,6 +209,9 @@ export function DataSynchronizationPage() {
         <Table rowKey="className" columns={columns} dataSource={data?.classes || []} pagination={false} scroll={{ x: 1250 }} />
       </Card>
 
+      {configureClass && <SyncClassConfigurationDialog key={configureClass} profileKey={profileKey} className={configureClass} close={() => setConfigureClass(undefined)} saved={async () => {
+        await Promise.all(["data-sync", "sync-materialization", "sync-class-configuration"].map(key => queryClient.invalidateQueries({ queryKey: [key] })));
+      }} />}
       {data?.activeRelease?.finished_at && <Typography.Text type="secondary">最近数据版本完成于 {new Date(data.activeRelease.finished_at).toLocaleString("zh-CN")}</Typography.Text>}
 
       <Modal

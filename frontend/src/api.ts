@@ -24,6 +24,14 @@ import type {
   RelationshipSuggestionResult,
 } from "./types";
 
+export interface SyncClassConfiguration {
+  className: string; fingerprint: string; sourceSchema: string | null; sourceTable: string | null;
+  primaryKeys: string[]; businessKeys: string[]; blockers: string[]; modelOnlyAllowed: boolean;
+  currentMode: string; hasContract: boolean;
+  fields: { physical_column: string; property_name: string; data_type: string; required: boolean }[];
+  relationships: { source: string; name: string; target: string; column: string | null; blocker: string | null }[];
+}
+
 async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, options);
   if (!response.ok) {
@@ -105,6 +113,13 @@ export const syncApi = {
   ),
   dataSync: (profileKey: string) => requestJson<DataSyncStatus>(
     `/api/sync/profiles/${encodeURIComponent(profileKey)}/data-sync`,
+  ),
+  syncClassConfiguration: (profileKey: string, className: string) => requestJson<SyncClassConfiguration>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/data-sync/classes/${encodeURIComponent(className)}/configuration`,
+  ),
+  saveSyncClassConfiguration: (profileKey: string, className: string, payload: { mode: "data" | "model_only"; selected_columns: string[]; fingerprint: string; actor: string }) => requestJson<{ ok: boolean }>(
+    `/api/sync/profiles/${encodeURIComponent(profileKey)}/data-sync/classes/${encodeURIComponent(className)}/configuration`,
+    { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) },
   ),
   runDataSync: (profileKey: string, actor: string) => requestJson<{
     ok: boolean; graphStudioMutated: boolean; status: DataSyncStatus;
