@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 from dotenv import load_dotenv
-from sqlalchemy.engine import URL
+from sqlalchemy.engine import URL, make_url
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -126,3 +126,18 @@ class SyncSettings:
             action_auth_mode=os.getenv("ACTION_AUTH_MODE", "disabled").strip().casefold(),
             action_trusted_proxy_secret=os.getenv("ACTION_TRUSTED_PROXY_SECRET", "").strip() or None,
         )
+
+
+def connection_endpoints(settings: SyncSettings) -> dict[str, str]:
+    """Public runtime addresses; never expose credentials from a database URL."""
+    def host_port(host: str, port: int) -> str:
+        return f"[{host}]:{port}" if ":" in host and not host.startswith("[") else f"{host}:{port}"
+
+    endpoints = {
+        "camstar-source": host_port(settings.source_host, settings.source_port),
+        "graph-studio": settings.graphstudio_base_url,
+    }
+    if settings.state_database_url:
+        state = make_url(settings.state_database_url)
+        endpoints["control-postgresql"] = host_port(state.host or "", state.port or 5432)
+    return endpoints

@@ -522,6 +522,11 @@ def update_connection(connection_key: str, request: ConnectionUpdate):
             status_code=409,
             detail="The control PostgreSQL connection is environment-managed to prevent self-disconnection",
         )
+    from src.graphstudio_sync.config import connection_endpoints
+
+    endpoint = connection_endpoints(_settings()).get(connection_key)
+    if endpoint is not None and request.endpoint != endpoint:
+        raise HTTPException(status_code=409, detail="服务地址由运行环境配置，请修改 .env 并重启服务")
     allowed_kinds = {
         "camstar-source": {"camstar_sqlserver", "camstar_oracle"},
         "graph-studio": {"graph_studio"},

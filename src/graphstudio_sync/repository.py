@@ -12,7 +12,7 @@ from typing import Any
 
 from sqlalchemy import text
 
-from .config import PROJECT_ROOT, SyncSettings
+from .config import PROJECT_ROOT, SyncSettings, connection_endpoints
 from .database import control_engine
 
 
@@ -88,11 +88,25 @@ class ControlPlaneRepository:
                 )
             )
         connections = [item for item in connections if item["connection_key"] in {"camstar-source", "graph-studio", "control-postgresql"}]
+        connections = self._runtime_connections(connections)
         return {"summary": summary, "connections": connections, "jobs": jobs, "recentRuns": recent_runs}
+
+    def _runtime_connections(self, profiles: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        endpoints = connection_endpoints(self.settings)
+        result = []
+        for profile in profiles:
+            item = dict(profile)
+            endpoint = endpoints.get(item["connection_key"])
+            if endpoint is not None:
+                if item.get("endpoint") != endpoint:
+                    item.update(status="unknown", last_tested_at=None, last_error=None)
+                item["endpoint"] = endpoint
+            result.append(item)
+        return result
 
     def list_connections(self) -> list[dict[str, Any]]:
         with self.engine.connect() as connection:
-            return _rows(
+            return self._runtime_connections(_rows(
                 connection.execute(
                     text(
                         """
@@ -103,7 +117,7 @@ class ControlPlaneRepository:
                         """
                     )
                 )
-            )
+            ))
 
     def update_connection_status(self, key: str, *, status: str, error: str | None = None) -> None:
         with self.engine.begin() as connection:
@@ -111,11 +125,13 @@ class ControlPlaneRepository:
                 text(
                     """
                     UPDATE graphsync.connection_profile
-                    SET status=:status, last_error=:error, last_tested_at=now()
+                    SET status=:status, last_error=:error, last_tested_at=now(),
+                        endpoint=COALESCE(:endpoint, endpoint)
                     WHERE connection_key=:key
                     """
                 ),
-                {"key": key, "status": status, "error": error},
+                {"key": key, "status": status, "error": error,
+                 "endpoint": connection_endpoints(self.settings).get(key)},
             )
 
     def update_connection(

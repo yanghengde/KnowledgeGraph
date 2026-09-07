@@ -39,6 +39,7 @@ const kindLabels: Record<string, string> = {
 function connectionStatus(connection: SyncConnection) {
   if (!connection.enabled) return { color: "default", text: "已停用" };
   if (connection.status === "online") return { color: "success", text: "在线" };
+  if (connection.status === "unknown") return { color: "default", text: "待检测" };
   if (connection.status === "testing") return { color: "processing", text: "检测中" };
   return { color: "error", text: "异常" };
 }
@@ -104,8 +105,8 @@ export function ConnectionsPage() {
         showIcon
         type="info"
         icon={<SafetyCertificateOutlined />}
-        message="连接密码由运行环境托管"
-        description="控制面只保存密钥引用，不展示或写入真实密码；PostgreSQL 控制面连接为防止自断连而锁定编辑。"
+        message="服务地址与密码由运行环境托管"
+        description="服务地址读取服务器环境配置（本地为 .env），修改后请重启服务。密码只保存在环境配置中；PostgreSQL 控制面连接不支持页面编辑。"
       />
 
       {connections.isLoading ? <div className="page-loader"><Spin /></div> : connections.isError ? (
@@ -144,7 +145,7 @@ export function ConnectionsPage() {
       <Modal title={`编辑连接 · ${editing?.display_name || ""}`} open={Boolean(editing)} onCancel={() => setEditing(null)} onOk={() => void submitEditor()} confirmLoading={saveConnection.isPending} okText="保存参数" cancelText="取消">
         <Form form={form} layout="vertical" requiredMark={false}>
           <Form.Item name="display_name" label="显示名称" rules={[{ required: true, message: "请输入显示名称" }]}><Input /></Form.Item>
-          <Form.Item name="endpoint" label="服务地址" rules={[{ required: true, message: "请输入服务地址" }]}><Input /></Form.Item>
+          <Form.Item name="endpoint" label="服务地址" extra="由服务器环境配置管理，修改 .env 后需重启服务。"><Input disabled /></Form.Item>
           <Row gutter={12}>
             <Col span={12}><Form.Item name="database_name" label="数据库 / 发布目标"><Input /></Form.Item></Col>
             <Col span={12}><Form.Item name="username" label="用户"><Input /></Form.Item></Col>

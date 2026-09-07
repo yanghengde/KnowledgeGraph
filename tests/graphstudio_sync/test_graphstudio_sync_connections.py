@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.connections import _host_port, settings_from_profiles
 from src.graphstudio_sync.repository import ControlPlaneRepository
@@ -25,7 +27,7 @@ def test_host_port_supports_explicit_and_default_ports() -> None:
     assert _host_port("sql.example", 1433) == ("sql.example", 1433)
 
 
-def test_postgres_connection_profiles_override_metadata_not_secrets() -> None:
+def test_profiles_preserve_environment_addresses_and_secrets() -> None:
     resolved = settings_from_profiles(
         _settings(),
         [
@@ -47,19 +49,19 @@ def test_postgres_connection_profiles_override_metadata_not_secrets() -> None:
         ],
     )
 
-    assert resolved.source_host == "sql-new"
-    assert resolved.source_port == 1434
+    assert resolved.source_host == "sql-old"
+    assert resolved.source_port == 1433
     assert resolved.source_database == "CamstarNew"
     assert resolved.source_password == "sql-secret"
-    assert resolved.graphstudio_base_url == "https://graph-new.example"
+    assert resolved.graphstudio_base_url == "https://graph-old.example"
     assert resolved.graphstudio_password == "graph-secret"
     assert resolved.graphmart_uri == "urn:graphmart:new"
     assert resolved.shared_file_connection == "urn:file:shared"
 
 
-def test_oracle_source_profile_selects_driver_defaults_and_schema() -> None:
+def test_oracle_source_profile_preserves_runtime_endpoint_and_schema() -> None:
     resolved = settings_from_profiles(
-        _settings(),
+        replace(_settings(), source_host="oracle-env", source_port=1521, source_kind="camstar_oracle"),
         [
             {
                 "connection_key": "camstar-source",
@@ -74,7 +76,7 @@ def test_oracle_source_profile_selects_driver_defaults_and_schema() -> None:
     )
 
     assert resolved.source_kind == "camstar_oracle"
-    assert resolved.source_host == "oracle.internal"
+    assert resolved.source_host == "oracle-env"
     assert resolved.source_port == 1521
     assert resolved.source_database == "CAMSTARPDB"
     assert resolved.source_schema == "CAMSTAR_OWNER"
@@ -154,3 +156,44 @@ def test_graphstudio_connection_update_synchronizes_matching_default_references(
     cascade_calls = repository.engine.connection.calls[2:]
     assert all(call[1]["old_uri"] == "urn:graphmart:old" for call in cascade_calls)
     assert all(call[1]["new_uri"] == "urn:graphmart:new" for call in cascade_calls)
+
+
+def test_runtime_addresses_replace_stale_rows_without_mutating_history():
+    repository = object.__new__(ControlPlaneRepository)
+    repository.settings = replace(_settings(), state_database_url="postgresql+psycopg://user:secret@pg-env:5434/db")
+    rows = [{"connection_key": key, "endpoint": "stale:1", "status": "online", "last_tested_at": "yesterday", "last_error": "old"}
+            for key in ("camstar-source", "graph-studio", "control-postgresql")]
+    result = repository._runtime_connections(rows)
+    assert [item["endpoint"] for item in result] == ["sql-old:1433", "https://graph-old.example", "pg-env:5434"]
+    assert all(item["status"] == "unknown" and item["last_tested_at"] is None and item["last_error"] is None for item in result)
+    assert all(item["endpoint"] == "stale:1" and item["status"] == "online" for item in rows)
+    assert "secret" not in str(result)
+
+
+def test_matching_runtime_address_keeps_latest_test_status():
+    repository = object.__new__(ControlPlaneRepository)
+    repository.settings = _settings()
+    row = {"connection_key": "camstar-source", "endpoint": "sql-old:1433", "status": "online", "last_tested_at": "today"}
+    assert repository._runtime_connections([row]) == [row]
+
+
+def test_connection_test_records_the_runtime_address_with_its_status():
+    repository = object.__new__(ControlPlaneRepository)
+    repository.settings = _settings()
+    repository.engine = _UpdateEngine()
+    repository.update_connection_status("camstar-source", status="online")
+    statement, parameters = repository.engine.connection.calls[0]
+    assert "endpoint=COALESCE(:endpoint, endpoint)" in statement
+    assert parameters["endpoint"] == "sql-old:1433"
+    assert parameters["status"] == "online"
+
+
+def test_environment_address_cannot_be_changed_through_api(monkeypatch):
+    import pytest
+    from fastapi import HTTPException
+    from web.routers import sync_center
+    monkeypatch.setattr(sync_center, "_settings", _settings)
+    request = sync_center.ConnectionUpdate(kind="camstar_sqlserver", display_name="Camstar", endpoint="wrong:1", database_name="db", username="user", enabled=True)
+    with pytest.raises(HTTPException) as error:
+        sync_center.update_connection("camstar-source", request)
+    assert error.value.status_code == 409

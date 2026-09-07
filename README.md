@@ -19,6 +19,8 @@ Camstar SQL Server / Oracle → 业务数据版本 → RDF → Graph Studio
 
 容器启动与本地 PostgreSQL 配置见 [部署指南](docs/deployment.md)。
 
+连接页面和实际连接使用同一组运行环境地址：Camstar 使用 `SRC_DB_HOST` / `SRC_DB_PORT`，Graph Studio 使用 `GRAPHSTUDIO_BASE_URL`，PostgreSQL 使用 `SYNC_STATE_DATABASE_URL` 或 `PGSQL_HOST` / `PGSQL_PORT`。数据库中的历史连接地址不覆盖这些值。显式进程环境变量优先于 `.env`；修改配置后需重启服务（容器环境需重新创建容器），再刷新页面并测试连接。业务数据库名、Graphmart 目标及其他可编辑参数仍由连接配置管理。
+
 ## 建模与发布
 
 - 原始结构来自 `docs/Database_Tables.csv` 和 `docs/Database_Fields.csv`，这两个文件是只读事实源。

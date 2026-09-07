@@ -12,12 +12,12 @@ from requests.adapters import HTTPAdapter
 from sqlalchemy import text
 from urllib3.util.retry import Retry
 
-from .config import SyncSettings, normalize_graphstudio_url
+from .config import SyncSettings
 from .transport import configure_graphstudio_tls
 from .database import control_engine
 from .graphstudio_api import require_graphstudio_2026_1_ready
 from .repository import ControlPlaneRepository
-from .source_database import ORACLE_KIND, connect_source, fetch_dicts, source_cursor, source_default_port
+from .source_database import ORACLE_KIND, connect_source, fetch_dicts, source_cursor
 
 
 def _host_port(endpoint: str, default_port: int) -> tuple[str, int]:
@@ -42,9 +42,6 @@ def settings_from_profiles(
         source_kind = source.get("kind") or base.source_kind
         source_config = source.get("config") or {}
         values["source_kind"] = source_kind
-        values["source_host"], values["source_port"] = _host_port(
-            source["endpoint"], source_default_port(source_kind)
-        )
         values["source_database"] = source.get("database_name") or base.source_database
         values["source_user"] = source.get("username") or base.source_user
         values["source_schema"] = source_config.get("schema") or base.source_schema
@@ -52,7 +49,6 @@ def settings_from_profiles(
     graph_studio = by_key.get("graph-studio")
     if graph_studio:
         config = graph_studio.get("config") or {}
-        values["graphstudio_base_url"] = normalize_graphstudio_url(graph_studio["endpoint"])
         values["graphstudio_user"] = graph_studio.get("username") or base.graphstudio_user
         values["graphmart_uri"] = graph_studio.get("database_name") or base.graphmart_uri
         values["shared_file_connection"] = config.get("fileConnection") or base.shared_file_connection
