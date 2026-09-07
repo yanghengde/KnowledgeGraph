@@ -5,6 +5,7 @@ export type MappingRow = { draftId: string; snapshotId: string; tableName: strin
 export type MappingField = { name: string; physicalName: string; type: string; target: string; primaryKey: boolean };
 export type MappingDetail = MappingRow & { design: SourceDesign; fields: MappingField[]; tableNames: string[] };
 export type MappingPreview = { planHash: string; blockers: string[]; counts: { properties: number; relationships: number; internal: number; excluded: number } };
+export type SimpleCheck = MappingPreview & { revision: number; fields: { name: string; type: string }[]; removedFields: string[] };
 async function request<T>(path = "", body?: unknown): Promise<T> {
   const response = await fetch(`/api/semantic-mapping${path}`, body === undefined ? undefined : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await response.json();
@@ -12,6 +13,9 @@ async function request<T>(path = "", body?: unknown): Promise<T> {
   return data;
 }
 export const mappingApi = {
+  openPhysical: () => request<import("./authorityApi").ImportAnalysis & { database: string; snapshotId: string }>("/physical/open", {}),
+  check: (id: string, workspaceKey: string) => request<SimpleCheck>(`/${id}/check`, { workspaceKey }),
+  ready: (id: string, workspaceKey: string, revision: number, planHash: string) => request(`/${id}/ready`, { workspaceKey, revision, planHash }),
   physicalVersions: () => request<{ items: { snapshotId: string; createdAt: string; tableCount: number }[] }>("/physical/versions"),
   restorePhysical: (snapshotId: string, database: string) => request<import("./authorityApi").ImportAnalysis>("/physical/restore", { snapshotId, database }),
   addSources: (importId: string, selected: string[]) => request("/sources", { importId, selected }),

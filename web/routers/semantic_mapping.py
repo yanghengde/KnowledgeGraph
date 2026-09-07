@@ -39,6 +39,14 @@ class RestoreRequest(BaseModel):
     database: Literal["sqlserver", "oracle"]
 
 
+class WorkspaceRequest(BaseModel):
+    workspaceKey: str = Field(min_length=1, max_length=200)
+
+
+class ReadyRequest(SubmitRequest, WorkspaceRequest):
+    pass
+
+
 def _store():
     try:
         return MappingStore(authority_store().engine)
@@ -93,7 +101,25 @@ def restore_physical(request: RestoreRequest):
         writer.writerows(rows)
         return UploadFile(filename=name, file=io.BytesIO(output.getvalue().encode("utf-8")))
     return analyze_import(upload("tables.csv", list(payload["tables"].values())),
-                          upload("fields.csv", [r for rows in payload["fields"].values() for r in rows]), request.database)
+                          upload("fields.csv", [r for rows in payload["fields"].values() for r in rows]), request.database, False)
+
+
+@router.post("/physical/open")
+def open_physical():
+    from src.graphstudio_sync.config import SyncSettings
+    from web.routers.ontology_import import analyze_standard, _import_session
+    database = SyncSettings.from_env().source_kind
+    database = "oracle" if database == "oracle" else "sqlserver"
+    store = _store()
+    versions = store.snapshots()
+    if versions:
+        result = restore_physical(RestoreRequest(snapshotId=versions[0]["snapshotId"], database=database))
+        result["snapshotId"] = versions[0]["snapshotId"]
+    else:
+        result = analyze_standard(database, False)
+        result.update(store.stage_sources(_import_session(result["importId"]), set()))
+    result["database"] = database
+    return result
 
 
 @router.get("/{draft_id}")
@@ -125,3 +151,44 @@ def submit(draft_id: str, request: SubmitRequest):
             # The draft is locked until the immutable candidate is staged.
             return authority_store().stage(plan["payload"])
     return _run(apply)
+
+
+def _simple(draft_id, request, apply=False):
+    from sqlalchemy import text
+    from src.graphstudio_sync import ontology_store, simple_modeling
+    from web.routers.ontology_authority import _documents
+    store = _store()
+    authority = authority_store()
+    with store.engine.begin() as conn:
+        conn.execute(text("SELECT pg_advisory_xact_lock(721603051)"))
+        draft = store.detail(draft_id, conn, lock=True)
+        authorities, proposals = authority.snapshot(conn)
+        if apply:
+            if request.revision != draft["revision"]:
+                raise RuntimeError("内容已修改，请重新检查")
+            record = authorities.get(draft["tableName"], {})
+            if record.get("decision", {}).get("simplePlanHash") == request.planHash:
+                return {"status": "ready", "revision": record["revision"]}
+        conn.execute(text("SELECT pg_advisory_xact_lock(721603061)"))
+        workspace = ontology_store.workspace(conn, request.workspaceKey, lock=True)
+        prepared = simple_modeling.prepare(draft, _documents(), authorities, proposals, workspace, ontology_store.source_payload(None, conn))
+        if apply:
+            if request.planHash != prepared["planHash"]:
+                raise RuntimeError("模型内容已变化，请重新检查")
+            result = simple_modeling.commit(conn, authority, workspace, prepared)
+        else:
+            result = {k: v for k, v in prepared.items() if k not in {"plan", "graph", "source"}}
+    if apply:
+        from web.routers.graph import invalidate_graph_caches
+        invalidate_graph_caches()
+    return result
+
+
+@router.post("/{draft_id}/check")
+def check_model(draft_id: str, request: WorkspaceRequest):
+    return _run(lambda: _simple(draft_id, request))
+
+
+@router.post("/{draft_id}/ready")
+def ready_model(draft_id: str, request: ReadyRequest):
+    return _run(lambda: _simple(draft_id, request, True))

@@ -171,26 +171,26 @@ export function SemanticModelPage() {
     <section className="semantic-page-heading">
       <div>
         <Typography.Title level={2}>制造语义模型</Typography.Title>
-        <Typography.Paragraph>选择 Opcenter 来源 → 定义用途与字段映射 → 审阅本体设计 → 校验并发布到 Graph Studio。</Typography.Paragraph>
+        <Typography.Paragraph>添加业务对象，选择需要的字段，检查后发布。</Typography.Paragraph>
       </div>
       <Space wrap>
-        <Button type="primary" icon={<SearchOutlined />} onClick={() => navigate("/object-explorer")}>选择 Opcenter 来源</Button>
+        <Button type="primary" icon={<SearchOutlined />} onClick={() => navigate("/object-explorer")}>添加业务对象</Button>
         <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新</Button>
       </Space>
     </section>
 
     <Card className="semantic-stage-card" styles={{ body: { padding: "4px 14px 0" } }}>
       <Tabs activeKey={workbenchView === "source" ? "directory" : workbenchView} onChange={(key) => setWorkbenchView(key as typeof workbenchView)} items={[
-        { key: "mapping", label: <Space><BranchesOutlined />来源与转换</Space> },
-        { key: "directory", label: <Space><ApartmentOutlined />本体设计</Space> },
-        { key: "workspace", label: <Space><FolderOpenOutlined />发布范围{governance.data && <Tag color="cyan">{governance.data.graph.nodes.length}</Tag>}</Space> },
-        { key: "validation", label: <Space><CheckCircleOutlined />校验与发布</Space> },
+        { key: "mapping", label: <Space><BranchesOutlined />编辑业务对象</Space> },
+        { key: "workspace", label: <Space><FolderOpenOutlined />查看模型{governance.data && <Tag color="cyan">{governance.data.graph.nodes.length}</Tag>}</Space> },
+        { key: "validation", label: <Space><CheckCircleOutlined />检查发布</Space> },
         { key: "versions", label: <Space><HistoryOutlined />版本记录{governance.data && <Tag color="gold">{governance.data.releases.length}</Tag>}</Space> },
       ]} />
+      <Button type="link" size="small" onClick={() => setWorkbenchView("directory")}>高级管理：来源比较与审阅</Button>
     </Card>
 
     {(workbenchView === "directory" || workbenchView === "source") && <Segmented value={workbenchView} onChange={value => setWorkbenchView(value as "directory" | "source")} options={[{ value: "directory", label: "对象目录与变更审阅" }, { value: "source", label: "已同步模型图" }]} />}
-    {workbenchView === "mapping" ? <SourceMappingPanel onExplore={() => navigate("/object-explorer")} onReview={() => setWorkbenchView("directory")} /> : workbenchView === "directory" ? <OntologyDirectory /> : workbenchView === "source" ? <>
+    {workbenchView === "mapping" ? <SourceMappingPanel onExplore={() => navigate("/object-explorer")} onReview={() => setWorkbenchView("validation")} /> : workbenchView === "directory" ? <OntologyDirectory /> : workbenchView === "source" ? <>
     <Alert type="info" showIcon message="查看已同步到建模库的语义模型" description="对象目录中的审阅结果同步后在此显示。“关注”只改变个人浏览布局；“加入模型”会将对象加入当前发布草稿。" />
 
     <div className="semantic-stat-grid">

@@ -1,91 +1,94 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, App, Button, Card, Drawer, Empty, Input, Select, Space, Table, Tag, Typography } from "antd";
-import { mappingApi, type FieldRole, type MappingDetail, type MappingField, type MappingPreview, type MappingRow, type SourceDesign, type SourceRole } from "../../mappingApi";
-
-const sourceLabels: Record<SourceRole, string> = { pending: "待评估", entity: "实体来源", event: "事件来源", relationship: "关系来源", auxiliary: "辅助来源", excluded: "暂不采用" };
-const fieldLabels: Record<FieldRole, string> = { pending: "待评估", property: "业务属性", relationship: "业务关系", internal: "仅内部使用", excluded: "不纳入本体" };
+import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Empty, Input, Radio, Space, Table, Tag, Typography } from "antd";
+import { mappingApi, type MappingDetail, type MappingRow, type SimpleCheck } from "../../mappingApi";
+import { syncApi } from "../../api";
+import { useMappingAutosave } from "./useMappingAutosave";
 
 export function SourceMappingPanel({ onExplore, onReview }: { onExplore: () => void; onReview: () => void }) {
+  const { message } = App.useApp();
+  const client = useQueryClient();
   const list = useQuery({ queryKey: ["mapping-drafts"], queryFn: mappingApi.list });
   const [selected, setSelected] = useState<string>();
   const [search, setSearch] = useState("");
-  return <Card title="来源与转换" extra={<Button onClick={onExplore}>选择 Opcenter 来源表</Button>}>
+  const flush = useRef<(() => Promise<void>) | null>(null);
+  const close = async () => { try { await flush.current?.(); setSelected(undefined); await client.invalidateQueries({ queryKey: ["mapping-drafts"] }); } catch { message.error("修改尚未保存，请重试后关闭"); } };
+  return <Card title="我的业务对象" extra={<Button onClick={onExplore}>添加对象</Button>}>
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-      <Alert type="info" showIcon message="先定义来源用途，再生成本体候选" description="物理表保留完整字段与外键。实体来源可明确选择业务属性和关系；历史、桥接和辅助来源先保存转换设计。保存草稿不会修改已批准或已发布的模型。" />
-      {list.isError ? <Alert type="error" showIcon message={(list.error as Error).message} action={<Button onClick={() => void list.refetch()}>重试</Button>} /> : null}
-      <Input.Search allowClear placeholder="搜索表名或业务中文名" value={search} onChange={e => setSearch(e.target.value)} />
+      <Typography.Paragraph>填写业务名称，勾选需要的字段。修改会自动保存。</Typography.Paragraph>
+      {list.isError && <Alert type="error" message={(list.error as Error).message} action={<Button onClick={() => void list.refetch()}>重试</Button>} />}
+      <Input.Search allowClear placeholder="查找业务名称或表名" value={search} onChange={e => setSearch(e.target.value)} />
       <Table<MappingRow> rowKey="draftId" loading={list.isLoading} dataSource={(list.data?.items || []).filter(r => `${r.tableName} ${r.chineseName}`.toLowerCase().includes(search.toLowerCase()))}
-        locale={{ emptyText: <Empty description="从 Opcenter 数据模型选择来源表，开始设计" /> }} columns={[
-          { title: "来源表", render: (_, row) => <Button type="link" onClick={() => setSelected(row.draftId)}>{row.tableName}</Button> },
-          { title: "用途", render: (_, row) => <Tag>{sourceLabels[row.role]}</Tag> },
-          { title: "业务名称", render: (_, row) => row.chineseName || "待定义" },
-          { title: "物理版本", render: (_, row) => <Typography.Text title={row.snapshotId}>{row.snapshotId.slice(0, 12)}</Typography.Text> },
-          { title: "草稿修订", render: (_, row) => `R${row.revision}` },
-          { title: "操作", render: (_, row) => <Button onClick={() => setSelected(row.draftId)}>设计映射</Button> },
+        locale={{ emptyText: <Empty description="还没有业务对象"><Button type="primary" onClick={onExplore}>从数据表开始</Button></Empty> }} columns={[
+          { title: "业务对象", render: (_, r) => <Button type="link" onClick={() => setSelected(r.draftId)}>{r.chineseName || r.tableName}</Button> },
+          { title: "来自哪张表", dataIndex: "tableName" },
+          { title: "状态", render: (_, r) => <Tag>{["event", "relationship", "auxiliary"].includes(r.role) ? "需要转换" : r.role === "excluded" ? "暂不使用" : "建模中"}</Tag> },
+          { title: "操作", render: (_, r) => <Button onClick={() => setSelected(r.draftId)}>编辑</Button> },
         ]} />
     </Space>
-    <Drawer title="来源映射设计" size="large" open={!!selected} onClose={() => setSelected(undefined)} destroyOnHidden>
-      {selected && <MappingEditor key={selected} id={selected} onReview={() => { setSelected(undefined); onReview(); }} />}
+    <Drawer title="编辑业务对象" size="large" open={!!selected} onClose={() => void close()} destroyOnHidden>
+      {selected && <Editor key={selected} id={selected} register={fn => { flush.current = fn; }} done={() => { setSelected(undefined); onReview(); }} />}
     </Drawer>
   </Card>;
 }
 
-function MappingEditor({ id, onReview }: { id: string; onReview: () => void }) {
-  const detail = useQuery({ queryKey: ["mapping-detail", id], queryFn: () => mappingApi.detail(id) });
-  if (detail.isError) return <Alert type="error" message={(detail.error as Error).message} />;
-  return detail.data ? <MappingForm key={detail.data.revision} detail={detail.data} onReview={onReview} /> : <Card loading />;
+function Editor({ id, register, done }: { id: string; register: (fn: (() => Promise<void>) | null) => void; done: () => void }) {
+  const query = useQuery({ queryKey: ["mapping-detail", id], queryFn: () => mappingApi.detail(id), refetchOnWindowFocus: false, staleTime: 0 });
+  if (query.isError) return <Alert type="error" message={(query.error as Error).message} />;
+  return query.isFetching ? <Card loading /> : query.data ? <Form detail={query.data} register={register} done={done} /> : null;
 }
 
-function MappingForm({ detail, onReview }: { detail: MappingDetail; onReview: () => void }) {
+function Form({ detail, register, done }: { detail: MappingDetail; register: (fn: (() => Promise<void>) | null) => void; done: () => void }) {
   const { message } = App.useApp();
   const client = useQueryClient();
-  const [design, setDesign] = useState<SourceDesign>(detail.design);
-  const [preview, setPreview] = useState<MappingPreview>();
-  const [dirty, setDirty] = useState(false);
+  const autosave = useMappingAutosave(detail);
+  const { design, flush, revision, status, error } = autosave;
+  const [preview, setPreview] = useState<SimpleCheck>();
+  const [workspace, setWorkspace] = useState("");
   const [search, setSearch] = useState("");
-  const [showExcluded, setShowExcluded] = useState(true);
-  const error = (e: Error) => message.error(e.message);
-  const save = useMutation({ mutationFn: () => mappingApi.save(detail.draftId, detail.revision, design), onSuccess: async data => {
-    message.success("来源设计已保存");
-    client.setQueryData(["mapping-detail", detail.draftId], data);
-    await client.invalidateQueries({ queryKey: ["mapping-drafts"] });
-  }, onError: error });
-  const plan = useMutation({ mutationFn: () => mappingApi.preview(detail.draftId), onSuccess: setPreview, onError: error });
-  const submit = useMutation({ mutationFn: () => mappingApi.submit(detail.draftId, detail.revision, preview!.planHash), onSuccess: async () => {
-    await client.invalidateQueries({ queryKey: ["ontology-directory"] });
-    message.success("映射候选已生成，请在本体设计中审阅"); onReview();
-  }, onError: error });
-  const busy = save.isPending || plan.isPending || submit.isPending;
-  const change = (patch: Partial<SourceDesign>) => { setDesign({ ...design, ...patch }); setDirty(true); setPreview(undefined); };
-  const bulkExclude = () => change({ fields: Object.fromEntries(detail.fields.map(f => [f.name, design.fields[f.name] === "pending" ? (f.primaryKey ? "internal" : "excluded") : design.fields[f.name]])) });
+  const [showAll, setShowAll] = useState(true);
+  useEffect(() => { register(flush); return () => register(null); }, [flush]);
+  const change = (patch: Parameters<typeof autosave.change>[0]) => { autosave.change(patch); setPreview(undefined); };
+  const check = useMutation({ mutationFn: async () => {
+    autosave.change({ fields: Object.fromEntries(detail.fields.map(f => [f.name, design.fields[f.name] === "pending" ? (f.primaryKey ? "internal" : "excluded") : design.fields[f.name]])) });
+    await flush();
+    const governance = await syncApi.ontologyGovernance("opcenter2607-core");
+    if (!governance.currentWorkspace) throw new Error("尚未配置发布模型，请在高级管理中初始化");
+    const key = governance.currentWorkspace.workspace_key; setWorkspace(key); return mappingApi.check(detail.draftId, key);
+  }, onSuccess: setPreview, onError: (e: Error) => message.error(e.message) });
+  const apply = useMutation({ mutationFn: async () => { await flush(); return mappingApi.ready(detail.draftId, workspace, revision.current, preview!.planHash); }, onSuccess: async () => {
+    done(); await Promise.all(["ontology-directory", "ontology-governance", "semantic-graph-overview", "semantic-graph-stats", "mapping-detail", "mapping-drafts"].map(key => client.invalidateQueries({ queryKey: [key] })));
+    message.success("已加入待发布模型");
+  }, onError: (e: Error) => { setPreview(undefined); message.error(e.message); } });
+  const busy = check.isPending || apply.isPending;
+  const chosen = (name: string) => ["property", "relationship"].includes(design.fields[name]);
+  const fields = detail.fields.filter(f => !f.primaryKey);
   return <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-    <Typography.Text strong>{detail.tableName} · 草稿 R{detail.revision}{dirty ? " · 有未保存修改" : ""}</Typography.Text>
-    <Typography.Text type="secondary">物理快照 {detail.snapshotId.slice(0, 12)} · 表和字段原始定义完整保留</Typography.Text>
-    <Select aria-label="来源用途" disabled={busy} style={{ width: "100%" }} value={design.role} onChange={role => change({ role })} options={Object.entries(sourceLabels).map(([value, label]) => ({ value, label }))} />
-    {design.role !== "entity" && <Alert type="info" message="此用途先保存为来源设计" description="事件来源需明确行为判别、事件身份、时间和撤销规则；关系来源需明确两端身份。当前生成器只支持一表一实体映射，设计说明不会作为可执行转换规则。" />}
-    <Input disabled={busy} addonBefore="业务中文名" value={design.chineseName} maxLength={200} onChange={e => change({ chineseName: e.target.value })} />
-    <Input.TextArea disabled={busy} aria-label="业务定义" placeholder="这个业务对象是什么？" value={design.description} maxLength={16000} onChange={e => change({ description: e.target.value })} autoSize={{ minRows: 2, maxRows: 5 }} />
-    <Input.TextArea disabled={busy} aria-label="转换设计说明" placeholder="转换设计说明：所需明细表、行为判别、对象身份、时间或撤销规则。此说明用于后续建模，不执行 SQL。" value={design.notes} maxLength={16000} onChange={e => change({ notes: e.target.value })} autoSize={{ minRows: 3, maxRows: 8 }} />
-    <Alert type="info" message="字段用途决定本体内容" description="业务属性进入本体；业务关系使用 Navigation 外键；身份及关联所需字段可仅内部使用。不纳入的字段仍保留在物理快照中。隐藏行只改变此处的显示。" />
-    <Space wrap>
-      <Input.Search allowClear placeholder="查找字段" value={search} onChange={e => setSearch(e.target.value)} />
-      <Button disabled={busy} onClick={bulkExclude}>剩余待评估字段设为不纳入</Button>
-      <Button onClick={() => setShowExcluded(!showExcluded)}>{showExcluded ? "隐藏不纳入字段" : "显示全部字段"}</Button>
-    </Space>
-    <Table<MappingField> rowKey="name" size="small" pagination={{ pageSize: 12 }} dataSource={detail.fields.filter(f => (showExcluded || design.fields[f.name] !== "excluded") && `${f.name} ${f.physicalName}`.toLowerCase().includes(search.toLowerCase()))} columns={[
-      { title: "物理字段 / 本体名称", render: (_, field) => <><div>{field.physicalName}{field.primaryKey && <Tag>身份键</Tag>}</div><Typography.Text type="secondary">{field.name}</Typography.Text></> },
-      { title: "类型 / 外键终点", render: (_, field) => <>{field.type}<br />{field.target}</> },
-      { title: "用途", width: 150, render: (_, field) => <Select aria-label={`${field.physicalName} 用途`} disabled={busy} style={{ width: "100%" }} value={design.fields[field.name]} onChange={role => change({ fields: { ...design.fields, [field.name]: role } })} options={Object.entries(fieldLabels).map(([value, label]) => ({ value, label,
-        disabled: field.primaryKey ? !["internal", "property"].includes(value) || (value === "property" && field.type === "Navigation") : value === "relationship" ? field.type !== "Navigation" || !field.target : value === "property" && field.type === "Navigation" }))} /> },
-    ]} />
-    <Space wrap>
-      <Button type="primary" disabled={busy || !dirty} loading={save.isPending} onClick={() => save.mutate()}>保存来源设计</Button>
-      <Button disabled={busy || dirty || design.role !== "entity"} loading={plan.isPending} onClick={() => plan.mutate()}>预览本体候选</Button>
-    </Space>
-    {preview && <>
-      <Alert type={preview.blockers.length ? "warning" : "success"} showIcon message={`${preview.counts.properties} 个业务属性 · ${preview.counts.relationships} 条关系 · ${preview.counts.internal} 个内部字段 · ${preview.counts.excluded} 个不纳入字段`} description={preview.blockers.join("；") || "候选仅包含明确选定的字段和关系，仍需审阅后才能进入发布工作区。"} />
-      <Button type="primary" disabled={busy || dirty || !!preview.blockers.length} loading={submit.isPending} onClick={() => submit.mutate()}>生成候选并前往审阅</Button>
+    <Space><Typography.Text type="secondary">来源：{detail.tableName}</Typography.Text><Tag>{status}</Tag></Space>
+    {error && <Alert type="error" message={error} action={<Button onClick={() => void flush().catch(() => {})}>重试保存</Button>} />}
+    <Typography.Text strong>这张表如何使用？</Typography.Text>
+    <Radio.Group disabled={busy} value={design.role === "pending" ? undefined : design.role === "entity" ? "entity" : "event"} onChange={e => change({ role: e.target.value })} options={[{ value: "entity", label: "普通业务对象" }, { value: "event", label: "需要转换（历史记录等）" }]} />
+    <Input disabled={busy} addonBefore="业务名称" placeholder="例如：产品、生产批次" value={design.chineseName} maxLength={200} onChange={e => change({ chineseName: e.target.value })} />
+    <Input.TextArea disabled={busy} aria-label="业务说明" placeholder="用一句话说明这个对象的含义" value={design.description} maxLength={16000} onChange={e => change({ description: e.target.value })} autoSize={{ minRows: 2, maxRows: 4 }} />
+    {design.role !== "entity" ? <>
+      <Alert type="info" message={design.role === "pending" ? "先选择使用方式" : "先记下来，稍后处理"} description="历史记录等数据需要转换后才能使用。可以先写下希望得到的业务对象，说明会自动保存。" />
+      <Input.TextArea disabled={busy} placeholder="例如：从历史记录中整理出每个批次的过站事件" value={design.notes} maxLength={16000} onChange={e => change({ notes: e.target.value })} autoSize={{ minRows: 3, maxRows: 6 }} />
+    </> : <>
+      <Typography.Text strong>选择需要的字段 · 已选 {fields.filter(f => chosen(f.name)).length} 项</Typography.Text>
+      <Typography.Text type="secondary">勾选需要分析的内容即可。关联会自动识别，必要的身份字段由系统保留。</Typography.Text>
+      <Space wrap><Input.Search allowClear placeholder="搜索字段" value={search} onChange={e => setSearch(e.target.value)} /><Checkbox checked={showAll} onChange={e => setShowAll(e.target.checked)}>显示未选字段</Checkbox></Space>
+      <Table rowKey="name" size="small" pagination={{ pageSize: 10 }} dataSource={fields.filter(f => (showAll || chosen(f.name)) && `${f.name} ${f.physicalName}`.toLowerCase().includes(search.toLowerCase()))} columns={[
+        { title: "使用", width: 55, render: (_, f) => <Checkbox aria-label={`使用 ${f.physicalName}`} disabled={busy} checked={chosen(f.name)} onChange={e => change({ fields: { ...design.fields, [f.name]: e.target.checked ? f.type === "Navigation" ? "relationship" : "property" : "excluded" } })} /> },
+        { title: "字段", dataIndex: "physicalName" }, { title: "含义", render: (_, f) => f.target ? `关联 ${f.target}` : f.name },
+      ]} />
+      <Button type="primary" disabled={busy} loading={check.isPending} onClick={() => check.mutate()}>检查这个对象</Button>
+      {preview && <Card size="small" title="检查结果"><Space orientation="vertical" style={{ width: "100%" }}>
+        <Alert showIcon type={preview.blockers.length ? "warning" : "success"} message={preview.blockers.length ? "这些内容需要处理" : `${preview.counts.properties} 个字段、${preview.counts.relationships} 条关联，可以加入发布模型`} description={preview.blockers.join("；") || "确认后，系统会完成模型审阅和准备。"} />
+        {preview.removedFields.length > 0 && <Alert type="warning" message={`将从待发布模型移除 ${preview.removedFields.length} 个字段`} description={preview.removedFields.join("、")} />}
+        <Collapse items={[{ key: "fields", label: "查看本次字段", children: preview.fields.map(f => <Tag key={f.name}>{f.name}</Tag>) }]} />
+        <Button type="primary" disabled={busy || !!preview.blockers.length} loading={apply.isPending} onClick={() => apply.mutate()}>确认并进入检查发布</Button>
+      </Space></Card>}
     </>}
+    <Collapse items={[{ key: "details", label: "技术信息", children: <Typography.Paragraph>结构版本：{detail.snapshotId}<br />身份字段：{detail.fields.filter(f => f.primaryKey).map(f => f.physicalName).join("、") || "待核实"}</Typography.Paragraph> }]} />
   </Space>;
 }

@@ -428,6 +428,7 @@ def analyze_import(
     tables: UploadFile = File(...),
     fields: UploadFile = File(...),
     database: str = Form(...),
+    refresh_descriptions: bool = True,
 ):
     database = database.strip().lower()
     if database not in {"oracle", "sqlserver"}:
@@ -545,7 +546,22 @@ def analyze_import(
         "translation": _translation_public_state(_sessions[session_id]),
         "candidates": candidates,
     }
-    _start_description_job(session_id)
+    result["edges"] = [edge for edges in outgoing.values() for edge in edges]
+    if refresh_descriptions:
+        _start_description_job(session_id)
+    else:
+        stored = load_descriptions(database)
+        session = _sessions[session_id]
+        for (name, field), entry in stored.items():
+            if name not in session["candidates"]:
+                continue
+            if field:
+                session["fieldDescriptions"].setdefault(name, {})[field] = entry
+            else:
+                session["candidates"][name].update(entry)
+        session["translation"].update(status="completed", metadataStatus="cached")
+        result["translation"] = _translation_public_state(session)
+        result["candidates"] = list(session["candidates"].values())
     return result
 
 
@@ -814,7 +830,7 @@ def enrich_object(import_id: str, class_name: str):
 
 
 @router.post("/analyze-standard")
-def analyze_standard(database: str = "sqlserver"):
+def analyze_standard(database: str = "sqlserver", refresh_descriptions: bool = True):
     with (Path(PROJECT_ROOT) / "docs/Database_Tables.csv").open("rb") as tables, (Path(PROJECT_ROOT) / "docs/Database_Fields.csv").open("rb") as fields:
         return analyze_import(UploadFile(filename="Database_Tables.csv", file=tables),
-                              UploadFile(filename="Database_Fields.csv", file=fields), database)
+                              UploadFile(filename="Database_Fields.csv", file=fields), database, refresh_descriptions)
