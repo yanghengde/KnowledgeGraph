@@ -9,7 +9,12 @@ export type Detail = { className: string; revision: number; fingerprint: string;
   history: { revision: number; created_at: string; snapshot: { domain: string; model: { class: ModelClass; relationships: Relation[] } } }[] };
 export type Decision = { preferredSource: string; choices: Record<string, string>; domain: string; fingerprint: string; planHash?: string; chineseName?: string; description?: string };
 export type Plan = { planHash: string; model: { class: ModelClass; relationships: Relation[] }; changes: { property: string; before?: Property; after: Property }[]; blockers: string[]; note: string; extensionProperties: string[] };
-export type ImportAnalysis = { importId: string; candidates: { className: string; status: string; selected: boolean; reason: string }[] };
+export type ImportCandidate = { className: string; status: string; selected: boolean; reason: string; descriptionEn: string; descriptionZh: string; propertyCount: number; relationshipCount: number; incomingCount: number; workspace: string };
+export type TranslationState = { status: string; metadataStatus: string; completed: number; total: number; warning: string };
+export type ImportAnalysis = { importId: string; candidates: ImportCandidate[]; translation: TranslationState };
+export type ImportTranslations = { translation: TranslationState; descriptions: Record<string, string>; translations: Record<string, string> };
+export type PhysicalEdge = { source: string; target: string; fieldName: string; fieldId: string; targetField: string; isList: boolean; available: boolean };
+export type ImportObject = { candidate: ImportCandidate; fields: (Property & { physicalName: string; target: string; descriptionEn?: string; descriptionZh?: string })[]; outgoing: PhysicalEdge[]; incoming: PhysicalEdge[]; warning?: string };
 async function request<T>(path: string, body?: unknown, form?: FormData): Promise<T> {
   const response = await fetch(path, form ? { method: "POST", body: form } : body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : undefined);
   const data = await response.json();
@@ -24,5 +29,10 @@ export const authorityApi = {
   approve: (name: string, body: Decision) => request<{ revision: number }>(`${path(name)}/approve`, body),
   sync: (name: string, revision: number) => request(`${path(name)}/sync`, { revision }),
   analyze: (form: FormData) => request<ImportAnalysis>("/api/ontology-import/analyze", undefined, form),
+  standard: (database: string) => request<ImportAnalysis>(`/api/ontology-import/analyze-standard?database=${database}`, {}),
+  importTranslations: (id: string) => request<ImportTranslations>(`/api/ontology-import/translation/${id}`),
+  retryTranslations: (id: string) => request(`/api/ontology-import/translation/${id}/retry`, {}),
+  importObject: (id: string, name: string) => request<ImportObject>(`/api/ontology-import/objects/${id}/${encodeURIComponent(name)}`),
+  enrichObject: (id: string, name: string) => request<ImportObject>(`/api/ontology-import/objects/${id}/${encodeURIComponent(name)}/descriptions`, {}),
   stage: (importId: string, selected: string[]) => request<{ message: string }>("/api/ontology-import/apply", { importId, selected }),
 };

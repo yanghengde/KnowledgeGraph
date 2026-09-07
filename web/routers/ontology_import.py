@@ -26,6 +26,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from src.ontology.physical_naming import relation_name
+from src.ontology.designer_descriptions import load_descriptions, save_descriptions
 from scripts.validate_ontology_vs_csv import (
     canonical_physical_fields,
     expected_type,
@@ -283,12 +284,28 @@ def _run_description_job(session_id: str) -> None:
     try:
         from web.designer_metadata import load_cdo_description_catalog
 
+        stored = load_descriptions(database)
+        # Saved reference metadata remains usable when the source is offline.
+        with _session_lock:
+            for (class_name, field_name), entry in stored.items():
+                if class_name not in session["candidates"]:
+                    continue
+                if field_name:
+                    session.setdefault("fieldDescriptions", {}).setdefault(class_name, {})[field_name] = entry
+                else:
+                    session["candidates"][class_name].update(entry)
         catalog = load_cdo_description_catalog(database)
         cache = _load_description_cache()
+        for item in stored.values():
+            if item.get("descriptionZh"):
+                cache.setdefault(item["descriptionEn"], item["descriptionZh"])
         with _session_lock:
             session = _sessions.get(session_id)
             if not session:
                 return
+            for (class_name, field_name), entry in stored.items():
+                if field_name and class_name in session["candidates"]:
+                    session.setdefault("fieldDescriptions", {}).setdefault(class_name, {})[field_name] = entry
             descriptions: list[str] = []
             for class_name, candidate in session["candidates"].items():
                 english = _designer_description_for(class_name, catalog)
@@ -316,6 +333,8 @@ def _run_description_job(session_id: str) -> None:
                     if pending and provider == "none" else ""
                 ),
             })
+        save_descriptions(database, [dict(candidate, className=name)
+                                    for name, candidate in session["candidates"].items()])
         if pending and provider != "none":
             _run_translation_job(session_id)
     except Exception as exc:
@@ -362,6 +381,12 @@ def _run_translation_job(session_id: str) -> None:
             updates = {source: target for source, target in zip(batch, translated) if target}
             cache.update(updates)
             _save_description_cache(updates)
+            save_descriptions(session["database"], [
+                {"className": name, "descriptionEn": candidate["descriptionEn"],
+                 "descriptionZh": updates[candidate["descriptionEn"]]}
+                for name, candidate in session["candidates"].items()
+                if candidate.get("descriptionEn") in updates
+            ])
             with _session_lock:
                 session = _sessions.get(session_id)
                 if not session:
@@ -461,6 +486,22 @@ def analyze_import(
             "descriptionZh": "",
         })
 
+    outgoing: dict[str, list[dict]] = defaultdict(list)
+    incoming: dict[str, list[dict]] = defaultdict(list)
+    for name, rows in fields_by_class.items():
+        for field in canonical_physical_fields(rows, name):
+            target = field.get("FKTableName", "")
+            if expected_type(field) != "Navigation" or not target:
+                continue
+            edge = {"source": name, "target": target, "fieldName": field["FieldName"],
+                    "fieldId": field.get("FieldID", ""), "targetField": field.get("FKFieldName", ""),
+                    "isList": field.get("IsList", "").lower() == "true",
+                    "available": target in table_by_name}
+            outgoing[name].append(edge)
+            incoming[target].append(edge)
+    for candidate in candidates:
+        candidate["incomingCount"] = len(incoming[candidate["className"]])
+        candidate["relationshipCount"] = len(outgoing[candidate["className"]])
     session_id = uuid.uuid4().hex
     translation_state = {
         "status": "waiting",
@@ -480,6 +521,8 @@ def analyze_import(
             "candidates": {item["className"]: item for item in candidates},
             "reviewed": reviewed,
             "database": database,
+            "outgoing": dict(outgoing), "incoming": dict(incoming),
+            "fieldDescriptions": {},
             "translation": translation_state,
         }
     summary = {
@@ -584,6 +627,12 @@ def _property_definition(field: dict[str, str], class_name: str) -> dict[str, An
     return item
 
 
+def _enriched_property(field: dict, class_name: str, session: dict) -> dict:
+    descriptions = session.get("fieldDescriptions", {}).get(class_name, {}).get(field["FieldName"].casefold(), {})
+    return {**_property_definition(field, class_name), **descriptions,
+            "description": descriptions.get("descriptionZh") or descriptions.get("descriptionEn") or ""}
+
+
 def _write_imported_ontology(
     new_classes: list[dict],
     relationships: list[dict],
@@ -671,8 +720,10 @@ def apply_import(request: ImportApplyRequest):
         candidate = session["candidates"][name]
         classes.append({"className": name, "chineseName": "",
                         "description": candidate.get("descriptionZh") or candidate.get("descriptionEn") or "",
+                        "descriptionEn": candidate.get("descriptionEn", ""),
+                        "descriptionZh": candidate.get("descriptionZh", ""),
                         "sourceCDODefId": session["tables"][name].get("CDODefId", ""),
-                        "properties": [_property_definition(f, name) for f in fields]})
+                        "properties": [_enriched_property(f, name, session) for f in fields]})
         for field in fields:
             target = field.get("FKTableName")
             relation = relation_name(normalize_field_name(field, name))
@@ -689,3 +740,79 @@ def apply_import(request: ImportApplyRequest):
             "classes": len(classes), "relationships": len(relationships),
             "reviewUrl": "/app/ontology-model",
             "message": "已保存导入候选，请到本体目录查看差异并确认合并。"}
+
+
+def _import_session(import_id: str) -> dict:
+    with _session_lock:
+        _purge_expired_sessions()
+        session = _sessions.get(import_id)
+        if session is None:
+            raise HTTPException(404, "导入分析已过期，请重新分析 CSV")
+        return session
+
+
+@router.get("/objects/{import_id}/{class_name}")
+def import_object(import_id: str, class_name: str):
+    session = _import_session(import_id)
+    with _session_lock:
+        if class_name not in session["candidates"]:
+            raise HTTPException(404, "本次 CSV 中没有该对象")
+        fields = [dict(_enriched_property(field, class_name, session),
+                       physicalName=field["FieldName"], target=field.get("FKTableName", ""))
+                  for field in canonical_physical_fields(session["fields"].get(class_name, []), class_name)]
+        return {"candidate": dict(session["candidates"][class_name]), "fields": fields,
+                "outgoing": session["outgoing"].get(class_name, []),
+                "incoming": session["incoming"].get(class_name, [])}
+
+
+@router.post("/objects/{import_id}/{class_name}/descriptions")
+def enrich_object(import_id: str, class_name: str):
+    session = _import_session(import_id)
+    if class_name not in session["candidates"]:
+        raise HTTPException(404, "本次 CSV 中没有该对象")
+    from web.designer_metadata import get_cdo_metadata
+    database = session["database"]
+    warning = ""
+    try:
+        stored = load_descriptions(database)
+        metadata = get_cdo_metadata(database, class_name)
+        english = {key: item["description"] for key, item in metadata["fields"].items()}
+        cache = _load_description_cache()
+        for item in stored.values():
+            if item.get("descriptionZh"):
+                cache.setdefault(item["descriptionEn"], item["descriptionZh"])
+        rows = [{"className": class_name, "fieldName": key, "descriptionEn": value,
+                 "descriptionZh": cache.get(value, "")} for key, value in english.items() if value]
+        save_descriptions(database, rows)
+        pending = list(dict.fromkeys(row["descriptionEn"] for row in rows if not row["descriptionZh"]))
+        provider = _configured_translation_provider()
+        try:
+            if pending and provider != "none":
+                translator, size = _build_batch_translator(provider)
+                for index in range(0, len(pending), size):
+                    batch = pending[index:index + size]
+                    translated = translator(batch)
+                    if len(translated) != len(batch) or any(not value.strip() for value in translated):
+                        raise ValueError("翻译结果不完整")
+                    updates = dict(zip(batch, translated))
+                    cache.update(updates)
+                    _save_description_cache(updates)
+                    save_descriptions(database, [dict(row, descriptionZh=cache.get(row["descriptionEn"], "")) for row in rows])
+            elif pending:
+                warning = "未配置翻译服务，英文原文已保存，可稍后重试。"
+        except Exception:
+            warning = "翻译暂未完成，英文原文和已完成的中文已保存，可重试。"
+        with _session_lock:
+            session["fieldDescriptions"][class_name] = {
+                key: {"descriptionEn": value, "descriptionZh": cache.get(value, "")}
+                for key, value in english.items() if value}
+    except Exception:
+        raise HTTPException(503, "读取或保存系统说明失败，请检查源数据库与 PostgreSQL 连接")
+    return {**import_object(import_id, class_name), "warning": warning}
+
+
+@router.post("/analyze-standard")
+def analyze_standard(database: str = "sqlserver"):
+    with (Path(PROJECT_ROOT) / "docs/Database_Tables.csv").open("rb") as tables, (Path(PROJECT_ROOT) / "docs/Database_Fields.csv").open("rb") as fields:
+        return analyze_import(UploadFile(filename="Database_Tables.csv", file=tables),
+                              UploadFile(filename="Database_Fields.csv", file=fields), database)

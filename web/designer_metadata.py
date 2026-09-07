@@ -111,12 +111,12 @@ def load_cdo_description_catalog(database: str) -> dict[str, dict[str, str]]:
         result = {}
         for row in rows:
             name = str(row.get("CDOName") or "").strip()
-            description = " ".join(str(row.get("CDODescription") or "").replace("\r", " ").replace("\n", " ").split())
+            description = str(row.get("CDODescription") or "")
             if name:
                 result[name.casefold()] = {
                     "cdoDefId": str(row.get("CDODefID") or ""),
                     "cdoName": name,
-                    "description": description[:5000],
+                    "description": description,
                 }
         _catalog_cache[database] = (time.monotonic(), result)
         return result
@@ -169,12 +169,12 @@ def get_cdo_metadata(database: str, class_name: str) -> dict:
     field_map = {}
     for field in sorted(field_rows, key=lambda item: depth.get(int(item["CDODefID"]), 999)):
         key = str(field.get("FieldName") or "").casefold()
-        description = " ".join(str(field.get("FieldDescription") or "").replace("\r", " ").replace("\n", " ").split())
+        description = str(field.get("FieldDescription") or "")
         if key and description and key not in field_map:
-            field_map[key] = {"fieldId": str(field.get("FieldID") or ""), "description": description[:5000]}
+            field_map[key] = {"fieldId": str(field.get("FieldID") or ""), "description": description}
     return {
         "cdoDefId": str(row.get("CDODefID") or ""),
         "cdoName": str(row.get("CDOName") or class_name),
-        "description": " ".join(str(row.get("CDODescription") or "").replace("\r", " ").replace("\n", " ").split())[:5000],
+        "description": str(row.get("CDODescription") or ""),
         "fields": field_map,
     }

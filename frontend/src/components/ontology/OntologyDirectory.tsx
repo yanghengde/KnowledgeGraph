@@ -1,7 +1,8 @@
+import { ImportDialog } from "./ImportDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, App, Button, Card, Collapse, Descriptions, Drawer, Input, Modal, Select, Space, Table, Tabs, Tag, Typography } from "antd";
+import { Alert, App, Button, Card, Collapse, Descriptions, Drawer, Input, Select, Space, Table, Tabs, Tag, Typography } from "antd";
 import { useState } from "react";
-import { authorityApi, type AuthorityRow, type Decision, type Detail, type ImportAnalysis, type Plan } from "../../authorityApi";
+import { authorityApi, type AuthorityRow, type Decision, type Detail, type Plan } from "../../authorityApi";
 import { manufacturingApi } from "../../api";
 
 const stateLabel: Record<string, string> = { review: "待确认", approved: "已确认，待同步", synced: "已同步建模库", changed: "来源变化，待复核" };
@@ -94,25 +95,4 @@ function ReviewForm({ row, detail, reload }: { row: AuthorityRow; detail: Detail
     {detail.revision > 0 && <Button disabled={busy} loading={sync.isPending} onClick={() => sync.mutate()}>同步权威 R{detail.revision} 到建模库</Button>}
     <Collapse items={[{ key: "history", label: `历史版本（${detail.history.length}）`, children: detail.history.map(h => <p key={h.revision}>R{h.revision} · {new Date(h.created_at).toLocaleString()} · {h.snapshot.domain} · {h.snapshot.model.class.properties.length} 个属性 / {h.snapshot.model.relationships.length} 条关系</p>) }]} />
   </Space>;
-}
-
-function ImportDialog({ open, close, done }: { open: boolean; close: () => void; done: () => Promise<void> }) {
-  const { message } = App.useApp();
-  const [tables, setTables] = useState<File>();
-  const [fields, setFields] = useState<File>();
-  const [analysis, setAnalysis] = useState<ImportAnalysis>();
-  const [selected, setSelected] = useState<string[]>([]);
-  const [search, setSearch] = useState("");
-  const analyze = useMutation({ mutationFn: () => { const form = new FormData(); form.append("tables", tables!); form.append("fields", fields!); form.append("database", "sqlserver"); return authorityApi.analyze(form); }, onSuccess: d => { setAnalysis(d); setSelected(d.candidates.filter(c => c.selected).map(c => c.className)); }, onError: (e: Error) => message.error(e.message) });
-  const stage = useMutation({ mutationFn: () => authorityApi.stage(analysis!.importId, selected), onSuccess: async () => { setAnalysis(undefined); await done(); }, onError: (e: Error) => message.error(e.message) });
-  const busy = analyze.isPending || stage.isPending;
-  return <Modal title="导入 CSV · 表与字段定义" open={open} onCancel={close} closable={!busy} maskClosable={!busy} keyboard={!busy} width={900} footer={null}>
-    <Space orientation="vertical" style={{ width: "100%" }}>
-      <Alert type="info" showIcon title="上传 Camstar 数据库结构，不是业务数据记录" description="项目标准文件位于 docs/Database_Tables.csv 和 docs/Database_Fields.csv。导入生成待审阅候选，确认并同步后才更新制造语义主图。" />
-      <label>表定义（Database_Tables.csv） <input aria-label="表定义 CSV" type="file" accept=".csv" disabled={busy} onChange={e => { setTables(e.target.files?.[0]); setAnalysis(undefined); }} /></label>
-      <label>字段与外键（Database_Fields.csv） <input aria-label="字段与外键 CSV" type="file" accept=".csv" disabled={busy} onChange={e => { setFields(e.target.files?.[0]); setAnalysis(undefined); }} /></label>
-      <Button disabled={!tables || !fields || stage.isPending} loading={analyze.isPending} onClick={() => analyze.mutate()}>分析业务对象</Button>
-      {analysis && <><Input.Search placeholder="搜索对象" value={search} onChange={e => setSearch(e.target.value)} /><Table rowKey="className" size="small" dataSource={analysis.candidates.filter(c => c.className.toLowerCase().includes(search.toLowerCase()))} rowSelection={{ selectedRowKeys: selected, preserveSelectedRowKeys: true, onChange: keys => setSelected(keys as string[]) }} pagination={{ pageSize: 8 }} columns={[{ title: "对象", dataIndex: "className" }, { title: "建议", dataIndex: "reason" }]} /><Button type="primary" disabled={!selected.length || analyze.isPending} loading={stage.isPending} onClick={() => stage.mutate()}>提交 {selected.length} 个对象为候选</Button></>}
-    </Space>
-  </Modal>;
 }

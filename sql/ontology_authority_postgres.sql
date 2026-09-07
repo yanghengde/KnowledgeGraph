@@ -21,3 +21,16 @@ CREATE TABLE IF NOT EXISTS graphsync.ontology_import_proposal (
     accepted_classes jsonb NOT NULL DEFAULT '[]'::jsonb,
     created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Designer descriptions are reference metadata, never approved business semantics.
+-- Keep each English revision alongside its translation for source traceability.
+CREATE TABLE IF NOT EXISTS graphsync.designer_description (
+    source_key text NOT NULL,
+    class_name text NOT NULL,
+    field_name text NOT NULL DEFAULT '',
+    content_hash text NOT NULL,
+    description_en text NOT NULL,
+    description_zh text NOT NULL DEFAULT '',
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (source_key, class_name, field_name, content_hash)
+);

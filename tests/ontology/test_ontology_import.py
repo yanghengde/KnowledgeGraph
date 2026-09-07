@@ -8,6 +8,12 @@ from starlette.datastructures import UploadFile
 from web.routers import ontology_import
 
 
+@pytest.fixture(autouse=True)
+def isolate_description_storage(monkeypatch):
+    monkeypatch.setattr(ontology_import, "load_descriptions", lambda database: {})
+    monkeypatch.setattr(ontology_import, "save_descriptions", lambda database, rows: None)
+
+
 TABLES = """CDODefId,CDOName,Workspace,
 1,Product,csi,
 2,NewBusinessObject,csi,
@@ -143,6 +149,7 @@ def test_background_translation_updates_progress_and_candidates(monkeypatch):
     ontology_import._sessions.clear()
     ontology_import._sessions[session_id] = {
         "createdAt": 1e20,
+        "database": "sqlserver",
         "candidates": {
             "Product": {"descriptionEn": "A product.", "descriptionZh": ""},
             "Factory": {"descriptionEn": "A factory.", "descriptionZh": ""},
@@ -193,3 +200,106 @@ def test_first_import_after_clear_drops_stale_generated_classes(monkeypatch, tmp
     payload = json.loads(generated.read_text(encoding="utf-8"))
     assert [item["className"] for item in payload["classes"]] == ["CleanImport"]
     assert payload["relationships"] == []
+
+
+def test_explorer_follows_incoming_and_outgoing_foreign_keys(monkeypatch):
+    monkeypatch.setattr(ontology_import, "_reviewed_class_names", lambda: set())
+    monkeypatch.setattr(ontology_import, "_start_description_job", lambda _: None)
+    analysis = ontology_import.analyze_import(upload("tables.csv", TABLES), upload("fields.csv", FIELDS), "sqlserver")
+    source = ontology_import.import_object(analysis["importId"], "NewBusinessObject")
+    target = ontology_import.import_object(analysis["importId"], "Product")
+    assert source["outgoing"] == target["incoming"]
+    assert source["outgoing"][0]["source"] == "NewBusinessObject"
+    assert source["outgoing"][0]["target"] == "Product"
+    assert source["outgoing"][0]["fieldName"] == "ProductId"
+    assert source["fields"][0]["type"] == "Navigation"
+    assert target["candidate"]["incomingCount"] == 1
+    assert target["outgoing"] == []
+    with pytest.raises(HTTPException) as error:
+        ontology_import.import_object(analysis["importId"], "Absent")
+    assert error.value.status_code == 404
+
+
+def test_explorer_preserves_multiple_edges_self_links_and_missing_targets(monkeypatch):
+    monkeypatch.setattr(ontology_import, "_reviewed_class_names", lambda: set())
+    monkeypatch.setattr(ontology_import, "_start_description_job", lambda _: None)
+    extra = FIELDS + "2,NewBusinessObject,22,OtherProductId,False,False,False,True,1,Product,ProductId,1,16,0,\n" + "1,Product,12,ParentProductId,False,False,False,True,1,Product,ProductId,1,16,0,\n" + "1,Product,13,MissingId,False,False,False,True,9,Missing,Id,1,16,0,\n"
+    analysis = ontology_import.analyze_import(upload("tables.csv", TABLES), upload("fields.csv", extra), "sqlserver")
+    obj = ontology_import.import_object(analysis["importId"], "Product")
+    assert len(obj["incoming"]) == 3
+    assert len(obj["outgoing"]) == 2
+    assert next(r for r in obj["outgoing"] if r["target"] == "Missing")["available"] is False
+
+
+def test_english_is_saved_before_translation_and_both_languages_are_staged(monkeypatch):
+    monkeypatch.setattr(ontology_import, "_reviewed_class_names", lambda: set())
+    monkeypatch.setattr(ontology_import, "_start_description_job", lambda _: None)
+    monkeypatch.setattr("web.designer_metadata.load_cdo_description_catalog", lambda _: {"product": {"description": "Original\nEnglish."}})
+    monkeypatch.setattr(ontology_import, "_load_description_cache", lambda: {})
+    monkeypatch.setattr(ontology_import, "_save_description_cache", lambda _: None)
+    saved = []
+    monkeypatch.setattr(ontology_import, "save_descriptions", lambda db, rows: saved.extend(dict(r) for r in rows))
+    monkeypatch.setattr(ontology_import, "_configured_translation_provider", lambda: "api")
+    def translate(batch):
+        assert any(row.get("descriptionEn") == "Original\nEnglish." and row.get("descriptionZh") == "" for row in saved)
+        return ["中文说明" for _ in batch]
+    monkeypatch.setattr(ontology_import, "_build_batch_translator", lambda _: (translate, 10))
+    analysis = ontology_import.analyze_import(upload("tables.csv", TABLES), upload("fields.csv", FIELDS), "sqlserver")
+    ontology_import._run_description_job(analysis["importId"])
+    captured = []
+    from types import SimpleNamespace
+    monkeypatch.setattr("src.ontology.authority_store.authority_store", lambda: SimpleNamespace(stage=lambda payload: captured.append(payload) or {}))
+    ontology_import.apply_import(ontology_import.ImportApplyRequest(importId=analysis["importId"], selected=["Product"]))
+    row = captured[0]["classes"][0]
+    assert row["descriptionEn"] == "Original\nEnglish."
+    assert row["descriptionZh"] == "中文说明"
+    assert row["description"] == "中文说明"
+    assert saved[-1]["descriptionZh"] == "中文说明"
+
+
+def test_stored_translation_is_reused_in_new_import(monkeypatch):
+    monkeypatch.setattr(ontology_import, "_reviewed_class_names", lambda: set())
+    monkeypatch.setattr(ontology_import, "_start_description_job", lambda _: None)
+    monkeypatch.setattr("web.designer_metadata.load_cdo_description_catalog", lambda _: {"product": {"description": "A product."}})
+    monkeypatch.setattr(ontology_import, "_load_description_cache", lambda: {})
+    monkeypatch.setattr(ontology_import, "load_descriptions", lambda _: {("Product", ""): {"descriptionEn": "A product.", "descriptionZh": "产品"}})
+    monkeypatch.setattr(ontology_import, "_build_batch_translator", lambda _: pytest.fail("Persisted translations should be reused"))
+    analysis = ontology_import.analyze_import(upload("tables.csv", TABLES), upload("fields.csv", FIELDS), "sqlserver")
+    ontology_import._run_description_job(analysis["importId"])
+    assert ontology_import.translation_status(analysis["importId"])["translations"]["Product"] == "产品"
+
+
+def test_field_descriptions_are_persisted_and_used_in_candidate(monkeypatch):
+    monkeypatch.setattr(ontology_import, "_reviewed_class_names", lambda: set())
+    monkeypatch.setattr(ontology_import, "_start_description_job", lambda _: None)
+    monkeypatch.setattr("web.designer_metadata.get_cdo_metadata", lambda *args: {
+        "fields": {"productid": {"description": "Referenced product."}}})
+    monkeypatch.setattr(ontology_import, "_load_description_cache", lambda: {})
+    monkeypatch.setattr(ontology_import, "_save_description_cache", lambda _: None)
+    monkeypatch.setattr(ontology_import, "_configured_translation_provider", lambda: "api")
+    monkeypatch.setattr(ontology_import, "_build_batch_translator", lambda _: (lambda batch: ["产品名称" for _ in batch], 10))
+    saved = []
+    monkeypatch.setattr(ontology_import, "save_descriptions", lambda db, rows: saved.extend(dict(r) for r in rows))
+    analysis = ontology_import.analyze_import(upload("tables.csv", TABLES), upload("fields.csv", FIELDS), "sqlserver")
+    detail = ontology_import.enrich_object(analysis["importId"], "NewBusinessObject")
+    assert detail["fields"][0]["descriptionEn"] == "Referenced product."
+    assert detail["fields"][0]["descriptionZh"] == "产品名称"
+    assert detail["fields"][0]["description"] == "产品名称"
+    assert saved[0]["descriptionZh"] == ""
+    assert saved[-1]["descriptionZh"] == "产品名称"
+    assert saved[-1]["fieldName"] == "productid"
+
+
+def test_source_outage_keeps_persisted_bilingual_descriptions(monkeypatch):
+    monkeypatch.setattr(ontology_import, "_reviewed_class_names", lambda: set())
+    monkeypatch.setattr(ontology_import, "_start_description_job", lambda _: None)
+    monkeypatch.setattr(ontology_import, "load_descriptions", lambda _: {("Product", ""): {"descriptionEn": "Product", "descriptionZh": "saved translation"}})
+    def offline(_):
+        raise ConnectionError("source unavailable")
+    monkeypatch.setattr("web.designer_metadata.load_cdo_description_catalog", offline)
+    analysis = ontology_import.analyze_import(upload("tables.csv", TABLES), upload("fields.csv", FIELDS), "sqlserver")
+    ontology_import._run_description_job(analysis["importId"])
+    result = ontology_import.translation_status(analysis["importId"])
+    assert result["descriptions"]["Product"] == "Product"
+    assert result["translations"]["Product"] == "saved translation"
+    assert result["translation"]["metadataStatus"] == "failed"

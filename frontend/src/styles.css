@@ -672,3 +672,25 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
 .ontology-next-linked .ant-btn { height: auto; white-space: normal; text-align: left; }
 .ontology-next-preview { margin: 14px 0; border: 1px solid rgba(120,145,155,.25); border-radius: 10px; overflow: hidden; }
 .ontology-next-preview .publish-ontology-canvas-shell { height: 360px; }
+
+
+/* CSV discovery workspace */
+.import-explorer { display: grid; gap: 16px; }
+.import-source-bar { border-bottom: 1px solid var(--ant-color-border-secondary, #dce5e8); padding-bottom: 8px; }
+.import-explorer-grid { display: grid; grid-template-columns: minmax(300px, 0.8fr) minmax(480px, 1.5fr); gap: 16px; align-items: start; }
+.import-object-directory, .import-object-detail { min-width: 0; }
+.import-candidate .ant-btn { padding: 0; height: auto; white-space: normal; text-align: left; word-break: break-word; }
+.import-candidate .ant-typography { margin: 4px 0; font-size: 12px; }
+.import-active-row > td { background: var(--ant-color-primary-bg, #e6f4f5) !important; }
+.import-detail-heading { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin: 18px 0; }
+.import-detail-heading h4 { margin: 0 0 4px; overflow-wrap: anywhere; }
+.import-bilingual { padding: 16px; background: var(--ant-color-fill-quaternary, #f5f8f9); border-radius: 10px; }
+.import-bilingual .ant-typography { white-space: pre-wrap; overflow-wrap: anywhere; }
+.import-original { margin-bottom: 0 !important; }
+.import-related-description { font-size: 12px; max-width: 330px; max-height: 80px; overflow: auto; }
+.import-trail { max-height: 90px; overflow: auto; }
+.import-selection-footer { border-top: 1px solid var(--ant-color-border-secondary, #dce5e8); padding-top: 16px; display: grid; gap: 12px; }
+.import-selected-tags { max-height: 96px; overflow: auto; }
+.import-selected-tags .ant-tag { margin-bottom: 6px; }
+.import-translation-status { display: grid; gap: 8px; }
+@media (max-width: 1000px) { .import-explorer-grid { grid-template-columns: 1fr; } }
