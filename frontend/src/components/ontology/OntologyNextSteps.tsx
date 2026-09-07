@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Alert, App, Button, Empty, Input, Modal, Segmented, Space, Spin, Tag, Typography } from "antd";
-import { syncApi } from "../api";
-import type { OntologyGraph, OntologyWorkspace, RelationshipSuggestion } from "../types";
+import { syncApi } from "../../api";
+import type { OntologyGraph, OntologyWorkspace, RelationshipSuggestion } from "../../types";
 import { PublishOntologyCanvas } from "./PublishOntologyCanvas";
 
 type Props = {

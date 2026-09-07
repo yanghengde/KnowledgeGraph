@@ -2,8 +2,8 @@ import { CheckCircleFilled, SearchOutlined, TagsOutlined, WarningOutlined } from
 import { useMutation } from "@tanstack/react-query";
 import { Alert, App, Button, Card, Empty, Form, Input, Radio, Select, Space, Switch, Table, Tag, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
-import { syncApi } from "../api";
-import type { OntologyClass, OntologyGraph, OntologyPresentationInput, OntologyProperty } from "../types";
+import { syncApi } from "../../api";
+import type { OntologyClass, OntologyGraph, OntologyPresentationInput, OntologyProperty } from "../../types";
 
 type Props = {
   graph?: OntologyGraph;

@@ -10,15 +10,15 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { syncApi } from "../api";
+import { syncApi } from "../../api";
 import { OntologyNextSteps } from "./OntologyNextSteps";
 import { PublishOntologyCanvas } from "./PublishOntologyCanvas";
 import { OntologyPresentationPanel } from "./OntologyPresentationPanel";
-import { useThemeMode } from "../theme";
+import { useThemeMode } from "../../theme";
 import type {
   OntologyClass, OntologyGovernanceStatus, OntologyProperty, OntologyRelease,
   OntologyValidation, RelationshipSuggestion, RelationshipSuggestionResult, SemanticGraphOverview,
-} from "../types";
+} from "../../types";
 
 type View = "workspace" | "validation" | "versions";
 type Props = {

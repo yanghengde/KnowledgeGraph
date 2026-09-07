@@ -11,9 +11,9 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { semanticApi, syncApi } from "../api";
-import { OntologyWorkspacePanel } from "../components/OntologyWorkspacePanel";
-import { OntologyDirectory } from "../components/OntologyDirectory";
-import { SemanticG6Canvas, type SemanticG6Handle } from "../components/SemanticG6Canvas";
+import { OntologyWorkspacePanel } from "../components/ontology/OntologyWorkspacePanel";
+import { OntologyDirectory } from "../components/ontology/OntologyDirectory";
+import { SemanticG6Canvas, type SemanticG6Handle } from "../components/ontology/SemanticG6Canvas";
 import type { SemanticClassDetail } from "../types";
 
 const moduleNames: Record<string, string> = {

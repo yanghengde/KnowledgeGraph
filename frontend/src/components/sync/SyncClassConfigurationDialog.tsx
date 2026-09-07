@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Alert, App, Descriptions, Input, Modal, Radio, Space, Spin, Table, Typography } from "antd";
-import { syncApi, type SyncClassConfiguration } from "../api";
+import { syncApi, type SyncClassConfiguration } from "../../api";
 
 export function SyncClassConfigurationDialog({ profileKey, className, close, saved }: {
   profileKey: string; className: string; close: () => void; saved: () => Promise<void>;

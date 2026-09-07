@@ -31,7 +31,9 @@ Camstar SQL Server / Oracle → 业务数据版本 → RDF → Graph Studio
 
 详细操作见 [模型审阅指南](docs/ontology_authority_user_guide.md) 和 [HTTPS 发布说明](docs/graphstudio_https_publish.md)。
 
-## 目录
+## 项目分区
+
+根目录保留启动、部署、依赖配置与项目说明。开发代码、运维工具、测试和运行资产按以下边界存放：
 
 | 目录 | 用途 |
 | --- | --- |
@@ -40,17 +42,38 @@ Camstar SQL Server / Oracle → 业务数据版本 → RDF → Graph Studio
 | `src/qa/` | Graph Studio 问答、查询与物理关系规划 |
 | `web/` | FastAPI 接口及图谱展示适配 |
 | `frontend/` | 唯一 React 控制台 |
+| `frontend/src/pages/` | 控制台业务页面与路由入口 |
+| `frontend/src/components/layout/` | 应用布局与主题控件 |
+| `frontend/src/components/ontology/` | 来源目录、模型工作区与图谱画布 |
+| `frontend/src/components/publish/` | 发布覆盖情况 |
+| `frontend/src/components/sync/` | 数据同步配置控件 |
 | `sql/` | 控制面及增量同步前置 SQL |
-| `scripts/` | 当前导入、校验和运行工具 |
+| `scripts/` | 模型导入 CLI 与 CSV 一致性校验入口 |
+| `scripts/check/` | 只读 HTTPS 诊断工具 |
+| `scripts/operations/` | 持续发布运维脚本（执行会发布数据） |
+| `deploy/` | PostgreSQL Compose 与定时发布部署配置 |
+| `docs/` | 操作指南与只读 CSV 事实源 |
+| `data/` | 本地会话、查询、用户导入资料与备份 |
+| `logs/` | 服务运行日志 |
 | `outputs/graphstudio/` | 版本制品与发布审计，不能按临时文件清扫 |
-| `tests/` | 当前功能回归测试 |
+| `tests/graphstudio_sync/` | 同步、发布、连接与运行控制测试 |
+| `tests/ontology/` | 模型导入、审阅与 PostgreSQL 治理测试 |
+| `tests/qa/` | 问答、查询能力与 SQL 规划测试 |
 
 PostgreSQL 是唯一模型后端。项目不再包含旧图数据库驱动、旧中转 ETL、旧 Wiki/RAG、向量索引或历史页面。来源语义 JSON 仍用于候选比较，不等于已经批准发布的模型。
 
 可选 Camstar API 动作的 OpenAPI 文档由用户放入 `data/openapi/`，不再捆绑静态 API 副本。
 
+### 文件维护约定
+
+- 新业务代码放入对应的 `src/` 模块，API 层不依赖 `scripts/` 中的命令行工具。
+- 前端组件按业务用途归类；页面统一放在 `pages/`，构建结果只输出到 `web/static/react/`。
+- 当前架构写在本文，操作步骤写在 `docs/` 现有指南；不提交一次性评审报告、调试脚本、制作依赖或重复构建产物。
+- `src/ontology/wiki_kb/*_ontology.json` 是有效的候选语义资料。CSV、用户数据、备份和 `outputs/graphstudio/` 中的版本制品及历史记录必须保留，不能作为缓存清理。
+- 本地实验放在 `scratch/`，临时结果放在 `tmp/`；两者不进入版本控制。保留的演示交付文件不属于生产服务依赖。
+
 ## 验证
 
 执行 `python -m pytest tests -q` 和前端 `npm run build`。真实 PostgreSQL 集成测试需显式设置 `RUN_MODEL_POSTGRES_TEST=1`、`RUN_AUTHORITY_POSTGRES_TEST=1`；测试使用独占临时 Schema。
 
-Graph Studio 当前由用户确认处于关机状态，本轮代码精简没有执行真实远端发布，也没有修改现有数据库、checkpoint 或活动版本。
+可按分区运行测试，例如 `python -m pytest tests/ontology -q`。完整交付仍需执行全部后端测试与前端构建；真实远端发布须按操作指南验证。

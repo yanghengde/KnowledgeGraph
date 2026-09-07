@@ -240,7 +240,7 @@ def _build_batch_translator(provider: str):
 
     if provider == "llm":
         from openai import OpenAI
-        from scripts.build_designer_display_translations import translate_batch
+        from src.ontology.translation import translate_batch
 
         client = OpenAI(
             api_key=os.getenv("DEEPSEEK_API_KEY"),

@@ -1,5 +1,5 @@
 import { Tooltip } from "antd";
-import { useThemeMode } from "../theme";
+import { useThemeMode } from "../../theme";
 
 function MoonIcon() {
   return (

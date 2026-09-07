@@ -1,7 +1,7 @@
 import { ArrowsAltOutlined } from "@ant-design/icons";
 import { Button, Spin, Tag, Tooltip, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
-import type { OntologyGraph } from "../types";
+import type { OntologyGraph } from "../../types";
 
 type GraphEvent = { target?: { id?: string }; client?: { x?: number; y?: number } };
 type G6Graph = {

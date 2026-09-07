@@ -2,7 +2,7 @@ import { ReloadOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import { Alert, Button, Card, Collapse, Space, Table, Tag, Typography } from "antd";
 import { useState } from "react";
-import { manufacturingApi } from "../api";
+import { manufacturingApi } from "../../api";
 
 export function PublishedCoverageCard({ profileKey }: { profileKey: string }) {
   const [refreshing, setRefreshing] = useState(false);

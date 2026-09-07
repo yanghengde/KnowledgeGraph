@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Spin } from "antd";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AppShell } from "./components/AppShell";
+import { AppShell } from "./components/layout/AppShell";
 
 const OverviewPage = lazy(() => import("./pages/OverviewPage").then((module) => ({ default: module.OverviewPage })));
 const QueryLibraryPage = lazy(() => import("./pages/QueryLibraryPage").then((module) => ({ default: module.QueryLibraryPage })));

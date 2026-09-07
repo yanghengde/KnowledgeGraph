@@ -12,7 +12,7 @@ import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { syncApi } from "../api";
 import type { DataSyncClassStatus } from "../types";
-import { SyncClassConfigurationDialog } from "../components/SyncClassConfigurationDialog";
+import { SyncClassConfigurationDialog } from "../components/sync/SyncClassConfigurationDialog";
 
 const coverageLabels: Record<string, { color: string; text: string }> = {
   synchronized: { color: "success", text: "同步数据" },

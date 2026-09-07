@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Spin, Typography } from "antd";
-import type { SemanticGraphEdge, SemanticGraphNode, SemanticGraphOverview } from "../types";
+import type { SemanticGraphEdge, SemanticGraphNode, SemanticGraphOverview } from "../../types";
 
 declare global {
   interface Window {

@@ -12,7 +12,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { syncApi } from "../api";
-import { PublishedCoverageCard } from "../components/PublishedCoverageCard";
+import { PublishedCoverageCard } from "../components/publish/PublishedCoverageCard";
 import type { CuratedRelease, DeploymentPlan, DeploymentRelease, PublicationRoute, SyncRun } from "../types";
 
 const runStatusLabels: Record<string, { color: string; text: string }> = {

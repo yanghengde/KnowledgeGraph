@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, App, Button, Card, Collapse, Descriptions, Drawer, Input, Modal, Select, Space, Table, Tabs, Tag, Typography } from "antd";
 import { useState } from "react";
-import { authorityApi, type AuthorityRow, type Decision, type Detail, type ImportAnalysis, type Plan } from "../authorityApi";
-import { manufacturingApi } from "../api";
+import { authorityApi, type AuthorityRow, type Decision, type Detail, type ImportAnalysis, type Plan } from "../../authorityApi";
+import { manufacturingApi } from "../../api";
 
 const stateLabel: Record<string, string> = { review: "待确认", approved: "已确认，待同步", synced: "已同步建模库", changed: "来源变化，待复核" };
 const sourceLabel = (id: string) => id === "approved" ? "当前权威版本" : id.startsWith("candidate:") ? `导入候选 ${id.slice(10, 18)}` : id;

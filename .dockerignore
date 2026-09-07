@@ -17,12 +17,13 @@ scratch
 .claude
 .idea
 .vscode
-install.bat
-run_server.bat
 tmp
 .pytest_cache
 **/node_modules
 frontend/*.tsbuildinfo
 web/static/react
 tests
-src/tests
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov

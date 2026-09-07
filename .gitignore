@@ -36,20 +36,6 @@ backups/
 data/*
 *.sqlite3
 
-# Project Specific Generated Artifacts
-generated_ontology.sql
-*.pdf
-check_camstar.py
-toc_filter.txt
-# (If you want to keep PDFs in the repo, remove the *.pdf line above)
-
-# Installer Scripts (do not track)
-install.bat
-run_server.bat
-
-# Scenarios
-scenarios/
-
 # React frontend build artifacts
 frontend/node_modules/
 frontend/*.tsbuildinfo
@@ -61,6 +47,12 @@ web/static/react/
 /.pytest_cache/
 /outputs/camstar_presentation_build/
 **/node_modules/
+
+# Local test / analysis caches
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 
 # Local migration verification artifacts may contain business samples
 outputs/graphstudio/neo4j_exit_equivalence/neo4j/

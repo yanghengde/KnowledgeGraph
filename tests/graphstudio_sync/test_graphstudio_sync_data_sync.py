@@ -93,7 +93,7 @@ def test_snapshot_data_sync_runs_quality_then_activates_without_graphstudio(monk
 def test_data_sync_api_and_react_route_are_exposed() -> None:
     router = Path("web/routers/sync_center.py").read_text(encoding="utf-8")
     app = Path("frontend/src/App.tsx").read_text(encoding="utf-8")
-    shell = Path("frontend/src/components/AppShell.tsx").read_text(encoding="utf-8")
+    shell = Path("frontend/src/components/layout/AppShell.tsx").read_text(encoding="utf-8")
 
     assert '@router.get("/profiles/{profile_key}/data-sync")' in router
     assert '@router.post("/profiles/{profile_key}/data-sync")' in router
