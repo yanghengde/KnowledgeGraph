@@ -26,6 +26,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from src.ontology.physical_naming import relation_name
+from src.graphstudio_sync.physical_model import physical_fields
 from src.ontology.designer_descriptions import load_descriptions, save_descriptions
 from scripts.validate_ontology_vs_csv import (
     canonical_physical_fields,
@@ -477,7 +478,7 @@ def analyze_import(
             "className": name,
             "cdoDefId": table.get("CDODefId", ""),
             "workspace": table.get("Workspace", ""),
-            "propertyCount": len(canonical),
+            "propertyCount": len(physical_fields(fields_by_class.get(name, []))),
             "relationshipCount": relationship_count,
             "status": status,
             "reason": reason,
@@ -489,7 +490,7 @@ def analyze_import(
     outgoing: dict[str, list[dict]] = defaultdict(list)
     incoming: dict[str, list[dict]] = defaultdict(list)
     for name, rows in fields_by_class.items():
-        for field in canonical_physical_fields(rows, name):
+        for field in physical_fields(rows):
             target = field.get("FKTableName", "")
             if expected_type(field) != "Navigation" or not target:
                 continue
@@ -758,8 +759,9 @@ def import_object(import_id: str, class_name: str):
         if class_name not in session["candidates"]:
             raise HTTPException(404, "本次 CSV 中没有该对象")
         fields = [dict(_enriched_property(field, class_name, session),
-                       physicalName=field["FieldName"], target=field.get("FKTableName", ""))
-                  for field in canonical_physical_fields(session["fields"].get(class_name, []), class_name)]
+                       physicalName=field["FieldName"], target=field.get("FKTableName", ""),
+                       primaryKey=str(field.get("IsPrimaryKey", "")).lower() == "true")
+                  for field in physical_fields(session["fields"].get(class_name, []))]
         return {"candidate": dict(session["candidates"][class_name]), "fields": fields,
                 "outgoing": session["outgoing"].get(class_name, []),
                 "incoming": session["incoming"].get(class_name, [])}

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ApartmentOutlined, ArrowsAltOutlined, BranchesOutlined, DatabaseOutlined,
   CheckCircleOutlined, DeploymentUnitOutlined, FolderOpenOutlined,
@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { semanticApi, syncApi } from "../api";
 import { OntologyWorkspacePanel } from "../components/ontology/OntologyWorkspacePanel";
 import { OntologyDirectory } from "../components/ontology/OntologyDirectory";
+import { SourceMappingPanel } from "../components/ontology/SourceMappingPanel";
 import { SemanticG6Canvas, type SemanticG6Handle } from "../components/ontology/SemanticG6Canvas";
 import type { SemanticClassDetail } from "../types";
 
@@ -54,10 +55,11 @@ export function SemanticModelPage() {
   const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
   const [followedNodeIds, setFollowedNodeIds] = useState<string[]>(loadFollowedNodes);
-  const [workbenchView, setWorkbenchView] = useState<"directory" | "source" | "workspace" | "validation" | "versions">("directory");
+  const [params] = useSearchParams();
+  const [workbenchView, setWorkbenchView] = useState<"directory" | "source" | "mapping" | "workspace" | "validation" | "versions">(params.get("scope") === "pending" ? "directory" : "mapping");
 
-  const overview = useQuery({ queryKey: ["semantic-graph-overview"], queryFn: () => semanticApi.overview(), enabled: workbenchView !== "directory" });
-  const stats = useQuery({ queryKey: ["semantic-graph-stats"], queryFn: () => semanticApi.stats(), enabled: workbenchView !== "directory" });
+  const overview = useQuery({ queryKey: ["semantic-graph-overview"], queryFn: () => semanticApi.overview(), enabled: !["directory", "mapping"].includes(workbenchView) });
+  const stats = useQuery({ queryKey: ["semantic-graph-stats"], queryFn: () => semanticApi.stats(), enabled: !["directory", "mapping"].includes(workbenchView) });
   const detail = useQuery({
     queryKey: ["semantic-class-detail", selectedNodeId],
     queryFn: () => semanticApi.classDetail(selectedNodeId!),
@@ -66,7 +68,7 @@ export function SemanticModelPage() {
   const governance = useQuery({
     queryKey: ["ontology-governance", "opcenter2607-core"],
     queryFn: () => syncApi.ontologyGovernance("opcenter2607-core"),
-    enabled: workbenchView !== "directory",
+    enabled: !["directory", "mapping"].includes(workbenchView),
   });
 
   const modules = useMemo(() => {
@@ -169,26 +171,27 @@ export function SemanticModelPage() {
     <section className="semantic-page-heading">
       <div>
         <Typography.Title level={2}>制造语义模型</Typography.Title>
-        <Typography.Paragraph>探索原始对象 → 审阅并同步建模库 → 查看主图 → 选择发布范围 → 发布到 Graph Studio。</Typography.Paragraph>
+        <Typography.Paragraph>选择 Camstar 来源 → 定义用途与字段映射 → 审阅本体设计 → 校验并发布到 Graph Studio。</Typography.Paragraph>
       </div>
       <Space wrap>
-        <Button type="primary" icon={<SearchOutlined />} onClick={() => navigate("/object-explorer")}>探索制造对象</Button>
+        <Button type="primary" icon={<SearchOutlined />} onClick={() => navigate("/object-explorer")}>选择 Camstar 来源</Button>
         <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新</Button>
       </Space>
     </section>
 
     <Card className="semantic-stage-card" styles={{ body: { padding: "4px 14px 0" } }}>
-      <Tabs activeKey={workbenchView} onChange={(key) => setWorkbenchView(key as typeof workbenchView)} items={[
-        { key: "directory", label: <Space><TagsOutlined />本体目录与差异审阅</Space> },
-        { key: "source", label: <Space><ApartmentOutlined />制造语义主图{overview.data && <Tag>{overview.data.nodes.length}</Tag>}</Space> },
-        { key: "workspace", label: <Space><FolderOpenOutlined />模型工作区{governance.data && <Tag color="cyan">{governance.data.graph.nodes.length}</Tag>}</Space> },
+      <Tabs activeKey={workbenchView === "source" ? "directory" : workbenchView} onChange={(key) => setWorkbenchView(key as typeof workbenchView)} items={[
+        { key: "mapping", label: <Space><BranchesOutlined />来源与转换</Space> },
+        { key: "directory", label: <Space><ApartmentOutlined />本体设计</Space> },
+        { key: "workspace", label: <Space><FolderOpenOutlined />发布范围{governance.data && <Tag color="cyan">{governance.data.graph.nodes.length}</Tag>}</Space> },
         { key: "validation", label: <Space><CheckCircleOutlined />校验与发布</Space> },
         { key: "versions", label: <Space><HistoryOutlined />版本记录{governance.data && <Tag color="gold">{governance.data.releases.length}</Tag>}</Space> },
       ]} />
     </Card>
 
-    {workbenchView === "directory" ? <OntologyDirectory /> : workbenchView === "source" ? <>
-    <Alert type="info" showIcon message="制造语义主图是只读事实来源" description="“关注”只改变个人浏览布局；“加入模型”才会把对象及其源属性纳入当前 Graph Studio 发布草稿。" />
+    {(workbenchView === "directory" || workbenchView === "source") && <Segmented value={workbenchView} onChange={value => setWorkbenchView(value as "directory" | "source")} options={[{ value: "directory", label: "对象目录与变更审阅" }, { value: "source", label: "已同步模型图" }]} />}
+    {workbenchView === "mapping" ? <SourceMappingPanel onExplore={() => navigate("/object-explorer")} onReview={() => setWorkbenchView("directory")} /> : workbenchView === "directory" ? <OntologyDirectory /> : workbenchView === "source" ? <>
+    <Alert type="info" showIcon message="查看已同步到建模库的语义模型" description="对象目录中的审阅结果同步后在此显示。“关注”只改变个人浏览布局；“加入模型”会将对象加入当前发布草稿。" />
 
     <div className="semantic-stat-grid">
       <Card><Statistic title="制造对象" value={stats.data?.classCount || overview.data?.nodes.length || 0} suffix="个" prefix={<ApartmentOutlined />} /></Card>

@@ -259,6 +259,12 @@ def validate_graph(workspace, graph):
         class_uid = item["id"]
         data = item["data"]
         properties = properties_by_class.get(class_uid, [])
+        mapping = data.get("_semanticMapping")
+        if mapping:
+            for prop in properties:
+                source_name = prop.get("sourceName")
+                if source_name in mapping["fieldRoles"] and mapping["fieldRoles"][source_name] not in {"property", "relationship"}:
+                    errors.append({"code": "property.excluded_by_mapping", "message": f"字段 {source_name} 未被来源映射纳入本体，请先修改并审阅来源设计"})
         try:
             validate_presentation({
                 "labelMode": data.get("labelMode") or "auto",

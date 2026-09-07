@@ -7,6 +7,8 @@ import hashlib
 import json
 from collections import defaultdict
 from pathlib import Path
+from src.ontology.physical_naming import relation_name
+from src.graphstudio_sync.semantic_mapping import source_fields
 
 GROUPS = {
     "组织与位置": ["Enterprise", "Site", "Factory", "WorkCenter", "ss_MfgLine", "Organization"],
@@ -83,11 +85,12 @@ def class_detail(name, documents, authority=None, proposals=None, fields=None):
         relations = [{**r, "source": "approved"} for r in authority["model"].get("relationships", [])] + relations
     content = {"sources": sources, "relations": relations, "physical": fields.get(name, []), "revision": authority["revision"] if authority else 0}
     library_fingerprint = digest({"sources": [s for s in sources if s["id"] != "approved" and not s["id"].startswith("candidate:")],
-                                  "relations": [r for r in relations if r["source"] != "approved" and not r["source"].startswith("candidate:")]})
+                                  "relations": [r for r in relations if r["source"] != "approved" and not r["source"].startswith("candidate:")],
+                                  "physical": fields.get(name, [])})
     return {"className": name, "sources": sources, "conflicts": conflicts, "relationships": relations,
             "primaryKeys": [r["FieldName"] for r in fields.get(name, []) if r.get("IsPrimaryKey") == "True"],
             "revision": content["revision"], "fingerprint": digest(content),
-            "authority": authority, "physical": physical, "libraryFingerprint": library_fingerprint}
+            "authority": authority, "physical": physical, "physicalFields": source_fields(name, fields.get(name, [])), "libraryFingerprint": library_fingerprint}
 
 
 def directory(documents, authorities, proposals):
@@ -131,13 +134,26 @@ def merge_plan(detail, preferred_source, choices, domain, chinese_name=None, des
     for key in [k for k in sources if k != preferred_source] + [preferred_source]:
         for prop in sources[key].get("properties", []):
             properties[prop["name"]] = copy.deepcopy(prop)
+    # A reviewed source mapping is an allowlist, not another definition to
+    # union. New source fields must never resurrect excluded attributes.
+    mapping = base.get("_semanticMapping") or sources.get("approved", {}).get("_semanticMapping")
+    if mapping is None:
+        mapping = next((s.get("_semanticMapping") for s in reversed(list(sources.values())) if s.get("_semanticMapping")), None)
+    if mapping:
+        base["_semanticMapping"] = copy.deepcopy(mapping)
+        allowed = {k for k, role in mapping["fieldRoles"].items() if role in {"property", "relationship"}}
+        properties = {k: p for k, p in properties.items() if k in allowed}
     for conflict in detail["conflicts"]:
         key = conflict["property"]
+        if mapping and key not in properties:
+            continue
         source = choices.get(key)
         if source not in conflict["variants"]:
             raise ValueError(f"请明确选择 {key} 的类型来源")
         properties[key] = copy.deepcopy(conflict["variants"][source])
     blockers = []
+    if mapping and mapping.get("sourceFields") != detail["physicalFields"]:
+        blockers.append("映射来源与项目 CSV 物理结构不一致，请重新读取结构并评估映射")
     if not detail["physical"]:
         blockers.append("本地物理事实来源未匹配此类字段，请先核实 CSV 来源")
     if not base.get("chineseName", "").strip() or not base.get("description", "").strip():
@@ -153,17 +169,23 @@ def merge_plan(detail, preferred_source, choices, domain, chinese_name=None, des
     ordered = sorted(detail["relationships"], key=lambda r: r["source"] == preferred_source)
     for rel in ordered:
         rel = {k: v for k, v in rel.items() if k != "source"}
+        if mapping:
+            relation_fields = {relation_name(k): detail["physical"].get(k, {}).get("FKTableName")
+                               for k, role in mapping["fieldRoles"].items() if role == "relationship"}
+            if relation_fields.get(rel["relationName"]) != rel["toClass"]:
+                continue
         edges[(rel["fromClass"], rel["relationName"], rel["toClass"])] = rel
     previous = (detail.get("authority") or {}).get("model", {}).get("class", sources[preferred_source])
     before = {p["name"]: p for p in previous.get("properties", [])}
     changes = [{"property": k, "before": before.get(k), "after": p} for k, p in properties.items() if before.get(k) != p]
+    changes.extend({"property": k, "before": p, "after": None} for k, p in before.items() if k not in properties)
     model = {"class": base, "relationships": list(edges.values())}
     plan = {"className": detail["className"], "preferredSource": preferred_source,
             "domain": domain.strip(), "choices": choices, "fingerprint": detail["fingerprint"],
             "libraryFingerprint": detail["libraryFingerprint"],
             "revision": detail["revision"], "model": model, "changes": changes, "blockers": blockers,
             "extensionProperties": sorted(k for k in properties if k not in detail["physical"]),
-            "note": "保留各来源独有属性与关系；同类型描述及同名关系元数据以所选来源优先。保存后需同步建模库，再按现有流程发布。"}
+            "note": "按来源映射的字段用途生成模型；内部及不纳入字段不会被其他来源重新加入。保存后需同步建模库，再按现有流程发布。" if mapping else "保留各来源独有属性与关系；同类型描述及同名关系元数据以所选来源优先。保存后需同步建模库，再按现有流程发布。"}
     plan["planHash"] = digest(plan)
     return plan
 

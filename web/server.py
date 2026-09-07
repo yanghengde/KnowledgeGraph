@@ -32,6 +32,7 @@ app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__
 from web.routers.graph import router as graph_router
 from web.routers.sql_builder import router as sql_builder_router
 from web.routers.ontology_import import router as ontology_import_router
+from web.routers.semantic_mapping import router as semantic_mapping_router
 from web.routers.ontology_authority import router as ontology_authority_router
 from web.routers.sync_center import router as sync_center_router
 from web.routers.manufacturing_chat import router as manufacturing_chat_router
@@ -39,6 +40,7 @@ from web.routers.manufacturing_chat import router as manufacturing_chat_router
 app.include_router(graph_router)
 app.include_router(sql_builder_router)
 app.include_router(ontology_import_router)
+app.include_router(semantic_mapping_router)
 app.include_router(ontology_authority_router)
 app.include_router(sync_center_router)
 app.include_router(manufacturing_chat_router)

@@ -25,7 +25,7 @@ const routeTitles: Record<string, { title: string; description: string }> = {
   "/connections": { title: "数据源与连接", description: "制造数据链路、控制面与 Graph Studio 连接治理" },
   "/data-sync": { title: "制造数据同步", description: "源窗口、增量事件、质量对账与不可变数据版本" },
   "/publish": { title: "数据发布管理", description: "发布前检验、预览、路由与运行记录" },
-  "/object-explorer": { title: "制造对象探索", description: "原始表、双向关联与中英文说明 · 逐步选择本体候选" },
+  "/object-explorer": { title: "Camstar 数据模型", description: "物理表、完整字段与双向外键 · 选择语义建模来源" },
   "/ontology-model": { title: "制造语义模型", description: "主图理解、本体抽取、质量校验与 Graph Studio 发布" },
   "/ontology-governance": { title: "制造语义模型", description: "主图理解、本体抽取、质量校验与 Graph Studio 发布" },
 };
@@ -40,7 +40,7 @@ export function AppShell() {
   const primaryItems = [
     { key: "/overview", icon: <DashboardOutlined />, label: "制造数据总览" },
     { key: "/connections", icon: <DatabaseOutlined />, label: "数据源与连接" },
-    { key: "/object-explorer", icon: <BranchesOutlined />, label: "制造对象探索" },
+    { key: "/object-explorer", icon: <BranchesOutlined />, label: "Camstar 数据模型" },
     { key: "/ontology-model", icon: <ApartmentOutlined />, label: "制造语义模型" },
     { key: "/data-sync", icon: <CloudSyncOutlined />, label: "制造数据同步" },
     { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },

@@ -24,6 +24,25 @@ def test_proposals_idempotent_and_revisions_transactional():
     try:
         store = AuthorityStore(engine)
         store.initialize()
+        from src.graphstudio_sync.semantic_mapping import MappingStore
+        mappings = MappingStore(engine)
+        session = {"tables": {"Example": {"CDOName": "Example"}}, "fields": {"Example": [
+            {"FieldName": "ExampleId", "IsPrimaryKey": "True", "IsForeignKey": "False", "IsList": "False", "DataType": "1"},
+            {"FieldName": "ChangeCount", "IsPrimaryKey": "False", "IsForeignKey": "False", "IsList": "False", "DataType": "1"}]}}
+        snapshot = mappings.stage_sources(session, {"Example"})
+        assert mappings.stage_sources(session, {"Example"}) == snapshot
+        assert len(mappings.list()) == 1
+        assert mappings.physical(snapshot["snapshotId"]) == session
+        assert mappings.snapshots()[0]["tableCount"] == 1
+        draft = mappings.detail(mappings.list()[0]["draftId"])
+        assert len(draft["fields"]) == 2
+        draft["design"]["role"] = "event"
+        saved = mappings.save(draft["draftId"], 1, draft["design"])
+        assert saved["revision"] == 2
+        with pytest.raises(RuntimeError, match="草稿已被修改"):
+            mappings.save(draft["draftId"], 1, draft["design"])
+        mappings.stage_sources(session, {"Example"})
+        assert mappings.detail(draft["draftId"])["design"]["role"] == "event"
         payload = {"classes": [{"className": "Example", "properties": []}], "relationships": []}
         first = store.stage(payload)
         assert store.stage(payload)["proposalId"] == first["proposalId"]

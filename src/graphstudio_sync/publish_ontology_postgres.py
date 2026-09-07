@@ -62,6 +62,7 @@ def _add_class(graph, workspace_key, source, target_name, role, orphan_policy, l
     folded = {p["name"].casefold(): p["name"] for p in props}
     graph["nodes"].append({"id": uid, "data": {"uid": uid, "workspaceKey": workspace_key,
         "sourceClass": source_name, "targetName": target_name.strip(), "role": role, "orphanPolicy": orphan_policy,
+        **({"_semanticMapping": deepcopy(meta["_semanticMapping"])} if meta.get("_semanticMapping") else {}),
         "label": label or meta.get("chineseName") or target_name.strip(), "description": description or meta.get("description") or "",
         "origin": "source" if source else "custom", "labelMode": "auto", "emitRdfsLabel": True,
         "labelFallbacks": [folded[k] for k in ("name", "description") if k in folded] + ["$businessKey", "$primaryKey"],

@@ -104,7 +104,8 @@ def sync(name: str, request: Revision):
         if any(r["toClass"] not in known for r in relations):
             raise HTTPException(422, "请先导入关系终点的 CSV 模型")
         payload["classes"] = [c for c in payload["classes"] if c["name"] != name] + [{"name": name,
-            "chineseName": cls.get("chineseName", ""), "description": cls.get("description", ""), "module": record["domain"], "layer": "Config", "authorityRevision": request.revision}]
+            "chineseName": cls.get("chineseName", ""), "description": cls.get("description", ""), "module": record["domain"], "layer": "Config", "authorityRevision": request.revision,
+            **({"_semanticMapping": cls["_semanticMapping"]} if cls.get("_semanticMapping") else {})}]
         payload["properties"] = [p for p in payload["properties"] if p["className"] != name] + [{**p, "className": name, "dataType": p.get("type", "String")} for p in cls.get("properties", [])]
         payload["relationships"] = [r for r in payload["relationships"] if r["source"] != name] + [{**r, "source": name, "target": r["toClass"], "name": r["relationName"]} for r in relations]
         for key, order in (("classes", lambda c:c["name"]), ("properties", lambda p:(p["className"],p["name"])), ("relationships", lambda r:(r["source"],r["name"],r["target"]))):

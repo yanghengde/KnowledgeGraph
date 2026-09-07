@@ -1,3 +1,17 @@
+CREATE TABLE IF NOT EXISTS graphsync.physical_model_snapshot (
+    snapshot_id text PRIMARY KEY,
+    payload jsonb NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS graphsync.semantic_mapping_draft (
+    draft_id text PRIMARY KEY,
+    snapshot_id text NOT NULL REFERENCES graphsync.physical_model_snapshot(snapshot_id),
+    table_name text NOT NULL,
+    revision integer NOT NULL DEFAULT 1,
+    design jsonb NOT NULL,
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(snapshot_id,table_name)
+);
 CREATE TABLE IF NOT EXISTS graphsync.ontology_authority (
     class_name text PRIMARY KEY,
     revision integer NOT NULL,
