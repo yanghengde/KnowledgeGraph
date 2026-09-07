@@ -197,3 +197,53 @@ def test_environment_address_cannot_be_changed_through_api(monkeypatch):
     with pytest.raises(HTTPException) as error:
         sync_center.update_connection("camstar-source", request)
     assert error.value.status_code == 409
+
+
+def test_bulk_connection_api_ignores_retired_profiles(monkeypatch):
+    from types import SimpleNamespace
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from src.graphstudio_sync import connections
+    from web.routers import sync_center
+
+    profiles = [{"connection_key": key, "enabled": True} for key in (
+        "camstar-source", "control-postgresql", "graph-studio",
+        "ontology-neo4j", "publish-ontology-neo4j",
+    )]
+    statuses = []
+    repository = SimpleNamespace(
+        list_connections=lambda: profiles,
+        update_connection_status=lambda key, **status: statuses.append((key, status)),
+    )
+    monkeypatch.setattr(sync_center, "_settings", _settings)
+    monkeypatch.setattr(sync_center, "_repo", lambda: repository)
+    monkeypatch.setattr(connections, "resolved_settings", lambda base, repo: base)
+    for name in ("_test_source", "_test_postgres", "_test_graphstudio"):
+        monkeypatch.setattr(connections, name, lambda settings: {"reachable": True})
+    app = FastAPI()
+    app.include_router(sync_center.router)
+    with TestClient(app) as client:
+        response = client.post("/api/sync/connections/test-all")
+    assert response.status_code == 200
+    assert response.json()["ok"] is True
+    assert [item["key"] for item in response.json()["items"]] == [
+        "camstar-source", "control-postgresql", "graph-studio",
+    ]
+    assert len(statuses) == 3
+    assert len(profiles) == 5  # Historical records are retained.
+
+
+def test_bulk_connection_check_reports_failed_current_connection(monkeypatch):
+    from types import SimpleNamespace
+    from src.graphstudio_sync import connections
+
+    repository = SimpleNamespace(list_connections=lambda: [
+        {"connection_key": "camstar-source"},
+        {"connection_key": "ontology-neo4j"},
+        {"connection_key": "graph-studio"},
+    ])
+    monkeypatch.setattr(connections, "test_connection", lambda base, repo, key: {
+        "key": key, "ok": key != "camstar-source",
+    })
+    results = connections.test_all_connections(_settings(), repository)
+    assert results == [{"key": "camstar-source", "ok": False}, {"key": "graph-studio", "ok": True}]

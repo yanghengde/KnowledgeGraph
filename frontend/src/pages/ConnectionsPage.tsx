@@ -3,8 +3,6 @@ import {
   CheckCircleFilled,
   EditOutlined,
   LinkOutlined,
-  ReloadOutlined,
-  SafetyCertificateOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -63,9 +61,9 @@ export function ConnectionsPage() {
     mutationFn: syncApi.testAllConnections,
     onSuccess: (result) => {
       result.ok ? message.success("全部连接验证通过") : message.warning("部分连接未通过，请查看状态与错误信息");
-      void queryClient.invalidateQueries({ queryKey: ["sync-connections"] });
     },
     onError: (error: Error) => message.error(error.message),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["sync-connections"] }),
   });
   const saveConnection = useMutation({
     mutationFn: syncApi.updateConnection,
@@ -95,19 +93,8 @@ export function ConnectionsPage() {
           <Typography.Title level={2}>数据源与连接</Typography.Title>
           <Typography.Paragraph>统一维护制造业务源、同步控制面、语义模型与 Graph Studio 发布端连接。</Typography.Paragraph>
         </div>
-        <Space wrap>
-          <Button icon={<ReloadOutlined />} onClick={() => void connections.refetch()}>刷新状态</Button>
-          <Button type="primary" icon={<ApiOutlined />} loading={testAll.isPending} onClick={() => testAll.mutate()}>执行链路巡检</Button>
-        </Space>
+        <Button type="primary" icon={<ApiOutlined />} loading={testAll.isPending} onClick={() => testAll.mutate()}>检测并刷新</Button>
       </section>
-
-      <Alert
-        showIcon
-        type="info"
-        icon={<SafetyCertificateOutlined />}
-        message="服务地址与密码由运行环境托管"
-        description="服务地址读取服务器环境配置（本地为 .env），修改后请重启服务。密码只保存在环境配置中；PostgreSQL 控制面连接不支持页面编辑。"
-      />
 
       {connections.isLoading ? <div className="page-loader"><Spin /></div> : connections.isError ? (
         <Alert type="error" showIcon message="连接信息读取失败" description={(connections.error as Error).message} />

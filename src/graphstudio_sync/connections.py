@@ -20,6 +20,9 @@ from .repository import ControlPlaneRepository
 from .source_database import ORACLE_KIND, connect_source, fetch_dicts, source_cursor
 
 
+SUPPORTED_CONNECTION_KEYS = frozenset({"camstar-source", "graph-studio", "control-postgresql"})
+
+
 def _host_port(endpoint: str, default_port: int) -> tuple[str, int]:
     value = endpoint.strip()
     if value.startswith("[") and "]:" in value:
@@ -144,7 +147,7 @@ def test_connection(
     profile = next((item for item in repository.list_connections() if item["connection_key"] == key), None)
     if profile is None:
         raise KeyError(key)
-    if key not in {"camstar-source", "graph-studio", "control-postgresql"}:
+    if key not in SUPPORTED_CONNECTION_KEYS:
         raise KeyError(key)
     if not profile["enabled"]:
         repository.update_connection_status(key, status="disabled")
@@ -178,4 +181,5 @@ def test_all_connections(
     return [
         test_connection(base, repository, item["connection_key"])
         for item in repository.list_connections()
+        if item["connection_key"] in SUPPORTED_CONNECTION_KEYS
     ]
