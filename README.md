@@ -25,7 +25,7 @@ Camstar SQL Server / Oracle → 业务数据版本 → RDF → Graph Studio
 
 - 原始结构来自 `docs/Database_Tables.csv` 和 `docs/Database_Fields.csv`，这两个文件是只读事实源。
 - `python scripts/graphstudio_sync.py import-csv-model --classes MfgOrder Product ProductBase` 预览候选；添加 `--apply` 保存候选。`--activate` 会替换源模型活动指针，仅在候选已经审阅且确认替换范围后使用。
-- `/app/object-explorer` 是 Camstar 数据模型：完整展示主键、系统字段与双向物理关联，保存/重新打开 PostgreSQL 物理快照，选择表加入来源设计草稿。选表不直接创建本体类。
+- `/app/object-explorer` 是 Opcenter 数据模型：完整展示主键、系统字段与双向物理关联，保存/重新打开 PostgreSQL 物理快照，选择表加入来源设计草稿。选表不直接创建本体类。
 - `/app/ontology-model` 提供来源与转换、本体设计（对象目录/已同步模型图）、发布范围、校验发布和版本管理。来源用途区分实体、事件、关系、辅助及暂不采用。
 - 一表一实体映射支持业务属性、Navigation 业务关系、仅内部使用和不纳入字段；身份键保留，未评估字段阻止生成候选。明确选择的字段范围随候选和权威版本保存，来源合并不能恢复排除字段。
 - 事件拆分、关系表转换和多表组合目前可保存来源用途与设计说明，尚不执行实例转换，也不能通过此生成器直接生成实体候选。具体 History 行为需核实判别字段、身份、时间及撤销规则后再实现。

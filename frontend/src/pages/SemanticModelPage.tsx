@@ -171,10 +171,10 @@ export function SemanticModelPage() {
     <section className="semantic-page-heading">
       <div>
         <Typography.Title level={2}>制造语义模型</Typography.Title>
-        <Typography.Paragraph>选择 Camstar 来源 → 定义用途与字段映射 → 审阅本体设计 → 校验并发布到 Graph Studio。</Typography.Paragraph>
+        <Typography.Paragraph>选择 Opcenter 来源 → 定义用途与字段映射 → 审阅本体设计 → 校验并发布到 Graph Studio。</Typography.Paragraph>
       </div>
       <Space wrap>
-        <Button type="primary" icon={<SearchOutlined />} onClick={() => navigate("/object-explorer")}>选择 Camstar 来源</Button>
+        <Button type="primary" icon={<SearchOutlined />} onClick={() => navigate("/object-explorer")}>选择 Opcenter 来源</Button>
         <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新</Button>
       </Space>
     </section>

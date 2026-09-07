@@ -76,7 +76,7 @@ function ReviewForm({ row, detail, reload }: { row: AuthorityRow; detail: Detail
     <Input disabled={busy} addonBefore="所属领域" value={domain} maxLength={80} onChange={e => { setDomain(e.target.value); setPlan(undefined); }} />
     <Input disabled={busy} addonBefore="业务中文名" value={chineseName} maxLength={200} onChange={e => { setChineseName(e.target.value); setPlan(undefined); }} />
     <Input.TextArea disabled={busy} aria-label="业务定义" placeholder="用业务语言说明这个对象是什么" value={description} maxLength={16000} autoSize={{ minRows: 3, maxRows: 8 }} onChange={e => { setDescription(e.target.value); setPlan(undefined); }} />
-    {mapping ? <Alert type="info" message={`来源映射 R${mapping.revision} · 物理快照 ${mapping.snapshotId.slice(0, 12)}`} description={`字段按映射用途纳入；身份键 ${mapping.identityColumns.join("、")} 在物理来源中保留。来源比较不会恢复内部或排除字段。`} /> : <Typography.Text type="secondary">此对象尚未配置字段用途映射，仍按现有来源合并规则审阅。可从 Camstar 数据模型选择同名表，在“来源与转换”中明确字段范围。</Typography.Text>}
+    {mapping ? <Alert type="info" message={`来源映射 R${mapping.revision} · 物理快照 ${mapping.snapshotId.slice(0, 12)}`} description={`字段按映射用途纳入；身份键 ${mapping.identityColumns.join("、")} 在物理来源中保留。来源比较不会恢复内部或排除字段。`} /> : <Typography.Text type="secondary">此对象尚未配置字段用途映射，仍按现有来源合并规则审阅。可从 Opcenter 数据模型选择同名表，在“来源与转换”中明确字段范围。</Typography.Text>}
     <Typography.Text strong>2. 处理类型冲突</Typography.Text>
     {conflicts.length === 0 ? <Tag color="green">纳入字段未发现类型冲突</Tag> : conflicts.map(c => <Card size="small" key={c.property} title={c.property}>
       <Space orientation="vertical" style={{ width: "100%" }}><Typography.Text>物理依据：{c.physicalField || "未匹配字段"}；期望类型：{c.expectedType || "需人工判断"}</Typography.Text>

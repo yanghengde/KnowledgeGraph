@@ -98,14 +98,14 @@ export function ObjectExplorerPage() {
     ]} locale={{ emptyText: "CSV 中没有该方向的外键关系" }} />;
   return <div className="page-stack object-explorer-page">
     <section className="section-intro operations-heading">
-      <div><Typography.Title level={2}>Camstar 数据模型</Typography.Title>
+      <div><Typography.Title level={2}>Opcenter 数据模型</Typography.Title>
         <Typography.Paragraph>完整保留表、字段与物理外键 → 探索来源关联 → 加入语义建模草稿。表与本体类分别建模。</Typography.Paragraph></div>
       <Button onClick={() => navigate("/ontology-model?view=mapping")}>前往来源与转换<ArrowRightOutlined /></Button>
     </section>
     <div className="import-explorer">
       <div className="import-source-bar">
         <Space wrap><Select aria-label="系统说明来源" value={database} disabled={busy} onChange={value => { setDatabase(value); setAnalysis(undefined); setTrail([]); }}
-          options={[{ value: "sqlserver", label: "Camstar SQL Server" }, { value: "oracle", label: "Camstar Oracle" }]} style={{ width: 210 }} />
+          options={[{ value: "sqlserver", label: "Opcenter SQL Server" }, { value: "oracle", label: "Opcenter Oracle" }]} style={{ width: 210 }} />
           <Button type={analysis ? "default" : "primary"} loading={analyze.isPending} disabled={busy} onClick={() => analyze.mutate(true)}>读取项目标准表结构</Button>
           <Button disabled={busy || !analysis} loading={persist.isPending} onClick={() => persist.mutate()}>保存物理模型</Button>
           <Typography.Text type="secondary">从一张表开始沿外键探索；来源用途和业务字段在语义模型中定义。</Typography.Text></Space>

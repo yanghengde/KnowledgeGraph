@@ -10,13 +10,13 @@ export function SourceMappingPanel({ onExplore, onReview }: { onExplore: () => v
   const list = useQuery({ queryKey: ["mapping-drafts"], queryFn: mappingApi.list });
   const [selected, setSelected] = useState<string>();
   const [search, setSearch] = useState("");
-  return <Card title="来源与转换" extra={<Button onClick={onExplore}>选择 Camstar 来源表</Button>}>
+  return <Card title="来源与转换" extra={<Button onClick={onExplore}>选择 Opcenter 来源表</Button>}>
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
       <Alert type="info" showIcon message="先定义来源用途，再生成本体候选" description="物理表保留完整字段与外键。实体来源可明确选择业务属性和关系；历史、桥接和辅助来源先保存转换设计。保存草稿不会修改已批准或已发布的模型。" />
       {list.isError ? <Alert type="error" showIcon message={(list.error as Error).message} action={<Button onClick={() => void list.refetch()}>重试</Button>} /> : null}
       <Input.Search allowClear placeholder="搜索表名或业务中文名" value={search} onChange={e => setSearch(e.target.value)} />
       <Table<MappingRow> rowKey="draftId" loading={list.isLoading} dataSource={(list.data?.items || []).filter(r => `${r.tableName} ${r.chineseName}`.toLowerCase().includes(search.toLowerCase()))}
-        locale={{ emptyText: <Empty description="从 Camstar 数据模型选择来源表，开始设计" /> }} columns={[
+        locale={{ emptyText: <Empty description="从 Opcenter 数据模型选择来源表，开始设计" /> }} columns={[
           { title: "来源表", render: (_, row) => <Button type="link" onClick={() => setSelected(row.draftId)}>{row.tableName}</Button> },
           { title: "用途", render: (_, row) => <Tag>{sourceLabels[row.role]}</Tag> },
           { title: "业务名称", render: (_, row) => row.chineseName || "待定义" },
