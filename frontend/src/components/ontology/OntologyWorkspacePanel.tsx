@@ -6,7 +6,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Alert, App, Button, Card, Checkbox, Descriptions, Drawer, Empty, Form, Input, Modal, Popconfirm, Progress,
-  Segmented, Select, Space, Steps, Switch, Table, Tag, Typography,
+  Segmented, Select, Space, Steps, Switch, Table, Tag, Tooltip, Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -298,6 +298,9 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
     onSuccess: async () => { message.success("治理操作已完成"); setOperation(null); await refresh(); },
     onError: (error: Error) => message.error(error.message),
   });
+  const toolbarBusy = loading || syncRelationships.isPending || validate.isPending || createCustomClass.isPending || createCustomRelationship.isPending;
+  const canEditModel = !!workspace && workspace.status !== "retired";
+  useEffect(() => { setValidation(null); }, [workspace?.workspace_key, workspace?.revision]);
 
   const classColumns: ColumnsType<{ id: string; data: OntologyClass }> = [
     { title: "发布对象", key: "name", render: (_, item) => <div className="ontology-class-name"><strong>{item.data.targetName}</strong><small>{item.data.sourceClass || "自定义对象"}</small></div> },
@@ -323,10 +326,18 @@ export function OntologyWorkspacePanel({ view, governance, loading, sourceGraph,
   if (!workspace && !loading) return <Alert type="warning" showIcon message="尚未初始化本体发布工作区" />;
   if (view === "workspace") return <div className="ontology-integrated-view">
     <div className="ontology-workspace-summary">
-      <div><small>当前草稿</small><strong>{workspace?.title}</strong><span>Rev. {workspace?.revision} · {workspace?.status}</span></div>
-      <div><small>发布范围</small><strong>{graph?.nodes.length || 0} 个对象</strong><span>{graph?.properties.filter((item) => item.published !== false).length || 0} 个属性 · {graph?.edges.length || 0} 条关系</span></div>
-      <Space wrap><Button icon={<PlusOutlined />} onClick={() => setCreateClassOpen(true)}>新建自定义对象</Button><Button icon={<LinkOutlined />} disabled={(graph?.nodes.length || 0) < 2} onClick={openRelationshipEditor}>新建发布关系</Button><Button icon={<BranchesOutlined />} loading={syncRelationships.isPending} onClick={() => syncRelationships.mutate()}>补齐模型内关系</Button><Button type="primary" icon={<CheckCircleOutlined />} onClick={() => validate.mutate()}>检查当前模型</Button></Space>
+      <div className="ontology-summary-metric"><small>当前草稿</small><strong>{workspace?.title}</strong><span>Rev. {workspace?.revision} · {workspace?.status}</span></div>
+      <div className="ontology-summary-metric"><small>发布范围</small><strong>{graph?.nodes.length || 0} 个对象</strong><span>{graph?.properties.filter((item) => item.published !== false).length || 0} 个属性 · {graph?.edges.length || 0} 条关系</span></div>
+      <div className="ontology-model-toolbar" role="group" aria-label="模型操作">
+        <div className="ontology-model-edit-actions">
+          <Tooltip title={!canEditModel ? "当前模型不可编辑" : "创建一个不直接对应数据表的业务对象"}><span><Button icon={<PlusOutlined />} disabled={!canEditModel || toolbarBusy} onClick={() => setCreateClassOpen(true)}>新建自定义对象</Button></span></Tooltip>
+          <Tooltip title={(graph?.nodes.length || 0) < 2 ? "至少添加两个对象后，才能建立关系" : "手动连接模型中的两个对象"}><span><Button icon={<LinkOutlined />} disabled={!canEditModel || toolbarBusy || (graph?.nodes.length || 0) < 2} onClick={openRelationshipEditor}>新建关系</Button></span></Tooltip>
+          <Tooltip title={(graph?.nodes.length || 0) < 2 ? "至少需要两个对象才能补齐关系" : "依据已有模型来源，补充当前对象之间的关系"}><span><Button icon={<BranchesOutlined />} disabled={!canEditModel || toolbarBusy || (graph?.nodes.length || 0) < 2} loading={syncRelationships.isPending} onClick={() => syncRelationships.mutate()}>补齐已有关系</Button></span></Tooltip>
+        </div>
+        <Tooltip title={!graph?.nodes.length ? "先添加一个业务对象，再检查模型" : "检查对象、属性和关系，查看需要处理的问题"}><span className="ontology-model-check-action"><Button type="primary" icon={<CheckCircleOutlined />} disabled={!workspace || toolbarBusy || !graph?.nodes.length} loading={validate.isPending} onClick={() => validate.mutate()}>检查模型</Button></span></Tooltip>
+      </div>
     </div>
+    {validation && <Alert showIcon type={validation.valid ? "success" : "warning"} message={validation.valid ? "模型检查通过" : `发现 ${validation.errors.length} 个需要处理的问题`} description={<Space orientation="vertical" size={4}>{[...validation.errors, ...validation.warnings].map((issue, index) => <span key={`${issue.code}-${index}`}>{issue.message}</span>)}{!validation.errors.length && !validation.warnings.length && <span>对象、属性和关系检查通过，可前往“检查发布”继续。</span>}</Space>} />}
     <Card className="publish-ontology-view-switch" styles={{ body: { padding: 10 } }}><Segmented block value={modelView} onChange={(value) => setModelView(value as typeof modelView)} options={[{ value: "preview", label: "发布本体图" }, { value: "scope", label: "范围与属性" }, { value: "presentation", label: "显示与检索" }, { value: "diff", label: `版本差异 ${modelDiff.added.length + modelDiff.removed.length + modelDiff.modified.length + modelDiff.addedRelationships.length + modelDiff.removedRelationships.length}` }]} /></Card>
 
     {modelView === "preview" && <>
