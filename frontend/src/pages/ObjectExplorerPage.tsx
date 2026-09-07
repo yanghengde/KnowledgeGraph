@@ -1,22 +1,43 @@
+import { useNavigate } from "react-router-dom";
 import { ArrowLeftOutlined, ArrowRightOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Alert, App, Button, Card, Collapse, Empty, Input, Modal, Progress, Select, Space, Table, Tabs, Tag, Typography } from "antd";
-import { useState } from "react";
-import { authorityApi, type ImportAnalysis, type ImportCandidate, type PhysicalEdge } from "../../authorityApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Alert, App, Button, Card, Collapse, Empty, Input, Progress, Select, Space, Table, Tabs, Tag, Typography } from "antd";
+import { useEffect, useState } from "react";
+import { authorityApi, type ImportAnalysis, type ImportCandidate, type PhysicalEdge } from "../authorityApi";
 
-export function ImportDialog({ open, close, done }: { open: boolean; close: () => void; done: () => Promise<void> }) {
+const DRAFT_KEY = "camstar-object-explorer-draft";
+type Draft = { analysis: ImportAnalysis; database: string; selected: string[]; trail: string[]; search: string; expiresAt: number };
+function readDraft(): Draft | undefined {
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "null") as Draft | null;
+    if (draft && draft.expiresAt > Date.now() && Array.isArray(draft.analysis?.candidates)
+        && Array.isArray(draft.selected) && Array.isArray(draft.trail)) return draft;
+  } catch { /* Storage is optional; the explorer remains usable. */ }
+}
+
+export function ObjectExplorerPage() {
   const { message } = App.useApp();
+  const client = useQueryClient();
+  const navigate = useNavigate();
+  const [draft] = useState(readDraft);
+  const [expiresAt, setExpiresAt] = useState(draft?.expiresAt || 0);
   const [tables, setTables] = useState<File>();
   const [fields, setFields] = useState<File>();
-  const [database, setDatabase] = useState("sqlserver");
-  const [analysis, setAnalysis] = useState<ImportAnalysis>();
-  const [selected, setSelected] = useState<string[]>([]);
-  const [search, setSearch] = useState("");
-  const [trail, setTrail] = useState<string[]>([]);
+  const [database, setDatabase] = useState(draft?.database || "sqlserver");
+  const [analysis, setAnalysis] = useState<ImportAnalysis | undefined>(draft?.analysis);
+  const [selected, setSelected] = useState<string[]>(draft?.selected || []);
+  const [search, setSearch] = useState(draft?.search || "");
+  const [trail, setTrail] = useState<string[]>(draft?.trail || []);
   const [onlySelected, setOnlySelected] = useState(false);
   const active = trail.at(-1);
+  useEffect(() => {
+    try {
+      if (analysis) sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ analysis, database, selected, trail, search, expiresAt }));
+      else sessionStorage.removeItem(DRAFT_KEY);
+    } catch { /* Browser storage may be full or unavailable. */ }
+  }, [analysis, database, selected, trail, search, expiresAt]);
   const accept = (data: ImportAnalysis) => {
-    setAnalysis(data); setSelected([]); setTrail([]); setSearch(""); setOnlySelected(false);
+    setExpiresAt(Date.now() + 55 * 60 * 1000); setAnalysis(data); setSelected([]); setTrail([]); setSearch(""); setOnlySelected(false);
   };
   const analyze = useMutation({ mutationFn: (standard: boolean) => {
     if (standard) return authorityApi.standard(database);
@@ -25,21 +46,26 @@ export function ImportDialog({ open, close, done }: { open: boolean; close: () =
   }, onSuccess: accept, onError: (e: Error) => message.error(e.message) });
   const descriptions = useQuery({
     queryKey: ["import-translations", analysis?.importId],
-    queryFn: () => authorityApi.importTranslations(analysis!.importId), enabled: open && !!analysis,
+    queryFn: () => authorityApi.importTranslations(analysis!.importId), enabled: !!analysis,
     refetchInterval: query => {
+      if (query.state.status === "error") return false;
       const state = query.state.data?.translation;
       return !state || ["waiting", "pending", "running"].includes(state.status) ? 2000 : false;
     },
   });
   const detail = useQuery({ queryKey: ["import-object", analysis?.importId, active, descriptions.data?.translation.status],
-    queryFn: () => authorityApi.importObject(analysis!.importId, active!), enabled: open && !!analysis && !!active });
+    queryFn: () => authorityApi.importObject(analysis!.importId, active!), enabled: !!analysis && !!active });
   const retry = useMutation({ mutationFn: () => authorityApi.retryTranslations(analysis!.importId),
     onSuccess: () => descriptions.refetch(), onError: (e: Error) => message.error(e.message) });
   const enrich = useMutation({ mutationFn: (name: string) => authorityApi.enrichObject(analysis!.importId, name),
     onSuccess: data => { if (data.warning) message.warning(data.warning); else message.success("中英文说明已保存"); void detail.refetch(); },
     onError: (e: Error) => message.error(e.message) });
   const stage = useMutation({ mutationFn: () => authorityApi.stage(analysis!.importId, selected),
-    onSuccess: async () => { setAnalysis(undefined); setTrail([]); setSelected([]); await done(); }, onError: (e: Error) => message.error(e.message) });
+    onSuccess: async () => {
+      setSelected([]);
+      await client.invalidateQueries({ queryKey: ["ontology-directory"] });
+      message.success("候选已保存，可继续探索，或前往制造语义模型审阅");
+    }, onError: (e: Error) => message.error(e.message) });
   const busy = analyze.isPending || stage.isPending || enrich.isPending;
   const candidates = (analysis?.candidates || []).map(c => ({ ...c,
     descriptionEn: descriptions.data?.descriptions[c.className] || c.descriptionEn,
@@ -61,8 +87,12 @@ export function ImportDialog({ open, close, done }: { open: boolean; close: () =
       { title: "物理外键", render: (_, edge) => <span>{edge.source}.{edge.fieldName}<br /><Typography.Text type="secondary">→ {edge.target}.{edge.targetField || "主键"}</Typography.Text></span> },
       { title: "候选", width: 95, render: (_, edge) => { const name = incoming ? edge.source : edge.target; return <Button size="small" disabled={busy || !byName.has(name)} onClick={() => toggle(name)}>{selected.includes(name) ? "移除" : "加入"}</Button>; } },
     ]} locale={{ emptyText: "CSV 中没有该方向的外键关系" }} />;
-  return <Modal title="探索原始对象 · 逐步建立本体" open={open} onCancel={close} closable={!busy} maskClosable={!busy} keyboard={!busy}
-    width="min(1500px, 96vw)" footer={null} style={{ top: 24 }}>
+  return <div className="page-stack object-explorer-page">
+    <section className="section-intro operations-heading">
+      <div><Typography.Title level={2}>制造对象探索</Typography.Title>
+        <Typography.Paragraph>查找基础表 → 沿关联选择对象 → 阅读中英文说明 → 提交本体候选。</Typography.Paragraph></div>
+      <Button onClick={() => navigate("/ontology-model?scope=pending")}>前往候选审阅<ArrowRightOutlined /></Button>
+    </section>
     <div className="import-explorer">
       <div className="import-source-bar">
         <Space wrap><Select aria-label="系统说明来源" value={database} disabled={busy} onChange={value => { setDatabase(value); setAnalysis(undefined); setTrail([]); }}
@@ -85,10 +115,10 @@ export function ImportDialog({ open, close, done }: { open: boolean; close: () =
           {state?.warning && <Alert type="warning" showIcon message={state.warning} />}</div>
         <div className="import-explorer-grid">
           <Card size="small" title="原始对象目录" className="import-object-directory" extra={<Button size="small" onClick={() => setOnlySelected(v => !v)}>{onlySelected ? "显示全部" : `已选 ${selected.length}`}</Button>}>
-            <Input allowClear prefix={<SearchOutlined />} placeholder="搜索表名、中文或英文说明" value={search} onChange={e => setSearch(e.target.value)} />
-            <Table<ImportCandidate> size="small" rowKey="className" dataSource={candidates.filter(c => (!onlySelected || selected.includes(c.className)) && `${c.className} ${c.descriptionZh} ${c.descriptionEn}`.toLowerCase().includes(search.toLowerCase()))}
+            <Input allowClear prefix={<SearchOutlined />} placeholder="搜索对象名称（表名）" value={search} onChange={e => setSearch(e.target.value)} />
+            <Table<ImportCandidate> size="small" rowKey="className" dataSource={candidates.filter(c => (!onlySelected || selected.includes(c.className)) && c.className.toLowerCase().includes(search.trim().toLowerCase()))}
               rowSelection={{ selectedRowKeys: selected, preserveSelectedRowKeys: true, onChange: keys => setSelected(keys as string[]), getCheckboxProps: () => ({ disabled: busy }) }}
-              pagination={{ pageSize: 8, showSizeChanger: false, showTotal: total => `${total} 个对象` }}
+              pagination={false}
               rowClassName={c => c.className === active ? "import-active-row" : ""}
               columns={[{ title: "对象 / 系统说明", render: (_, c) => <div className="import-candidate"><Button type="link" onClick={() => visit(c.className)}>{c.className}</Button>
                 <Typography.Paragraph ellipsis={{ rows: 2, tooltip: c.descriptionZh || c.descriptionEn }}>{c.descriptionZh || c.descriptionEn || "暂无系统说明"}</Typography.Paragraph>
@@ -119,5 +149,5 @@ export function ImportDialog({ open, close, done }: { open: boolean; close: () =
           <Button type="primary" disabled={!selected.length || analyze.isPending || enrich.isPending} loading={stage.isPending} onClick={() => stage.mutate()}>提交 {selected.length} 个对象为待审阅候选</Button></div>
       </>}
     </div>
-  </Modal>;
+  </div>;
 }

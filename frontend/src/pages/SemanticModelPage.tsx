@@ -1,7 +1,8 @@
+import { useNavigate } from "react-router-dom";
 import {
   ApartmentOutlined, ArrowsAltOutlined, BranchesOutlined, DatabaseOutlined,
   CheckCircleOutlined, DeploymentUnitOutlined, FolderOpenOutlined,
-  HistoryOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, StarFilled, StarOutlined, TagsOutlined, UploadOutlined,
+  HistoryOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, StarFilled, StarOutlined, TagsOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -51,7 +52,7 @@ export function SemanticModelPage() {
   const [detailTab, setDetailTab] = useState("properties");
   const [moduleSearch, setModuleSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
+  const navigate = useNavigate();
   const [followedNodeIds, setFollowedNodeIds] = useState<string[]>(loadFollowedNodes);
   const [workbenchView, setWorkbenchView] = useState<"directory" | "source" | "workspace" | "validation" | "versions">("directory");
 
@@ -168,10 +169,10 @@ export function SemanticModelPage() {
     <section className="semantic-page-heading">
       <div>
         <Typography.Title level={2}>制造语义模型</Typography.Title>
-        <Typography.Paragraph>导入 CSV → 审阅并同步建模库 → 查看主图 → 选择发布范围 → 发布到 Graph Studio。</Typography.Paragraph>
+        <Typography.Paragraph>探索原始对象 → 审阅并同步建模库 → 查看主图 → 选择发布范围 → 发布到 Graph Studio。</Typography.Paragraph>
       </div>
       <Space wrap>
-        <Button type="primary" icon={<UploadOutlined />} onClick={() => { setWorkbenchView("directory"); setImportOpen(true); }}>导入 CSV</Button>
+        <Button type="primary" icon={<SearchOutlined />} onClick={() => navigate("/object-explorer")}>探索制造对象</Button>
         <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新</Button>
       </Space>
     </section>
@@ -186,7 +187,7 @@ export function SemanticModelPage() {
       ]} />
     </Card>
 
-    {workbenchView === "directory" ? <OntologyDirectory importOpen={importOpen} closeImport={() => setImportOpen(false)} /> : workbenchView === "source" ? <>
+    {workbenchView === "directory" ? <OntologyDirectory /> : workbenchView === "source" ? <>
     <Alert type="info" showIcon message="制造语义主图是只读事实来源" description="“关注”只改变个人浏览布局；“加入模型”才会把对象及其源属性纳入当前 Graph Studio 发布草稿。" />
 
     <div className="semantic-stat-grid">

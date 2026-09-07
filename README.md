@@ -25,7 +25,8 @@ Camstar SQL Server / Oracle → 业务数据版本 → RDF → Graph Studio
 
 - 原始结构来自 `docs/Database_Tables.csv` 和 `docs/Database_Fields.csv`，这两个文件是只读事实源。
 - `python scripts/graphstudio_sync.py import-csv-model --classes MfgOrder Product ProductBase` 预览候选；添加 `--apply` 保存候选。`--activate` 会替换源模型活动指针，仅在候选已经审阅且确认替换范围后使用。
-- `/app/ontology-model` 提供来源目录、CSV/文档抽取、字段与关系审阅、发布工作区和版本管理。
+- `/app/object-explorer` 提供 Camstar 原始表探索、CSV 读取、双向关联浏览、中英文说明和候选选择。
+- `/app/ontology-model` 提供来源目录、字段与关系审阅、发布工作区和版本管理。
 - `/app/data-sync` 管理源数据同步，`/app/publish` 执行模型与数据发布。
 - `/app/assistant` 和 `/app/queries` 基于已发布的 Graph Studio 版本问答和查询。
 - 发布必须先校验、幂等写入、验证成功后提交 checkpoint，并保留数据版本和回滚指针。

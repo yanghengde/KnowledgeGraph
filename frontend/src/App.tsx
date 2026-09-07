@@ -3,6 +3,7 @@ import { Spin } from "antd";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
 
+const ObjectExplorerPage = lazy(() => import("./pages/ObjectExplorerPage").then((module) => ({ default: module.ObjectExplorerPage })));
 const OverviewPage = lazy(() => import("./pages/OverviewPage").then((module) => ({ default: module.OverviewPage })));
 const QueryLibraryPage = lazy(() => import("./pages/QueryLibraryPage").then((module) => ({ default: module.QueryLibraryPage })));
 const AssistantPage = lazy(() => import("./pages/AssistantPage").then((module) => ({ default: module.AssistantPage })));
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="connections" element={<Suspense fallback={<Spin fullscreen />}><ConnectionsPage /></Suspense>} />
         <Route path="data-sync" element={<Suspense fallback={<Spin fullscreen />}><DataSynchronizationPage /></Suspense>} />
         <Route path="publish" element={<Suspense fallback={<Spin fullscreen />}><PublishManagementPage /></Suspense>} />
+        <Route path="object-explorer" element={<Suspense fallback={<Spin fullscreen />}><ObjectExplorerPage /></Suspense>} />
         <Route path="ontology-model" element={<Suspense fallback={<Spin fullscreen />}><SemanticModelPage /></Suspense>} />
         <Route path="ontology-governance" element={<Navigate to="../ontology-model" replace />} />
       </Route>

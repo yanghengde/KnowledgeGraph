@@ -1,4 +1,4 @@
-import { ImportDialog } from "./ImportDialog";
+import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, App, Button, Card, Collapse, Descriptions, Drawer, Input, Select, Space, Table, Tabs, Tag, Typography } from "antd";
 import { useState } from "react";
@@ -9,12 +9,12 @@ const stateLabel: Record<string, string> = { review: "待确认", approved: "已
 const sourceLabel = (id: string) => id === "approved" ? "当前权威版本" : id.startsWith("candidate:") ? `导入候选 ${id.slice(10, 18)}` : id;
 const coreGroups = ["组织与位置", "产品与计量", "人员与职责", "设备与资源"];
 
-export function OntologyDirectory({ importOpen, closeImport }: { importOpen: boolean; closeImport: () => void }) {
-  const { message } = App.useApp();
+export function OntologyDirectory() {
+  const [params] = useSearchParams();
   const client = useQueryClient();
   const list = useQuery({ queryKey: ["ontology-directory"], queryFn: authorityApi.directory });
   const coverage = useQuery({ queryKey: ["published-coverage"], queryFn: () => manufacturingApi.coverage(), retry: false, staleTime: 30_000 });
-  const [scope, setScope] = useState("core");
+  const [scope, setScope] = useState(params.get("scope") === "pending" ? "pending" : "core");
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState<string>();
   const [selected, setSelected] = useState<AuthorityRow>();
@@ -23,7 +23,7 @@ export function OntologyDirectory({ importOpen, closeImport }: { importOpen: boo
   const reload = async () => { await Promise.all(["ontology-directory", "authority-detail", "semantic-graph-overview", "semantic-graph-stats", "semantic-class-detail"].map(key => client.invalidateQueries({ queryKey: [key] }))); };
   return <Card title="本体目录与差异审阅">
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-      <Alert type="info" showIcon title="从 CSV 建立制造模型" description="点击页面顶部“导入 CSV”，上传表定义与字段定义。选择对象后审阅候选，确认并同步到建模库，即可在“制造语义主图”查看；再到“模型工作区”选择 Graph Studio 发布范围。" />
+      <Alert type="info" showIcon title="审阅对象候选，建立制造模型" description="在“制造对象探索”中沿表关联选择对象并提交候选，在此比较来源与确认业务定义，随后同步建模库、选择发布范围。" />
       {list.isError && <Alert type="error" title="目录读取失败" description={(list.error as Error).message} />}
       <Space wrap><Tag>{list.data?.summary.classes ?? "—"} 个类</Tag><Tag color="orange">{list.data?.summary.duplicates ?? "—"} 个类有多份来源</Tag><Tag color="red">{list.data?.summary.conflicts ?? "—"} 个类存在来源类型差异</Tag><Tag color="green">{list.data?.summary.approved ?? "—"} 个已确认</Tag></Space>
       <Space wrap><Select value={scope} onChange={setScope} style={{ width: 180 }} options={[{ value: "core", label: "公共核心优先" }, { value: "pending", label: "待确认与导入候选" }, { value: "all", label: "全部本体" }]} /><Select allowClear placeholder="业务领域" value={group} onChange={setGroup} style={{ width: 240 }} options={list.data?.groups.map(g => ({ value: g, label: g }))} /><Input.Search allowClear placeholder="搜索中文名或类名" value={search} onChange={e => setSearch(e.target.value)} style={{ width: 260 }} /></Space>
@@ -40,7 +40,6 @@ export function OntologyDirectory({ importOpen, closeImport }: { importOpen: boo
     <Drawer title={selected ? `${selected.chineseName} · ${selected.className}` : "模型卡"} open={!!selected} onClose={() => setSelected(undefined)} size="large" destroyOnHidden>
       {selected && <ModelCard key={selected.className} row={selected} reload={reload} />}
     </Drawer>
-    <ImportDialog open={importOpen} close={closeImport} done={async () => { closeImport(); setScope("pending"); await reload(); message.success("候选已保存，请打开模型卡审阅差异"); }} />
   </Card>;
 }
 

@@ -694,3 +694,27 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
 .import-selected-tags .ant-tag { margin-bottom: 6px; }
 .import-translation-status { display: grid; gap: 8px; }
 @media (max-width: 1000px) { .import-explorer-grid { grid-template-columns: 1fr; } }
+
+
+.object-explorer-page .import-source-bar,
+.object-explorer-page .import-translation-status,
+.object-explorer-page .import-selection-footer {
+  padding: 16px 20px;
+  border: 1px solid var(--ant-color-border-secondary, #dce5e8);
+  border-radius: 12px;
+  background: var(--ant-color-bg-container, #fff);
+}
+.object-explorer-page .import-explorer-grid { grid-template-columns: minmax(300px, 0.8fr) minmax(480px, 1.6fr); }
+.object-explorer-page .import-object-directory .ant-card-body,
+.object-explorer-page .import-object-detail .ant-card-body { max-height: calc(100vh - 300px); min-height: 420px; overflow: auto; }
+@media (max-width: 1100px) {
+  .object-explorer-page .import-explorer-grid { grid-template-columns: 1fr; }
+  .object-explorer-page .import-object-directory .ant-card-body,
+  .object-explorer-page .import-object-detail .ant-card-body { max-height: none; min-height: auto; }
+}
+
+/* Keep the complete object directory scrollable at every viewport size. */
+.object-explorer-page .import-object-directory .ant-card-body {
+  max-height: max(420px, calc(100vh - 300px));
+  overflow-y: auto;
+}
