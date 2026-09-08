@@ -1,17 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, App, Button, Card, Collapse, Empty, Input, Segmented, Select, Space, Spin, Table, Tabs, Tag, Typography } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { authorityApi, type ImportAnalysis } from "../authorityApi";
 import { mappingApi } from "../mappingApi";
 import { syncApi } from "../api";
-import { SemanticG6Canvas } from "../components/ontology/SemanticG6Canvas";
-import { useThemeMode } from "../theme";
-import type { SemanticGraphOverview } from "../types";
+import { PhysicalRelationDiagram } from "../components/ontology/PhysicalRelationDiagram";
 
 export function ObjectExplorerPage() {
   const { message } = App.useApp();
-  const { mode } = useThemeMode();
   const client = useQueryClient();
   const navigate = useNavigate();
   const [analysis, setAnalysis] = useState<ImportAnalysis>();
@@ -54,14 +51,6 @@ export function ObjectExplorerPage() {
   const filtered = candidates.filter(c => (scope === "all" || (scope === "used" ? used.has(c.className) : !used.has(c.className))) && `${c.className} ${c.descriptionZh} ${c.descriptionEn}`.toLowerCase().includes(search.toLowerCase()));
   const current = candidates.find(c => c.className === active);
   const edges = analysis?.edges || [];
-  const graph = useMemo<SemanticGraphOverview>(() => {
-    const neighbors = new Set<string>(active ? [active] : []);
-    for (const e of edges) if (e.source === active || e.target === active) { neighbors.add(e.source); neighbors.add(e.target); }
-    const visible = new Set(filtered.filter(c => neighbors.has(c.className) || selected.includes(c.className)).slice(0, 60).map(c => c.className));
-    if (active) visible.add(active);
-    return { nodes: candidates.filter(c => visible.has(c.className)).map(c => ({ id: c.className, data: { label: c.className, description: c.descriptionZh || c.descriptionEn, propertyCount: c.propertyCount, module: used.has(c.className) ? "product" : "other", type: "table" } })),
-      edges: edges.filter(e => visible.has(e.source) && visible.has(e.target)).map((e, i) => ({ id: `${e.source}:${e.fieldId}:${i}`, source: e.source, target: e.target, data: { label: e.fieldName } })), combos: [] };
-  }, [analysis, active, scope, search, selected, drafts.data, governance.data, descriptions.data]);
   const usage = (name: string) => used.has(name) ? <Tag color="blue">已用于建模</Tag> : <Tag>{usageKnown ? "未使用" : "状态待核实"}</Tag>;
   return <div className="page-stack object-explorer-page">
     <section className="section-intro operations-heading"><div><Typography.Title level={2}>Opcenter 数据模型</Typography.Title><Typography.Paragraph>找到需要的表，点击“用于建模”。结构会自动保存，下次可以继续使用。</Typography.Paragraph></div><Button onClick={() => navigate("/ontology-model")}>我的业务模型</Button></section>
@@ -85,7 +74,7 @@ export function ObjectExplorerPage() {
           {!current ? <Empty description="选择左侧表，查看它和哪些表有关联" /> : <>
             <Typography.Paragraph>{current.descriptionZh || current.descriptionEn || "暂无业务说明"}</Typography.Paragraph>
             <Tabs activeKey={view} onChange={setView} items={[
-              { key: "graph", label: "关联图", children: <><Typography.Paragraph type="secondary">展示当前表及相邻表，最多 60 张；点击图中的表继续探索。显示在图中不代表已选入模型。</Typography.Paragraph><div style={{ height: 480 }}><SemanticG6Canvas data={graph} mode={mode} selectedNodeId={active} followedNodeIds={selected} onNodeSelect={id => { if (id) setActive(id); }} /></div></> },
+              { key: "graph", label: "关联图", children: <PhysicalRelationDiagram active={current.className} edges={edges} candidates={candidates} used={used} usageKnown={usageKnown} onSelect={setActive} /> },
               { key: "relations", label: "关联列表", children: <Table size="small" pagination={false} rowKey={e => `${e.source}:${e.fieldId}:${e.target}`} dataSource={edges.filter(e => e.source === active || e.target === active)} columns={[{ title: "来源表", render: (_, e) => <Button type="link" onClick={() => setActive(e.source)}>{e.source}</Button> }, { title: "字段", dataIndex: "fieldName" }, { title: "关联表", render: (_, e) => <Button type="link" disabled={!e.available} onClick={() => setActive(e.target)}>{e.target}</Button> }]} /> },
               { key: "fields", label: `字段 (${current.propertyCount})`, children: detail.isError ? <Alert type="error" message={(detail.error as Error).message} action={<Button onClick={() => { setAnalysis(undefined); void opening.refetch(); }}>重新打开模型</Button>} /> : <Table size="small" loading={detail.isLoading} rowKey="physicalName" dataSource={detail.data?.fields || []} columns={[{ title: "字段", render: (_, f) => <>{f.physicalName}{f.primaryKey && <Tag>身份字段</Tag>}</> }, { title: "说明", render: (_, f) => f.descriptionZh || f.descriptionEn || (f.target ? `关联 ${f.target}` : "—") }]} /> },
             ]} />
