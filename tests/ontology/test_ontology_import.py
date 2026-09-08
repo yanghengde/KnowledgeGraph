@@ -10,6 +10,7 @@ from web.routers import ontology_import
 
 @pytest.fixture(autouse=True)
 def isolate_description_storage(monkeypatch):
+    monkeypatch.setattr("web.designer_metadata.load_physical_description_catalog", lambda database: {})
     monkeypatch.setattr(ontology_import, "load_descriptions", lambda database: {})
     monkeypatch.setattr(ontology_import, "save_descriptions", lambda database, rows: None)
 
@@ -303,3 +304,52 @@ def test_source_outage_keeps_persisted_bilingual_descriptions(monkeypatch):
     assert result["descriptions"]["Product"] == "Product"
     assert result["translations"]["Product"] == "saved translation"
     assert result["translation"]["metadataStatus"] == "failed"
+
+
+def test_bulk_refresh_translates_physical_fields_and_missing_cdo_tables(monkeypatch):
+    monkeypatch.setattr(ontology_import, "_reviewed_class_names", lambda: set())
+    monkeypatch.setattr(ontology_import, "_start_description_job", lambda _: None)
+    monkeypatch.setattr("web.designer_metadata.load_cdo_description_catalog", lambda _: {})
+    monkeypatch.setattr("web.designer_metadata.load_physical_description_catalog", lambda _: {
+        "newbusinessobject": {"description": "Physical table description", "fields": {"productid": "Product reference", "notincsv": "Ignore me"}}})
+    monkeypatch.setattr(ontology_import, "_load_description_cache", lambda: {})
+    monkeypatch.setattr(ontology_import, "_save_description_cache", lambda _: None)
+    monkeypatch.setattr(ontology_import, "_configured_translation_provider", lambda: "api")
+    monkeypatch.setattr(ontology_import, "_build_batch_translator", lambda _: (lambda batch: ["中文：" + text for text in batch], 1))
+    saved = []
+    monkeypatch.setattr(ontology_import, "save_descriptions", lambda _, rows: saved.extend(rows))
+    analysis = ontology_import.analyze_import(upload("tables.csv", TABLES), upload("fields.csv", FIELDS), "sqlserver")
+    ontology_import._run_description_job(analysis["importId"])
+    detail = ontology_import.import_object(analysis["importId"], "NewBusinessObject")
+    assert detail["fields"][0]["descriptionZh"] == "中文：Product reference"
+    assert detail["candidate"]["descriptionZh"] == "中文：Physical table description"
+    assert any(row.get("fieldName") == "productid" and row["descriptionZh"] for row in saved)
+    assert not any(row.get("fieldName") == "notincsv" for row in saved)
+    assert ontology_import.translation_status(analysis["importId"])["translation"]["status"] == "completed"
+
+
+def test_storage_column_name_wins_and_system_label_is_only_fallback():
+    from web.designer_metadata import _index_physical_descriptions
+    rows = [dict(tableName="Product", columnName="ProductBaseId", columnDescription="Stored base reference",
+                 fieldDescription="Logical Base", label="Base", cdoName="RevisionedObject", fieldId="1"),
+            dict(tableName="Product", columnName="UsageLimit", columnDescription="",
+                 fieldDescription="", label="Usage limit", cdoName="Product", fieldId="2")]
+    catalog = _index_physical_descriptions([dict(name="Product", description="Products")], rows)
+    assert catalog["product"]["fields"] == {"productbaseid": "Stored base reference", "usagelimit": "Usage limit"}
+
+
+def test_failed_batch_keeps_other_batches_committed(monkeypatch):
+    monkeypatch.setattr(ontology_import, "_save_description_cache", lambda _: None)
+    monkeypatch.setattr(ontology_import, "_load_description_cache", lambda: {})
+    def translate(batch):
+        if batch == ["bad"]:
+            raise RuntimeError("offline")
+        return ["成功"]
+    monkeypatch.setattr(ontology_import, "_build_batch_translator", lambda _: (translate, 1))
+    session = {"database": "sqlserver", "candidates": {"A": {"descriptionEn": "good"}, "B": {"descriptionEn": "bad"}},
+               "translation": {"status": "pending", "provider": "api", "pending": ["bad", "good"], "completed": 0}}
+    monkeypatch.setitem(ontology_import._sessions, "batch-test", session)
+    ontology_import._run_translation_job("batch-test")
+    assert session["candidates"]["A"]["descriptionZh"] == "成功"
+    assert session["translation"]["status"] == "failed"
+    assert session["translation"]["pending"] == ["bad"]

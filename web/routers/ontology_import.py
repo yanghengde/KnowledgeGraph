@@ -14,6 +14,7 @@ import os
 import re
 import tempfile
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import urllib.error
 import urllib.request
@@ -271,6 +272,12 @@ def _translation_public_state(session: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _session_description_rows(session):
+    return [dict(entry, className=name, fieldName="") for name, entry in session["candidates"].items()] + [
+        dict(entry, className=name, fieldName=field)
+        for name, fields in session.get("fieldDescriptions", {}).items() for field, entry in fields.items()]
+
+
 def _run_description_job(session_id: str) -> None:
     with _session_lock:
         session = _sessions.get(session_id)
@@ -283,7 +290,7 @@ def _run_description_job(session_id: str) -> None:
         state["warning"] = ""
         database = session["database"]
     try:
-        from web.designer_metadata import load_cdo_description_catalog
+        from web.designer_metadata import load_cdo_description_catalog, load_physical_description_catalog
 
         stored = load_descriptions(database)
         # Saved reference metadata remains usable when the source is offline.
@@ -296,6 +303,7 @@ def _run_description_job(session_id: str) -> None:
                 else:
                     session["candidates"][class_name].update(entry)
         catalog = load_cdo_description_catalog(database)
+        physical_catalog = load_physical_description_catalog(database)
         cache = _load_description_cache()
         for item in stored.values():
             if item.get("descriptionZh"):
@@ -309,11 +317,21 @@ def _run_description_job(session_id: str) -> None:
                     session.setdefault("fieldDescriptions", {}).setdefault(class_name, {})[field_name] = entry
             descriptions: list[str] = []
             for class_name, candidate in session["candidates"].items():
-                english = _designer_description_for(class_name, catalog)
+                physical = physical_catalog.get(class_name.casefold(), {})
+                english = _designer_description_for(class_name, catalog) or physical.get("description", "") or candidate.get("descriptionEn", "")
                 candidate["descriptionEn"] = english
                 candidate["descriptionZh"] = cache.get(english, "") if english else ""
                 if english:
                     descriptions.append(english)
+            for class_name, physical_rows in session["fields"].items():
+                available = physical_catalog.get(class_name.casefold(), {}).get("fields", {})
+                for field in physical_fields(physical_rows):
+                    key = field["FieldName"].casefold()
+                    english = available.get(key, "")
+                    if english:
+                        session.setdefault("fieldDescriptions", {}).setdefault(class_name, {})[key] = {
+                            "descriptionEn": english, "descriptionZh": cache.get(english, "")}
+            descriptions = [row["descriptionEn"] for row in _session_description_rows(session) if row.get("descriptionEn")]
             unique = list(dict.fromkeys(descriptions))
             pending = [value for value in unique if value not in cache]
             provider = _configured_translation_provider()
@@ -334,8 +352,7 @@ def _run_description_job(session_id: str) -> None:
                     if pending and provider == "none" else ""
                 ),
             })
-        save_descriptions(database, [dict(candidate, className=name)
-                                    for name, candidate in session["candidates"].items()])
+        save_descriptions(database, _session_description_rows(session))
         if pending and provider != "none":
             _run_translation_job(session_id)
     except Exception as exc:
@@ -374,44 +391,62 @@ def _run_translation_job(session_id: str) -> None:
     try:
         translator, batch_size = _build_batch_translator(provider)
         cache = _load_description_cache()
-        for index in range(0, len(pending), batch_size):
-            batch = pending[index:index + batch_size]
-            translated = translator(batch)
-            if len(translated) != len(batch):
-                raise RuntimeError("翻译结果数量与原文不一致")
-            updates = {source: target for source, target in zip(batch, translated) if target}
-            cache.update(updates)
-            _save_description_cache(updates)
-            save_descriptions(session["database"], [
-                {"className": name, "descriptionEn": candidate["descriptionEn"],
-                 "descriptionZh": updates[candidate["descriptionEn"]]}
-                for name, candidate in session["candidates"].items()
-                if candidate.get("descriptionEn") in updates
-            ])
-            with _session_lock:
-                session = _sessions.get(session_id)
-                if not session:
+        batches = [pending[index:index + batch_size] for index in range(0, len(pending), batch_size)]
+        # Bound concurrency; commit each finished batch so retry only translates
+        # missing texts, even when another request fails or the service restarts.
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            futures = {pool.submit(translator, batch): batch for batch in batches}
+            failed_batches = []
+            for future in as_completed(futures):
+                try:
+                    translated = future.result()
+                except Exception:
+                    failed_batches.append(futures[future])
                     continue
-                for candidate in session["candidates"].values():
-                    source = candidate.get("descriptionEn", "")
-                    if source in updates:
-                        candidate["descriptionZh"] = updates[source]
-                job = session["translation"]
-                job["completed"] += len(updates)
-                job["pending"] = [value for value in job["pending"] if value not in updates]
+                batch = futures[future]
+                _save_translated_batch(session_id, session, batch, translated, cache)
+            # A short retry also avoids losing a whole large batch to a service
+            # response-format error. Already committed batches are not retried.
+            retries = {pool.submit(translator, batch[index:index + 10]): batch[index:index + 10]
+                       for batch in failed_batches for index in range(0, len(batch), 10)}
+            for future in as_completed(retries):
+                try:
+                    translated = future.result()
+                except Exception:
+                    continue
+                _save_translated_batch(session_id, session, retries[future], translated, cache)
         with _session_lock:
             session = _sessions.get(session_id)
             if session:
                 job = session["translation"]
                 job["status"] = "completed" if not job["pending"] else "failed"
                 if job["pending"]:
-                    job["warning"] = "部分描述未能翻译，暂时显示数据库英文原文。"
-    except Exception as exc:
+                    job["warning"] = "部分描述未能翻译，已保存完成的中文与英文原文，可重试。"
+    except Exception:
         with _session_lock:
-            session = _sessions.get(session_id)
-            if session:
-                session["translation"]["status"] = "failed"
-                session["translation"]["warning"] = f"翻译服务暂时不可用，未完成内容显示英文原文：{exc}"
+            if session_id in _sessions:
+                _sessions[session_id]["translation"].update(status="failed", warning="翻译或保存未完成，可重试；已保存内容会复用。")
+
+
+def _save_translated_batch(session_id, session, batch, translated, cache):
+    if len(translated) != len(batch) or any(not str(value).strip() for value in translated):
+        raise RuntimeError("翻译结果不完整")
+    updates = dict(zip(batch, translated))
+    # PG is the durable source; only acknowledge a batch after its commit.
+    save_descriptions(session["database"], [dict(row, descriptionZh=updates[row["descriptionEn"]])
+        for row in _session_description_rows(session) if row.get("descriptionEn") in updates])
+    cache.update(updates)
+    _save_description_cache(updates)
+    with _session_lock:
+        if session_id not in _sessions:
+            return
+        for entry in [*session["candidates"].values(), *[entry for fields in session.get("fieldDescriptions", {}).values() for entry in fields.values()]]:
+            source = entry.get("descriptionEn", "")
+            if source in updates:
+                entry["descriptionZh"] = updates[source]
+        job = session["translation"]
+        job["completed"] += len(updates)
+        job["pending"] = [value for value in job["pending"] if value not in updates]
 
 
 def _start_translation_job(session_id: str) -> None:
@@ -604,14 +639,14 @@ def retry_translation(import_id: str):
         job = session["translation"]
         if job["status"] == "running" or job["metadataStatus"] in {"pending", "loading"}:
             return {"translation": _translation_public_state(session)}
-        retry_descriptions = job["metadataStatus"] == "failed"
+        retry_descriptions = job["metadataStatus"] in {"failed", "cached", "completed"}
         if retry_descriptions:
             job.update({"metadataStatus": "pending", "status": "waiting", "warning": ""})
             state = _translation_public_state(session)
         else:
             cache = _load_description_cache()
             descriptions = list(dict.fromkeys(
-                item.get("descriptionEn", "") for item in session["candidates"].values() if item.get("descriptionEn")
+                item.get("descriptionEn", "") for item in _session_description_rows(session) if item.get("descriptionEn")
             ))
             pending = [value for value in descriptions if value not in cache]
             provider = _configured_translation_provider()
@@ -788,13 +823,20 @@ def enrich_object(import_id: str, class_name: str):
     session = _import_session(import_id)
     if class_name not in session["candidates"]:
         raise HTTPException(404, "本次 CSV 中没有该对象")
-    from web.designer_metadata import get_cdo_metadata
+    from web.designer_metadata import get_cdo_metadata, load_physical_description_catalog
     database = session["database"]
     warning = ""
     try:
         stored = load_descriptions(database)
-        metadata = get_cdo_metadata(database, class_name)
-        english = {key: item["description"] for key, item in metadata["fields"].items()}
+        physical = load_physical_description_catalog(database).get(class_name.casefold())
+        if physical:
+            english = physical["fields"]
+        else:
+            metadata = get_cdo_metadata(database, class_name)
+            english = {key: item["description"] for key, item in metadata["fields"].items()}
+        # Persist only columns in this CSV model, under their physical names.
+        allowed = {field["FieldName"].casefold() for field in physical_fields(session["fields"].get(class_name, []))}
+        english = {key: value for key, value in english.items() if key in allowed}
         cache = _load_description_cache()
         for item in stored.values():
             if item.get("descriptionZh"):

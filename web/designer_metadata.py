@@ -178,3 +178,56 @@ def get_cdo_metadata(database: str, class_name: str) -> dict:
         "description": str(row.get("CDODescription") or ""),
         "fields": field_map,
     }
+
+
+def load_physical_description_catalog(database: str) -> dict:
+    """Read physical names via Designer storage IDs, never guessed suffixes.
+
+    A CDO field such as Base may be stored as ProductBaseId. Joining storage
+    IDs also covers inherited declarations and tables with no matching CDO.
+    Labels are a last-resort system caption, not an invented description.
+    """
+    database = _normalize_database(database)
+    schema = designer_schema(database)
+    tables = _table(database, schema, "DBTableDefinition")
+    columns = _table(database, schema, "DBColumns")
+    fields = _table(database, schema, "CDOFields")
+    definitions = _table(database, schema, "CDODefinition")
+    labels = _table(database, schema, "Labels")
+    engine = source_engine(database)
+    try:
+        with engine.connect() as connection:
+            table_rows = connection.execute(text(f'''SELECT DBTableName AS "name",
+                DBTableDescription AS "description" FROM {tables}''')).mappings().all()
+            field_rows = connection.execute(text(f'''SELECT t.DBTableName AS "tableName",
+                c.ColumnName AS "columnName", c.ColumnDescription AS "columnDescription",
+                f.FieldDescription AS "fieldDescription", l.LabelValue AS "label",
+                p.FieldDescription AS "inheritedDescription",
+                d.CDOName AS "cdoName", f.FieldID AS "fieldId"
+                FROM {columns} c JOIN {tables} t ON t.DBTableID=c.DBTableID
+                LEFT JOIN {fields} f ON f.DBTableID=c.DBTableID AND f.DBColumnID=c.DBColumnID
+                LEFT JOIN {definitions} d ON d.CDODefID=f.CDODefID
+                LEFT JOIN {fields} p ON p.FieldID=f.InheritedID
+                LEFT JOIN {labels} l ON l.LabelID=f.LabelID''')).mappings().all()
+    finally:
+        engine.dispose()
+    return _index_physical_descriptions(table_rows, field_rows)
+
+
+def _index_physical_descriptions(table_rows, field_rows):
+    result = {str(row["name"]).casefold(): {"description": str(row["description"] or ""), "fields": {}}
+              for row in table_rows}
+    # Prefer documented columns, then the owning CDO, then inherited storage
+    # declarations. Sort stable IDs to make duplicate declarations deterministic.
+    def rank(row):
+        return (not bool(str(row["columnDescription"] or "").strip()),
+                not bool(str(row["fieldDescription"] or "").strip()),
+                str(row["cdoName"] or "").casefold() != str(row["tableName"]).casefold(),
+                str(row["fieldId"] or ""))
+    for row in sorted(field_rows, key=rank):
+        description = next((str(row[key]).strip() for key in ("columnDescription", "fieldDescription", "inheritedDescription", "label")
+                            if row.get(key) and str(row[key]).strip()), "")
+        if description:
+            table = result.setdefault(str(row["tableName"]).casefold(), {"description": "", "fields": {}})
+            table["fields"].setdefault(str(row["columnName"]).casefold(), description)
+    return result
