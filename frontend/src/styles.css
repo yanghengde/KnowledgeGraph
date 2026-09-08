@@ -773,3 +773,12 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
 [data-theme="dark"] .physical-relation-column.in { --relation-color: #82b8ff; }
 [data-theme="dark"] .physical-relation-column.out { --relation-color: #4bdbbf; }
 .object-explorer-page .import-object-detail:has(.physical-relation-diagram) .ant-card-body { max-height: none; overflow: visible; }
+
+/* Direction is explicit on each card, including narrow layouts and scrolled rows. */
+.physical-relation-node::after { display: none; }
+.physical-relation-column-header { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.physical-relation-column-header h4 { flex: 1 1 160px; margin: 0; }
+.physical-relation-column-header .ant-input-affix-wrapper { flex: 1 1 210px; width: auto; min-width: 0; }
+.physical-relation-direction { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0; padding: 8px; border-radius: 6px; background: var(--ant-color-bg-layout, #f3f7fa); font-size: 12px; }
+.physical-relation-direction span { overflow-wrap: anywhere; min-width: 0; }
+.physical-relation-direction b { color: var(--relation-color); font-size: 20px; }
