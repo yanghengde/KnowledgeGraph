@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Empty, Input, Radio, Space, Table, Tag, Typography } from "antd";
+import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Empty, Input, Popconfirm, Radio, Segmented, Space, Table, Tag, Typography } from "antd";
 import { mappingApi, type MappingDetail, type MappingRow, type SimpleCheck } from "../../mappingApi";
 import { syncApi } from "../../api";
 import { useMappingAutosave } from "./useMappingAutosave";
@@ -9,21 +9,39 @@ export function SourceMappingPanel({ onExplore, onReview }: { onExplore: () => v
   const { message } = App.useApp();
   const client = useQueryClient();
   const list = useQuery({ queryKey: ["mapping-drafts"], queryFn: mappingApi.list });
+  const [deleted, setDeleted] = useState(false);
+  const trash = useQuery({ queryKey: ["mapping-deleted"], queryFn: mappingApi.deleted, enabled: deleted });
+  const governance = useQuery({ queryKey: ["ontology-governance", "opcenter2607-core"], queryFn: () => syncApi.ontologyGovernance("opcenter2607-core") });
+  const removal = useMutation({ mutationFn: (row: MappingRow) => mappingApi.remove(row.draftId, row.revision, !deleted), onSuccess: async () => {
+    await Promise.all(["mapping-drafts", "mapping-deleted", "mapping-detail"].map(key => client.invalidateQueries({ queryKey: [key] })));
+    message.success(deleted ? "草稿已恢复" : "草稿已删除，可在“已删除”中恢复");
+  }, onError: (error: Error) => message.error(error.message) });
+  const rows = (deleted ? trash.data : list.data)?.items || [];
+  const releaseClasses = (governance.data?.activeReleaseGraph?.classes || []) as Array<{ class: { sourceClass?: string; role?: string } }>;
+  const inRelease = (row: MappingRow) => releaseClasses.some(c => c.class.sourceClass === row.tableName && c.class.role !== "excluded");
+  const inWorkspace = (row: MappingRow) => governance.data?.graph.nodes.some(n => n.data.sourceClass === row.tableName && n.data.role !== "excluded" && n.data.published !== false);
+  const graphState = (row: MappingRow) => !governance.data || governance.isError ? "状态待核实" : inRelease(row) ? "已在启用本体中" : inWorkspace(row) ? "待发布" : "未加入模型";
+  const [filter, setFilter] = useState("全部");
   const [selected, setSelected] = useState<string>();
   const [search, setSearch] = useState("");
   const flush = useRef<(() => Promise<void>) | null>(null);
   const close = async () => { try { await flush.current?.(); setSelected(undefined); await client.invalidateQueries({ queryKey: ["mapping-drafts"] }); } catch { message.error("修改尚未保存，请重试后关闭"); } };
   return <Card title="我的业务对象" extra={<Button onClick={onExplore}>添加对象</Button>}>
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-      <Typography.Paragraph>填写业务名称，勾选需要的字段。修改会自动保存。</Typography.Paragraph>
+      <Typography.Paragraph>编辑并检查对象后加入待发布模型。“已在启用本体中”表示当前启用版本包含此对象，不代表草稿的最新修改已发布，也不代表业务实例已同步。</Typography.Paragraph>
+      <Space wrap><Segmented value={deleted ? "已删除" : "业务对象"} onChange={value => setDeleted(value === "已删除")} options={["业务对象", "已删除"]} /><Tag>共 {rows.length} 个草稿</Tag>{governance.data?.activeRelease && <Tag color="green">启用本体 R{governance.data.activeRelease.release_no}</Tag>}</Space>
+      {governance.isError && <Alert type="warning" message="图谱状态读取失败，不能据此判断对象尚未发布" action={<Button onClick={() => void governance.refetch()}>重试</Button>} />}
+      {trash.isError && deleted && <Alert type="error" message="已删除草稿读取失败" />}
+      <Segmented value={filter} onChange={setFilter} options={["全部", "未加入模型", "待发布", "已在启用本体中"]} />
       {list.isError && <Alert type="error" message={(list.error as Error).message} action={<Button onClick={() => void list.refetch()}>重试</Button>} />}
       <Input.Search allowClear placeholder="查找业务名称或表名" value={search} onChange={e => setSearch(e.target.value)} />
-      <Table<MappingRow> rowKey="draftId" loading={list.isLoading} dataSource={(list.data?.items || []).filter(r => `${r.tableName} ${r.chineseName}`.toLowerCase().includes(search.toLowerCase()))}
-        locale={{ emptyText: <Empty description="还没有业务对象"><Button type="primary" onClick={onExplore}>从数据表开始</Button></Empty> }} columns={[
-          { title: "业务对象", render: (_, r) => <Button type="link" onClick={() => setSelected(r.draftId)}>{r.chineseName || r.tableName}</Button> },
+      <Table<MappingRow> rowKey="draftId" loading={deleted ? trash.isLoading : list.isLoading} dataSource={rows.filter(r => (filter === "全部" || graphState(r) === filter) && `${r.tableName} ${r.chineseName}`.toLowerCase().includes(search.toLowerCase()))}
+        locale={{ emptyText: <Empty description={deleted ? "没有已删除草稿" : "没有匹配的业务对象"}><Button type="primary" onClick={onExplore}>从数据表开始</Button></Empty> }} columns={[
+          { title: "业务对象", render: (_, r) => <Button type="link" disabled={deleted} onClick={() => setSelected(r.draftId)}>{r.chineseName || r.tableName}</Button> },
           { title: "来自哪张表", dataIndex: "tableName" },
-          { title: "状态", render: (_, r) => <Tag>{["event", "relationship", "auxiliary"].includes(r.role) ? "需要转换" : r.role === "excluded" ? "暂不使用" : "建模中"}</Tag> },
-          { title: "操作", render: (_, r) => <Button onClick={() => setSelected(r.draftId)}>编辑</Button> },
+          { title: "建模进度", render: (_, r) => <Tag>{["event", "relationship", "auxiliary"].includes(r.role) ? "需要转换" : r.role === "excluded" ? "暂不使用" : "建模中"}</Tag> },
+          { title: "图谱状态", render: (_, r) => <Tag color={graphState(r) === "已在启用本体中" ? "green" : graphState(r) === "待发布" ? "blue" : undefined}>{graphState(r)}</Tag> },
+          { title: "操作", width: 210, render: (_, r) => deleted ? <Button loading={removal.isPending} onClick={() => removal.mutate(r)}>恢复草稿</Button> : <Space><Button onClick={() => setSelected(r.draftId)}>编辑</Button><Popconfirm title={`删除 ${r.chineseName || r.tableName} 的草稿？`} description="仅移入已删除列表，可恢复。待发布模型和已发布图谱中的对象保持不变。" onConfirm={() => removal.mutateAsync(r)} okText="删除草稿" cancelText="取消"><Button danger loading={removal.isPending}>删除草稿</Button></Popconfirm></Space> },
         ]} />
     </Space>
     <Drawer title="编辑业务对象" size="large" open={!!selected} onClose={() => void close()} destroyOnHidden>

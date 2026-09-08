@@ -122,3 +122,30 @@ def test_mapping_provenance_is_frozen_and_excluded_fields_cannot_be_republished(
     graph["properties"].append({"classUid": "test::Product", "uid": "test::Product::changeCount", "sourceName": "changeCount", "targetName": "changeCount", "dataType": "Integer", "published": True})
     result = validate_graph({"workspace_key": "test", "revision": 1}, graph)
     assert any(e["code"] == "property.excluded_by_mapping" for e in result["errors"])
+
+
+def test_delete_draft_checks_revision_and_preserves_design():
+    import json
+    from src.graphstudio_sync.semantic_mapping import MappingStore
+    class Connection:
+        def __init__(self):
+            self.row = {"revision": 3, "design": {"role": "entity", "fields": {"name": "property"}}}
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def execute(self, sql, params):
+            if str(sql).startswith("UPDATE"):
+                self.row["design"] = json.loads(params["design"])
+                self.row["revision"] += 1
+            return self
+        def mappings(self): return self
+        def one_or_none(self): return self.row
+    conn = Connection()
+    store = MappingStore(type("Engine", (), {"begin": lambda self: conn})())
+    with pytest.raises(RuntimeError):
+        store.set_deleted("draft", 2, True)
+    assert "deleted" not in conn.row["design"]
+    store.set_deleted("draft", 3, True)
+    assert conn.row["design"]["deleted"] is True
+    assert conn.row["design"]["fields"] == {"name": "property"}
+    store.set_deleted("draft", 4, False)
+    assert conn.row["design"]["deleted"] is False

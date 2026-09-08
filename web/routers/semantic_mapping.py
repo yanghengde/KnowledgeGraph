@@ -77,8 +77,8 @@ def add_sources(request: SourcesRequest):
 
 
 @router.get("")
-def list_drafts():
-    return {"items": _store().list()}
+def list_drafts(deleted: bool = False):
+    return {"items": _store().list(deleted)}
 
 
 @router.get("/physical/versions")
@@ -192,3 +192,13 @@ def check_model(draft_id: str, request: WorkspaceRequest):
 @router.post("/{draft_id}/ready")
 def ready_model(draft_id: str, request: ReadyRequest):
     return _run(lambda: _simple(draft_id, request, True))
+
+
+class DeleteDraftRequest(BaseModel):
+    revision: int = Field(gt=0)
+    deleted: bool = True
+
+
+@router.post("/{draft_id}/delete")
+def delete_draft(draft_id: str, request: DeleteDraftRequest):
+    return _run(lambda: _store().set_deleted(draft_id, request.revision, request.deleted))

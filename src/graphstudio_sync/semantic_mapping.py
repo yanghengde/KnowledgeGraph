@@ -113,15 +113,29 @@ class MappingStore:
                 design = {"role": "pending", "chineseName": "", "description": "", "notes": "",
                           "fields": {f["name"]: "internal" if f["primaryKey"] else "pending" for f in fields}}
                 conn.execute(text("""INSERT INTO graphsync.semantic_mapping_draft(draft_id,snapshot_id,table_name,design)
-                    VALUES (:id,:snapshot,:name,CAST(:design AS jsonb)) ON CONFLICT(snapshot_id,table_name) DO NOTHING"""),
+                    VALUES (:id,:snapshot,:name,CAST(:design AS jsonb)) ON CONFLICT(snapshot_id,table_name) DO UPDATE SET
+                    design=graphsync.semantic_mapping_draft.design - 'deleted',
+                    revision=graphsync.semantic_mapping_draft.revision+1,updated_at=now()
+                    WHERE COALESCE((graphsync.semantic_mapping_draft.design->>'deleted')::boolean,false)"""),
                     {"id": uuid.uuid4().hex, "snapshot": snapshot_id, "name": name, "design": canonical(design)})
         return {"snapshotId": snapshot_id, "sources": len(selected)}
 
-    def list(self):
+    def list(self, deleted=False):
         with self.engine.connect() as conn:
             return [dict(r) for r in conn.execute(text("""SELECT draft_id AS "draftId", snapshot_id AS "snapshotId",
                 table_name AS "tableName", revision, design->>'role' AS role, design->>'chineseName' AS "chineseName",
-                updated_at AS "updatedAt" FROM graphsync.semantic_mapping_draft ORDER BY updated_at DESC,table_name""")).mappings()]
+                updated_at AS "updatedAt" FROM graphsync.semantic_mapping_draft WHERE COALESCE((design->>'deleted')::boolean,false)=:deleted ORDER BY updated_at DESC,table_name"""), {"deleted": deleted}).mappings()]
+
+    def set_deleted(self, draft_id, revision, deleted):
+        with self.engine.begin() as conn:
+            row = conn.execute(text("SELECT revision,design FROM graphsync.semantic_mapping_draft WHERE draft_id=:id FOR UPDATE"), {"id": draft_id}).mappings().one_or_none()
+            if row is None:
+                raise LookupError("来源草稿不存在")
+            if row["revision"] != revision:
+                raise RuntimeError("草稿已变化，请刷新后重试")
+            design = {**row["design"], "deleted": deleted}
+            conn.execute(text("UPDATE graphsync.semantic_mapping_draft SET design=CAST(:design AS jsonb),revision=revision+1,updated_at=now() WHERE draft_id=:id"), {"id": draft_id, "design": canonical(design)})
+        return {"deleted": deleted}
 
     def snapshots(self):
         with self.engine.connect() as conn:
@@ -146,6 +160,8 @@ class MappingStore:
             JOIN graphsync.physical_model_snapshot s USING(snapshot_id) WHERE draft_id=:id""" + (" FOR UPDATE OF d" if lock else "")), {"id": draft_id}).mappings().one_or_none()
         if row is None:
             raise LookupError("来源草稿不存在")
+        if row["design"].get("deleted"):
+            raise RuntimeError("草稿已删除，请先从已删除列表恢复")
         if digest(row["payload"]) != row["snapshot_id"]:
             raise ValueError("物理快照校验失败")
         return {"draftId": row["draft_id"], "snapshotId": row["snapshot_id"], "tableName": row["table_name"],

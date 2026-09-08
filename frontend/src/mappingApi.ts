@@ -20,6 +20,8 @@ export const mappingApi = {
   restorePhysical: (snapshotId: string, database: string) => request<import("./authorityApi").ImportAnalysis>("/physical/restore", { snapshotId, database }),
   addSources: (importId: string, selected: string[]) => request("/sources", { importId, selected }),
   list: () => request<{ items: MappingRow[] }>(),
+  deleted: () => request<{ items: MappingRow[] }>("?deleted=true"),
+  remove: (id: string, revision: number, deleted = true) => request(`/${id}/delete`, { revision, deleted }),
   detail: (id: string) => request<MappingDetail>(`/${id}`),
   save: (id: string, revision: number, design: SourceDesign) => request<MappingDetail>(`/${id}/save`, { revision, design }),
   preview: (id: string) => request<MappingPreview>(`/${id}/preview`, {}),
