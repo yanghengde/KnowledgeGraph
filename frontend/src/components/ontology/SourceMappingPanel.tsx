@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Empty, Input, Popconfirm, Radio, Segmented, Space, Table, Tag, Typography } from "antd";
+import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Empty, Input, Popconfirm, Radio, Select, Space, Table, Tag, Tooltip, Typography } from "antd";
 import { mappingApi, type MappingDetail, type MappingRow, type SimpleCheck } from "../../mappingApi";
 import { syncApi } from "../../api";
 import { useMappingAutosave } from "./useMappingAutosave";
@@ -26,21 +26,24 @@ export function SourceMappingPanel({ onExplore, onReview }: { onExplore: () => v
   const [search, setSearch] = useState("");
   const flush = useRef<(() => Promise<void>) | null>(null);
   const close = async () => { try { await flush.current?.(); setSelected(undefined); await client.invalidateQueries({ queryKey: ["mapping-drafts"] }); } catch { message.error("修改尚未保存，请重试后关闭"); } };
-  return <Card title="我的业务对象" extra={<Button onClick={onExplore}>添加对象</Button>}>
+  return <Card title={<Space><span>{deleted ? "已删除对象" : "我的业务对象"}</span><Typography.Text type="secondary">{rows.length}</Typography.Text></Space>} extra={<Button type="text" onClick={() => { setDeleted(!deleted); setFilter("全部"); }}>{deleted ? "返回业务对象" : "已删除"}</Button>}>
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-      <Typography.Paragraph>编辑并检查对象后加入待发布模型。“已在启用本体中”表示当前启用版本包含此对象，不代表草稿的最新修改已发布，也不代表业务实例已同步。</Typography.Paragraph>
-      <Space wrap><Segmented value={deleted ? "已删除" : "业务对象"} onChange={value => setDeleted(value === "已删除")} options={["业务对象", "已删除"]} /><Tag>共 {rows.length} 个草稿</Tag>{governance.data?.activeRelease && <Tag color="green">启用本体 R{governance.data.activeRelease.release_no}</Tag>}</Space>
       {governance.isError && <Alert type="warning" message="图谱状态读取失败，不能据此判断对象尚未发布" action={<Button onClick={() => void governance.refetch()}>重试</Button>} />}
       {trash.isError && deleted && <Alert type="error" message="已删除草稿读取失败" />}
-      <Segmented value={filter} onChange={setFilter} options={["全部", "未加入模型", "待发布", "已在启用本体中"]} />
       {list.isError && <Alert type="error" message={(list.error as Error).message} action={<Button onClick={() => void list.refetch()}>重试</Button>} />}
-      <Input.Search allowClear placeholder="查找业务名称或表名" value={search} onChange={e => setSearch(e.target.value)} />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <Input.Search style={{ flex: "1 1 240px" }} allowClear placeholder="查找业务名称或表名" value={search} onChange={e => setSearch(e.target.value)} />
+        {!deleted && <Select aria-label="筛选模型状态" style={{ width: 180 }} value={filter} onChange={setFilter} options={["全部", "未加入模型", "待发布", "已在启用本体中"].map(value => ({ value, label: value === "全部" ? "全部状态" : value }))} />}
+      </div>
       <Table<MappingRow> rowKey="draftId" loading={deleted ? trash.isLoading : list.isLoading} dataSource={rows.filter(r => (filter === "全部" || graphState(r) === filter) && `${r.tableName} ${r.chineseName}`.toLowerCase().includes(search.toLowerCase()))}
-        locale={{ emptyText: <Empty description={deleted ? "没有已删除草稿" : "没有匹配的业务对象"}><Button type="primary" onClick={onExplore}>从数据表开始</Button></Empty> }} columns={[
+        locale={{ emptyText: <Empty description={deleted ? "没有已删除草稿" : "没有匹配的业务对象"}>{!deleted && !search && filter === "全部" && <Button type="primary" onClick={onExplore}>添加业务对象</Button>}</Empty> }} columns={[
           { title: "业务对象", render: (_, r) => <Button type="link" disabled={deleted} onClick={() => setSelected(r.draftId)}>{r.chineseName || r.tableName}</Button> },
-          { title: "来自哪张表", dataIndex: "tableName" },
-          { title: "建模进度", render: (_, r) => <Tag>{["event", "relationship", "auxiliary"].includes(r.role) ? "需要转换" : r.role === "excluded" ? "暂不使用" : "建模中"}</Tag> },
-          { title: "图谱状态", render: (_, r) => <Tag color={graphState(r) === "已在启用本体中" ? "green" : graphState(r) === "待发布" ? "blue" : undefined}>{graphState(r)}</Tag> },
+          { title: "来源表", dataIndex: "tableName" },
+          { title: "状态", render: (_, r) => <Space wrap>
+            <Tooltip title={graphState(r) === "状态待核实" ? "正在读取模型状态或读取失败，请刷新后重试。" : graphState(r) === "已在启用本体中" ? "启用版本包含此对象；草稿的新修改仍需检查发布，业务数据需另行同步。" : graphState(r) === "待发布" ? "对象已加入待发布模型，请到“检查发布”继续。" : "编辑对象并检查后，可加入待发布模型。"}><Tag color={graphState(r) === "已在启用本体中" ? "green" : graphState(r) === "待发布" ? "blue" : undefined}>{graphState(r)}</Tag></Tooltip>
+            {["event", "relationship", "auxiliary"].includes(r.role) && <Tag color="orange">需要转换</Tag>}
+            {r.role === "excluded" && <Tag>暂不使用</Tag>}
+          </Space> },
           { title: "操作", width: 210, render: (_, r) => deleted ? <Button loading={removal.isPending} onClick={() => removal.mutate(r)}>恢复草稿</Button> : <Space><Button onClick={() => setSelected(r.draftId)}>编辑</Button><Popconfirm title={`删除 ${r.chineseName || r.tableName} 的草稿？`} description="仅移入已删除列表，可恢复。待发布模型和已发布图谱中的对象保持不变。" onConfirm={() => removal.mutateAsync(r)} okText="删除草稿" cancelText="取消"><Button danger loading={removal.isPending}>删除草稿</Button></Popconfirm></Space> },
         ]} />
     </Space>
@@ -71,7 +74,7 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
     autosave.change({ fields: Object.fromEntries(detail.fields.map(f => [f.name, design.fields[f.name] === "pending" ? (f.primaryKey ? "internal" : "excluded") : design.fields[f.name]])) });
     await flush();
     const governance = await syncApi.ontologyGovernance("opcenter2607-core");
-    if (!governance.currentWorkspace) throw new Error("尚未配置发布模型，请在高级管理中初始化");
+    if (!governance.currentWorkspace) throw new Error("尚未配置发布模型，请联系管理员初始化发布工作区");
     const key = governance.currentWorkspace.workspace_key; setWorkspace(key); return mappingApi.check(detail.draftId, key);
   }, onSuccess: setPreview, onError: (e: Error) => message.error(e.message) });
   const apply = useMutation({ mutationFn: async () => { await flush(); return mappingApi.ready(detail.draftId, workspace, revision.current, preview!.planHash); }, onSuccess: async () => {

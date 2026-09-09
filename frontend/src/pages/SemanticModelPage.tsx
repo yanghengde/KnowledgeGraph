@@ -2,11 +2,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ApartmentOutlined, ArrowsAltOutlined, BranchesOutlined, DatabaseOutlined,
   CheckCircleOutlined, DeploymentUnitOutlined, FolderOpenOutlined,
-  HistoryOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, StarFilled, StarOutlined, TagsOutlined,
+  MoreOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, StarFilled, StarOutlined, TagsOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Alert, App, Button, Card, Descriptions, Empty, Input, Segmented, Select, Space,
+  Alert, App, Button, Card, Descriptions, Dropdown, Empty, Input, Segmented, Select, Space,
   Spin, Statistic, Table, Tabs, Tag, Tooltip, Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
@@ -135,7 +135,7 @@ export function SemanticModelPage() {
       const [nextOverview, nextStats] = await Promise.all([semanticApi.overview(true), semanticApi.stats(true)]);
       queryClient.setQueryData(["semantic-graph-overview"], nextOverview);
       queryClient.setQueryData(["semantic-graph-stats"], nextStats);
-      await Promise.all(["ontology-directory", "authority-detail", "semantic-class-detail", "ontology-governance"].map(key => queryClient.invalidateQueries({ queryKey: [key] })));
+      await Promise.all(["ontology-directory", "authority-detail", "semantic-class-detail", "ontology-governance", "mapping-drafts", "mapping-deleted"].map(key => queryClient.invalidateQueries({ queryKey: [key] })));
     } catch (error) {
       message.error(error instanceof Error ? error.message : "刷新失败，请重试");
     } finally {
@@ -174,19 +174,21 @@ export function SemanticModelPage() {
         <Typography.Paragraph>添加业务对象，选择需要的字段，检查后发布。</Typography.Paragraph>
       </div>
       <Space wrap>
-        <Button type="primary" icon={<SearchOutlined />} onClick={() => navigate("/object-explorer")}>添加业务对象</Button>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate("/object-explorer")}>添加业务对象</Button>
         <Button icon={<ReloadOutlined />} loading={refreshing || overview.isFetching || stats.isFetching} onClick={() => void refresh()}>刷新</Button>
       </Space>
     </section>
 
     <Card className="semantic-stage-card" styles={{ body: { padding: "4px 14px 0" } }}>
-      <Tabs activeKey={workbenchView === "source" ? "directory" : workbenchView} onChange={(key) => setWorkbenchView(key as typeof workbenchView)} items={[
-        { key: "mapping", label: <Space><BranchesOutlined />编辑业务对象</Space> },
+      <Tabs tabBarExtraContent={<Dropdown trigger={["click"]} menu={{
+        selectedKeys: [workbenchView === "source" ? "directory" : workbenchView],
+        onClick: ({ key }) => setWorkbenchView(key as typeof workbenchView),
+        items: [{ key: "versions", label: "版本记录" }, { key: "directory", label: "来源比较与审阅" }],
+      }}><Button type="text" icon={<MoreOutlined />}>更多</Button></Dropdown>} activeKey={workbenchView === "source" ? "directory" : workbenchView} onChange={(key) => setWorkbenchView(key as typeof workbenchView)} items={[
+        { key: "mapping", label: <Space><BranchesOutlined />业务对象</Space> },
         { key: "workspace", label: <Space><FolderOpenOutlined />查看模型{governance.data && <Tag color="cyan">{governance.data.graph.nodes.length}</Tag>}</Space> },
         { key: "validation", label: <Space><CheckCircleOutlined />检查发布</Space> },
-        { key: "versions", label: <Space><HistoryOutlined />版本记录{governance.data && <Tag color="gold">{governance.data.releases.length}</Tag>}</Space> },
       ]} />
-      <Button type="link" size="small" onClick={() => setWorkbenchView("directory")}>高级管理：来源比较与审阅</Button>
     </Card>
 
     {(workbenchView === "directory" || workbenchView === "source") && <Segmented value={workbenchView} onChange={value => setWorkbenchView(value as "directory" | "source")} options={[{ value: "directory", label: "对象目录与变更审阅" }, { value: "source", label: "已同步模型图" }]} />}
