@@ -4,6 +4,7 @@ export type SourceDesign = { role: SourceRole; chineseName: string; description:
 export type MappingRow = { draftId: string; snapshotId: string; tableName: string; revision: number; role: SourceRole; chineseName: string };
 export type MappingField = { name: string; physicalName: string; type: string; target: string; primaryKey: boolean };
 export type FieldRecommendation = { role: FieldRole; autoSelect: boolean; reason: string };
+export type MappingDescriptions = { fields: Record<string, { descriptionEn?: string; descriptionZh?: string }>; warning: string };
 export type MappingDetail = MappingRow & { design: SourceDesign; fields: MappingField[]; tableNames: string[]; recommendations?: Record<string, FieldRecommendation>; suggestedFields?: Record<string, FieldRole> };
 export type MappingPreview = { planHash: string; blockers: string[]; counts: { properties: number; relationships: number; internal: number; excluded: number } };
 export type SimpleCheck = MappingPreview & { revision: number; fields: { name: string; type: string }[]; removedFields: string[] };
@@ -24,6 +25,7 @@ export const mappingApi = {
   deleted: () => request<{ items: MappingRow[] }>("?deleted=true"),
   remove: (id: string, revision: number, deleted = true) => request(`/${id}/delete`, { revision, deleted }),
   detail: (id: string) => request<MappingDetail>(`/${id}`),
+  descriptions: (id: string) => request<MappingDescriptions>(`/${id}/descriptions`),
   save: (id: string, revision: number, design: SourceDesign) => request<MappingDetail>(`/${id}/save`, { revision, design }),
   preview: (id: string) => request<MappingPreview>(`/${id}/preview`, {}),
   submit: (id: string, revision: number, planHash: string) => request(`/${id}/submit`, { revision, planHash }),

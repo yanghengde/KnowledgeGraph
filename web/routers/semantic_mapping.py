@@ -127,6 +127,88 @@ def detail(draft_id: str):
     return _run(lambda: _store().detail(draft_id))
 
 
+@router.get("/{draft_id}/descriptions")
+def field_descriptions(draft_id: str):
+    """Read display metadata separately so source outages never block editing."""
+    from src.graphstudio_sync.config import SyncSettings
+    from src.ontology.designer_descriptions import load_descriptions
+    from web.designer_metadata import get_cdo_metadata, load_physical_description_catalog
+
+    draft = _run(lambda: _store().detail(draft_id))
+    database = "oracle" if SyncSettings.from_env().source_kind == "oracle" else "sqlserver"
+    table = draft["tableName"]
+    allowed = {f["physicalName"].casefold() for f in draft["fields"]}
+    fields = {}
+    stored = {}
+    warnings = []
+    try:
+        stored = load_descriptions(database)
+        fields = {name.casefold(): dict(value) for (class_name, name), value in stored.items()
+                  if class_name.casefold() == table.casefold() and name.casefold() in allowed
+                  and (value.get("descriptionEn") or value.get("descriptionZh"))}
+    except Exception:
+        warnings.append("已保存的中文说明暂不可用")
+    if allowed - fields.keys():
+        try:
+            physical = load_physical_description_catalog(database).get(table.casefold())
+            english = physical["fields"] if physical else {
+                key: item.get("description", "") for key, item in get_cdo_metadata(database, table)["fields"].items()}
+            for name, description in english.items():
+                key = name.casefold()
+                if key in allowed and key not in fields and description:
+                    fields[key] = {"descriptionEn": description, "descriptionZh": ""}
+        except Exception:
+            warnings.append("部分 Designer 说明暂未读取，可稍后重试")
+    warnings.extend(_prefer_chinese_descriptions(database, table, fields, stored))
+    return {"fields": fields, "warning": "；".join(warnings)}
+
+
+def _prefer_chinese_descriptions(database, table, fields, stored):
+    """Reuse translations by source text, then translate only missing Chinese."""
+    from src.ontology.designer_descriptions import save_descriptions
+    from web.routers.ontology_import import _load_description_cache, _configured_translation_provider, _build_batch_translator
+
+    warnings = []
+    missing = {name: item for name, item in fields.items()
+               if not (item.get("descriptionZh") or "").strip() and (item.get("descriptionEn") or "").strip()}
+    if not missing:
+        return warnings
+    cache = {en.strip(): zh.strip() for en, zh in _load_description_cache().items() if en.strip() and zh.strip()}
+    for item in stored.values():
+        en, zh = (item.get("descriptionEn") or "").strip(), (item.get("descriptionZh") or "").strip()
+        if en and zh:
+            cache.setdefault(en, zh)
+    pending = list(dict.fromkeys(item["descriptionEn"].strip() for item in missing.values()
+                                 if item["descriptionEn"].strip() not in cache))
+    if pending:
+        provider = _configured_translation_provider()
+        if provider == "none":
+            warnings.append("部分字段暂无中文翻译，暂显示英文原文")
+        else:
+            try:
+                translator, size = _build_batch_translator(provider)
+                for index in range(0, len(pending), size):
+                    batch = pending[index:index + size]
+                    translated = translator(batch)
+                    if len(translated) != len(batch) or any(not isinstance(value, str) or not value.strip() for value in translated):
+                        raise ValueError("翻译结果不完整")
+                    cache.update(zip(batch, (value.strip() for value in translated)))
+            except Exception:
+                warnings.append("部分中文翻译暂未完成，暂显示英文原文，可重试")
+    updates = []
+    for name, item in missing.items():
+        chinese = cache.get(item["descriptionEn"].strip())
+        if chinese:
+            item["descriptionZh"] = chinese
+            updates.append(dict(item, className=table, fieldName=name))
+    if updates:
+        try:
+            save_descriptions(database, updates)
+        except Exception:
+            warnings.append("中文说明已显示，但暂未保存，可重试")
+    return warnings
+
+
 @router.post("/{draft_id}/save")
 def save(draft_id: str, request: SaveRequest):
     return _run(lambda: _store().save(draft_id, request.revision, request.design.model_dump()))

@@ -63,6 +63,7 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
   const { message } = App.useApp();
   const client = useQueryClient();
   const autosave = useMappingAutosave(detail);
+  const descriptions = useQuery({ queryKey: ["mapping-descriptions", detail.draftId, detail.snapshotId], queryFn: () => mappingApi.descriptions(detail.draftId), staleTime: 300000, retry: false });
   const { design, flush, revision, status, error } = autosave;
   const [preview, setPreview] = useState<SimpleCheck>();
   const [workspace, setWorkspace] = useState("");
@@ -89,7 +90,7 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
   const otherCount = fields.filter(f => !chosen(f.name) && !recommended(f.name)).length;
   const searchText = search.trim().toLowerCase();
   const visibleFields = fields.filter(f => (showAll || searchText || chosen(f.name) || recommended(f.name))
-    && `${f.name} ${f.physicalName} ${f.target} ${detail.recommendations?.[f.name]?.reason || ""}`.toLowerCase().includes(searchText));
+    && `${f.name} ${f.physicalName} ${f.target} ${detail.recommendations?.[f.name]?.reason || ""} ${descriptions.data?.fields[f.physicalName.toLowerCase()]?.descriptionZh || ""} ${descriptions.data?.fields[f.physicalName.toLowerCase()]?.descriptionEn || ""}`.toLowerCase().includes(searchText));
   return <Space orientation="vertical" size={16} style={{ width: "100%" }}>
     <Space><Typography.Text type="secondary">来源：{detail.tableName}</Typography.Text><Tag>{status}</Tag></Space>
     {error && <Alert type="error" message={error} action={<Button onClick={() => void flush().catch(() => {})}>重试保存</Button>} />}
@@ -104,14 +105,21 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
       <Typography.Text strong>业务字段 · 已选 {fields.filter(f => chosen(f.name)).length} 项</Typography.Text>
       <Typography.Text type="secondary">基础字段已推荐勾选，已有选择保留。关联按需勾选；未勾选字段不加入模型，主键由系统保留。</Typography.Text>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
-        <Input.Search style={{ flex: "1 1 220px" }} allowClear placeholder="搜索全部字段或关联对象" value={search} onChange={e => setSearch(e.target.value)} />
+        <Input.Search style={{ flex: "1 1 220px" }} allowClear placeholder="搜索字段、描述或关联对象" value={search} onChange={e => setSearch(e.target.value)} />
         <Button type="link" onClick={() => setShowAll(!showAll)}>{showAll ? "收起其他字段" : `查看其他字段（${otherCount}）`}</Button>
       </div>
-      <Table rowKey="name" size="small" pagination={{ pageSize: 10, showSizeChanger: false, hideOnSinglePage: true }}
+      {(descriptions.isError || descriptions.data?.warning) && <Alert type="warning" showIcon message={descriptions.data?.warning || "Designer 说明暂不可用，不影响字段选择"} action={<Button size="small" loading={descriptions.isFetching} onClick={() => void descriptions.refetch()}>重试</Button>} />}
+      <Table rowKey="name" size="small" pagination={false}
         locale={{ emptyText: searchText ? "没有匹配字段" : "暂无推荐字段，可展开其他字段按需选择" }} dataSource={visibleFields} columns={[
         { title: "使用", width: 55, render: (_, f) => <Checkbox aria-label={`使用 ${f.physicalName}`} disabled={busy} checked={chosen(f.name)} onChange={e => change({ fields: { ...design.fields, [f.name]: e.target.checked ? f.type === "Navigation" ? "relationship" : "property" : "excluded" } })} /> },
-        { title: "字段", render: (_, f) => <Space orientation="vertical" size={0}><span>{f.physicalName}</span>{f.type === "Navigation" && f.target && <Typography.Text type="secondary">关联 → {f.target}</Typography.Text>}</Space> },
-        { title: "选择建议", render: (_, f) => <Typography.Text type="secondary">{detail.recommendations?.[f.name]?.reason || "按业务需要选择"}</Typography.Text> },
+        { title: "字段", width: "38%", render: (_, f) => <Space orientation="vertical" size={4} style={{ overflowWrap: "anywhere" }}><span>{f.physicalName}</span>{f.type === "Navigation" && f.target && <Typography.Text type="secondary">关联 → {f.target}</Typography.Text>}<Typography.Text type="secondary" style={{ fontSize: 12 }}>{detail.recommendations?.[f.name]?.reason || "按业务需要选择"}</Typography.Text></Space> },
+        { title: "Designer 描述（中文优先）", render: (_, f) => {
+          const description = descriptions.data?.fields[f.physicalName.toLowerCase()];
+          return <div style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+            {description?.descriptionZh?.trim() || description?.descriptionEn || <Typography.Text type="secondary">{descriptions.isPending ? "正在读取并补全中文说明…" : descriptions.isError || descriptions.data?.warning ? "说明暂不可用" : "Designer 暂无字段说明"}</Typography.Text>}
+            {description?.descriptionZh && description.descriptionEn && <details className="field-source-description"><summary>英文原文</summary>{description.descriptionEn}</details>}
+          </div>;
+        } },
       ]} />
       <Button type="primary" disabled={busy} loading={check.isPending} onClick={() => check.mutate()}>检查这个对象</Button>
       {preview && <Card size="small" title="检查结果"><Space orientation="vertical" style={{ width: "100%" }}>
