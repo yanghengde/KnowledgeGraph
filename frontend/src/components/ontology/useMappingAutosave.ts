@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { mappingApi, type MappingDetail, type SourceDesign } from "../../mappingApi";
 
 export function useMappingAutosave(detail: MappingDetail) {
-  const [design, setDesign] = useState(detail.design);
+  const [design, setDesign] = useState(() => ({ ...detail.design, fields: detail.suggestedFields ?? detail.design.fields }));
   const latest = useRef(design);
   const revision = useRef(detail.revision);
-  const saved = useRef(JSON.stringify(design));
+  const saved = useRef(JSON.stringify(detail.design));
   const queue = useRef<Promise<void> | null>(null);
-  const [status, setStatus] = useState("已保存");
+  const [status, setStatus] = useState(() => JSON.stringify(design) === saved.current ? "已保存" : "推荐已填入，待保存…");
   const [error, setError] = useState("");
   const flush = useCallback(async () => {
     if (queue.current) await queue.current;

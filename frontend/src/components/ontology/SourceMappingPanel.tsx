@@ -67,7 +67,7 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
   const [preview, setPreview] = useState<SimpleCheck>();
   const [workspace, setWorkspace] = useState("");
   const [search, setSearch] = useState("");
-  const [showAll, setShowAll] = useState(true);
+  const [showAll, setShowAll] = useState(false);
   useEffect(() => { register(flush); return () => register(null); }, [flush]);
   const change = (patch: Parameters<typeof autosave.change>[0]) => { autosave.change(patch); setPreview(undefined); };
   const check = useMutation({ mutationFn: async () => {
@@ -85,6 +85,11 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
   useEffect(() => { onBusy?.(busy); return () => onBusy?.(false); }, [busy, onBusy]);
   const chosen = (name: string) => ["property", "relationship"].includes(design.fields[name]);
   const fields = detail.fields.filter(f => !f.primaryKey);
+  const recommended = (name: string) => ["property", "relationship"].includes(detail.recommendations?.[name]?.role || "");
+  const otherCount = fields.filter(f => !chosen(f.name) && !recommended(f.name)).length;
+  const searchText = search.trim().toLowerCase();
+  const visibleFields = fields.filter(f => (showAll || searchText || chosen(f.name) || recommended(f.name))
+    && `${f.name} ${f.physicalName} ${f.target} ${detail.recommendations?.[f.name]?.reason || ""}`.toLowerCase().includes(searchText));
   return <Space orientation="vertical" size={16} style={{ width: "100%" }}>
     <Space><Typography.Text type="secondary">来源：{detail.tableName}</Typography.Text><Tag>{status}</Tag></Space>
     {error && <Alert type="error" message={error} action={<Button onClick={() => void flush().catch(() => {})}>重试保存</Button>} />}
@@ -96,18 +101,26 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
       <Alert type="info" message={design.role === "pending" ? "先选择使用方式" : "先记下来，稍后处理"} description="历史记录等数据需要转换后才能使用。可以先写下希望得到的业务对象，说明会自动保存。" />
       <Input.TextArea disabled={busy} placeholder="例如：从历史记录中整理出每个批次的过站事件" value={design.notes} maxLength={16000} onChange={e => change({ notes: e.target.value })} autoSize={{ minRows: 3, maxRows: 6 }} />
     </> : <>
-      <Typography.Text strong>选择需要的字段 · 已选 {fields.filter(f => chosen(f.name)).length} 项</Typography.Text>
-      <Typography.Text type="secondary">勾选需要分析的内容即可。关联会自动识别，必要的身份字段由系统保留。</Typography.Text>
-      <Space wrap><Input.Search allowClear placeholder="搜索字段" value={search} onChange={e => setSearch(e.target.value)} /><Checkbox checked={showAll} onChange={e => setShowAll(e.target.checked)}>显示未选字段</Checkbox></Space>
-      <Table rowKey="name" size="small" pagination={{ pageSize: 10 }} dataSource={fields.filter(f => (showAll || chosen(f.name)) && `${f.name} ${f.physicalName}`.toLowerCase().includes(search.toLowerCase()))} columns={[
+      <Typography.Text strong>业务字段 · 已选 {fields.filter(f => chosen(f.name)).length} 项</Typography.Text>
+      <Typography.Text type="secondary">基础字段已推荐勾选，已有选择保留。关联按需勾选；未勾选字段不加入模型，主键由系统保留。</Typography.Text>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+        <Input.Search style={{ flex: "1 1 220px" }} allowClear placeholder="搜索全部字段或关联对象" value={search} onChange={e => setSearch(e.target.value)} />
+        <Button type="link" onClick={() => setShowAll(!showAll)}>{showAll ? "收起其他字段" : `查看其他字段（${otherCount}）`}</Button>
+      </div>
+      <Table rowKey="name" size="small" pagination={{ pageSize: 10, showSizeChanger: false, hideOnSinglePage: true }}
+        locale={{ emptyText: searchText ? "没有匹配字段" : "暂无推荐字段，可展开其他字段按需选择" }} dataSource={visibleFields} columns={[
         { title: "使用", width: 55, render: (_, f) => <Checkbox aria-label={`使用 ${f.physicalName}`} disabled={busy} checked={chosen(f.name)} onChange={e => change({ fields: { ...design.fields, [f.name]: e.target.checked ? f.type === "Navigation" ? "relationship" : "property" : "excluded" } })} /> },
-        { title: "字段", dataIndex: "physicalName" }, { title: "含义", render: (_, f) => f.target ? `关联 ${f.target}` : f.name },
+        { title: "字段", render: (_, f) => <Space orientation="vertical" size={0}><span>{f.physicalName}</span>{f.type === "Navigation" && f.target && <Typography.Text type="secondary">关联 → {f.target}</Typography.Text>}</Space> },
+        { title: "选择建议", render: (_, f) => <Typography.Text type="secondary">{detail.recommendations?.[f.name]?.reason || "按业务需要选择"}</Typography.Text> },
       ]} />
       <Button type="primary" disabled={busy} loading={check.isPending} onClick={() => check.mutate()}>检查这个对象</Button>
       {preview && <Card size="small" title="检查结果"><Space orientation="vertical" style={{ width: "100%" }}>
         <Alert showIcon type={preview.blockers.length ? "warning" : "success"} message={preview.blockers.length ? "这些内容需要处理" : `${preview.counts.properties} 个字段、${preview.counts.relationships} 条关联，可以加入发布模型`} description={preview.blockers.join("；") || "确认后，系统会完成模型审阅和准备。"} />
         {preview.removedFields.length > 0 && <Alert type="warning" message={`将从待发布模型移除 ${preview.removedFields.length} 个字段`} description={preview.removedFields.join("、")} />}
-        <Collapse items={[{ key: "fields", label: "查看本次字段", children: preview.fields.map(f => <Tag key={f.name}>{f.name}</Tag>) }]} />
+        <Collapse items={[{ key: "fields", label: "查看本次字段与关联", children: preview.fields.map(f => {
+          const field = detail.fields.find(item => item.name === f.name);
+          return <Tag key={f.name}>{field?.physicalName || f.name}{f.type === "Navigation" && field?.target ? ` → ${field.target}` : ""}</Tag>;
+        }) }]} />
         <Button type="primary" disabled={busy || !!preview.blockers.length} loading={apply.isPending} onClick={() => apply.mutate()}>{inline ? "确认加入待发布模型" : "确认并进入检查发布"}</Button>
       </Space></Card>}
     </>}

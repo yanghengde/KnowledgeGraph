@@ -15,6 +15,7 @@ from scripts.validate_ontology_vs_csv import expected_type, normalize_field_name
 from src.ontology.physical_naming import relation_name
 from .ontology_store import canonical, digest
 from .physical_model import physical_fields
+from .field_recommendations import recommend_fields, suggested_fields
 
 SOURCE_ROLES = {"pending", "entity", "event", "relationship", "auxiliary", "excluded"}
 FIELD_ROLES = {"pending", "property", "relationship", "internal", "excluded"}
@@ -164,9 +165,12 @@ class MappingStore:
             raise RuntimeError("草稿已删除，请先从已删除列表恢复")
         if digest(row["payload"]) != row["snapshot_id"]:
             raise ValueError("物理快照校验失败")
+        fields = source_fields(row["table_name"], row["payload"]["fields"].get(row["table_name"], []))
+        recommendations = recommend_fields(row["table_name"], fields)
         return {"draftId": row["draft_id"], "snapshotId": row["snapshot_id"], "tableName": row["table_name"],
                 "revision": row["revision"], "design": row["design"],
-                "fields": source_fields(row["table_name"], row["payload"]["fields"].get(row["table_name"], [])),
+                "fields": fields, "recommendations": recommendations,
+                "suggestedFields": suggested_fields(row["design"], recommendations),
                 "tableNames": sorted(row["payload"]["tables"])}
 
     def save(self, draft_id, revision, design):
@@ -177,4 +181,5 @@ class MappingStore:
             design = validate_design(design, current["fields"])
             conn.execute(text("""UPDATE graphsync.semantic_mapping_draft SET design=CAST(:design AS jsonb),
                 revision=revision+1,updated_at=now() WHERE draft_id=:id"""), {"design": canonical(design), "id": draft_id})
-            return {**current, "design": design, "revision": revision + 1}
+            return {**current, "design": design, "revision": revision + 1,
+                    "suggestedFields": suggested_fields(design, current["recommendations"])}
