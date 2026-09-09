@@ -45,18 +45,18 @@ export function SourceMappingPanel({ onExplore, onReview }: { onExplore: () => v
         ]} />
     </Space>
     <Drawer title="编辑业务对象" size="large" open={!!selected} onClose={() => void close()} destroyOnHidden>
-      {selected && <Editor key={selected} id={selected} register={fn => { flush.current = fn; }} done={() => { setSelected(undefined); onReview(); }} />}
+      {selected && <MappingEditor key={selected} id={selected} register={fn => { flush.current = fn; }} done={() => { setSelected(undefined); onReview(); }} />}
     </Drawer>
   </Card>;
 }
 
-function Editor({ id, register, done }: { id: string; register: (fn: (() => Promise<void>) | null) => void; done: () => void }) {
+export function MappingEditor({ id, register, done, inline = false, onBusy }: { id: string; register: (fn: (() => Promise<void>) | null) => void; done: () => void; inline?: boolean; onBusy?: (busy: boolean) => void }) {
   const query = useQuery({ queryKey: ["mapping-detail", id], queryFn: () => mappingApi.detail(id), refetchOnWindowFocus: false, staleTime: 0 });
   if (query.isError) return <Alert type="error" message={(query.error as Error).message} />;
-  return query.isFetching ? <Card loading /> : query.data ? <Form detail={query.data} register={register} done={done} /> : null;
+  return query.isFetching ? <Card loading /> : query.data ? <Form detail={query.data} register={register} done={done} inline={inline} onBusy={onBusy} /> : null;
 }
 
-function Form({ detail, register, done }: { detail: MappingDetail; register: (fn: (() => Promise<void>) | null) => void; done: () => void }) {
+function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetail; register: (fn: (() => Promise<void>) | null) => void; done: () => void; inline: boolean; onBusy?: (busy: boolean) => void }) {
   const { message } = App.useApp();
   const client = useQueryClient();
   const autosave = useMappingAutosave(detail);
@@ -79,6 +79,7 @@ function Form({ detail, register, done }: { detail: MappingDetail; register: (fn
     message.success("已加入待发布模型");
   }, onError: (e: Error) => { setPreview(undefined); message.error(e.message); } });
   const busy = check.isPending || apply.isPending;
+  useEffect(() => { onBusy?.(busy); return () => onBusy?.(false); }, [busy, onBusy]);
   const chosen = (name: string) => ["property", "relationship"].includes(design.fields[name]);
   const fields = detail.fields.filter(f => !f.primaryKey);
   return <Space orientation="vertical" size={16} style={{ width: "100%" }}>
@@ -104,7 +105,7 @@ function Form({ detail, register, done }: { detail: MappingDetail; register: (fn
         <Alert showIcon type={preview.blockers.length ? "warning" : "success"} message={preview.blockers.length ? "这些内容需要处理" : `${preview.counts.properties} 个字段、${preview.counts.relationships} 条关联，可以加入发布模型`} description={preview.blockers.join("；") || "确认后，系统会完成模型审阅和准备。"} />
         {preview.removedFields.length > 0 && <Alert type="warning" message={`将从待发布模型移除 ${preview.removedFields.length} 个字段`} description={preview.removedFields.join("、")} />}
         <Collapse items={[{ key: "fields", label: "查看本次字段", children: preview.fields.map(f => <Tag key={f.name}>{f.name}</Tag>) }]} />
-        <Button type="primary" disabled={busy || !!preview.blockers.length} loading={apply.isPending} onClick={() => apply.mutate()}>确认并进入检查发布</Button>
+        <Button type="primary" disabled={busy || !!preview.blockers.length} loading={apply.isPending} onClick={() => apply.mutate()}>{inline ? "确认加入待发布模型" : "确认并进入检查发布"}</Button>
       </Space></Card>}
     </>}
     <Collapse items={[{ key: "details", label: "技术信息", children: <Typography.Paragraph>结构版本：{detail.snapshotId}<br />身份字段：{detail.fields.filter(f => f.primaryKey).map(f => f.physicalName).join("、") || "待核实"}</Typography.Paragraph> }]} />

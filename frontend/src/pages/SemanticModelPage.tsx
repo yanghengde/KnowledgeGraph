@@ -56,7 +56,7 @@ export function SemanticModelPage() {
   const navigate = useNavigate();
   const [followedNodeIds, setFollowedNodeIds] = useState<string[]>(loadFollowedNodes);
   const [params] = useSearchParams();
-  const [workbenchView, setWorkbenchView] = useState<"directory" | "source" | "mapping" | "workspace" | "validation" | "versions">(params.get("scope") === "pending" ? "directory" : "mapping");
+  const [workbenchView, setWorkbenchView] = useState<"directory" | "source" | "mapping" | "workspace" | "validation" | "versions">(params.get("view") === "validation" ? "validation" : params.get("scope") === "pending" ? "directory" : "mapping");
 
   const overview = useQuery({ queryKey: ["semantic-graph-overview"], queryFn: () => semanticApi.overview(), enabled: !["directory", "mapping"].includes(workbenchView) });
   const stats = useQuery({ queryKey: ["semantic-graph-stats"], queryFn: () => semanticApi.stats(), enabled: !["directory", "mapping"].includes(workbenchView) });

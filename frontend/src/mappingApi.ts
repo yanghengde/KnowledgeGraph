@@ -18,7 +18,7 @@ export const mappingApi = {
   ready: (id: string, workspaceKey: string, revision: number, planHash: string) => request(`/${id}/ready`, { workspaceKey, revision, planHash }),
   physicalVersions: () => request<{ items: { snapshotId: string; createdAt: string; tableCount: number }[] }>("/physical/versions"),
   restorePhysical: (snapshotId: string, database: string) => request<import("./authorityApi").ImportAnalysis>("/physical/restore", { snapshotId, database }),
-  addSources: (importId: string, selected: string[]) => request("/sources", { importId, selected }),
+  addSources: (importId: string, selected: string[]) => request<{ snapshotId: string; sources: number }>("/sources", { importId, selected }),
   list: () => request<{ items: MappingRow[] }>(),
   deleted: () => request<{ items: MappingRow[] }>("?deleted=true"),
   remove: (id: string, revision: number, deleted = true) => request(`/${id}/delete`, { revision, deleted }),

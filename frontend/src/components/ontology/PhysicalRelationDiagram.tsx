@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button, Empty, Input, Modal, Tag } from "antd";
 import type { ImportCandidate, PhysicalEdge } from "../../authorityApi";
 
@@ -6,13 +6,16 @@ type Props = {
   active: string;
   edges: PhysicalEdge[];
   candidates: ImportCandidate[];
-  used: Set<string>;
-  usageKnown: boolean;
+  renderUsage: (name: string) => ReactNode;
+  actionLabel: (name: string) => string;
+  onAdd: (name: string) => void;
+  busy: boolean;
+  adding?: string;
   onSelect: (name: string) => void;
 };
 
 /** Physical relationships retain every field, including self references and missing targets. */
-export function PhysicalRelationDiagram({ active, edges, candidates, used, usageKnown, onSelect }: Props) {
+export function PhysicalRelationDiagram({ active, edges, candidates, renderUsage, actionLabel, onAdd, busy, adding, onSelect }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [searches, setSearches] = useState({ in: "", out: "" });
   useEffect(() => { setSearches({ in: "", out: "" }); }, [active]);
@@ -42,9 +45,12 @@ export function PhysicalRelationDiagram({ active, edges, candidates, used, usage
     <div className="physical-relation-nodes">
       {visible.length === 0 && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={term ? "没有匹配的关联表，请调整或清空搜索" : "无此方向的关联"} />}
       {visible.map(([name, list]) => <article className="physical-relation-node" key={name}>
-        <Button type="link" disabled={!catalog.has(name) || name === active} onClick={() => onSelect(name)}>{name}</Button>
+        <div className="physical-relation-node-header">
+          <Button type="link" disabled={!catalog.has(name) || name === active} onClick={() => onSelect(name)}>{name}</Button>
+          <Button size="small" disabled={!catalog.has(name) || busy} loading={adding === name} onClick={() => onAdd(name)} aria-label={`${actionLabel(name)} ${name}`}>{actionLabel(name)}</Button>
+        </div>
         <div className="physical-relation-direction" aria-label="箭头指向使用该数据的表"><span>{direction === "in" ? active : name}</span><b aria-hidden="true">→</b><span>{direction === "in" ? name : active}</span></div>
-        <div className="physical-relation-status">{name === active && <Tag>自身关联</Tag>}{!catalog.has(name) ? <Tag color="warning">未导入表结构</Tag> : used.has(name) ? <Tag color="blue">已用于建模</Tag> : <Tag>{usageKnown ? "未使用" : "状态待核实"}</Tag>}</div>
+        <div className="physical-relation-status">{name === active && <Tag>自身关联</Tag>}{!catalog.has(name) ? <Tag color="warning">未导入表结构</Tag> : renderUsage(name)}</div>
         {(catalog.get(name)?.descriptionZh || catalog.get(name)?.descriptionEn) && <p>{catalog.get(name)?.descriptionZh || catalog.get(name)?.descriptionEn}</p>}
         <details><summary>{list.length} 条字段关联 · 展开查看</summary><ul>{list.map((edge, index) => <li key={`${edge.fieldId}:${index}`}><span>{edge.target}{edge.targetField ? `.${edge.targetField}` : ""}</span><span aria-label="被使用于"> → </span><span>{edge.source}.{edge.fieldName}</span></li>)}</ul></details>
       </article>)}

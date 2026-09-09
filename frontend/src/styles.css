@@ -782,3 +782,7 @@ html[data-theme="light"] .chat-composer:focus-within { border-color: rgba(8, 112
 .physical-relation-direction { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0; padding: 8px; border-radius: 6px; background: var(--ant-color-bg-layout, #f3f7fa); font-size: 12px; }
 .physical-relation-direction span { overflow-wrap: anywhere; min-width: 0; }
 .physical-relation-direction b { color: var(--relation-color); font-size: 20px; }
+
+.physical-relation-node-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.physical-relation-node-header > .ant-btn-link { flex: 1; min-width: 100px; }
+.physical-relation-node-header > .ant-btn:not(.ant-btn-link) { flex-shrink: 0; }
