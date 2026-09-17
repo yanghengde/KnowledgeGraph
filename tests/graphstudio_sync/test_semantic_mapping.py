@@ -20,9 +20,12 @@ def row(name, *, primary=False, target=""):
 @pytest.fixture
 def draft():
     fields = source_fields("Product", [row("ProductId", primary=True), row("ProductName"), row("ChangeCount"), row("CategoryId", target="Category")])
-    return {"draftId": "d1", "snapshotId": "s1", "revision": 2, "tableName": "Product", "tableNames": ["Product", "Category"],
+    result = {"draftId": "d1", "snapshotId": "s1", "revision": 2, "tableName": "Product", "tableNames": ["Product", "Category"],
             "fields": fields, "design": {"role": "entity", "chineseName": "产品", "description": "制造产品", "notes": "",
                                          "fields": {"productId": "internal", "name": "property", "changeCount": "excluded", "category": "relationship"}}}
+    from src.graphstudio_sync.modeling.relationship_review import confirm
+    result["design"] = confirm(result, "category", "产品所属分类", "reviewer")
+    return result
 
 
 def test_physical_view_retains_identity_technical_fields_and_foreign_keys():

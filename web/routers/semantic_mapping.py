@@ -30,6 +30,19 @@ class SaveRequest(BaseModel):
     design: Design
 
 
+class RelationshipReviewRequest(BaseModel):
+    revision: int = Field(gt=0)
+    field: str = Field(min_length=1, max_length=200)
+    meaning: str = Field(min_length=1, max_length=4000)
+    actor: str = Field(min_length=1, max_length=200)
+
+
+@router.post("/{draft_id}/relationship-review")
+def review_relationship(draft_id: str, request: RelationshipReviewRequest):
+    return _run(lambda: _store().review_relationship(draft_id, request.revision,
+                                                    request.field, request.meaning, request.actor))
+
+
 class SubmitRequest(BaseModel):
     revision: int = Field(gt=0)
     planHash: str = Field(min_length=64, max_length=64)

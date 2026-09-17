@@ -18,6 +18,7 @@ from src.graphstudio_sync.storage.ontology_store import digest
 from src.graphstudio_sync.modeling.physical_model import physical_fields
 from src.graphstudio_sync.modeling.field_recommendations import recommend_fields
 from src.graphstudio_sync.modeling.field_recommendations import suggested_fields
+from src.graphstudio_sync.modeling import relationship_review
 
 SOURCE_ROLES = {"pending", "entity", "event", "relationship", "auxiliary", "excluded"}
 FIELD_ROLES = {"pending", "property", "relationship", "internal", "excluded"}
@@ -76,16 +77,20 @@ def candidate_preview(draft):
             properties.append({"name": field["name"], "type": field["type"], "description": "",
                                "physicalColumn": field["physicalName"], "sourceFieldId": field["fieldId"]})
         if role == "relationship":
+            if not relationship_review.current_review(draft, field):
+                blockers.append(f"{field['physicalName']} 的业务含义尚未确认或确认已失效")
             if field["target"] not in draft["tableNames"]:
                 blockers.append(f"{field['name']} 的外键终点不在物理快照中")
             relationships.append({"fromClass": name, "toClass": field["target"],
                                   "relationName": relation_name(field["name"]), "sourceProperty": field["name"],
+                                  "description": (relationship_review.current_review(draft, field) or {}).get("meaning", ""),
                                   "physicalColumn": field["physicalName"], "targetColumn": field["targetField"],
                                   "cardinality": "ONE_TO_MANY" if field["isList"] else "MANY_TO_ONE"})
     mapping = {"draftId": draft["draftId"], "revision": draft["revision"],
                "snapshotId": draft["snapshotId"], "sourceTable": name,
                "role": design["role"], "fieldRoles": design["fields"],
                "sourceFields": fields,
+               "relationshipReviews": design.get("relationshipReviews", {}),
                "identityColumns": [f["physicalName"] for f in fields if f["primaryKey"]]}
     payload = {"classes": [{"className": name, "chineseName": design.get("chineseName", "").strip(),
                            "description": design.get("description", "").strip(), "properties": properties,
@@ -181,7 +186,19 @@ class MappingStore:
             if current["revision"] != revision:
                 raise RuntimeError("草稿已被修改，请刷新后重新编辑")
             design = validate_design(design, current["fields"])
+            design = relationship_review.preserve_records(current, design)
             conn.execute(text("""UPDATE graphsync.semantic_mapping_draft SET design=CAST(:design AS jsonb),
                 revision=revision+1,updated_at=now() WHERE draft_id=:id"""), {"design": canonical(design), "id": draft_id})
             return {**current, "design": design, "revision": revision + 1,
                     "suggestedFields": suggested_fields(design, current["recommendations"])}
+
+    def review_relationship(self, draft_id, revision, field_name, meaning, actor):
+        with self.engine.begin() as conn:
+            current = self.detail(draft_id, conn, lock=True)
+            if current["revision"] != revision:
+                raise RuntimeError("草稿已被修改，请刷新并重新确认关系")
+            design = relationship_review.confirm(current, field_name, meaning, actor)
+            conn.execute(text("""UPDATE graphsync.semantic_mapping_draft SET design=CAST(:design AS jsonb),
+                revision=revision+1,updated_at=now() WHERE draft_id=:id"""),
+                {"design": canonical(design), "id": draft_id})
+            return {"revision": revision + 1}

@@ -70,6 +70,7 @@ def prepare(draft, documents, authorities, proposals, workspace, source):
                 continue
             _add_relationship(graph, workspace["workspace_key"], {"sourceUid": uid, "targetUid": targets[rel["toClass"]],
                               "targetName": rel["relationName"], "sourceRelationship": rel["relationName"],
+                              "description": rel.get("description", ""),
                               "cardinality": rel.get("cardinality", "MANY_TO_ONE").lower().replace("_", "-"), "usage": "published_link"})
     payload = deepcopy(source)
     payload["classes"] = [c for c in source["classes"] if c["name"] != name] + [{**meta, "module": plan["domain"], "layer": "Config", "authorityRevision": plan["revision"] + 1}]

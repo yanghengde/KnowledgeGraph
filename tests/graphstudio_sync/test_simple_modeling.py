@@ -60,6 +60,9 @@ def relationship_fixture(monkeypatch):
     workspace["graph"]["nodes"].append({"id": "w::Category", "data": {
         "sourceClass": "Category", "targetName": "Category", "role": "context"}})
     source["classes"].append({"name": "Category"})
+    from src.graphstudio_sync.modeling.relationship_review import confirm
+    for field in ("category", "beginCategory"):
+        draft["design"] = confirm(draft, field, "测试业务含义 " + field, "reviewer")
     return draft, workspace, source
 
 

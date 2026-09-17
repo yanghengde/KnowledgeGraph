@@ -1,3 +1,5 @@
+import { RelationshipReviewPanel } from "./RelationshipReviewPanel";
+import { modelRevisionState } from "../modelRevisionState";
 import { RelationshipChangeReview } from "./RelationshipChangeReview";
 import { useMutation,useQuery,useQueryClient } from "@tanstack/react-query";
 import { Alert,App,Button,Card,Checkbox,Collapse,Drawer,Empty,Input,Popconfirm,Radio,Segmented,Select,Space,Steps,Table,Tag,Tooltip,Typography } from "antd";
@@ -20,7 +22,7 @@ export function SourceMappingPanel({ onExplore, onReview }: { onExplore: () => v
     message.success(deleted ? "草稿已恢复" : "草稿已删除，可在“已删除”中恢复");
   }, onError: (error: Error) => message.error(error.message) });
   const rows = (deleted ? trash.data : list.data)?.items || [];
-  const releaseClasses = (governance.data?.activeReleaseGraph?.classes || []) as Array<{ class: { sourceClass?: string; role?: string } }>;
+  const releaseClasses = (governance.data?.activeReleaseGraph?.classes || []) as Array<{ class: { sourceClass?: string; role?: string; _semanticMapping?: { draftId?: string; snapshotId?: string; revision?: number } } }>;
   const inRelease = (row: MappingRow) => releaseClasses.some(c => c.class.sourceClass === row.tableName && c.class.role !== "excluded");
   const inWorkspace = (row: MappingRow) => governance.data?.graph.nodes.some(n => n.data.sourceClass === row.tableName && n.data.role !== "excluded" && n.data.published !== false);
   const graphState = (row: MappingRow) => !governance.data || governance.isError ? "状态待核实" : inRelease(row) ? "已在启用本体中" : inWorkspace(row) ? "待发布" : "未加入模型";
@@ -43,6 +45,17 @@ export function SourceMappingPanel({ onExplore, onReview }: { onExplore: () => v
         locale={{ emptyText: <Empty description={deleted ? "没有已删除草稿" : "没有匹配的业务对象"}>{!deleted && !search && filter === "全部" && <Button type="primary" onClick={onExplore}>添加业务对象</Button>}</Empty> }} columns={[
           { title: "业务对象", render: (_, r) => <Button type="link" disabled={deleted} onClick={() => setSelected(r.draftId)}>{r.chineseName || r.tableName}</Button> },
           { title: "来源表", dataIndex: "tableName" },
+          { title: "草稿与模型版本", render: (_, r) => {
+            if (governance.isError || !governance.data) return <Tag>版本待核实</Tag>;
+            const node = governance.data.graph.nodes.find(n => n.data.sourceClass === r.tableName && n.data.role !== "excluded" && n.data.published !== false);
+            const mapping = (node?.data as { _semanticMapping?: { draftId?: string; snapshotId?: string; revision?: number } } | undefined)?._semanticMapping;
+            const released = releaseClasses.find(c => c.class.sourceClass === r.tableName && c.class.role !== "excluded");
+            return <Space orientation="vertical" size={3}>
+              <Typography.Text>草稿 R{r.revision}</Typography.Text>
+              <Typography.Text type="secondary">待发布：{node ? modelRevisionState(r, mapping) : "未纳入"}</Typography.Text>
+              <Typography.Text type="secondary">启用本体：{released ? modelRevisionState(r, released.class._semanticMapping) : "未纳入"}</Typography.Text>
+            </Space>;
+          } },
           { title: "状态", render: (_, r) => <Space wrap>
             <Tooltip title={graphState(r) === "状态待核实" ? "正在读取模型状态或读取失败，请刷新后重试。" : graphState(r) === "已在启用本体中" ? "启用版本包含此对象；草稿的新修改仍需检查发布，业务数据需另行同步。" : graphState(r) === "待发布" ? "对象已加入待发布模型，请到“检查发布”继续。" : "编辑对象并检查后，可加入待发布模型。"}><Tag color={graphState(r) === "已在启用本体中" ? "green" : graphState(r) === "待发布" ? "blue" : undefined}>{graphState(r)}</Tag></Tooltip>
             {["event", "relationship", "auxiliary"].includes(r.role) && <Tag color="orange">需要转换</Tag>}
@@ -77,7 +90,17 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
   const [showAll, setShowAll] = useState(false);
   const [fieldView, setFieldView] = useState("properties");
   useEffect(() => { register(flush); return () => register(null); }, [flush]);
-  const change = (patch: Parameters<typeof autosave.change>[0]) => { autosave.change(patch); setPreview(undefined); };
+  const change = (patch: Parameters<typeof autosave.change>[0]) => {
+    const reviews = { ...design.relationshipReviews };
+    if ((patch.role !== undefined && patch.role !== design.role)
+      || (patch.chineseName !== undefined && patch.chineseName !== design.chineseName)
+      || (patch.description !== undefined && patch.description !== design.description)) {
+      for (const name of Object.keys(reviews)) delete reviews[name];
+    } else if (patch.fields) {
+      for (const name of Object.keys(reviews)) if (patch.fields[name] !== design.fields[name]) delete reviews[name];
+    }
+    autosave.change({ ...patch, relationshipReviews: reviews }); setPreview(undefined);
+  };
   const check = useMutation({ mutationFn: async () => {
     autosave.change({ fields: Object.fromEntries(detail.fields.map(f => [f.name, design.fields[f.name] === "pending" ? (f.primaryKey ? "internal" : "excluded") : design.fields[f.name]])) });
     await flush();
@@ -89,7 +112,17 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
     done(); await Promise.all(["ontology-directory", "ontology-governance", "semantic-graph-overview", "semantic-graph-stats", "mapping-detail", "mapping-drafts"].map(key => client.invalidateQueries({ queryKey: [key] })));
     message.success("已加入待发布模型");
   }, onError: (e: Error) => { setPreview(undefined); message.error(e.message); } });
-  const busy = check.isPending || apply.isPending;
+  const review = useMutation({ mutationFn: async (input: { field: string; meaning: string; actor: string }) => {
+    setPreview(undefined);
+    await flush();
+    return mappingApi.reviewRelationship(detail.draftId, revision.current, input.field, input.meaning, input.actor);
+  }, onSuccess: async result => {
+    revision.current = result.revision;
+    await client.invalidateQueries({ queryKey: ["mapping-detail", detail.draftId] });
+    await client.invalidateQueries({ queryKey: ["mapping-drafts"] });
+    message.success("关系确认已保存，请重新检查对象");
+  }, onError: (e: Error) => message.error(e.message) });
+  const busy = check.isPending || apply.isPending || review.isPending;
   useEffect(() => { onBusy?.(busy); return () => onBusy?.(false); }, [busy, onBusy]);
   const chosen = (name: string) => ["property", "relationship"].includes(design.fields[name]);
   const fields = detail.fields.filter(f => !f.primaryKey);
@@ -137,6 +170,7 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
           </div>;
         } },
       ]} />
+      <RelationshipReviewPanel detail={detail} design={design} busy={busy} onConfirm={(field, meaning, actor) => review.mutate({ field, meaning, actor })} />
       <Button type="primary" disabled={busy} loading={check.isPending} onClick={() => check.mutate()}>检查这个对象</Button>
       {preview && <Card size="small" title="检查结果"><Space orientation="vertical" style={{ width: "100%" }}>
         <Alert showIcon type={preview.blockers.length ? "warning" : "success"} message={preview.blockers.length ? "这些内容需要处理" : `${preview.counts.properties} 个字段、${preview.counts.relationships} 条关联，可以加入发布模型`} description={preview.blockers.join("；") || "确认后，系统会完成模型审阅和准备。"} />

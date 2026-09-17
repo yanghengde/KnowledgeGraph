@@ -1,6 +1,7 @@
 export type SourceRole = "pending" | "entity" | "event" | "relationship" | "auxiliary" | "excluded";
 export type FieldRole = "pending" | "property" | "relationship" | "internal" | "excluded";
-export type SourceDesign = { role: SourceRole; chineseName: string; description: string; notes: string; fields: Record<string, FieldRole> };
+export type RelationshipReview = { meaning: string; actor: string; confirmedAt: string; sourceField: string; targetTable: string; targetField: string };
+export type SourceDesign = { role: SourceRole; chineseName: string; description: string; notes: string; fields: Record<string, FieldRole>; relationshipReviews?: Record<string, RelationshipReview>; relationshipReviewHistory?: RelationshipReview[] };
 export type MappingRow = { draftId: string; snapshotId: string; tableName: string; revision: number; role: SourceRole; chineseName: string };
 export type MappingField = { name: string; physicalName: string; type: string; target: string; targetField?: string; fieldId?: string; primaryKey: boolean };
 export type FieldRecommendation = { role: FieldRole; autoSelect: boolean; reason: string };
@@ -20,6 +21,7 @@ async function request<T>(path = "", body?: unknown): Promise<T> {
   return data;
 }
 export const mappingApi = {
+  reviewRelationship: (id: string, revision: number, field: string, meaning: string, actor: string) => request<{ revision: number }>(`/${id}/relationship-review`, { revision, field, meaning, actor }),
   openPhysical: () => request<import("./authorityApi").ImportAnalysis & { database: string; snapshotId: string }>("/physical/open", {}),
   check: (id: string, workspaceKey: string) => request<SimpleCheck>(`/${id}/check`, { workspaceKey }),
   ready: (id: string, workspaceKey: string, revision: number, planHash: string) => request(`/${id}/ready`, { workspaceKey, revision, planHash }),
