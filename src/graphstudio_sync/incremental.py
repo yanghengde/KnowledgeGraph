@@ -21,7 +21,7 @@ from .source_database import (
 )
 
 if False:  # pragma: no cover - type checking without a runtime import cycle
-    from .repository import ControlPlaneRepository
+    from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 
 
 def _json_value(value: Any) -> Any:

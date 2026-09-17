@@ -5,9 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from src.graphstudio_sync.field_recommendations import recommend_fields, suggested_fields
-from src.graphstudio_sync.ontology_store import digest
-from src.graphstudio_sync.semantic_mapping import MappingStore, candidate_preview, source_fields
+from src.graphstudio_sync.modeling.field_recommendations import recommend_fields
+from src.graphstudio_sync.modeling.field_recommendations import suggested_fields
+from src.graphstudio_sync.storage.ontology_store import digest
+from src.graphstudio_sync.modeling.semantic_mapping import MappingStore
+from src.graphstudio_sync.modeling.semantic_mapping import candidate_preview
+from src.graphstudio_sync.modeling.semantic_mapping import source_fields
 
 
 def row(name, *, primary=False, target="", datatype="12", is_list=False):

@@ -1,4 +1,6 @@
-from src.graphstudio_sync import ontology_store, publish_ontology, publish_ontology_postgres
+from src.graphstudio_sync.storage import ontology_store
+from src.graphstudio_sync.publishing import publish_ontology
+from src.graphstudio_sync.publishing import publish_ontology_postgres
 
 
 def setup_model(monkeypatch, *, connected=False):

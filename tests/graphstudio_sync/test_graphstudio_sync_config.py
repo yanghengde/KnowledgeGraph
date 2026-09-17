@@ -1,5 +1,5 @@
 from src.graphstudio_sync.config import _state_database_url
-from src.graphstudio_sync.database import _admin_url
+from src.graphstudio_sync.storage.database import _admin_url
 
 
 PGSQL_KEYS = (

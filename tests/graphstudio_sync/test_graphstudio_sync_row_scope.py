@@ -33,7 +33,7 @@ def test_row_scope_preserves_audit_rows_but_excludes_every_unanchored_record() -
 
 def test_stage_four_schema_and_publish_filter_are_explicit() -> None:
     ddl = Path("sql/graphstudio_sync_control_postgres.sql").read_text(encoding="utf-8")
-    deployment = Path("src/graphstudio_sync/deployment.py").read_text(encoding="utf-8")
+    deployment = Path("src/graphstudio_sync/publishing/deployment.py").read_text(encoding="utf-8")
 
     assert "CREATE TABLE IF NOT EXISTS graphsync.row_scope_policy" in ddl
     assert "'active', 'out_of_scope', 'quarantined', 'deleted'" in ddl

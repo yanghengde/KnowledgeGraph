@@ -20,8 +20,8 @@ import requests
 from sqlalchemy import text
 
 from .config import SyncSettings
-from .materialization import canonical_json
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.publishing.materialization import canonical_json
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 
 
 SWAGGER_ROOT = Path(__file__).resolve().parents[2] / "data" / "openapi"

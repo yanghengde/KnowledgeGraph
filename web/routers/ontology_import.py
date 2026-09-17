@@ -27,7 +27,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from src.ontology.physical_naming import relation_name
-from src.graphstudio_sync.physical_model import physical_fields
+from src.graphstudio_sync.modeling.physical_model import physical_fields
 from src.ontology.designer_descriptions import load_descriptions, save_descriptions
 from scripts.validate_ontology_vs_csv import (
     canonical_physical_fields,
@@ -39,7 +39,7 @@ from web.shared import PROJECT_ROOT
 
 router = APIRouter(prefix="/api/ontology-import", tags=["ontology-import"])
 
-ONTOLOGY_DIR = Path(PROJECT_ROOT) / "src" / "ontology" / "wiki_kb"
+ONTOLOGY_DIR = Path(PROJECT_ROOT) / "src" / "ontology" / "semantic_references"
 IMPORTED_ONTOLOGY = ONTOLOGY_DIR / "csv_business_import_ontology.json"
 IMPORT_MANIFEST = Path(PROJECT_ROOT) / "data" / "ontology_import_manifest.json"
 DESCRIPTION_TRANSLATION_CACHE = Path(PROJECT_ROOT) / "data" / "import_description_translations.json"

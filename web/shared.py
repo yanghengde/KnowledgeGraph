@@ -20,7 +20,7 @@ def _load_module_map(force_reload: bool = False):
         return
         
     MODULE_MAP.clear()
-    kb_path = os.path.join(PROJECT_ROOT, "src", "ontology", "wiki_kb")
+    kb_path = os.path.join(PROJECT_ROOT, "src", "ontology", "semantic_references")
     json_files = glob.glob(os.path.join(kb_path, "*_ontology.json"))
     for file_path in json_files:
         try:

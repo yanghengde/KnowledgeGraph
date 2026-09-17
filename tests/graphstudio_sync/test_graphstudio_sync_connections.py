@@ -2,7 +2,7 @@ from dataclasses import replace
 
 from src.graphstudio_sync.config import SyncSettings
 from src.graphstudio_sync.connections import _host_port, settings_from_profiles
-from src.graphstudio_sync.repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 
 
 def _settings() -> SyncSettings:

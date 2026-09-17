@@ -5,7 +5,8 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from src.graphstudio_sync.semantic_mapping import MappingStore, candidate_preview
+from src.graphstudio_sync.modeling.semantic_mapping import MappingStore
+from src.graphstudio_sync.modeling.semantic_mapping import candidate_preview
 from src.ontology.authority_store import authority_store
 
 router = APIRouter(prefix="/api/semantic-mapping", tags=["Semantic mapping"])
@@ -237,7 +238,8 @@ def submit(draft_id: str, request: SubmitRequest):
 
 def _simple(draft_id, request, apply=False):
     from sqlalchemy import text
-    from src.graphstudio_sync import ontology_store, simple_modeling
+    from src.graphstudio_sync.storage import ontology_store
+    from src.graphstudio_sync.modeling import simple_modeling
     from web.routers.ontology_authority import _documents
     store = _store()
     authority = authority_store()

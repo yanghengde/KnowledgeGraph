@@ -5,7 +5,7 @@ import uuid
 
 import pytest
 import requests
-from src.graphstudio_sync import deployment
+from src.graphstudio_sync.publishing import deployment
 
 
 def test_tls_failure_records_retryable_failure_without_committing_checkpoint(monkeypatch):

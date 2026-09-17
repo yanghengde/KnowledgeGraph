@@ -2,17 +2,15 @@ from __future__ import annotations
 
 import pytest
 
-from src.qa import manufacturing_session_store as store
-from src.qa import graphstudio_assistant as assistant
-from src.qa.graphstudio_assistant import (
-    GraphStudioAssistantError,
-    _schema_inventory_sparql,
-    _schema_rows_from_release,
-    discover_schema,
-    resolve_runtime_snapshot,
-    validate_readonly_sparql,
-)
-from src.qa import graphstudio_saved_queries as saved_queries
+from src.query import manufacturing_session_store as store
+from src.query import graphstudio_assistant as assistant
+from src.query.graphstudio_assistant import GraphStudioAssistantError
+from src.query.graphstudio_assistant import _schema_inventory_sparql
+from src.query.graphstudio_assistant import _schema_rows_from_release
+from src.query.graphstudio_assistant import discover_schema
+from src.query.graphstudio_assistant import resolve_runtime_snapshot
+from src.query.graphstudio_assistant import validate_readonly_sparql
+from src.query import graphstudio_saved_queries as saved_queries
 
 
 def test_manufacturing_sessions_are_persisted_separately(tmp_path, monkeypatch):

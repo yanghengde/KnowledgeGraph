@@ -3,23 +3,21 @@ import zipfile
 import pytest
 
 from src.graphstudio_sync.actions import _resolved_path, _validate_payload
-from src.graphstudio_sync.deployment import (
-    _catalog_entry,
-    _ensure_dataset,
-    _ensure_load_step,
-    _ensure_model,
-    _is_graphstudio_rdf_zip,
-    _require_disabled_layer,
-    _require_enabled_layer,
-    _reload_graphmart,
-    _resolve_previous_layer,
-    _requires_dataset_replacement,
-    _set_layer_enabled,
-    _write_graphstudio_rdf_zip,
-    build_deployment_plan,
-    release_model_uri,
-)
-from src.graphstudio_sync.publish_ontology import validate_workspace
+from src.graphstudio_sync.publishing.deployment import _catalog_entry
+from src.graphstudio_sync.publishing.deployment import _ensure_dataset
+from src.graphstudio_sync.publishing.deployment import _ensure_load_step
+from src.graphstudio_sync.publishing.deployment import _ensure_model
+from src.graphstudio_sync.publishing.deployment import _is_graphstudio_rdf_zip
+from src.graphstudio_sync.publishing.deployment import _require_disabled_layer
+from src.graphstudio_sync.publishing.deployment import _require_enabled_layer
+from src.graphstudio_sync.publishing.deployment import _reload_graphmart
+from src.graphstudio_sync.publishing.deployment import _resolve_previous_layer
+from src.graphstudio_sync.publishing.deployment import _requires_dataset_replacement
+from src.graphstudio_sync.publishing.deployment import _set_layer_enabled
+from src.graphstudio_sync.publishing.deployment import _write_graphstudio_rdf_zip
+from src.graphstudio_sync.publishing.deployment import build_deployment_plan
+from src.graphstudio_sync.publishing.deployment import release_model_uri
+from src.graphstudio_sync.publishing.publish_ontology import validate_workspace
 
 
 def test_graphstudio_rdf_zip_matches_api_6_3_layout(tmp_path) -> None:
@@ -57,7 +55,7 @@ def test_graphstudio_rdf_zip_rejects_pre_6_3_extra_top_level_layout(tmp_path) ->
 def test_deployment_plan_selects_exact_route_and_only_checks_its_promotion_lane(monkeypatch) -> None:
     import uuid
     from types import SimpleNamespace
-    from src.graphstudio_sync import deployment as deployment_module
+    from src.graphstudio_sync.publishing import deployment as deployment_module
 
     release_id = uuid.uuid4()
     previous_id = uuid.uuid4()
@@ -88,7 +86,7 @@ def test_deployment_plan_selects_exact_route_and_only_checks_its_promotion_lane(
 def test_deployment_plan_toggles_slot_per_route_not_per_environment(monkeypatch) -> None:
     import uuid
     from types import SimpleNamespace
-    from src.graphstudio_sync import deployment as deployment_module
+    from src.graphstudio_sync.publishing import deployment as deployment_module
 
     release_id = uuid.uuid4()
     ontology_release_id = uuid.uuid4()
@@ -110,7 +108,7 @@ def test_deployment_plan_toggles_slot_per_route_not_per_environment(monkeypatch)
 def test_deployment_plan_requires_lower_environment_to_use_same_ontology(monkeypatch) -> None:
     import uuid
     from types import SimpleNamespace
-    from src.graphstudio_sync import deployment as deployment_module
+    from src.graphstudio_sync.publishing import deployment as deployment_module
 
     release_id = uuid.uuid4()
     active_ontology_id = uuid.uuid4()
@@ -142,7 +140,7 @@ def test_apply_deployment_lookup_qualifies_deployment_id_column() -> None:
     """The previous-deployment self join must not make the lookup ambiguous."""
     from pathlib import Path
 
-    source = Path("src/graphstudio_sync/deployment.py").read_text(encoding="utf-8")
+    source = Path("src/graphstudio_sync/publishing/deployment.py").read_text(encoding="utf-8")
 
     assert "WHERE deployment.deployment_id=:deployment_id" in source
 
@@ -151,7 +149,7 @@ def test_graphstudio_acceptance_commits_only_publication_checkpoint() -> None:
     """Source ingestion cursors belong to data activation, not target delivery."""
     from pathlib import Path
 
-    source = Path("src/graphstudio_sync/deployment.py").read_text(encoding="utf-8")
+    source = Path("src/graphstudio_sync/publishing/deployment.py").read_text(encoding="utf-8")
 
     assert "INSERT INTO graphsync.publication_checkpoint" in source
     assert "INSERT INTO graphsync.checkpoint" not in source
@@ -191,7 +189,7 @@ def test_previous_layer_resolution_skips_layer_from_another_graphmart() -> None:
 
 def test_ontology_validation_warns_for_isolated_context_object(monkeypatch) -> None:
     from types import SimpleNamespace
-    from src.graphstudio_sync import publish_ontology as ontology_module
+    from src.graphstudio_sync.publishing import publish_ontology as ontology_module
 
     monkeypatch.setattr(ontology_module, "_workspace_row", lambda _repo, _key: {"revision": 7})
     monkeypatch.setattr(ontology_module, "workspace_graph", lambda _settings, _key: {
@@ -209,19 +207,17 @@ def test_ontology_validation_warns_for_isolated_context_object(monkeypatch) -> N
     assert {item["code"] for item in result["warnings"]} == {
         "class.isolated_context", "class.label_fallback_primary_key",
     }
-from src.graphstudio_sync.materialization import (
-    apply_transform,
-    build_count_reconciliation,
-    build_field_backfill_patch,
-    build_materialization_plan,
-    canonical_json,
-    collapse_change_events,
-    normalize_object_record,
-    object_uri,
-)
+from src.graphstudio_sync.publishing.materialization import apply_transform
+from src.graphstudio_sync.publishing.materialization import build_count_reconciliation
+from src.graphstudio_sync.publishing.materialization import build_field_backfill_patch
+from src.graphstudio_sync.publishing.materialization import build_materialization_plan
+from src.graphstudio_sync.publishing.materialization import canonical_json
+from src.graphstudio_sync.publishing.materialization import collapse_change_events
+from src.graphstudio_sync.publishing.materialization import normalize_object_record
+from src.graphstudio_sync.publishing.materialization import object_uri
 from src.graphstudio_sync.observability import _rule_failed
 from src.graphstudio_sync.schema_evolution import _merged_field
-from src.graphstudio_sync.repository import _physical_key_catalog
+from src.graphstudio_sync.storage.repository_support import _physical_key_catalog
 
 
 class _GraphStudioResponse:
@@ -613,7 +609,7 @@ class _BusyReloadSession:
 
 def test_reload_waits_for_busy_activation_then_retries_if_still_dirty(monkeypatch) -> None:
     session = _BusyReloadSession()
-    monkeypatch.setattr("src.graphstudio_sync.deployment.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("src.graphstudio_sync.publishing.deployment.time.sleep", lambda _seconds: None)
 
     result = _reload_graphmart(
         session,
@@ -654,7 +650,7 @@ class _JoinedReloadSession:
 
 def test_reload_joins_busy_activation_when_it_finishes_clean(monkeypatch) -> None:
     session = _JoinedReloadSession()
-    monkeypatch.setattr("src.graphstudio_sync.deployment.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("src.graphstudio_sync.publishing.deployment.time.sleep", lambda _seconds: None)
 
     result = _reload_graphmart(
         session,
@@ -699,7 +695,7 @@ class _StuckFailedActivationSession:
 
 def test_reload_force_recovers_completed_but_still_activating_failure(monkeypatch) -> None:
     session = _StuckFailedActivationSession()
-    monkeypatch.setattr("src.graphstudio_sync.deployment.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("src.graphstudio_sync.publishing.deployment.time.sleep", lambda _seconds: None)
 
     result = _reload_graphmart(
         session,
@@ -780,7 +776,7 @@ def test_layer_switch_skips_predecessor_from_another_graphmart() -> None:
 def test_deployment_plan_starts_new_lineage_after_graphmart_target_change(monkeypatch) -> None:
     import uuid
     from types import SimpleNamespace
-    from src.graphstudio_sync import deployment as deployment_module
+    from src.graphstudio_sync.publishing import deployment as deployment_module
 
     release_id = uuid.uuid4()
     route = {

@@ -11,20 +11,16 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from src.qa.graphstudio_assistant import (
-    GraphStudioAssistantError,
-    graphstudio_connection_status,
-    graphstudio_query_stream,
-    resolve_runtime_snapshot,
-)
-from src.qa.graphstudio_saved_queries import public_query_catalog
-from src.qa.manufacturing_session_store import (
-    append_exchange,
-    create_session,
-    delete_session,
-    list_sessions,
-    load_session,
-)
+from src.query.graphstudio_assistant import GraphStudioAssistantError
+from src.query.graphstudio_assistant import graphstudio_connection_status
+from src.query.graphstudio_assistant import graphstudio_query_stream
+from src.query.graphstudio_assistant import resolve_runtime_snapshot
+from src.query.graphstudio_saved_queries import public_query_catalog
+from src.query.manufacturing_session_store import append_exchange
+from src.query.manufacturing_session_store import create_session
+from src.query.manufacturing_session_store import delete_session
+from src.query.manufacturing_session_store import list_sessions
+from src.query.manufacturing_session_store import load_session
 
 
 router = APIRouter(prefix="/api/manufacturing-chat", tags=["Manufacturing Knowledge Q&A"])
@@ -64,7 +60,7 @@ async def queries(refresh: bool = False):
 
 @router.get("/coverage")
 async def coverage(refresh: bool = False):
-    from src.qa.published_coverage import published_coverage
+    from src.query.published_coverage import published_coverage
     try:
         return await asyncio.to_thread(published_coverage, refresh=refresh)
     except GraphStudioAssistantError as exc:

@@ -16,11 +16,11 @@ from .inventory import (
     read_source_catalog,
     resolve_physical_column,
 )
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 
 
 def _ontology_catalog(settings: SyncSettings) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
-    from .ontology_store import source_payload
+    from src.graphstudio_sync.storage.ontology_store import source_payload
     payload = source_payload(settings)
     return payload["classes"], payload["properties"], payload["relationships"]
 

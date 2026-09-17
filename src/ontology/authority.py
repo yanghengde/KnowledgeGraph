@@ -8,7 +8,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 from src.ontology.physical_naming import relation_name
-from src.graphstudio_sync.semantic_mapping import source_fields
+from src.graphstudio_sync.modeling.semantic_mapping import source_fields
 
 GROUPS = {
     "组织与位置": ["Enterprise", "Site", "Factory", "WorkCenter", "ss_MfgLine", "Organization"],
@@ -21,7 +21,7 @@ GROUPS = {
 from scripts.validate_ontology_vs_csv import canonical_physical_fields, expected_type, normalize_field_name, TYPE_EQUIVALENTS
 
 ROOT = Path(__file__).resolve().parents[2]
-ONTOLOGY_DIR = ROOT / "src/ontology/wiki_kb"
+ONTOLOGY_DIR = ROOT / "src/ontology/semantic_references"
 FIELDS_FILE = ROOT / "docs/Database_Fields.csv"
 
 

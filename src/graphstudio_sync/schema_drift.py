@@ -13,7 +13,7 @@ from sqlalchemy import text
 
 from .config import SyncSettings
 from .connections import resolved_settings
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 from .source_database import ORACLE_KIND, connect_source, fetch_dicts, source_cursor
 
 

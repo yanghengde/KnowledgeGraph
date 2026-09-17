@@ -14,9 +14,9 @@ from urllib3.util.retry import Retry
 
 from .config import SyncSettings
 from .transport import configure_graphstudio_tls
-from .database import control_engine
+from src.graphstudio_sync.storage.database import control_engine
 from .graphstudio_api import require_graphstudio_2026_1_ready
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 from .source_database import ORACLE_KIND, connect_source, fetch_dicts, source_cursor
 
 

@@ -6,7 +6,7 @@ from src.graphstudio_sync.attribute_projection import (
     fetch_projection_values,
     validate_projection_definition,
 )
-from src.graphstudio_sync.materialization import build_materialization_plan
+from src.graphstudio_sync.publishing.materialization import build_materialization_plan
 
 
 def _projection(**overrides):

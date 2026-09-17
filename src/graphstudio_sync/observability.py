@@ -9,7 +9,7 @@ from typing import Any
 
 from sqlalchemy import text
 
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 
 
 def record_lineage(

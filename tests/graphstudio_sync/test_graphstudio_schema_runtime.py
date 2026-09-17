@@ -1,5 +1,5 @@
 import pytest
-from src.qa import graphstudio_assistant as assistant
+from src.query import graphstudio_assistant as assistant
 
 
 def test_published_schema_reads_graphstudio_without_neo4j(monkeypatch):

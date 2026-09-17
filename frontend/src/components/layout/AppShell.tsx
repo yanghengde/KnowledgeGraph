@@ -1,19 +1,21 @@
 import {
-  ApartmentOutlined,
-  BranchesOutlined,
-  ApiOutlined,
-  CloudUploadOutlined,
-  CloudSyncOutlined,
-  CommentOutlined,
-  DashboardOutlined,
-  DatabaseOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  SafetyCertificateOutlined,
+ApartmentOutlined,
+ApiOutlined,
+BranchesOutlined,
+CloudSyncOutlined,
+CloudUploadOutlined,
+CommentOutlined,
+DashboardOutlined,
+DatabaseOutlined,
+MenuFoldOutlined,
+MenuUnfoldOutlined,
+SafetyCertificateOutlined,
 } from "@ant-design/icons";
-import { Badge, Button, Layout, Menu, Space, Tag, Typography } from "antd";
+import { useQuery } from "@tanstack/react-query";
+import { Badge,Button,Layout,Menu,Space,Tag,Typography } from "antd";
 import { useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet,useLocation,useNavigate } from "react-router-dom";
+import { useModelScope } from "../../app/modelScope";
 import { ThemeToggle } from "./ThemeToggle";
 
 const { Header, Sider, Content } = Layout;
@@ -25,12 +27,20 @@ const routeTitles: Record<string, { title: string; description: string }> = {
   "/connections": { title: "数据源与连接", description: "制造数据链路、控制面与 Graph Studio 连接治理" },
   "/data-sync": { title: "制造数据同步", description: "源窗口、增量事件、质量对账与不可变数据版本" },
   "/publish": { title: "数据发布管理", description: "发布前检验、预览、路由与运行记录" },
-  "/object-explorer": { title: "Opcenter 数据模型", description: "物理表、完整字段与双向外键 · 选择语义建模来源" },
-  "/ontology-model": { title: "制造语义模型", description: "主图理解、本体抽取、质量校验与 Graph Studio 发布" },
-  "/ontology-governance": { title: "制造语义模型", description: "主图理解、本体抽取、质量校验与 Graph Studio 发布" },
+  "/object-explorer": { title: "物理表目录", description: "物理表、完整字段与双向外键 · 选择语义建模来源" },
+  "/ontology-model": { title: "业务模型与审核", description: "选择业务对象，确认字段与关系，审核后发布" },
+  "/ontology-governance": { title: "业务模型与审核", description: "选择业务对象，确认字段与关系，审核后发布" },
 };
 
 export function AppShell() {
+  const { profileKey, selector, unavailable } = useModelScope();
+  const health = useQuery({ queryKey: ["control-health"], queryFn: async () => {
+    const response = await fetch("/healthz");
+    if (!response.ok) throw new Error("控制面暂不可用");
+    const value = await response.json();
+    if (value.dependencies?.postgresql !== "online") throw new Error("控制面状态待核实");
+    return value;
+  }, refetchInterval: 30000, retry: false });
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,10 +48,10 @@ export function AppShell() {
   const page = routeTitles[relativePath] || routeTitles["/overview"];
 
   const primaryItems = [
-    { key: "/overview", icon: <DashboardOutlined />, label: "制造数据总览" },
+    { key: "/overview", icon: <DashboardOutlined />, label: "工作总览" },
     { key: "/connections", icon: <DatabaseOutlined />, label: "数据源与连接" },
-    { key: "/object-explorer", icon: <BranchesOutlined />, label: "Opcenter 数据模型" },
-    { key: "/ontology-model", icon: <ApartmentOutlined />, label: "制造语义模型" },
+    { key: "/object-explorer", icon: <BranchesOutlined />, label: "物理表目录" },
+    { key: "/ontology-model", icon: <ApartmentOutlined />, label: "业务模型与审核" },
     { key: "/data-sync", icon: <CloudSyncOutlined />, label: "制造数据同步" },
     { key: "/publish", icon: <CloudUploadOutlined />, label: "数据发布管理" },
     { key: "/queries", icon: <ApiOutlined />, label: "图谱查询能力" },
@@ -61,7 +71,7 @@ export function AppShell() {
             </span>
           )}
         </div>
-        <div className="nav-section-label">{collapsed ? "" : "制造知识平台"}</div>
+        <div className="nav-section-label">{collapsed ? "" : "建模与发布工作台"}</div>
         <Menu
           mode="inline"
           theme="dark"
@@ -92,13 +102,15 @@ export function AppShell() {
             <Typography.Text type="secondary">{page.description}</Typography.Text>
           </div>
           <Space className="header-status" size={12}>
-            <Tag icon={<DatabaseOutlined />} color="cyan">Graphmart R2</Tag>
-            <Badge status="success" text="控制台在线" />
+            {["/assistant", "/queries"].includes(relativePath) ? <Tag>已发布查询服务</Tag> : selector}
+            <Badge status={health.isError ? "error" : health.isPending ? "default" : "success"}
+              text={health.isError ? "控制面不可用" : health.isPending ? "检查连接中" : "控制面已连接"} />
           </Space>
           <ThemeToggle />
         </Header>
         <Content className="app-content">
-          <Outlet />
+          {profileKey || ["/connections", "/assistant", "/queries"].includes(relativePath)
+            ? <Outlet key={profileKey} /> : unavailable}
         </Content>
       </Layout>
     </Layout>

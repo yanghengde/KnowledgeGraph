@@ -5,8 +5,8 @@ import json
 
 from sqlalchemy import text
 
-from .ontology_store import digest
-from .repository import _physical_key_catalog
+from src.graphstudio_sync.storage.ontology_store import digest
+from src.graphstudio_sync.storage.repository_support import _physical_key_catalog
 
 
 class _TransactionEngine:

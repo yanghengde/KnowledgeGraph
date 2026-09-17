@@ -32,8 +32,8 @@ def test_model_only_does_not_require_physical_mapping_but_preserves_existing_con
 @pytest.mark.skipif(os.getenv("RUN_SYNC_CONFIG_PG_TESTS") != "1", reason="requires PostgreSQL metadata fixture")
 def test_configuration_atomic_save_retry_and_rollback(monkeypatch):
     from src.graphstudio_sync.config import SyncSettings
-    from src.graphstudio_sync.repository import ControlPlaneRepository
-    from src.graphstudio_sync.ontology_store import digest
+    from src.graphstudio_sync.storage.repository import ControlPlaneRepository
+    from src.graphstudio_sync.storage.ontology_store import digest
     repo = ControlPlaneRepository(SyncSettings.from_env())
     engine = repo.engine
     schema = "sync_config_test_" + uuid.uuid4().hex

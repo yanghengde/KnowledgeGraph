@@ -1,6 +1,6 @@
 """G6-compatible views from the PostgreSQL model store."""
 from src.graphstudio_sync.config import SyncSettings
-from src.graphstudio_sync.ontology_store import source_payload
+from src.graphstudio_sync.storage.ontology_store import source_payload
 
 
 def payload():

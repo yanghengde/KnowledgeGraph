@@ -84,7 +84,7 @@ def manufacturing_console(frontend_path: str = ""):
 def healthz():
     from sqlalchemy import text
     from src.graphstudio_sync.config import SyncSettings
-    from src.graphstudio_sync.database import control_engine
+    from src.graphstudio_sync.storage.database import control_engine
 
     try:
         engine = control_engine(SyncSettings.from_env())

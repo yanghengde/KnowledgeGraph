@@ -134,6 +134,7 @@ export type SyncRun = {
 
 export type GraphProfile = {
   profile_key: string;
+  job_name: string;
   title: string;
   description?: string;
   enabled: boolean;

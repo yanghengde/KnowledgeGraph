@@ -22,7 +22,7 @@ from sqlalchemy import text
 
 from .config import PROJECT_ROOT, SyncSettings
 from .connections import resolved_settings
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 from .source_database import (
     ORACLE_KIND,
     connect_source,
@@ -243,7 +243,7 @@ def _load_catalog(repository: ControlPlaneRepository) -> dict[str, Any]:
 
 
 def _load_descriptions(settings: SyncSettings) -> dict[str, dict[Any, dict[str, Any]]]:
-    from .ontology_store import source_payload
+    from src.graphstudio_sync.storage.ontology_store import source_payload
     payload = source_payload(settings)
     return {"classes": {c["name"]: c for c in payload["classes"]},
             "properties": {(p["className"], p["name"]): p for p in payload["properties"]},

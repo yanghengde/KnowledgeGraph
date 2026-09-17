@@ -49,7 +49,7 @@ class OntologyInventory:
 
 
 def read_ontology(settings: SyncSettings) -> OntologyInventory:
-    from .ontology_store import source_payload
+    from src.graphstudio_sync.storage.ontology_store import source_payload
     payload = source_payload(settings)
     return OntologyInventory(payload["classes"], payload["properties"], len(payload["relationships"]))
 

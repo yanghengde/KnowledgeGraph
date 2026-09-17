@@ -3,7 +3,9 @@ import pytest
 from rdflib import Dataset, URIRef
 
 from src.graphstudio_sync.config import normalize_graphstudio_url
-from src.graphstudio_sync.deployment import _inline_rdf_query, _write_graphstudio_rdf_zip, _ensure_load_step
+from src.graphstudio_sync.publishing.deployment import _inline_rdf_query
+from src.graphstudio_sync.publishing.deployment import _write_graphstudio_rdf_zip
+from src.graphstudio_sync.publishing.deployment import _ensure_load_step
 from src.graphstudio_sync.transport import configure_graphstudio_tls
 
 
@@ -65,7 +67,7 @@ def test_inline_step_must_be_read_back_before_activation():
 @pytest.mark.parametrize('acquired', [True, False])
 def test_publication_lock_blocks_overlap_and_releases_on_failure(monkeypatch, acquired):
     from types import SimpleNamespace
-    from src.graphstudio_sync import deployment
+    from src.graphstudio_sync.publishing import deployment
 
     calls = []
     class Connection:

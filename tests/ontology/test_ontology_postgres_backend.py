@@ -9,9 +9,10 @@ import uuid
 
 import pytest
 from sqlalchemy import event, text
-from src.graphstudio_sync import ontology_store as store, publish_ontology as ontology
+from src.graphstudio_sync.storage import ontology_store as store
+from src.graphstudio_sync.publishing import publish_ontology as ontology
 from src.graphstudio_sync.config import PROJECT_ROOT, SyncSettings
-from src.graphstudio_sync.database import control_engine
+from src.graphstudio_sync.storage.database import control_engine
 
 
 def test_csv_preserves_distinct_product_foreign_keys_and_provenance():

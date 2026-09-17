@@ -6,7 +6,7 @@ from typing import Any
 
 from sqlalchemy import text
 
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 
 
 EMPTY_REFERENCE_VALUES = {None, "", "0000000000000000"}

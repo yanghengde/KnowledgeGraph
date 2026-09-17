@@ -25,7 +25,7 @@ from .change_capture import (
 from .config import PROJECT_ROOT, SyncSettings
 from .connections import resolved_settings
 from .preview import _load_catalog, _source_metadata
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 from .source_database import connect_source
 
 

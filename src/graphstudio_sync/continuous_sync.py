@@ -9,11 +9,14 @@ from sqlalchemy import text
 
 from .config import SyncSettings
 from .curation import build_curation_preview
-from .deployment import apply_deployment, create_deployment, deployment_status
+from src.graphstudio_sync.publishing.deployment import apply_deployment
+from src.graphstudio_sync.publishing.deployment import create_deployment
+from src.graphstudio_sync.publishing.deployment import deployment_status
 from .incremental import execute_incremental_plan, execute_incremental_probe
 from .incremental_preview import build_incremental_preview
-from .materialization import execute_materialization, materialization_status
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.publishing.materialization import execute_materialization
+from src.graphstudio_sync.publishing.materialization import materialization_status
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 from .schema_drift import latest_schema_drift, scan_schema_drift
 
 

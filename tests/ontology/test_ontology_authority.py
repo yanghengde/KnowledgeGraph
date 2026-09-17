@@ -124,8 +124,8 @@ def test_sync_checks_targets_before_writes_and_marks_only_success(monkeypatch, m
         engine = type("Engine", (), {"begin": lambda self: Conn()})()
         def snapshot(self, conn): return {"Product": record}, []
     monkeypatch.setattr(api, "_store", lambda: Store())
-    monkeypatch.setattr("src.graphstudio_sync.ontology_store.source_payload", lambda *a: {"classes": [] if missing else [{"name": "Category"}], "properties": [], "relationships": []})
-    monkeypatch.setattr("src.graphstudio_sync.ontology_store.save_source", lambda *a, **k: calls.append("pg-write"))
+    monkeypatch.setattr("src.graphstudio_sync.storage.ontology_store.source_payload", lambda *a: {"classes": [] if missing else [{"name": "Category"}], "properties": [], "relationships": []})
+    monkeypatch.setattr("src.graphstudio_sync.storage.ontology_store.save_source", lambda *a, **k: calls.append("pg-write"))
     monkeypatch.setattr("web.routers.graph.invalidate_graph_caches", lambda: None)
     if missing:
         with pytest.raises(HTTPException) as error:

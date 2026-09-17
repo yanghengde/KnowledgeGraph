@@ -6,7 +6,7 @@ from starlette.requests import Request
 
 from src.graphstudio_sync.action_identity import action_principal, require_action_principal
 from src.graphstudio_sync.actions import openapi_action_candidates, openapi_action_sources
-from src.graphstudio_sync.database import DDL_FILE
+from src.graphstudio_sync.storage.database import DDL_FILE
 
 from test_graphstudio_sync_connections import _settings
 

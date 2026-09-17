@@ -1,16 +1,16 @@
-import { lazy, Suspense } from "react";
 import { Spin } from "antd";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { lazy,Suspense } from "react";
+import { Navigate,Route,Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
 
-const ObjectExplorerPage = lazy(() => import("./pages/ObjectExplorerPage").then((module) => ({ default: module.ObjectExplorerPage })));
-const OverviewPage = lazy(() => import("./pages/OverviewPage").then((module) => ({ default: module.OverviewPage })));
-const QueryLibraryPage = lazy(() => import("./pages/QueryLibraryPage").then((module) => ({ default: module.QueryLibraryPage })));
-const AssistantPage = lazy(() => import("./pages/AssistantPage").then((module) => ({ default: module.AssistantPage })));
-const ConnectionsPage = lazy(() => import("./pages/ConnectionsPage").then((module) => ({ default: module.ConnectionsPage })));
-const PublishManagementPage = lazy(() => import("./pages/PublishManagementPage").then((module) => ({ default: module.PublishManagementPage })));
-const SemanticModelPage = lazy(() => import("./pages/SemanticModelPage").then((module) => ({ default: module.SemanticModelPage })));
-const DataSynchronizationPage = lazy(() => import("./pages/DataSynchronizationPage").then((module) => ({ default: module.DataSynchronizationPage })));
+const ObjectExplorerPage = lazy(() => import("./features/modeling/pages/ObjectExplorerPage").then((module) => ({ default: module.ObjectExplorerPage })));
+const OverviewPage = lazy(() => import("./features/overview/pages/OverviewPage").then((module) => ({ default: module.OverviewPage })));
+const QueryLibraryPage = lazy(() => import("./features/query/pages/QueryLibraryPage").then((module) => ({ default: module.QueryLibraryPage })));
+const AssistantPage = lazy(() => import("./features/query/pages/AssistantPage").then((module) => ({ default: module.AssistantPage })));
+const ConnectionsPage = lazy(() => import("./features/connections/pages/ConnectionsPage").then((module) => ({ default: module.ConnectionsPage })));
+const PublishManagementPage = lazy(() => import("./features/publishing/pages/PublishManagementPage").then((module) => ({ default: module.PublishManagementPage })));
+const SemanticModelPage = lazy(() => import("./features/modeling/pages/SemanticModelPage").then((module) => ({ default: module.SemanticModelPage })));
+const DataSynchronizationPage = lazy(() => import("./features/sync/pages/DataSynchronizationPage").then((module) => ({ default: module.DataSynchronizationPage })));
 
 export default function App() {
   return (

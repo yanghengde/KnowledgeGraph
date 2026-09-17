@@ -13,7 +13,7 @@ from typing import Any, Iterable
 
 from sqlalchemy import text
 
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 
 
 COMPATIBILITY_RANK = {"non_breaking": 0, "conditional": 1, "breaking": 2}

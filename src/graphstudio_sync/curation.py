@@ -19,7 +19,7 @@ from sqlalchemy import text
 
 from .config import PROJECT_ROOT, SyncSettings
 from .connections import resolved_settings
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 from .row_scope import evaluate_row_scope, list_row_scope_policies
 from .source_database import (
     ORACLE_KIND,

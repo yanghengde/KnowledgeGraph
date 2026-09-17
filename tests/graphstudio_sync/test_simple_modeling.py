@@ -1,7 +1,7 @@
 from copy import deepcopy
 import pytest
-from src.graphstudio_sync import simple_modeling as simple
-from src.graphstudio_sync.semantic_mapping import source_fields
+from src.graphstudio_sync.modeling import simple_modeling as simple
+from src.graphstudio_sync.modeling.semantic_mapping import source_fields
 from src.ontology import authority
 
 

@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.graphstudio_sync import publish_ontology
+from src.graphstudio_sync.publishing import publish_ontology
 
 
 def _workspace():
@@ -66,7 +66,7 @@ def test_freeze_does_not_require_a_second_local_approver(monkeypatch):
 
 def test_freeze_rejects_an_already_frozen_workspace(monkeypatch):
     from contextlib import nullcontext
-    monkeypatch.setattr("src.graphstudio_sync.ontology_store.workspace", lambda *a, **k: {"status": "frozen"})
+    monkeypatch.setattr("src.graphstudio_sync.storage.ontology_store.workspace", lambda *a, **k: {"status": "frozen"})
     repository = SimpleNamespace(engine=SimpleNamespace(begin=lambda: nullcontext(SimpleNamespace(execute=lambda *a, **k: None))))
 
     with pytest.raises(ValueError, match="Only a draft workspace may be frozen"):
@@ -134,7 +134,7 @@ def test_projection_only_relation_provides_context_but_is_not_a_published_link(m
 
 
 def test_discovery_plan_combines_physical_and_semantic_relationships(monkeypatch) -> None:
-    monkeypatch.setattr("src.graphstudio_sync.ontology_store.source_payload", lambda _: {
+    monkeypatch.setattr("src.graphstudio_sync.storage.ontology_store.source_payload", lambda _: {
         "classes": [{"name": "MfgOrder"}, {"name": "Product"}, {"name": "Workflow", "chineseName": "工作流"}],
         "properties": [],
         "relationships": [

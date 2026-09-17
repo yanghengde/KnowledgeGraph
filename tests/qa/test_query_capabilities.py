@@ -4,8 +4,10 @@ import json
 import pytest
 from rdflib import Dataset, Literal, Namespace, RDF, URIRef
 
-from src.qa import graphstudio_assistant as assistant
-from src.qa.query_capabilities import match_capability, retrieve_schema, result_table
+from src.query import graphstudio_assistant as assistant
+from src.query.query_capabilities import match_capability
+from src.query.query_capabilities import retrieve_schema
+from src.query.query_capabilities import result_table
 
 
 NS = Namespace(assistant._PUBLISH_NAMESPACE)

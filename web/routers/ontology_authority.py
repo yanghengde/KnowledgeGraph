@@ -95,7 +95,8 @@ def sync(name: str, request: Revision):
         record = authorities.get(name)
         if not record or record["revision"] != request.revision:
             raise HTTPException(409, "权威版本已变化，请刷新后同步")
-        from src.graphstudio_sync.ontology_store import source_payload, save_source
+        from src.graphstudio_sync.storage.ontology_store import source_payload
+        from src.graphstudio_sync.storage.ontology_store import save_source
         conn.execute(text("SELECT pg_advisory_xact_lock(721603061)"))
         payload = source_payload(None, conn)
         cls = record["model"]["class"]

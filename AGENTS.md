@@ -6,8 +6,8 @@ CSV 物理结构 → PostgreSQL 本体与治理 → Graph Studio；Camstar SQL S
 
 - PostgreSQL 是唯一模型后端。用户已明确要求删除历史功能；不再恢复旧图数据库兼容实现、旧 ETL、Wiki/RAG 或重复页面。
 - `src/graphstudio_sync/` 是核心业务模块；`frontend/` 是唯一控制台，`web/` 提供 API。
-- `src/ontology/wiki_kb/*_ontology.json` 是仍用于候选比较的来源语义定义，不是待清理的历史文档。
-- `src/qa/sql_query_builder.py` 和物理 Schema 工具服务于字段/关系规划，Graph Studio 问答服务于已发布模型。
+- `src/ontology/semantic_references/*_ontology.json` 是仍用于候选比较的来源语义定义，不是待清理的历史文档。
+- `src/planning/sql_query_builder.py` 和物理 Schema 工具服务于字段/关系规划，Graph Studio 问答服务于已发布模型。
 
 ## 数据约束
 

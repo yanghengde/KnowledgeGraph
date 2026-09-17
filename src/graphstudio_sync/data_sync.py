@@ -14,8 +14,9 @@ from .config import SyncSettings
 from .curation import build_curation_preview
 from .incremental import execute_incremental_plan
 from .incremental_preview import build_incremental_preview
-from .materialization import execute_materialization, materialization_status
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.publishing.materialization import execute_materialization
+from src.graphstudio_sync.publishing.materialization import materialization_status
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 
 
 INCREMENTAL_STRATEGIES = {"watermark", "append_only", "cdc"}

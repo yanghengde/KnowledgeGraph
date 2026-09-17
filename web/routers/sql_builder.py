@@ -3,10 +3,8 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from src.qa.sql_query_builder import (
-    MAX_QUERY_OBJECTS,
-    build_query_builder_plan,
-)
+from src.planning.sql_query_builder import MAX_QUERY_OBJECTS
+from src.planning.sql_query_builder import build_query_builder_plan
 
 
 router = APIRouter()

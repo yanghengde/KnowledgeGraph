@@ -20,7 +20,7 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_TABLES = PROJECT_ROOT / "docs" / "Database_Tables.csv"
 DEFAULT_FIELDS = PROJECT_ROOT / "docs" / "Database_Fields.csv"
-DEFAULT_ONTOLOGY_DIR = PROJECT_ROOT / "src" / "ontology" / "wiki_kb"
+DEFAULT_ONTOLOGY_DIR = PROJECT_ROOT / "src" / "ontology" / "semantic_references"
 DEFAULT_REPORT = PROJECT_ROOT / "docs" / "ontology_csv_validation_report.md"
 
 SYSTEM_FIELDS = {

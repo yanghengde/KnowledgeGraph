@@ -3,8 +3,10 @@ import copy
 import pytest
 from fastapi import HTTPException
 
-from src.graphstudio_sync.semantic_mapping import source_fields, candidate_preview, validate_design
-from src.graphstudio_sync.physical_model import physical_fields
+from src.graphstudio_sync.modeling.semantic_mapping import source_fields
+from src.graphstudio_sync.modeling.semantic_mapping import candidate_preview
+from src.graphstudio_sync.modeling.semantic_mapping import validate_design
+from src.graphstudio_sync.modeling.physical_model import physical_fields
 from src.ontology import authority
 from web.routers import semantic_mapping as api
 
@@ -111,9 +113,9 @@ def test_submit_rejects_stale_preview_and_event_design(draft, monkeypatch):
 
 
 def test_mapping_provenance_is_frozen_and_excluded_fields_cannot_be_republished(draft):
-    from src.graphstudio_sync.publish_ontology_postgres import _add_class
-    from src.graphstudio_sync.publish_ontology import validate_graph
-    from src.graphstudio_sync.ontology_store import frozen_graph
+    from src.graphstudio_sync.publishing.publish_ontology_postgres import _add_class
+    from src.graphstudio_sync.publishing.publish_ontology import validate_graph
+    from src.graphstudio_sync.storage.ontology_store import frozen_graph
     cls = candidate_preview(draft)["payload"]["classes"][0]
     graph = {"nodes": [], "edges": [], "properties": []}
     _add_class(graph, "test", {"class": {**cls, "name": "Product"}, "properties": cls["properties"]}, "Product", "core", "quarantine")
@@ -126,7 +128,7 @@ def test_mapping_provenance_is_frozen_and_excluded_fields_cannot_be_republished(
 
 def test_delete_draft_checks_revision_and_preserves_design():
     import json
-    from src.graphstudio_sync.semantic_mapping import MappingStore
+    from src.graphstudio_sync.modeling.semantic_mapping import MappingStore
     class Connection:
         def __init__(self):
             self.row = {"revision": 3, "design": {"role": "entity", "fields": {"name": "property"}}}

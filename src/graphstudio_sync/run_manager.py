@@ -13,7 +13,7 @@ from sqlalchemy import text
 from .config import PROJECT_ROOT, SyncSettings
 from .connections import resolved_settings
 from .inventory import build_plan
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 
 
 PLAN_RUN_DIR = PROJECT_ROOT / "outputs" / "graphstudio" / "plans"

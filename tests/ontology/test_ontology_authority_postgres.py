@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import event, text
 
 from src.ontology.authority_store import AuthorityStore
-from src.graphstudio_sync.database import control_engine
+from src.graphstudio_sync.storage.database import control_engine
 from src.graphstudio_sync.config import SyncSettings
 
 
@@ -24,7 +24,7 @@ def test_proposals_idempotent_and_revisions_transactional():
     try:
         store = AuthorityStore(engine)
         store.initialize()
-        from src.graphstudio_sync.semantic_mapping import MappingStore
+        from src.graphstudio_sync.modeling.semantic_mapping import MappingStore
         mappings = MappingStore(engine)
         session = {"tables": {"Example": {"CDOName": "Example"}}, "fields": {"Example": [
             {"FieldName": "ExampleId", "IsPrimaryKey": "True", "IsForeignKey": "False", "IsList": "False", "DataType": "1"},

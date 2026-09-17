@@ -18,14 +18,17 @@ from .continuous_sync import execute_continuous_sync
 from .catalog import compile_catalog
 from .curation import build_curation_preview
 from .data_sync import run_due_data_sync
-from .deployment import create_deployment, deployment_status
-from .database import initialize_control_plane
+from src.graphstudio_sync.publishing.deployment import create_deployment
+from src.graphstudio_sync.publishing.deployment import deployment_status
+from src.graphstudio_sync.storage.database import initialize_control_plane
 from .inventory import build_plan, check_graphstudio, read_ontology, read_source_catalog
 from .incremental import execute_incremental_plan, execute_incremental_probe
 from .incremental_preview import build_incremental_preview
-from .materialization import execute_materialization, materialization_status, rollback_release
+from src.graphstudio_sync.publishing.materialization import execute_materialization
+from src.graphstudio_sync.publishing.materialization import materialization_status
+from src.graphstudio_sync.publishing.materialization import rollback_release
 from .observability import observability_status, run_health_check
-from .repository import ControlPlaneRepository
+from src.graphstudio_sync.storage.repository import ControlPlaneRepository
 from .preview import build_full_preview
 from .run_manager import execute_dry_run
 
@@ -225,7 +228,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     settings = SyncSettings.from_env()
     if args.command in {"import-csv-model", "model-store-status"}:
-        from .model_import import import_csv_model, postgres_status
+        from src.graphstudio_sync.modeling.model_import import import_csv_model
+        from src.graphstudio_sync.modeling.model_import import postgres_status
         if args.command == "import-csv-model":
             payload = import_csv_model(settings, classes=args.classes, apply=args.apply, activate=args.activate)
         else:

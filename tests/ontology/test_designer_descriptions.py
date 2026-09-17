@@ -8,7 +8,7 @@ from sqlalchemy import event, text
 
 from src.ontology import designer_descriptions as store
 from src.graphstudio_sync.config import PROJECT_ROOT, SyncSettings
-from src.graphstudio_sync.database import control_engine
+from src.graphstudio_sync.storage.database import control_engine
 
 
 def test_source_identity_excludes_passwords_and_separates_databases(monkeypatch):

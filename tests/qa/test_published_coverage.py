@@ -1,4 +1,4 @@
-from src.qa import published_coverage as coverage
+from src.query import published_coverage as coverage
 
 
 def test_coverage_distinguishes_definitions_empty_data_and_unknown(monkeypatch):
