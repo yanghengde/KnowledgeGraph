@@ -96,3 +96,10 @@ PostgreSQL 是唯一模型后端。项目不再包含旧图数据库驱动、旧
 前端测试需要 Node.js 22.6+。执行 `python -m pytest tests -q` 和前端 `npm run test`、`npm run build`。真实 PostgreSQL 集成测试需显式设置 `RUN_MODEL_POSTGRES_TEST=1`、`RUN_AUTHORITY_POSTGRES_TEST=1`；测试使用独占临时 Schema。
 
 可按分区运行测试，例如 `python -m pytest tests/ontology -q`。完整交付仍需执行全部后端测试与前端构建；真实远端发布须按操作指南验证。
+
+## 当前重构进度与验收
+
+- 已整理业务模块和前端业务分区，统一当前模型范围。继续沿用 React 与现有组件库。
+- 对象检查显示关系增删与物理依据，保留已有关系的名称和治理设置，阻止指向被排除对象的关系确认。
+- 下一步完善独立关系业务定义与审核记录，以及对象草稿相对待发布、冻结版本的状态差异。
+- 后续以 MfgOrder 与 Product 的不同外键为验收场景，再完成隔离环境中的模型发布与回滚验证。实际业务含义由审阅确认，不能根据名称推断后自动批准。

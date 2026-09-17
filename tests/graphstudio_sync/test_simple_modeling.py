@@ -45,3 +45,53 @@ def test_complex_mapping_cannot_commit(monkeypatch):
     prepared = simple.prepare(draft, {}, {}, [], workspace, source)
     with pytest.raises(ValueError):
         simple.commit(None, None, workspace, prepared)
+
+
+def relationship_fixture(monkeypatch):
+    draft, workspace, source = fixture(monkeypatch)
+    rows = authority.physical_catalog()["Product"]
+    for name in ("CategoryId", "BeginCategoryId"):
+        rows.append({"FieldName": name, "IsPrimaryKey": "False", "IsForeignKey": "True",
+                     "FKTableName": "Category", "FKFieldName": "CategoryId", "FieldID": name,
+                     "DataType": "1", "IsList": "False"})
+    draft["fields"] = source_fields("Product", rows)
+    draft["tableNames"].append("Category")
+    draft["design"]["fields"].update(category="relationship", beginCategory="relationship")
+    workspace["graph"]["nodes"].append({"id": "w::Category", "data": {
+        "sourceClass": "Category", "targetName": "Category", "role": "context"}})
+    source["classes"].append({"name": "Category"})
+    return draft, workspace, source
+
+
+def test_same_target_relations_stay_distinct_and_preserve_reviewed_settings(monkeypatch):
+    draft, workspace, source = relationship_fixture(monkeypatch)
+    first = simple.prepare(draft, {}, {}, [], workspace, source)
+    assert not first["blockers"]
+    assert len(first["relationshipChanges"]) == 2
+    assert {r["sourceField"] for r in first["relationshipChanges"]} == {"CategoryId", "BeginCategoryId"}
+    assert all(r["change"] == "added" for r in first["relationshipChanges"])
+    workspace["graph"] = first["graph"]
+    edge = workspace["graph"]["edges"][0]
+    edge["data"].update(targetName="REVIEWED_CATEGORY", description="已确认业务含义",
+                         requiredContext=True, questionEnabled=False, cardinality="one-to-one")
+    original = deepcopy(workspace["graph"]["edges"])
+    updated = simple.prepare(draft, {}, {}, [], workspace, source)
+    assert updated["graph"]["edges"] == original
+    assert all(r["change"] == "retained" for r in updated["relationshipChanges"])
+    draft["design"]["fields"]["category"] = "excluded"
+    removed = simple.prepare(draft, {}, {}, [], workspace, source)
+    changes = {r["sourceField"]: r["change"] for r in removed["relationshipChanges"]}
+    assert changes == {"CategoryId": "removed", "BeginCategoryId": "retained"}
+    assert len(removed["graph"]["edges"]) == 1
+    assert removed["planHash"] != updated["planHash"]
+
+
+@pytest.mark.parametrize("patch", [{"role": "excluded"}, {"published": False}])
+def test_selected_relationship_to_excluded_target_blocks_commit(monkeypatch, patch):
+    draft, workspace, source = relationship_fixture(monkeypatch)
+    workspace["graph"]["nodes"][0]["data"].update(patch)
+    prepared = simple.prepare(draft, {}, {}, [], workspace, source)
+    assert any("Category" in message for message in prepared["blockers"])
+    assert all(not r["targetAvailable"] for r in prepared["relationshipChanges"])
+    with pytest.raises(ValueError):
+        simple.commit(None, None, workspace, prepared)

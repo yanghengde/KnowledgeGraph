@@ -27,7 +27,8 @@ def prepare(draft, documents, authorities, proposals, workspace, source):
     graph = deepcopy(workspace["graph"])
     name = draft["tableName"]
     existing = next((n for n in graph["nodes"] if n["data"].get("sourceClass") == name), None)
-    targets = {n["data"].get("sourceClass"): n["id"] for n in graph["nodes"]}
+    targets = {n["data"].get("sourceClass"): n["id"] for n in graph["nodes"]
+               if n["data"].get("role") != "excluded" and n["data"].get("published") is not False}
     for rel in plan["model"]["relationships"]:
         if rel["toClass"] != name and rel["toClass"] not in targets:
             blockers.append(f"关联表 {rel['toClass']} 尚未加入发布模型；请先完成该表，或暂不勾选此关联")
@@ -40,6 +41,8 @@ def prepare(draft, documents, authorities, proposals, workspace, source):
     graph["nodes"] = [n for n in graph["nodes"] if n["id"] != uid]
     graph["properties"] = [p for p in graph["properties"] if p["classUid"] != uid or p.get("origin") == "custom"]
     physical_links = {relation_name(f["name"]) for f in draft["fields"] if f["type"] == "Navigation"}
+    previous_links = [deepcopy(e) for e in graph["edges"]
+                      if e["source"] == uid and e["data"].get("sourceRelationship") in physical_links]
     graph["edges"] = [e for e in graph["edges"] if not (e["source"] == uid and e["data"].get("sourceRelationship") in physical_links)]
     cls = plan["model"]["class"]
     meta = {**cls, "name": name}
@@ -58,6 +61,13 @@ def prepare(draft, documents, authorities, proposals, workspace, source):
     targets[name] = uid
     if not blockers:
         for rel in plan["model"]["relationships"]:
+            prior = [e for e in previous_links if e["target"] == targets[rel["toClass"]]
+                     and e["data"].get("sourceRelationship") == rel["relationName"]]
+            if prior:
+                # Re-selecting the same physical link must preserve its reviewed
+                # name, identity, cardinality, description and governance policy.
+                graph["edges"].extend(prior)
+                continue
             _add_relationship(graph, workspace["workspace_key"], {"sourceUid": uid, "targetUid": targets[rel["toClass"]],
                               "targetName": rel["relationName"], "sourceRelationship": rel["relationName"],
                               "cardinality": rel.get("cardinality", "MANY_TO_ONE").lower().replace("_", "-"), "usage": "published_link"})
@@ -67,7 +77,31 @@ def prepare(draft, documents, authorities, proposals, workspace, source):
     payload["relationships"] = [r for r in source["relationships"] if r["source"] != name] + [{**r, "source": name, "target": r["toClass"], "name": r["relationName"]} for r in plan["model"]["relationships"]]
     if not blockers:
         store.validate_source(payload)
+    selected_links = {(r["relationName"], targets.get(r["toClass"])) for r in plan["model"]["relationships"]}
+    relation_changes = []
+    node_names = {n["id"]: n["data"].get("sourceClass") or n["data"].get("targetName") for n in workspace["graph"]["nodes"]}
+    for field in draft["fields"]:
+        if field["type"] != "Navigation":
+            continue
+        relation = relation_name(field["name"])
+        old = [e for e in previous_links if e["data"].get("sourceRelationship") == relation]
+        selected = (relation, targets.get(field["target"])) in selected_links
+        matching = [e for e in old if e["target"] == targets.get(field["target"])]
+        evidence = {"sourceTable": name, "sourceField": field["physicalName"],
+                    "sourceFieldId": field.get("fieldId", ""), "snapshotId": draft["snapshotId"],
+                    "targetTable": field["target"], "targetField": field.get("targetField", ""),
+                    "relationName": relation, "instanceValidation": "not_checked"}
+        if selected:
+            relation_changes.append({**evidence, "change": "retained" if matching else "added",
+                                     "targetAvailable": field["target"] in targets,
+                                     "businessNames": [e["data"]["targetName"] for e in matching] or [relation]})
+        for edge in old:
+            if not selected or edge not in matching:
+                relation_changes.append({**evidence, "change": "removed",
+                                         "targetTable": node_names.get(edge["target"], edge["target"]),
+                                         "targetField": "", "businessNames": [edge["data"]["targetName"]]})
     result = {"plan": plan, "graph": graph, "source": payload, "blockers": list(dict.fromkeys(blockers)),
+              "relationshipChanges": relation_changes,
               "counts": preview["counts"], "revision": draft["revision"], "workspaceRevision": workspace["revision"],
               "fields": [{"name": p["name"], "type": p["type"]} for p in cls["properties"]],
               "removedFields": [p["sourceName"] for p in old_props.values() if p.get("origin") != "custom" and p["sourceName"] not in {v["name"] for v in cls["properties"]}]}

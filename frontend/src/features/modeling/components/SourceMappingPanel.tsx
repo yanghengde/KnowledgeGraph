@@ -1,3 +1,4 @@
+import { RelationshipChangeReview } from "./RelationshipChangeReview";
 import { useMutation,useQuery,useQueryClient } from "@tanstack/react-query";
 import { Alert,App,Button,Card,Checkbox,Collapse,Drawer,Empty,Input,Popconfirm,Radio,Segmented,Select,Space,Steps,Table,Tag,Tooltip,Typography } from "antd";
 import { useEffect,useRef,useState } from "react";
@@ -139,6 +140,7 @@ function Form({ detail, register, done, inline, onBusy }: { detail: MappingDetai
       <Button type="primary" disabled={busy} loading={check.isPending} onClick={() => check.mutate()}>检查这个对象</Button>
       {preview && <Card size="small" title="检查结果"><Space orientation="vertical" style={{ width: "100%" }}>
         <Alert showIcon type={preview.blockers.length ? "warning" : "success"} message={preview.blockers.length ? "这些内容需要处理" : `${preview.counts.properties} 个字段、${preview.counts.relationships} 条关联，可以加入发布模型`} description={preview.blockers.join("；") || "确认后，系统会完成模型审阅和准备。"} />
+        <RelationshipChangeReview items={preview.relationshipChanges || []} />
         {preview.removedFields.length > 0 && <Alert type="warning" message={`将从待发布模型移除 ${preview.removedFields.length} 个字段`} description={preview.removedFields.join("、")} />}
         <Collapse items={[{ key: "fields", label: "查看本次字段与关联", children: preview.fields.map(f => {
           const field = detail.fields.find(item => item.name === f.name);

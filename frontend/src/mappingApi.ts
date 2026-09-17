@@ -7,7 +7,12 @@ export type FieldRecommendation = { role: FieldRole; autoSelect: boolean; reason
 export type MappingDescriptions = { fields: Record<string, { descriptionEn?: string; descriptionZh?: string }>; warning: string };
 export type MappingDetail = MappingRow & { design: SourceDesign; fields: MappingField[]; tableNames: string[]; recommendations?: Record<string, FieldRecommendation>; suggestedFields?: Record<string, FieldRole> };
 export type MappingPreview = { planHash: string; blockers: string[]; counts: { properties: number; relationships: number; internal: number; excluded: number } };
-export type SimpleCheck = MappingPreview & { revision: number; fields: { name: string; type: string }[]; removedFields: string[] };
+export type RelationshipChange = {
+  sourceTable: string; sourceField: string; sourceFieldId: string; snapshotId: string;
+  targetTable: string; targetField: string; relationName: string; businessNames: string[];
+  change: "added" | "retained" | "removed"; targetAvailable?: boolean; instanceValidation: "not_checked";
+};
+export type SimpleCheck = MappingPreview & { revision: number; fields: { name: string; type: string }[]; removedFields: string[]; relationshipChanges: RelationshipChange[] };
 async function request<T>(path = "", body?: unknown): Promise<T> {
   const response = await fetch(`/api/semantic-mapping${path}`, body === undefined ? undefined : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await response.json();
